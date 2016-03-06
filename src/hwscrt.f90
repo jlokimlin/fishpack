@@ -374,9 +374,9 @@ contains
         ! Dictionary: calling arguments
         !-----------------------------------------------
         integer :: idimf, m, mbdcnd, n, nbdcnd, mp1, np1, i, j, ierror
-        real , dimension(45, 82) :: f
-        real , dimension(81) :: bdb, bda, bdc, bdd, y
-        real , dimension(41) :: x
+        real (wp), dimension(45, 82) :: f
+        real (wp), dimension(81) :: bdb, bda, bdc, bdd, y
+        real (wp), dimension(41) :: x
         real::a, b, c, d, elmbda, pi, dum, piby2, pisq, pertrb, discretization_error, z
         !-----------------------------------------------
         !

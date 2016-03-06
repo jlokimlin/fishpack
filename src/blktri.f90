@@ -1,257 +1,3 @@
-!
-!     file blktri.f
-!
-!     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-!     *                                                               *
-!     *                  copyright (c) 2005 by UCAR                   *
-!     *                                                               *
-!     *       University Corporation for Atmospheric Research         *
-!     *                                                               *
-!     *                      all rights reserved                      *
-!     *                                                               *
-!     *                    FISHPACK90  version 1.1                    *
-!     *                                                               *
-!     *                 A Package of Fortran 77 and 90                *
-!     *                                                               *
-!     *                Subroutines and Example Programs               *
-!     *                                                               *
-!     *               for Modeling Geophysical Processes              *
-!     *                                                               *
-!     *                             by                                *
-!     *                                                               *
-!     *        John Adams, Paul Swarztrauber and Roland Sweet         *
-!     *                                                               *
-!     *                             of                                *
-!     *                                                               *
-!     *         the National Center for Atmospheric Research          *
-!     *                                                               *
-!     *                Boulder, Colorado  (80307)  U.S.A.             *
-!     *                                                               *
-!     *                   which is sponsored by                       *
-!     *                                                               *
-!     *              the National Science Foundation                  *
-!     *                                                               *
-!     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-!
-!
-!     SUBROUTINE BLKTRI (IFLG, NP, N, AN, BN, CN, MP, M, AM, BM, CM, IDIMY, Y, 
-!    +                   IERROR, W)
-!
-!
-!                                                                       
-! DIMENSION OF           AN(N), BN(N), CN(N), AM(M), BM(M), CM(M), Y(IDIMY, N), 
-! ARGUMENTS
-!                                                                       
-! LATEST REVISION        JUNE 2004
-!                                                                       
-! USAGE                  CALL BLKTRI (IFLG, NP, N, AN, BN, CN, MP, M, AM, BM,    
-!                                     CM, IDIMY, Y, IERROR, W)              
-!                                                                       
-! PURPOSE                BLKTRI SOLVES A SYSTEM OF LINEAR EQUATIONS     
-!                        OF THE FORM                                    
-!                                                                       
-!                        AN(J)*X(I, J-1) + AM(I)*X(I-1, J) +              
-!                        (BN(J)+BM(I))*X(I, J) + CN(J)*X(I, J+1) +        
-!                        CM(I)*X(I+1, J) = Y(I, J)                        
-!                                                                       
-!                        FOR I = 1, 2, ..., M  AND  J = 1, 2, ..., N.         
-!                                                                       
-!                        I+1 AND I-1 ARE EVALUATED MODULO M AND         
-!                        J+1 AND J-1 MODULO N, I.E.,                    
-!                                                                       
-!                        X(I, 0) = X(I, N),  X(I, N+1) = X(I, 1),           
-!                        X(0, J) = X(M, J),  X(M+1, J) = X(1, J).           
-!                                                                       
-!                        THESE EQUATIONS USUALLY RESULT FROM THE        
-!                        DISCRETIZATION OF SEPARABLE ELLIPTIC           
-!                        EQUATIONS.  BOUNDARY CONDITIONS MAY BE         
-!                        DIRICHLET, NEUMANN, OR PERIODIC.               
-!                                                                       
-! ARGUMENTS                                                             
-!                                                                       
-! ON INPUT               IFLG                                           
-!                                                                       
-!                          = 0  INITIALIZATION ONLY.                    
-!                               CERTAIN QUANTITIES THAT DEPEND ON NP,   
-!                               N, AN, BN, AND CN ARE COMPUTED AND      
-!                               STORED IN DERIVED data type w (see
-!                               description of w below)
-!                                                                       
-!                          = 1  THE QUANTITIES THAT WERE COMPUTED       
-!                               IN THE INITIALIZATION ARE USED          
-!                               TO OBTAIN THE SOLUTION X(I, J).          
-!                                                                       
-!                               NOTE:                                   
-!                               A CALL WITH IFLG=0 TAKES                
-!                               APPROXIMATELY ONE HALF THE TIME         
-!                               AS A CALL WITH IFLG = 1.                
-!                               HOWEVER, THE INITIALIZATION DOES        
-!                               NOT HAVE TO BE REPEATED UNLESS NP,      
-!                               N, AN, BN, OR CN CHANGE.                
-!                                                                       
-!                        NP                                             
-!                          = 0  IF AN(1) AND CN(N) ARE NOT ZERO,        
-!                               WHICH CORRESPONDS TO PERIODIC           
-!                               BOUNARY CONDITIONS.                     
-!                                                                       
-!                          = 1  IF AN(1) AND CN(N) ARE ZERO.            
-!                                                                       
-!                        N                                              
-!                          THE NUMBER OF UNKNOWNS IN THE J-DIRECTION.   
-!                          N MUST BE GREATER THAN 4.                    
-!                          THE OPERATION COUNT IS PROPORTIONAL TO       
-!                          MNLOG2(N), HENCE N SHOULD BE SELECTED        
-!                          LESS THAN OR EQUAL TO M.                     
-!                                                                       
-!                        AN, BN, CN                                       
-!                          ONE-DIMENSIONAL ARRAYS OF LENGTH N           
-!                          THAT SPECIFY THE COEFFICIENTS IN THE         
-!                          LINEAR EQUATIONS GIVEN ABOVE.                
-!                                                                       
-!                        MP                                             
-!                          = 0  IF AM(1) AND CM(M) ARE NOT ZERO,        
-!                               WHICH CORRESPONDS TO PERIODIC           
-!                               BOUNDARY CONDITIONS.                    
-!                                                                       
-!                          = 1  IF AM(1) = CM(M) = 0  .                 
-!                                                                       
-!                        M                                              
-!                          THE NUMBER OF UNKNOWNS IN THE I-DIRECTION.   
-!                           M MUST BE GREATER THAN 4.                   
-!                                                                       
-!                        AM, BM, CM                                       
-!                          ONE-DIMENSIONAL ARRAYS OF LENGTH M THAT      
-!                          SPECIFY THE COEFFICIENTS IN THE LINEAR       
-!                          EQUATIONS GIVEN ABOVE.                       
-!                                                                       
-!                        IDIMY                                          
-!                          THE ROW (OR FIRST) DIMENSION OF THE          
-!                          TWO-DIMENSIONAL ARRAY Y AS IT APPEARS        
-!                          IN THE PROGRAM CALLING BLKTRI.               
-!                          THIS PARAMETER IS USED TO SPECIFY THE        
-!                          VARIABLE DIMENSION OF Y.                     
-!                          IDIMY MUST BE AT LEAST M.                    
-!                                                                       
-!                        Y                                              
-!                          A TWO-DIMENSIONAL ARRAY THAT SPECIFIES       
-!                          THE VALUES OF THE RIGHT SIDE OF THE LINEAR   
-!                          SYSTEM OF EQUATIONS GIVEN ABOVE.             
-!                          Y MUST BE DIMENSIONED AT LEAST M*N.          
-!                                                                       
-!                        W
-!                          A fortran 90 derived TYPE (FishpackWorkspace) variable
-!                          that must be declared by the user.  The first
-!                          two declarative statements in the user program
-!                          calling BLKTRI must be:
-!
-!                               use type_FishpackWorkspace
-!                               TYPE (FishpackWorkspace) :: W
-!
-!                          The first statement makes the fishpack module
-!                          defined in the file "fish.f" available to the
-!                          user program calling BLKTRI.  The second statement
-!                          declares a derived type variable (defined in
-!                          the module "fish.f") which is used internally
-!                          in BLKTRI to dynamically allocate real and complex
-!                          work space used in solution.  An error flag
-!                          (IERROR = 20) is set if the required work space
-!                          allocation fails (for example if N, M are too large)
-!                          Real and complex values are set in the components
-!                          of W on a initial (IFLG=0) call to BLKTRI.  These
-!                          must be preserved on non-initial calls (IFLG=1)
-!                          to BLKTRI.  This eliminates redundant calculations
-!                          and saves compute time.
-!               ****       IMPORTANT!  The user program calling BLKTRI should
-!                          include the statement:
-!
-!                               CALL FISHFIN(W)
-!
-!                          after the final approximation is generated by
-!                          BLKTRI.  The will deallocate the real and complex
-!                          work space of W.  Failure to include this statement
-!                          could result in serious memory leakage.
-!
-!                                                                       
-! ARGUMENTS                                                             
-!                                                                       
-! ON OUTPUT              Y                                              
-!                          CONTAINS THE SOLUTION X.                     
-!                                                                       
-!                        IERROR                                         
-!                          AN ERROR FLAG THAT INDICATES INVALID         
-!                          INPUT PARAMETERS.  EXCEPT FOR NUMBER ZER0,   
-!                          A SOLUTION IS NOT ATTEMPTED.                 
-!                                                                       
-!                        = 0  NO ERROR.                                 
-!                        = 1  M IS LESS THAN 5                          
-!                        = 2  N IS LESS THAN 5                          
-!                        = 3  IDIMY IS LESS THAN M.                     
-!                        = 4  BLKTRI FAILED WHILE COMPUTING RESULTS     
-!                             THAT DEPEND ON THE COEFFICIENT ARRAYS     
-!                             AN, BN, CN.  CHECK THESE ARRAYS.          
-!                        = 5  AN(J)*CN(J-1) IS LESS THAN 0 FOR SOME J.  
-!                                                                       
-!                             POSSIBLE REASONS FOR THIS CONDITION ARE   
-!                             1. THE ARRAYS AN AND CN ARE NOT CORRECT   
-!                             2. TOO LARGE A GRID SPACING WAS USED      
-!                                IN THE DISCRETIZATION OF THE ELLIPTIC  
-!                                EQUATION.                              
-!                             3. THE LINEAR EQUATIONS RESULTED FROM A   
-!                                PARTIAL DIFFERENTIAL EQUATION WHICH    
-!                                WAS NOT ELLIPTIC.                      
-!                                                                       
-!                        = 20 If the dynamic allocation of real and
-!                             complex work space in the derived type
-!                             (FishpackWorkspace) variable W fails (e.g., 
-!                             if N, M are too large for the platform used)
-!
-!                                                                       
-!                        W
-!                             The derived type (FishpackWorkspace) variable W
-!                             contains real and complex values that must not
-!                             be destroyed if BLKTRI is called again with
-!                             IFLG=1.
-!                                                                       
-!                                                                       
-! SPECIAL CONDITIONS     THE ALGORITHM MAY FAIL IF abs(BM(I)+BN(J))     
-!                        IS LESS THAN abs(AM(I))+abs(AN(J))+            
-!                        abs(CM(I))+abs(CN(J))                          
-!                        FOR SOME I AND J. THE ALGORITHM WILL ALSO      
-!                        FAIL IF AN(J)*CN(J-1) IS LESS THAN ZERO FOR    
-!                        SOME J.                                        
-!                        SEE THE DESCRIPTION OF THE OUTPUT PARAMETER    
-!                        IERROR.                                        
-!                                                                       
-! I/O                    NONE                                           
-!                                                                       
-! PRECISION              SINGLE                                         
-!                                                                       
-! REQUIRED FILES         fish.f, comf.f
-!                                                                       
-! LANGUAGE               FORTRAN 90
-!                                                                       
-! HISTORY                WRITTEN BY PAUL SWARZTRAUBER AT NCAR IN THE    
-!                        EARLY 1970'S.  REWRITTEN AND RELEASED IN       
-!                        LIBRARIES IN JANUARY 1980. Revised in June
-!                        2004 using Fortan 90 dynamically allocated work
-!                        space and derived data types to eliminate mixed
-!                        mode conflicts in the earlier versions.
-!                                                                       
-! ALGORITHM              GENERALIZED CYCLIC REDUCTION                   
-!                                                                       
-! PORTABILITY            FORTRAN 90.  APPROXIMATE MACHINE ACCURACY
-!                        IS COMPUTED IN FUNCTION EPMACH.                
-!                                                                       
-! REFERENCES             SWARZTRAUBER, P. AND R. SWEET, 'EFFICIENT       
-!                        FORTRAN SUBPROGRAMS FOR THE SOLUTION OF        
-!                        ELLIPTIC EQUATIONS'                            
-!                        NCAR TN/IA-109, JULY, 1975, 138 PP.            
-!                                                                       
-!                        SWARZTRAUBER P. N., A DIRECT METHOD FOR         
-!                        THE DISCRETE SOLUTION OF SEPARABLE             
-!                        ELLIPTIC EQUATIONS, S.I.A.M.                   
-!                        J. NUMER. ANAL., 11(1974) PP. 1136-1150.        
-!***********************************************************************
 module module_blktri
 
     use, intrinsic :: iso_fortran_env, only: &
@@ -312,68 +58,66 @@ contains
         !     *                                                               *
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
-        !     PROGRAM TO ILLUSTRATE THE USE OF SUBROUTINE BLKTRI TO
-        !     SOLVE THE EQUATION
+        !     program to illustrate the use of subroutine blktri to
+        !     solve the equation
         !
-        !     .5/S*(D/DS)(.5/S*DU/DS)+.5/T*(D/DT)(.5/T*DU/DT)
+        !     .5/s*(d/ds)(.5/s*du/ds)+.5/t*(d/dt)(.5/t*du/dt)
         !                                                          (1)
-        !                   = 15/4*S*T*(S**4+T**4)
+        !                   = 15/4*s*t*(s**4+t**4)
         !
-        !     ON THE RECTANGLE 0 .LT. S .LT. 1 AND 0 .LT. T .LT. 1
-        !     WITH THE BOUNDARY CONDITIONS
+        !     on the rectangle 0 .lt. s .lt. 1 and 0 .lt. t .lt. 1
+        !     with the boundary conditions
         !
-        !     U(0, T) = 0
-        !                            0 .LE. T .LE. 1
-        !     U(1, T) = T**5
+        !     u(0, t) = 0
+        !                            0 .le. t .le. 1
+        !     u(1, t) = t**5
         !
-        !     AND
+        !     and
         !
-        !     U(S, 0) = 0
-        !                            0 .LE. S .LE. 1
-        !     U(S, 1) = S**5
+        !     u(s, 0) = 0
+        !                            0 .le. s .le. 1
+        !     u(s, 1) = s**5
         !
-        !     THE EXACT SOLUTION OF THIS PROBLEM IS U(S, T) = (S*T)**5
+        !     the exact solution of this problem is u(s, t) = (s*t)**5
         !
-        !     DEFINE THE INTEGERS M = 50 AND N = 63. THEN DEFINE THE
-        !     GRID INCREMENTS DELTAS = 1/(M+1) AND DELTAT = 1/(N+1).
+        !     define the integers m = 50 and n = 63. then define the
+        !     grid increments deltas = 1/(m+1) and deltat = 1/(n+1).
         !
-        !     THE GRID IS THEN GIVEN BY S(I) = I*DELTAS FOR I = 1, ..., M
-        !     AND T(J) = J*DELTAT FOR J = 1, ..., N.
+        !     the grid is then given by s(i) = i*deltas for i = 1, ..., m
+        !     and t(j) = j*deltat for j = 1, ..., n.
         !
-        !     THE APPROXIMATE SOLUTION IS GIVEN AS THE SOLUTION TO
-        !     THE FOLLOWING FINITE DIFFERENCE APPROXIMATION OF EQUATION (1).
+        !     the approximate solution is given as the solution to
+        !     the following finite difference approximation of equation (1).
         !
-        !     .5/(S(I)*DELTAS)*((U(I+1, J)-U(I, J))/(2*S(I+.5)*DELTAS)
-        !                     -(U(I, J)-U(I-1, J))/(2*S(I-.5)*DELTAS))
-        !     +.5/(T(I)*DELTAT)*((U(I, J+1)-U(I, J))/(2*T(I+.5)*DELTAT) (2)
-        !                     -(U(I, J)-U(I, J-1))/(2*T(I-.5)*DELTAT))
-        !               = 15/4*S(I)*T(J)*(S(I)**4+T(J)**4)
+        !     .5/(s(i)*deltas)*((u(i+1, j)-u(i, j))/(2*s(i+.5)*deltas)
+        !                     -(u(i, j)-u(i-1, j))/(2*s(i-.5)*deltas))
+        !     +.5/(t(i)*deltat)*((u(i, j+1)-u(i, j))/(2*t(i+.5)*deltat) (2)
+        !                     -(u(i, j)-u(i, j-1))/(2*t(i-.5)*deltat))
+        !               = 15/4*s(i)*t(j)*(s(i)**4+t(j)**4)
         !
-        !             WHERE S(I+.5) = .5*(S(I+1)+S(I))
-        !                   S(I-.5) = .5*(S(I)+S(I-1))
-        !                   T(I+.5) = .5*(T(I+1)+T(I))
-        !                   T(I-.5) = .5*(T(I)+T(I-1))
+        !             where s(i+.5) = .5*(s(i+1)+s(i))
+        !                   s(i-.5) = .5*(s(i)+s(i-1))
+        !                   t(i+.5) = .5*(t(i+1)+t(i))
+        !                   t(i-.5) = .5*(t(i)+t(i-1))
         !
-        !     THE APPROACH IS TO WRITE EQUATION (2) IN THE FORM
+        !     the approach is to write equation (2) in the form
         !
-        !     AM(I)*U(I-1, J)+BM(I, J)*U(I, J)+CM(I)*U(I+1, J)
-        !       +AN(J)*U(I, J-1)+BN(J)*U(I, J)+CN(J)*U(I, J+1)      (3)
-        !           = Y(I, J)
+        !     am(i)*u(i-1, j)+bm(i, j)*u(i, j)+cm(i)*u(i+1, j)
+        !       +an(j)*u(i, j-1)+bn(j)*u(i, j)+cn(j)*u(i, j+1)      (3)
+        !           = y(i, j)
         !
-        !     AND THEN CALL SUBROUTINE BLKTRI TO DETERMINE U(I, J)
-        !
-        !
+        !     and then call subroutine blktri to determine u(i, j)
         !
         !-----------------------------------------------
         ! Dictionary: Local variables
         !-----------------------------------------------
-        integer :: iflg, np, n, mp, m, idimy, i, j, ierror
-        real , dimension(75, 105) :: y
-        real , dimension(75) :: am, bm, cm
-        real , dimension(105) :: an, bn, cn
-        real , dimension(75) :: s
-        real , dimension(105) :: t
-        real :: ds, dt, discretization_error
+        integer (ip) :: iflg, np, n, mp, m, idimy, i, j, ierror
+        real (wp), dimension(75, 105) :: y
+        real (wp), dimension(75) :: am, bm, cm
+        real (wp), dimension(105) :: an, bn, cn
+        real (wp), dimension(75) :: s
+        real (wp), dimension(105) :: t
+        real (wp) :: ds, dt, discretization_error
         type (FishpackWorkspace)  :: workspace
         !-----------------------------------------------
 
@@ -485,8 +229,8 @@ contains
         write( stdout, '(A)') '     BLKTRI UNIT TEST ******* '
         write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
         write( stdout, '(A)') '     IERROR = 0,  Discretization Error = 1.6478E-05'
-
-        write( stdout, *) '    The output from your computer is: '
+        write( stdout, '(A)') ''
+        write( stdout, '(A)') '    The output from your computer is: '
         write( stdout, *) '    IERROR =', IERROR, ' Discretization Error = ', &
             discretization_error
 
@@ -499,29 +243,284 @@ contains
     !
     subroutine blktri( iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
         idimy, y, ierror, w )
-        !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
-        !-----------------------------------------------
-        integer  :: iflg
-        integer  :: np
-        integer  :: n
-        integer  :: mp
-        integer  :: m
-        integer  :: idimy
-        integer  :: ierror
-        real  :: an(*)
-        real  :: bn(*)
-        real  :: cn(*)
-        real  :: am(*)
-        real  :: bm(*)
-        real  :: cm(*)
-        real  :: y(idimy, *)
-        !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
-        !-----------------------------------------------
-        integer                  :: irwk, icwk
+        !
+        !     file blktri.f
+        !
+        !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+        !     *                                                               *
+        !     *                  copyright (c) 2005 by UCAR                   *
+        !     *                                                               *
+        !     *       University Corporation for Atmospheric Research         *
+        !     *                                                               *
+        !     *                      all rights reserved                      *
+        !     *                                                               *
+        !     *                    FISHPACK90  version 1.1                    *
+        !     *                                                               *
+        !     *                 A Package of Fortran 77 and 90                *
+        !     *                                                               *
+        !     *                Subroutines and Example Programs               *
+        !     *                                                               *
+        !     *               for Modeling Geophysical Processes              *
+        !     *                                                               *
+        !     *                             by                                *
+        !     *                                                               *
+        !     *        John Adams, Paul Swarztrauber and Roland Sweet         *
+        !     *                                                               *
+        !     *                             of                                *
+        !     *                                                               *
+        !     *         the National Center for Atmospheric Research          *
+        !     *                                                               *
+        !     *                Boulder, Colorado  (80307)  U.S.A.             *
+        !     *                                                               *
+        !     *                   which is sponsored by                       *
+        !     *                                                               *
+        !     *              the National Science Foundation                  *
+        !     *                                                               *
+        !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+        !
+        !
+        !     SUBROUTINE BLKTRI (IFLG, NP, N, AN, BN, CN, MP, M, AM, BM, CM, IDIMY, Y,
+        !    +                   IERROR, W)
+        !
+        !
+        !
+        ! DIMENSION OF           AN(N), BN(N), CN(N), AM(M), BM(M), CM(M), Y(IDIMY, N),
+        ! ARGUMENTS
+        !
+        ! LATEST REVISION        JUNE 2004
+        !
+        ! USAGE                  CALL BLKTRI (IFLG, NP, N, AN, BN, CN, MP, M, AM, BM,
+        !                                     CM, IDIMY, Y, IERROR, W)
+        !
+        ! PURPOSE                BLKTRI SOLVES A SYSTEM OF LINEAR EQUATIONS
+        !                        OF THE FORM
+        !
+        !                        AN(J)*X(I, J-1) + AM(I)*X(I-1, J) +
+        !                        (BN(J)+BM(I))*X(I, J) + CN(J)*X(I, J+1) +
+        !                        CM(I)*X(I+1, J) = Y(I, J)
+        !
+        !                        FOR I = 1, 2, ..., M  AND  J = 1, 2, ..., N.
+        !
+        !                        I+1 AND I-1 ARE EVALUATED MODULO M AND
+        !                        J+1 AND J-1 MODULO N, I.E.,
+        !
+        !                        X(I, 0) = X(I, N),  X(I, N+1) = X(I, 1),
+        !                        X(0, J) = X(M, J),  X(M+1, J) = X(1, J).
+        !
+        !                        THESE EQUATIONS USUALLY RESULT FROM THE
+        !                        DISCRETIZATION OF SEPARABLE ELLIPTIC
+        !                        EQUATIONS.  BOUNDARY CONDITIONS MAY BE
+        !                        DIRICHLET, NEUMANN, OR PERIODIC.
+        !
+        ! ARGUMENTS
+        !
+        ! ON INPUT               IFLG
+        !
+        !                          = 0  INITIALIZATION ONLY.
+        !                               CERTAIN QUANTITIES THAT DEPEND ON NP,
+        !                               N, AN, BN, AND CN ARE COMPUTED AND
+        !                               STORED IN DERIVED data type w (see
+        !                               description of w below)
+        !
+        !                          = 1  THE QUANTITIES THAT WERE COMPUTED
+        !                               IN THE INITIALIZATION ARE USED
+        !                               TO OBTAIN THE SOLUTION X(I, J).
+        !
+        !                               NOTE:
+        !                               A CALL WITH IFLG=0 TAKES
+        !                               APPROXIMATELY ONE HALF THE TIME
+        !                               AS A CALL WITH IFLG = 1.
+        !                               HOWEVER, THE INITIALIZATION DOES
+        !                               NOT HAVE TO BE REPEATED UNLESS NP,
+        !                               N, AN, BN, OR CN CHANGE.
+        !
+        !                        NP
+        !                          = 0  IF AN(1) AND CN(N) ARE NOT ZERO,
+        !                               WHICH CORRESPONDS TO PERIODIC
+        !                               BOUNARY CONDITIONS.
+        !
+        !                          = 1  IF AN(1) AND CN(N) ARE ZERO.
+        !
+        !                        N
+        !                          THE NUMBER OF UNKNOWNS IN THE J-DIRECTION.
+        !                          N MUST BE GREATER THAN 4.
+        !                          THE OPERATION COUNT IS PROPORTIONAL TO
+        !                          MNLOG2(N), HENCE N SHOULD BE SELECTED
+        !                          LESS THAN OR EQUAL TO M.
+        !
+        !                        AN, BN, CN
+        !                          ONE-DIMENSIONAL ARRAYS OF LENGTH N
+        !                          THAT SPECIFY THE COEFFICIENTS IN THE
+        !                          LINEAR EQUATIONS GIVEN ABOVE.
+        !
+        !                        MP
+        !                          = 0  IF AM(1) AND CM(M) ARE NOT ZERO,
+        !                               WHICH CORRESPONDS TO PERIODIC
+        !                               BOUNDARY CONDITIONS.
+        !
+        !                          = 1  IF AM(1) = CM(M) = 0  .
+        !
+        !                        M
+        !                          THE NUMBER OF UNKNOWNS IN THE I-DIRECTION.
+        !                           M MUST BE GREATER THAN 4.
+        !
+        !                        AM, BM, CM
+        !                          ONE-DIMENSIONAL ARRAYS OF LENGTH M THAT
+        !                          SPECIFY THE COEFFICIENTS IN THE LINEAR
+        !                          EQUATIONS GIVEN ABOVE.
+        !
+        !                        IDIMY
+        !                          THE ROW (OR FIRST) DIMENSION OF THE
+        !                          TWO-DIMENSIONAL ARRAY Y AS IT APPEARS
+        !                          IN THE PROGRAM CALLING BLKTRI.
+        !                          THIS PARAMETER IS USED TO SPECIFY THE
+        !                          VARIABLE DIMENSION OF Y.
+        !                          IDIMY MUST BE AT LEAST M.
+        !
+        !                        Y
+        !                          A TWO-DIMENSIONAL ARRAY THAT SPECIFIES
+        !                          THE VALUES OF THE RIGHT SIDE OF THE LINEAR
+        !                          SYSTEM OF EQUATIONS GIVEN ABOVE.
+        !                          Y MUST BE DIMENSIONED AT LEAST M*N.
+        !
+        !                        W
+        !                          A fortran 90 derived TYPE (FishpackWorkspace) variable
+        !                          that must be declared by the user.  The first
+        !                          two declarative statements in the user program
+        !                          calling BLKTRI must be:
+        !
+        !                               use type_FishpackWorkspace
+        !                               TYPE (FishpackWorkspace) :: W
+        !
+        !                          The first statement makes the fishpack module
+        !                          defined in the file "fish.f" available to the
+        !                          user program calling BLKTRI.  The second statement
+        !                          declares a derived type variable (defined in
+        !                          the module "fish.f") which is used internally
+        !                          in BLKTRI to dynamically allocate real and complex
+        !                          work space used in solution.  An error flag
+        !                          (IERROR = 20) is set if the required work space
+        !                          allocation fails (for example if N, M are too large)
+        !                          Real and complex values are set in the components
+        !                          of W on a initial (IFLG=0) call to BLKTRI.  These
+        !                          must be preserved on non-initial calls (IFLG=1)
+        !                          to BLKTRI.  This eliminates redundant calculations
+        !                          and saves compute time.
+        !               ****       IMPORTANT!  The user program calling BLKTRI should
+        !                          include the statement:
+        !
+        !                               CALL FISHFIN(W)
+        !
+        !                          after the final approximation is generated by
+        !                          BLKTRI.  The will deallocate the real and complex
+        !                          work space of W.  Failure to include this statement
+        !                          could result in serious memory leakage.
+        !
+        !
+        ! ARGUMENTS
+        !
+        ! ON OUTPUT              Y
+        !                          CONTAINS THE SOLUTION X.
+        !
+        !                        IERROR
+        !                          AN ERROR FLAG THAT INDICATES INVALID
+        !                          INPUT PARAMETERS.  EXCEPT FOR NUMBER ZER0,
+        !                          A SOLUTION IS NOT ATTEMPTED.
+        !
+        !                        = 0  NO ERROR.
+        !                        = 1  M IS LESS THAN 5
+        !                        = 2  N IS LESS THAN 5
+        !                        = 3  IDIMY IS LESS THAN M.
+        !                        = 4  BLKTRI FAILED WHILE COMPUTING RESULTS
+        !                             THAT DEPEND ON THE COEFFICIENT ARRAYS
+        !                             AN, BN, CN.  CHECK THESE ARRAYS.
+        !                        = 5  AN(J)*CN(J-1) IS LESS THAN 0 FOR SOME J.
+        !
+        !                             POSSIBLE REASONS FOR THIS CONDITION ARE
+        !                             1. THE ARRAYS AN AND CN ARE NOT CORRECT
+        !                             2. TOO LARGE A GRID SPACING WAS USED
+        !                                IN THE DISCRETIZATION OF THE ELLIPTIC
+        !                                EQUATION.
+        !                             3. THE LINEAR EQUATIONS RESULTED FROM A
+        !                                PARTIAL DIFFERENTIAL EQUATION WHICH
+        !                                WAS NOT ELLIPTIC.
+        !
+        !                        = 20 If the dynamic allocation of real and
+        !                             complex work space in the derived type
+        !                             (FishpackWorkspace) variable W fails (e.g.,
+        !                             if N, M are too large for the platform used)
+        !
+        !
+        !                        W
+        !                             The derived type (FishpackWorkspace) variable W
+        !                             contains real and complex values that must not
+        !                             be destroyed if BLKTRI is called again with
+        !                             IFLG=1.
+        !
+        !
+        ! SPECIAL CONDITIONS     THE ALGORITHM MAY FAIL IF abs(BM(I)+BN(J))
+        !                        IS LESS THAN abs(AM(I))+abs(AN(J))+
+        !                        abs(CM(I))+abs(CN(J))
+        !                        FOR SOME I AND J. THE ALGORITHM WILL ALSO
+        !                        FAIL IF AN(J)*CN(J-1) IS LESS THAN ZERO FOR
+        !                        SOME J.
+        !                        SEE THE DESCRIPTION OF THE OUTPUT PARAMETER
+        !                        IERROR.
+        !
+        ! I/O                    NONE
+        !
+        ! PRECISION              SINGLE
+        !
+        ! REQUIRED FILES         fish.f, comf.f
+        !
+        ! LANGUAGE               FORTRAN 90
+        !
+        ! HISTORY                WRITTEN BY PAUL SWARZTRAUBER AT NCAR IN THE
+        !                        EARLY 1970'S.  REWRITTEN AND RELEASED IN
+        !                        LIBRARIES IN JANUARY 1980. Revised in June
+        !                        2004 using Fortan 90 dynamically allocated work
+        !                        space and derived data types to eliminate mixed
+        !                        mode conflicts in the earlier versions.
+        !
+        ! ALGORITHM              GENERALIZED CYCLIC REDUCTION
+        !
+        ! PORTABILITY            FORTRAN 90.  APPROXIMATE MACHINE ACCURACY
+        !                        IS COMPUTED IN FUNCTION EPMACH.
+        !
+        ! REFERENCES             SWARZTRAUBER, P. AND R. SWEET, 'EFFICIENT
+        !                        FORTRAN SUBPROGRAMS FOR THE SOLUTION OF
+        !                        ELLIPTIC EQUATIONS'
+        !                        NCAR TN/IA-109, JULY, 1975, 138 PP.
+        !
+        !                        SWARZTRAUBER P. N., A DIRECT METHOD FOR
+        !                        THE DISCRETE SOLUTION OF SEPARABLE
+        !                        ELLIPTIC EQUATIONS, S.I.A.M.
+        !                        J. NUMER. ANAL., 11(1974) PP. 1136-1150.
+        !
+        !--------------------------------------------------------------------------------
+        ! Dictionary: calling arguments
+        !--------------------------------------------------------------------------------
+        integer (ip) :: iflg
+        integer (ip) :: np
+        integer (ip) :: n
+        integer (ip) :: mp
+        integer (ip) :: m
+        integer (ip) :: idimy
+        integer (ip) :: ierror
+        real (wp) :: an(*)
+        real (wp) :: bn(*)
+        real (wp) :: cn(*)
+        real (wp) :: am(*)
+        real (wp) :: bm(*)
+        real (wp) :: cm(*)
+        real (wp) :: y(idimy, *)
+        !--------------------------------------------------------------------------------
+        ! Dictionary: local variables
+        !--------------------------------------------------------------------------------
+        integer (ip)             :: irwk, icwk
         type (FishpackWorkspace) :: w
-        !-----------------------------------------------
+        !--------------------------------------------------------------------------------
+
         if (m < 5) then
             ierror = 1
             return
@@ -558,22 +557,22 @@ contains
         !-----------------------------------------------
         !   D u m m y   A r g u m e n t s
         !-----------------------------------------------
-        integer , intent (in) :: iflg
-        integer , intent (in) :: np
-        integer , intent (in) :: n
-        integer , intent (in) :: mp
-        integer  :: m
-        integer  :: idimy
-        integer  :: ierror
-        real  :: an(*)
-        real  :: bn(*)
-        real  :: cn(*)
-        real  :: am(*)
-        real  :: bm(*)
-        real  :: cm(*)
-        real  :: y(idimy, *)
-        real  :: w(*)
-        complex  :: wc(*)
+        integer (ip), intent (in) :: iflg
+        integer (ip), intent (in) :: np
+        integer (ip), intent (in) :: n
+        integer (ip), intent (in) :: mp
+        integer (ip) :: m
+        integer (ip) :: idimy
+        integer (ip) :: ierror
+        real (wp) :: an(*)
+        real (wp) :: bn(*)
+        real (wp) :: cn(*)
+        real (wp) :: am(*)
+        real (wp) :: bm(*)
+        real (wp) :: cm(*)
+        real (wp) :: y(idimy, *)
+        real (wp) :: w(*)
+        complex (wp) :: wc(*)
         !-----------------------------------------------
         !   c o m m o n   b l o c k s
         !-----------------------------------------------
@@ -584,7 +583,7 @@ contains
         !-----------------------------------------------
         !   l o c a l   v a r i a b l e s
         !-----------------------------------------------
-        integer :: iw1, iw2, iw3, iww, iwu, iwd, nl, nh, iwah, iwbh
+        integer (ip) :: iw1, iw2, iw3, iww, iwu, iwd, nl, nh, iwah, iwbh
 
         save iw1, iw2, iw3, iww, iwu, iwd, nl
         !-----------------------------------------------
@@ -664,27 +663,27 @@ contains
         !-----------------------------------------------
         !   D u m m y   A r g u m e n t s
         !-----------------------------------------------
-        integer  :: N
-        integer  :: M
-        integer , intent (in) :: IDIMY
-        real  :: AN(*)
-        real  :: BN(*)
-        real  :: CN(*)
-        real  :: AM(*)
-        real  :: BM(*)
-        real  :: CM(*)
-        real  :: Y(IDIMY, 1)
-        real  :: B(*)
-        real  :: W1(*)
-        real  :: W2(*)
-        real  :: W3(*)
-        real  :: WD(*)
-        real  :: WW(*)
-        real  :: WU(*)
-        complex  :: BC(*)
-        complex  :: CW1(*)
-        complex  :: CW2(*)
-        complex  :: CW3(*)
+        integer (ip) :: N
+        integer (ip) :: M
+        integer (ip), intent (in) :: IDIMY
+        real (wp) :: AN(*)
+        real (wp) :: BN(*)
+        real (wp) :: CN(*)
+        real (wp) :: AM(*)
+        real (wp) :: BM(*)
+        real (wp) :: CM(*)
+        real (wp) :: Y(IDIMY, 1)
+        real (wp) :: B(*)
+        real (wp) :: W1(*)
+        real (wp) :: W2(*)
+        real (wp) :: W3(*)
+        real (wp) :: WD(*)
+        real (wp) :: WW(*)
+        real (wp) :: WU(*)
+        complex (wp) :: BC(*)
+        complex (wp) :: CW1(*)
+        complex (wp) :: CW2(*)
+        complex (wp) :: CW3(*)
         !-----------------------------------------------
         !   C o m m o n   B l o c k s
         !-----------------------------------------------
@@ -695,11 +694,11 @@ contains
         !-----------------------------------------------
         !   L o c a l   V a r i a b l e s
         !-----------------------------------------------
-        integer :: KDO, L, IR, I2, I1, I3, I4, IRM1, IM2, NM2, IM3, NM3, &
+        integer (ip) :: KDO, L, IR, I2, I1, I3, I4, IRM1, IM2, NM2, IM3, NM3, &
             IM1, NM1, I0, IF, I, IPI1, IPI2, IPI3, IDXC, NC, IDXA, NA, IP2 &
             , NP2, IP1, NP1, IP3, NP3, J, IZ, NZ, IZR, LL, IFD, IP, NP, &
             IMI1, IMI2
-        real :: DUM
+        real (wp) :: DUM
         !-----------------------------------------------
         !
         ! BLKTR1 SOLVES THE LINEAR SYSTEM
@@ -917,14 +916,14 @@ real function BSRH (XLL, XRR, IZ, C, A, BH, F, SGN)
     !-----------------------------------------------
     !   D u m m y   A r g u m e n t s
     !-----------------------------------------------
-    integer  :: IZ
-    real , intent (in) :: XLL
-    real , intent (in) :: XRR
-    real  :: F
-    real , intent (in) :: SGN
-    real  :: C(*)
-    real  :: A(*)
-    real  :: BH(*)
+    integer (ip) :: IZ
+    real (wp), intent (in) :: XLL
+    real (wp), intent (in) :: XRR
+    real (wp) :: F
+    real (wp), intent (in) :: SGN
+    real (wp) :: C(*)
+    real (wp) :: A(*)
+    real (wp) :: BH(*)
     !-----------------------------------------------
     !   C o m m o n   B l o c k s
     !-----------------------------------------------
@@ -935,7 +934,7 @@ real function BSRH (XLL, XRR, IZ, C, A, BH, F, SGN)
     !-----------------------------------------------
     !   L o c a l   V a r i a b l e s
     !-----------------------------------------------
-    real :: R1, XL, XR, DX, X
+    real (wp) :: R1, XL, XR, DX, X
     !-----------------------------------------------
     !   E x t e r n a l   F u n c t i o n s
     !-----------------------------------------------
@@ -965,25 +964,25 @@ real function BSRH (XLL, XRR, IZ, C, A, BH, F, SGN)
     end do
 105 continue
     BSRH = 0.5*(XL + XR)
-    return
+
 end function BSRH
     !
     !*****************************************************************************************
     !
 subroutine COMPB(N, IERROR, AN, BN, CN, B, BC, AH, BH)
-    real :: epmach
+    real (wp) :: epmach
     !-----------------------------------------------
     !   D u m m y   A r g u m e n t s
     !-----------------------------------------------
-    integer  :: N
-    integer  :: IERROR
-    real  :: AN(*)
-    real , intent (in) :: BN(*)
-    real  :: CN(*)
-    real  :: B(*)
-    real  :: AH(*)
-    real  :: BH(*)
-    complex  :: BC(*)
+    integer (ip) :: N
+    integer (ip) :: IERROR
+    real (wp) :: AN(*)
+    real (wp), intent (in) :: BN(*)
+    real (wp) :: CN(*)
+    real (wp) :: B(*)
+    real (wp) :: AH(*)
+    real (wp) :: BH(*)
+    complex (wp) :: BC(*)
     !-----------------------------------------------
     !   C o m m o n   B l o c k s
     !-----------------------------------------------
@@ -994,9 +993,9 @@ subroutine COMPB(N, IERROR, AN, BN, CN, B, BC, AH, BH)
     !-----------------------------------------------
     !   L o c a l   V a r i a b l e s
     !-----------------------------------------------
-    integer :: J, IF, KDO, L, IR, I2, I4, IPL, IFD, I, IB, NB, JS, JF &
-        , LS, LH, NMP, L1, L2, J2, J1, N2M2
-    real :: DUM, BNORM, ARG, D1, D2, D3
+    integer (ip) :: J, IF, KDO, L, IR, I2, I4, IPL, IFD, I, IB, NB, JS, JF
+    integer (ip) ::  LS, LH, NMP, L1, L2, J2, J1, N2M2
+    real (wp) :: DUM, BNORM, ARG, D1, D2, D3
     !-----------------------------------------------
     !
     !     COMPB COMPUTES THE ROOTS OF THE B POLYNOMIALS USING SUBROUTINE
@@ -1091,19 +1090,19 @@ subroutine CPROD(ND, BD, NM1, BM1, NM2, BM2, NA, AA, X, YY, M, A, B, C, D, W, Y)
     !-----------------------------------------------
     !   D u m m y   A r g u m e n t s
     !-----------------------------------------------
-    integer , intent (in) :: ND
-    integer , intent (in) :: NM1
-    integer , intent (in) :: NM2
-    integer , intent (in) :: NA
-    integer , intent (in) :: M
-    real , intent (in) :: BM1(*)
-    real , intent (in) :: BM2(*)
-    real , intent (in) :: AA(*)
-    real , intent (in) :: X(*)
-    real , intent (out) :: YY(*)
-    real , intent (in) :: A(*)
-    real , intent (in) :: B(*)
-    real , intent (in) :: C(*)
+    integer (ip), intent (in) :: ND
+    integer (ip), intent (in) :: NM1
+    integer (ip), intent (in) :: NM2
+    integer (ip), intent (in) :: NA
+    integer (ip), intent (in) :: M
+    real (wp), intent (in) :: BM1(*)
+    real (wp), intent (in) :: BM2(*)
+    real (wp), intent (in) :: AA(*)
+    real (wp), intent (in) :: X(*)
+    real (wp), intent (out) :: YY(*)
+    real (wp), intent (in) :: A(*)
+    real (wp), intent (in) :: B(*)
+    real (wp), intent (in) :: C(*)
     complex , intent (in) :: BD(*)
     complex , intent (in out) :: D(*)
     complex , intent (in out) :: W(*)
@@ -1111,8 +1110,8 @@ subroutine CPROD(ND, BD, NM1, BM1, NM2, BM2, NA, AA, X, YY, M, A, B, C, D, W, Y)
     !-----------------------------------------------
     !   L o c a l   V a r i a b l e s
     !-----------------------------------------------
-    integer :: J, MM, ID, M1, M2, IA, IFLG, K
-    real :: RT
+    integer (ip) :: J, MM, ID, M1, M2, IA, IFLG, K
+    real (wp) :: RT
     complex :: CRT, DEN, Y1, Y2
     !-----------------------------------------------
     !
@@ -1216,19 +1215,19 @@ subroutine CPRODP(ND, BD, NM1, BM1, NM2, BM2, NA, AA, X, YY, M, A &
     !-----------------------------------------------
     !   D u m m y   A r g u m e n t s
     !-----------------------------------------------
-    integer , intent (in) :: ND
-    integer , intent (in) :: NM1
-    integer , intent (in) :: NM2
-    integer , intent (in) :: NA
-    integer , intent (in) :: M
-    real , intent (in) :: BM1(*)
-    real , intent (in) :: BM2(*)
-    real , intent (in) :: AA(*)
-    real , intent (in) :: X(*)
-    real , intent (out) :: YY(*)
-    real , intent (in) :: A(*)
-    real , intent (in) :: B(*)
-    real , intent (in) :: C(*)
+    integer (ip), intent (in) :: ND
+    integer (ip), intent (in) :: NM1
+    integer (ip), intent (in) :: NM2
+    integer (ip), intent (in) :: NA
+    integer (ip), intent (in) :: M
+    real (wp), intent (in) :: BM1(*)
+    real (wp), intent (in) :: BM2(*)
+    real (wp), intent (in) :: AA(*)
+    real (wp), intent (in) :: X(*)
+    real (wp), intent (out) :: YY(*)
+    real (wp), intent (in) :: A(*)
+    real (wp), intent (in) :: B(*)
+    real (wp), intent (in) :: C(*)
     complex , intent (in) :: BD(*)
     complex , intent (in out) :: D(*)
     complex , intent (in out) :: U(*)
@@ -1236,8 +1235,8 @@ subroutine CPRODP(ND, BD, NM1, BM1, NM2, BM2, NA, AA, X, YY, M, A &
     !-----------------------------------------------
     !   L o c a l   V a r i a b l e s
     !-----------------------------------------------
-    integer :: J, MM, MM2, ID, M1, M2, IA, IFLG, K
-    real :: RT
+    integer (ip) :: J, MM, MM2, ID, M1, M2, IA, IFLG, K
+    real (wp) :: RT
     complex :: V, DEN, BH, YM, AM, Y1, Y2, YH, CRT
     !-----------------------------------------------
     !
@@ -1366,10 +1365,10 @@ subroutine INDXA(I, IR, IDXA, NA)
     !-----------------------------------------------
     !   D u m m y   A r g u m e n t s
     !-----------------------------------------------
-    integer , intent (in) :: I
-    integer , intent (in) :: IR
-    integer , intent (out) :: IDXA
-    integer , intent (out) :: NA
+    integer (ip), intent (in) :: I
+    integer (ip), intent (in) :: IR
+    integer (ip), intent (out) :: IDXA
+    integer (ip), intent (out) :: NA
     !-----------------------------------------------
     !   C o m m o n   B l o c k s
     !-----------------------------------------------
@@ -1395,10 +1394,10 @@ subroutine INDXB(I, IR, IDX, IDP)
     !-----------------------------------------------
     !   D u m m y   A r g u m e n t s
     !-----------------------------------------------
-    integer , intent (in) :: I
-    integer , intent (in) :: IR
-    integer , intent (out) :: IDX
-    integer , intent (out) :: IDP
+    integer (ip), intent (in) :: I
+    integer (ip), intent (in) :: IR
+    integer (ip), intent (out) :: IDX
+    integer (ip), intent (out) :: IDP
     !-----------------------------------------------
     !   C o m m o n   B l o c k s
     !-----------------------------------------------
@@ -1409,7 +1408,7 @@ subroutine INDXB(I, IR, IDX, IDP)
     !-----------------------------------------------
     !   L o c a l   V a r i a b l e s
     !-----------------------------------------------
-    integer :: IZH, ID, IPL
+    integer (ip) :: IZH, ID, IPL
     !-----------------------------------------------
     !
     ! B(IDX) IS THE LOCATION OF THE FIRST ROOT OF THE B(I, IR) POLYNOMIAL
@@ -1446,10 +1445,10 @@ subroutine INDXC(I, IR, IDXC, NC)
     !-----------------------------------------------
     !   D u m m y   A r g u m e n t s
     !-----------------------------------------------
-    integer , intent (in) :: I
-    integer , intent (in) :: IR
-    integer , intent (out) :: IDXC
-    integer , intent (out) :: NC
+    integer (ip), intent (in) :: I
+    integer (ip), intent (in) :: IR
+    integer (ip), intent (out) :: IDXC
+    integer (ip), intent (out) :: NC
     !-----------------------------------------------
     !   C o m m o n   B l o c k s
     !-----------------------------------------------
@@ -1475,12 +1474,12 @@ subroutine PPADD(N, IERROR, A, C, CBP, BP, BH)
     !-----------------------------------------------
     !   D u m m y   A r g u m e n t s
     !-----------------------------------------------
-    integer , intent (in) :: N
-    integer , intent (out) :: IERROR
-    real  :: A(*)
-    real  :: C(*)
-    real , intent (in out) :: BP(*)
-    real  :: BH(*)
+    integer (ip), intent (in) :: N
+    integer (ip), intent (out) :: IERROR
+    real (wp) :: A(*)
+    real (wp) :: C(*)
+    real (wp), intent (in out) :: BP(*)
+    real (wp) :: BH(*)
     complex , intent (in out) :: CBP(*)
     !-----------------------------------------------
     !   C o m m o n   B l o c k s
@@ -1493,7 +1492,7 @@ subroutine PPADD(N, IERROR, A, C, CBP, BP, BH)
     !   L o c a l   V a r i a b l e s
     !-----------------------------------------------
     integer::IZ, IZM, IZM2, J, NT, MODIZ, IS, IF, IG, IT, ICV, I3, I2, NHALF
-    real :: R4, R5, R6, SCNV, XL, DB, SGN, XR, XM, PSG
+    real (wp) :: R4, R5, R6, SCNV, XL, DB, SGN, XR, XM, PSG
     complex :: CF, CX, FSG, HSG, DD, F, FP, FPP, CDIS, R1, R2, R3
     !-----------------------------------------------
     !
@@ -1671,28 +1670,28 @@ subroutine PROD(ND, BD, NM1, BM1, NM2, BM2, NA, AA, X, Y, M, A, B, C, D, W, U)
     !-----------------------------------------------
     !   D u m m y   A r g u m e n t s
     !-----------------------------------------------
-    integer , intent (in) :: ND
-    integer , intent (in) :: NM1
-    integer , intent (in) :: NM2
-    integer , intent (in) :: NA
-    integer , intent (in) :: M
-    real , intent (in) :: BD(*)
-    real , intent (in) :: BM1(*)
-    real , intent (in) :: BM2(*)
-    real , intent (in) :: AA(*)
-    real , intent (in) :: X(*)
-    real , intent (in out) :: Y(*)
-    real , intent (in) :: A(*)
-    real , intent (in) :: B(*)
-    real , intent (in) :: C(*)
-    real , intent (in out) :: D(*)
-    real , intent (in out) :: W(*)
-    real  :: U(*)
+    integer (ip), intent (in) :: ND
+    integer (ip), intent (in) :: NM1
+    integer (ip), intent (in) :: NM2
+    integer (ip), intent (in) :: NA
+    integer (ip), intent (in) :: M
+    real (wp), intent (in) :: BD(*)
+    real (wp), intent (in) :: BM1(*)
+    real (wp), intent (in) :: BM2(*)
+    real (wp), intent (in) :: AA(*)
+    real (wp), intent (in) :: X(*)
+    real (wp), intent (in out) :: Y(*)
+    real (wp), intent (in) :: A(*)
+    real (wp), intent (in) :: B(*)
+    real (wp), intent (in) :: C(*)
+    real (wp), intent (in out) :: D(*)
+    real (wp), intent (in out) :: W(*)
+    real (wp) :: U(*)
     !-----------------------------------------------
     !   L o c a l   V a r i a b l e s
     !-----------------------------------------------
-    integer :: J, MM, ID, IBR, M1, M2, IA, K
-    real :: RT, DEN
+    integer (ip) :: J, MM, ID, IBR, M1, M2, IA, K
+    real (wp) :: RT, DEN
     !-----------------------------------------------
     !
     ! PROD APPLIES A SEQUENCE OF MATRIX OPERATIONS TO THE VECTOR X AND
@@ -1787,28 +1786,28 @@ subroutine PRODP(ND, BD, NM1, BM1, NM2, BM2, NA, AA, X, Y, M, A, B, C, D, U, W)
     !-----------------------------------------------
     !   D u m m y   A r g u m e n t s
     !-----------------------------------------------
-    integer , intent (in) :: ND
-    integer , intent (in) :: NM1
-    integer , intent (in) :: NM2
-    integer , intent (in) :: NA
-    integer , intent (in) :: M
-    real , intent (in) :: BD(*)
-    real , intent (in) :: BM1(*)
-    real , intent (in) :: BM2(*)
-    real , intent (in) :: AA(*)
-    real , intent (in) :: X(*)
-    real , intent (in out) :: Y(*)
-    real , intent (in) :: A(*)
-    real , intent (in) :: B(*)
-    real , intent (in) :: C(*)
-    real , intent (in out) :: D(*)
-    real , intent (in out) :: U(*)
-    real , intent (in out) :: W(*)
+    integer (ip), intent (in) :: ND
+    integer (ip), intent (in) :: NM1
+    integer (ip), intent (in) :: NM2
+    integer (ip), intent (in) :: NA
+    integer (ip), intent (in) :: M
+    real (wp), intent (in) :: BD(*)
+    real (wp), intent (in) :: BM1(*)
+    real (wp), intent (in) :: BM2(*)
+    real (wp), intent (in) :: AA(*)
+    real (wp), intent (in) :: X(*)
+    real (wp), intent (in out) :: Y(*)
+    real (wp), intent (in) :: A(*)
+    real (wp), intent (in) :: B(*)
+    real (wp), intent (in) :: C(*)
+    real (wp), intent (in out) :: D(*)
+    real (wp), intent (in out) :: U(*)
+    real (wp), intent (in out) :: W(*)
     !-----------------------------------------------
     !   L o c a l   V a r i a b l e s
     !-----------------------------------------------
-    integer :: J, MM, MM2, ID, IBR, M1, M2, IA, K
-    real :: RT, BH, YM, DEN, V, AM
+    integer (ip) :: J, MM, MM2, ID, IBR, M1, M2, IA, K
+    real (wp) :: RT, BH, YM, DEN, V, AM
     !-----------------------------------------------
     !
     ! PRODP APPLIES A SEQUENCE OF MATRIX OPERATIONS TO THE VECTOR X AND
@@ -1922,10 +1921,10 @@ subroutine TEVLS(N, D, E2, IERR)
     !-----------------------------------------------
     !   D u m m y   A r g u m e n t s
     !-----------------------------------------------
-    integer , intent (in) :: N
-    integer , intent (out) :: IERR
-    real , intent (in out) :: D(N)
-    real , intent (in out) :: E2(N)
+    integer (ip), intent (in) :: N
+    integer (ip), intent (out) :: IERR
+    real (wp), intent (in out) :: D(N)
+    real (wp), intent (in out) :: E2(N)
     !-----------------------------------------------
     !   C o m m o n   B l o c k s
     !-----------------------------------------------
@@ -1936,8 +1935,8 @@ subroutine TEVLS(N, D, E2, IERR)
     !-----------------------------------------------
     !   L o c a l   V a r i a b l e s
     !-----------------------------------------------
-    integer :: I, J, L, M, II, L1, MML, NHALF, NTOP
-    real :: B, C, F, G, H, P, R, S, DHOLD
+    integer (ip) :: I, J, L, M, II, L1, MML, NHALF, NTOP
+    real (wp) :: B, C, F, G, H, P, R, S, DHOLD
     !-----------------------------------------------
     !
     !

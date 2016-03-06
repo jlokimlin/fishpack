@@ -398,9 +398,9 @@ contains
         ! Dictionary: local variables
         !-----------------------------------------------
         integer :: idimf, mperod, m, nperod, n, i, j, ierror
-        real , dimension(42, 20) :: f
-        real , dimension(40) :: a, b, c, x
-        real , dimension(20) :: y
+        real (wp), dimension(42, 20) :: f
+        real (wp), dimension(40) :: a, b, c, x
+        real (wp), dimension(20) :: y
         real :: pi, dx, dy, s, discretization_error, t
         !-----------------------------------------------
 

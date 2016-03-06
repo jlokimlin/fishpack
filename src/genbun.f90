@@ -1,229 +1,3 @@
-!
-!     file genbun.f
-!
-!     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-!     *                                                               *
-!     *                  copyright (c) 2005 by UCAR                   *
-!     *                                                               *
-!     *       University Corporation for Atmospheric Research         *
-!     *                                                               *
-!     *                      all rights reserved                      *
-!     *                                                               *
-!     *                    FISHPACK90  version 1.1                    *
-!     *                                                               *
-!     *                 A Package of Fortran 77 and 90                *
-!     *                                                               *
-!     *                Subroutines and Example Programs               *
-!     *                                                               *
-!     *               for Modeling Geophysical Processes              *
-!     *                                                               *
-!     *                             by                                *
-!     *                                                               *
-!     *        John Adams, Paul Swarztrauber and Roland Sweet         *
-!     *                                                               *
-!     *                             of                                *
-!     *                                                               *
-!     *         the National Center for Atmospheric Research          *
-!     *                                                               *
-!     *                Boulder, Colorado  (80307)  U.S.A.             *
-!     *                                                               *
-!     *                   which is sponsored by                       *
-!     *                                                               *
-!     *              the National Science Foundation                  *
-!     *                                                               *
-!     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-!
-!     SUBROUTINE GENBUN (NPEROD, N, MPEROD, M, A, B, C, IDIMY, Y, IERROR)
-!
-!
-! DIMENSION OF           A(M), B(M), C(M), Y(IDIMY, N)
-! ARGUMENTS
-!
-! LATEST REVISION        JUNE 2004
-!
-! PURPOSE                THE NAME OF THIS PACKAGE IS A MNEMONIC FOR THE
-!                        GENERALIZED BUNEMAN ALGORITHM.
-!
-!                        IT SOLVES THE REAL LINEAR SYSTEM OF EQUATIONS
-!
-!                        A(I)*X(I-1, J) + B(I)*X(I, J) + C(I)*X(I+1, J)
-!                        + X(I, J-1) - 2.*X(I, J) + X(I, J+1) = Y(I, J)
-!
-!                        FOR I = 1, 2, ..., M  AND  J = 1, 2, ..., N.
-!
-!                        INDICES I+1 AND I-1 ARE EVALUATED MODULO M, 
-!                        I.E., X(0, J) = X(M, J) AND X(M+1, J) = X(1, J), 
-!                        AND X(I, 0) MAY EQUAL 0, X(I, 2), OR X(I, N), 
-!                        AND X(I, N+1) MAY EQUAL 0, X(I, N-1), OR X(I, 1)
-!                        DEPENDING ON AN INPUT PARAMETER.
-!
-! USAGE                  CALL GENBUN (NPEROD, N, MPEROD, M, A, B, C, IDIMY, Y, 
-!                                     IERROR)
-!
-! ARGUMENTS
-!
-! ON INPUT               NPEROD
-!
-!                          INDICATES THE VALUES THAT X(I, 0) AND
-!                          X(I, N+1) ARE ASSUMED TO HAVE.
-!
-!                          = 0  IF X(I, 0) = X(I, N) AND X(I, N+1) =
-!                               X(I, 1).
-!                          = 1  IF X(I, 0) = X(I, N+1) = 0  .
-!                          = 2  IF X(I, 0) = 0 AND X(I, N+1) = X(I, N-1).
-!                          = 3  IF X(I, 0) = X(I, 2) AND X(I, N+1) =
-!                               X(I, N-1).
-!                          = 4  IF X(I, 0) = X(I, 2) AND X(I, N+1) = 0.
-!
-!                        N
-!                          THE NUMBER OF UNKNOWNS IN THE J-DIRECTION.
-!                          N MUST BE GREATER THAN 2.
-!
-!                        MPEROD
-!                          = 0 IF A(1) AND C(M) ARE NOT ZERO
-!                          = 1 IF A(1) = C(M) = 0
-!
-!                        M
-!                          THE NUMBER OF UNKNOWNS IN THE I-DIRECTION.
-!                          N MUST BE GREATER THAN 2.
-!
-!                        A, B, C
-!                          ONE-DIMENSIONAL ARRAYS OF LENGTH M THAT
-!                          SPECIFY THE COEFFICIENTS IN THE LINEAR
-!                          EQUATIONS GIVEN ABOVE.  IF MPEROD = 0
-!                          THE ARRAY ELEMENTS MUST NOT DEPEND UPON
-!                          THE INDEX I, BUT MUST BE CONSTANT.
-!                          SPECIFICALLY, THE SUBROUTINE CHECKS THE
-!                          FOLLOWING CONDITION .
-!
-!                            A(I) = C(1)
-!                            C(I) = C(1)
-!                            B(I) = B(1)
-!
-!                          FOR I=1, 2, ..., M.
-!
-!                        IDIMY
-!                          THE ROW (OR FIRST) DIMENSION OF THE
-!                          TWO-DIMENSIONAL ARRAY Y AS IT APPEARS
-!                          IN THE PROGRAM CALLING GENBUN.
-!                          THIS PARAMETER IS USED TO SPECIFY THE
-!                          VARIABLE DIMENSION OF Y.
-!                          IDIMY MUST BE AT LEAST M.
-!
-!                        Y
-!                          A TWO-DIMENSIONAL COMPLEX ARRAY THAT
-!                          SPECIFIES THE VALUES OF THE RIGHT SIDE
-!                          OF THE LINEAR SYSTEM OF EQUATIONS GIVEN
-!                          ABOVE.
-!                          Y MUST BE DIMENSIONED AT LEAST M*N.
-!
-!
-!  ON OUTPUT             Y
-!
-!                          CONTAINS THE SOLUTION X.
-!
-!                        IERROR
-!                          AN ERROR FLAG WHICH INDICATES INVALID
-!                          INPUT PARAMETERS  EXCEPT FOR NUMBER
-!                          ZERO, A SOLUTION IS NOT ATTEMPTED.
-!
-!                          = 0  NO ERROR.
-!                          = 1  M .LE. 2  .
-!                          = 2  N .LE. 2
-!                          = 3  IDIMY .LT. M
-!                          = 4  NPEROD .LT. 0 OR NPEROD .GT. 4
-!                          = 5  MPEROD .LT. 0 OR MPEROD .GT. 1
-!                          = 6  A(I) .NE. C(1) OR C(I) .NE. C(1) OR
-!                               B(I) .NE. B(1) FOR
-!                               SOME I=1, 2, ..., M.
-!                          = 7  A(1) .NE. 0 OR C(M) .NE. 0 AND
-!                                 MPEROD = 1
-!                          = 20 If the dynamic allocation of real and
-!                               complex work space required for solution
-!                               fails (for example if N, M are too large
-!                               for your computer)
-!
-!
-! SPECIAL CONDITONS      NONE
-!
-! I/O                    NONE
-!
-! PRECISION              SINGLE
-!
-! REQUIRED FILES         comf.f, gnbnaux.f, fish.f
-! FILES
-!
-! LANGUAGE               FORTRAN 90
-!
-! HISTORY                WRITTEN IN 1979 BY ROLAND SWEET OF NCAR'S
-!                        SCIENTIFIC COMPUTING DIVISION.  MADE AVAILABLE
-!                        ON NCAR'S PUBLIC LIBRARIES IN JANUARY, 1980.
-!                        Revised in June 2004 by John Adams using
-!                        Fortran 90 dynamically allocated work space.
-!
-! ALGORITHM              THE LINEAR SYSTEM IS SOLVED BY A CYCLIC
-!                        REDUCTION ALGORITHM DESCRIBED IN THE
-!                        REFERENCE.
-!
-! PORTABILITY            FORTRAN 90 --
-!                        THE MACHINE DEPENDENT CONSTANT PI IS
-!                        DEFINED IN FUNCTION PI_MACH.
-!
-! REFERENCES             SWEET, R., "A CYCLIC REDUCTION ALGORITHM FOR
-!                        SOLVING BLOCK TRIDIAGONAL SYSTEMS OF ARBITRARY
-!                        DIMENSIONS, " SIAM J. ON NUMER. ANAL., 14 (1977)
-!                        PP. 706-720.
-!
-! ACCURACY               THIS TEST WAS PERFORMED ON a platform with
-!                        64 bit floating point arithmetic.
-!                        A UNIFORM RANDOM NUMBER GENERATOR WAS USED
-!                        TO CREATE A SOLUTION ARRAY X FOR THE SYSTEM
-!                        GIVEN IN THE 'PURPOSE' DESCRIPTION ABOVE
-!                        WITH
-!                          A(I) = C(I) = -0.5*B(I) = 1, I=1, 2, ..., M
-!
-!                        AND, WHEN MPEROD = 1
-!
-!                          A(1) = C(M) = 0
-!                          A(M) = C(1) = 2.
-!
-!                        THE SOLUTION X WAS SUBSTITUTED INTO THE
-!                        GIVEN SYSTEM  AND, USING DOUBLE PRECISION
-!                        A RIGHT SIDE Y WAS COMPUTED.
-!                        USING THIS ARRAY Y, SUBROUTINE GENBUN
-!                        WAS CALLED TO PRODUCE APPROXIMATE
-!                        SOLUTION Z.  THEN RELATIVE ERROR
-!                          E = MAX(abs(Z(I, J)-X(I, J)))/
-!                              MAX(abs(X(I, J)))
-!                        WAS COMPUTED, WHERE THE TWO MAXIMA ARE TAKEN
-!                        OVER I=1, 2, ..., M AND J=1, ..., N.
-!
-!                        THE VALUE OF E IS GIVEN IN THE TABLE
-!                        BELOW FOR SOME TYPICAL VALUES OF M AND N.
-!
-!                   M (=N)    MPEROD    NPEROD        E
-!                   ------    ------    ------      ------
-!
-!                     31        0         0         6.E-14
-!                     31        1         1         4.E-13
-!                     31        1         3         3.E-13
-!                     32        0         0         9.E-14
-!                     32        1         1         3.E-13
-!                     32        1         3         1.E-13
-!                     33        0         0         9.E-14
-!                     33        1         1         4.E-13
-!                     33        1         3         1.E-13
-!                     63        0         0         1.E-13
-!                     63        1         1         1.E-12
-!                     63        1         3         2.E-13
-!                     64        0         0         1.E-13
-!                     64        1         1         1.E-12
-!                     64        1         3         6.E-13
-!                     65        0         0         2.E-13
-!                     65        1         1         1.E-12
-!                     65        1         3         4.E-13
-! *********************************************************************
-!
 module module_genbun
 
     use, intrinsic :: iso_fortran_env, only: &
@@ -290,9 +64,9 @@ contains
         !     *                                                               *
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
-        !-----------------------------------------------
+        !--------------------------------------------------------------------------------
         ! Dictionary: local variables
-        !-----------------------------------------------
+        !--------------------------------------------------------------------------------
         integer (ip) :: idimf, m, mp1, mperod, n, nperod, i, j, ierror
         real (wp) , dimension(22, 40) :: f
         real (wp), dimension(20) :: a, b, c
@@ -353,11 +127,12 @@ contains
             f(1, j) = (11. + 8./dx)*dy**2*SIN(Y(j))
             f(20, j) = (3.*t4*dy**2 - 16.*tsq*s + 16.*t*s*dx)*SIN(Y(j))
         end do
-        call GENBUN (nperod, n, mperod, m, a, b, c, idimf, f, ierror)
+
+        call genbun(nperod, n, mperod, m, a, b, c, idimf, f, ierror)
         !
-        !     COMPUTE DISCRETIAZATION ERROR.  THE EXACT SOLUTION IS
+        !     compute discretization error.  the exact solution is
         !
-        !            U(X, Y) = (1+X)**4*SIN(Y) .
+        !            u(x, y) = (1+x)**4*sin(y) .
         !
         discretization_error = 0.0_wp
         do i = 1, m
@@ -381,27 +156,254 @@ contains
     !
     !*****************************************************************************************
     !
-    subroutine GENBUN(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
-        !-----------------------------------------------
+    subroutine genbun( nperod, n, mperod, m, a, b, c, idimy, y, ierror)
+        !
+        !     file genbun.f
+        !
+        !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+        !     *                                                               *
+        !     *                  copyright (c) 2005 by UCAR                   *
+        !     *                                                               *
+        !     *       University Corporation for Atmospheric Research         *
+        !     *                                                               *
+        !     *                      all rights reserved                      *
+        !     *                                                               *
+        !     *                    FISHPACK90  version 1.1                    *
+        !     *                                                               *
+        !     *                 A Package of Fortran 77 and 90                *
+        !     *                                                               *
+        !     *                Subroutines and Example Programs               *
+        !     *                                                               *
+        !     *               for Modeling Geophysical Processes              *
+        !     *                                                               *
+        !     *                             by                                *
+        !     *                                                               *
+        !     *        John Adams, Paul Swarztrauber and Roland Sweet         *
+        !     *                                                               *
+        !     *                             of                                *
+        !     *                                                               *
+        !     *         the National Center for Atmospheric Research          *
+        !     *                                                               *
+        !     *                Boulder, Colorado  (80307)  U.S.A.             *
+        !     *                                                               *
+        !     *                   which is sponsored by                       *
+        !     *                                                               *
+        !     *              the National Science Foundation                  *
+        !     *                                                               *
+        !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+        !
+        !     SUBROUTINE GENBUN (NPEROD, N, MPEROD, M, A, B, C, IDIMY, Y, IERROR)
+        !
+        !
+        ! DIMENSION OF           A(M), B(M), C(M), Y(IDIMY, N)
+        ! ARGUMENTS
+        !
+        ! LATEST REVISION        JUNE 2004
+        !
+        ! PURPOSE                THE NAME OF THIS PACKAGE IS A MNEMONIC FOR THE
+        !                        GENERALIZED BUNEMAN ALGORITHM.
+        !
+        !                        IT SOLVES THE REAL LINEAR SYSTEM OF EQUATIONS
+        !
+        !                        A(I)*X(I-1, J) + B(I)*X(I, J) + C(I)*X(I+1, J)
+        !                        + X(I, J-1) - 2.*X(I, J) + X(I, J+1) = Y(I, J)
+        !
+        !                        FOR I = 1, 2, ..., M  AND  J = 1, 2, ..., N.
+        !
+        !                        INDICES I+1 AND I-1 ARE EVALUATED MODULO M,
+        !                        I.E., X(0, J) = X(M, J) AND X(M+1, J) = X(1, J),
+        !                        AND X(I, 0) MAY EQUAL 0, X(I, 2), OR X(I, N),
+        !                        AND X(I, N+1) MAY EQUAL 0, X(I, N-1), OR X(I, 1)
+        !                        DEPENDING ON AN INPUT PARAMETER.
+        !
+        ! USAGE                  CALL GENBUN (NPEROD, N, MPEROD, M, A, B, C, IDIMY, Y,
+        !                                     IERROR)
+        !
+        ! ARGUMENTS
+        !
+        ! ON INPUT               NPEROD
+        !
+        !                          INDICATES THE VALUES THAT X(I, 0) AND
+        !                          X(I, N+1) ARE ASSUMED TO HAVE.
+        !
+        !                          = 0  IF X(I, 0) = X(I, N) AND X(I, N+1) =
+        !                               X(I, 1).
+        !                          = 1  IF X(I, 0) = X(I, N+1) = 0  .
+        !                          = 2  IF X(I, 0) = 0 AND X(I, N+1) = X(I, N-1).
+        !                          = 3  IF X(I, 0) = X(I, 2) AND X(I, N+1) =
+        !                               X(I, N-1).
+        !                          = 4  IF X(I, 0) = X(I, 2) AND X(I, N+1) = 0.
+        !
+        !                        N
+        !                          THE NUMBER OF UNKNOWNS IN THE J-DIRECTION.
+        !                          N MUST BE GREATER THAN 2.
+        !
+        !                        MPEROD
+        !                          = 0 IF A(1) AND C(M) ARE NOT ZERO
+        !                          = 1 IF A(1) = C(M) = 0
+        !
+        !                        M
+        !                          THE NUMBER OF UNKNOWNS IN THE I-DIRECTION.
+        !                          N MUST BE GREATER THAN 2.
+        !
+        !                        A, B, C
+        !                          ONE-DIMENSIONAL ARRAYS OF LENGTH M THAT
+        !                          SPECIFY THE COEFFICIENTS IN THE LINEAR
+        !                          EQUATIONS GIVEN ABOVE.  IF MPEROD = 0
+        !                          THE ARRAY ELEMENTS MUST NOT DEPEND UPON
+        !                          THE INDEX I, BUT MUST BE CONSTANT.
+        !                          SPECIFICALLY, THE SUBROUTINE CHECKS THE
+        !                          FOLLOWING CONDITION .
+        !
+        !                            A(I) = C(1)
+        !                            C(I) = C(1)
+        !                            B(I) = B(1)
+        !
+        !                          FOR I=1, 2, ..., M.
+        !
+        !                        IDIMY
+        !                          THE ROW (OR FIRST) DIMENSION OF THE
+        !                          TWO-DIMENSIONAL ARRAY Y AS IT APPEARS
+        !                          IN THE PROGRAM CALLING GENBUN.
+        !                          THIS PARAMETER IS USED TO SPECIFY THE
+        !                          VARIABLE DIMENSION OF Y.
+        !                          IDIMY MUST BE AT LEAST M.
+        !
+        !                        Y
+        !                          A TWO-DIMENSIONAL COMPLEX ARRAY THAT
+        !                          SPECIFIES THE VALUES OF THE RIGHT SIDE
+        !                          OF THE LINEAR SYSTEM OF EQUATIONS GIVEN
+        !                          ABOVE.
+        !                          Y MUST BE DIMENSIONED AT LEAST M*N.
+        !
+        !
+        !  ON OUTPUT             Y
+        !
+        !                          CONTAINS THE SOLUTION X.
+        !
+        !                        IERROR
+        !                          AN ERROR FLAG WHICH INDICATES INVALID
+        !                          INPUT PARAMETERS  EXCEPT FOR NUMBER
+        !                          ZERO, A SOLUTION IS NOT ATTEMPTED.
+        !
+        !                          = 0  NO ERROR.
+        !                          = 1  M .LE. 2  .
+        !                          = 2  N .LE. 2
+        !                          = 3  IDIMY .LT. M
+        !                          = 4  NPEROD .LT. 0 OR NPEROD .GT. 4
+        !                          = 5  MPEROD .LT. 0 OR MPEROD .GT. 1
+        !                          = 6  A(I) .NE. C(1) OR C(I) .NE. C(1) OR
+        !                               B(I) .NE. B(1) FOR
+        !                               SOME I=1, 2, ..., M.
+        !                          = 7  A(1) .NE. 0 OR C(M) .NE. 0 AND
+        !                                 MPEROD = 1
+        !                          = 20 If the dynamic allocation of real and
+        !                               complex work space required for solution
+        !                               fails (for example if N, M are too large
+        !                               for your computer)
+        !
+        !
+        ! SPECIAL CONDITONS      NONE
+        !
+        ! I/O                    NONE
+        !
+        ! PRECISION              SINGLE
+        !
+        ! REQUIRED FILES         comf.f, gnbnaux.f, fish.f
+        ! FILES
+        !
+        ! LANGUAGE               FORTRAN 90
+        !
+        ! HISTORY                WRITTEN IN 1979 BY ROLAND SWEET OF NCAR'S
+        !                        SCIENTIFIC COMPUTING DIVISION.  MADE AVAILABLE
+        !                        ON NCAR'S PUBLIC LIBRARIES IN JANUARY, 1980.
+        !                        Revised in June 2004 by John Adams using
+        !                        Fortran 90 dynamically allocated work space.
+        !
+        ! ALGORITHM              THE LINEAR SYSTEM IS SOLVED BY A CYCLIC
+        !                        REDUCTION ALGORITHM DESCRIBED IN THE
+        !                        REFERENCE.
+        !
+        ! PORTABILITY            FORTRAN 90 --
+        !                        THE MACHINE DEPENDENT CONSTANT PI IS
+        !                        DEFINED IN FUNCTION PI_MACH.
+        !
+        ! REFERENCES             SWEET, R., "A CYCLIC REDUCTION ALGORITHM FOR
+        !                        SOLVING BLOCK TRIDIAGONAL SYSTEMS OF ARBITRARY
+        !                        DIMENSIONS, " SIAM J. ON NUMER. ANAL., 14 (1977)
+        !                        PP. 706-720.
+        !
+        ! ACCURACY               THIS TEST WAS PERFORMED ON a platform with
+        !                        64 bit floating point arithmetic.
+        !                        A UNIFORM RANDOM NUMBER GENERATOR WAS USED
+        !                        TO CREATE A SOLUTION ARRAY X FOR THE SYSTEM
+        !                        GIVEN IN THE 'PURPOSE' DESCRIPTION ABOVE
+        !                        WITH
+        !                          A(I) = C(I) = -0.5*B(I) = 1, I=1, 2, ..., M
+        !
+        !                        AND, WHEN MPEROD = 1
+        !
+        !                          A(1) = C(M) = 0
+        !                          A(M) = C(1) = 2.
+        !
+        !                        THE SOLUTION X WAS SUBSTITUTED INTO THE
+        !                        GIVEN SYSTEM  AND, USING DOUBLE PRECISION
+        !                        A RIGHT SIDE Y WAS COMPUTED.
+        !                        USING THIS ARRAY Y, SUBROUTINE GENBUN
+        !                        WAS CALLED TO PRODUCE APPROXIMATE
+        !                        SOLUTION Z.  THEN RELATIVE ERROR
+        !                          E = MAX(abs(Z(I, J)-X(I, J)))/
+        !                              MAX(abs(X(I, J)))
+        !                        WAS COMPUTED, WHERE THE TWO MAXIMA ARE TAKEN
+        !                        OVER I=1, 2, ..., M AND J=1, ..., N.
+        !
+        !                        THE VALUE OF E IS GIVEN IN THE TABLE
+        !                        BELOW FOR SOME TYPICAL VALUES OF M AND N.
+        !
+        !                   M (=N)    MPEROD    NPEROD        E
+        !                   ------    ------    ------      ------
+        !
+        !                     31        0         0         6.E-14
+        !                     31        1         1         4.E-13
+        !                     31        1         3         3.E-13
+        !                     32        0         0         9.E-14
+        !                     32        1         1         3.E-13
+        !                     32        1         3         1.E-13
+        !                     33        0         0         9.E-14
+        !                     33        1         1         4.E-13
+        !                     33        1         3         1.E-13
+        !                     63        0         0         1.E-13
+        !                     63        1         1         1.E-12
+        !                     63        1         3         2.E-13
+        !                     64        0         0         1.E-13
+        !                     64        1         1         1.E-12
+        !                     64        1         3         6.E-13
+        !                     65        0         0         2.E-13
+        !                     65        1         1         1.E-12
+        !                     65        1         3         4.E-13
+        !
+        !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
-        !-----------------------------------------------
-        integer  :: nperod
-        integer  :: n
-        integer  :: mperod
-        integer  :: m
-        integer  :: idimy
-        integer  :: ierror
-        real  :: a(*)
-        real  :: b(*)
-        real  :: c(*)
-        real  :: y(idimy, *)
-        !-----------------------------------------------
+        !--------------------------------------------------------------------------------
+        integer (ip) :: nperod
+        integer (ip) :: n
+        integer (ip) :: mperod
+        integer (ip) :: m
+        integer (ip) :: idimy
+        integer (ip) :: ierror
+        real (wp) :: a(*)
+        real (wp) :: b(*)
+        real (wp) :: c(*)
+        real (wp) :: y(idimy, *)
+        !--------------------------------------------------------------------------------
         ! Dictionary: local variables
-        !-----------------------------------------------
+        !--------------------------------------------------------------------------------
         integer (ip)             :: irwk, icwk
         type (FishpackWorkspace) :: workspace
         !-----------------------------------------------
+
         ierror = 0
+
         !     check input arguments
         ierror = 0
         !     check input arguments
@@ -442,23 +444,23 @@ contains
     !*****************************************************************************************
     !
     subroutine GENBUNN(nperod, n, mperod, m, a, b, c, idimy, y, ierror, w)
-        !-----------------------------------------------
+        !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
-        !-----------------------------------------------
-        integer , intent (in) :: nperod
-        integer  :: n
-        integer , intent (in) :: mperod
-        integer  :: m
-        integer  :: idimy
-        integer , intent (in out) :: ierror
-        real , intent (in) :: a(*)
-        real , intent (in) :: b(*)
-        real , intent (in) :: c(*)
-        real  :: y(idimy, *)
-        real  :: w(*)
-        !-----------------------------------------------
+        !--------------------------------------------------------------------------------
+        integer (ip), intent (in) :: nperod
+        integer (ip) :: n
+        integer (ip), intent (in) :: mperod
+        integer (ip) :: m
+        integer (ip) :: idimy
+        integer (ip), intent (in out) :: ierror
+        real (wp), intent (in) :: a(*)
+        real (wp), intent (in) :: b(*)
+        real (wp), intent (in) :: c(*)
+        real (wp) :: y(idimy, *)
+        real (wp) :: w(*)
+        !--------------------------------------------------------------------------------
         ! Dictionary: local variables
-        !-----------------------------------------------
+        !--------------------------------------------------------------------------------
         integer (ip)    :: i, mp1, iwba, iwbb, iwbc, iwb2, iwb3, iww1, iww2, iww3
         integer (ip)    :: iwd, iwtcos, iwp, k, j, mp, np, ipstor, irev, mh, mhm1, modd
         integer (ip)    :: mhpi, mhmi, nby2, mskip
@@ -589,22 +591,22 @@ end subroutine GENBUNN
     !*****************************************************************************************
     !
 subroutine POISD2(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
-    !-----------------------------------------------
+    !--------------------------------------------------------------------------------
     ! Dictionary: calling arguments
-    !-----------------------------------------------
-    integer , intent (in) :: mr
-    integer , intent (in) :: nr
-    integer , intent (in) :: istag
-    integer , intent (in) :: idimq
-    real  :: ba(*)
-    real  :: bb(*)
-    real  :: bc(*)
-    real , intent (in out) :: q(idimq, 1)
-    real  :: b(*)
-    real  :: w(*)
-    real  :: d(*)
-    real  :: tcos(*)
-    real , intent (in out) :: p(*)
+    !--------------------------------------------------------------------------------
+    integer (ip), intent (in) :: mr
+    integer (ip), intent (in) :: nr
+    integer (ip), intent (in) :: istag
+    integer (ip), intent (in) :: idimq
+    real (wp) :: ba(*)
+    real (wp) :: bb(*)
+    real (wp) :: bc(*)
+    real (wp), intent (in out) :: q(idimq, 1)
+    real (wp) :: b(*)
+    real (wp) :: w(*)
+    real (wp) :: d(*)
+    real (wp) :: tcos(*)
+    real (wp), intent (in out) :: p(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -895,24 +897,24 @@ subroutine POISN2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent (in) :: m
-    integer , intent (in) :: n
-    integer , intent (in) :: istag
-    integer , intent (in) :: mixbnd
-    integer , intent (in) :: idimq
-    real  :: a(*)
-    real  :: bb(*)
-    real  :: c(*)
-    real , intent (in out) :: q(idimq, *)
-    real  :: b(*)
-    real  :: b2(*)
-    real  :: b3(*)
-    real  :: w(*)
-    real  :: w2(*)
-    real  :: w3(*)
-    real  :: d(*)
-    real  :: tcos(*)
-    real , intent (in out) :: p(*)
+    integer (ip), intent (in) :: m
+    integer (ip), intent (in) :: n
+    integer (ip), intent (in) :: istag
+    integer (ip), intent (in) :: mixbnd
+    integer (ip), intent (in) :: idimq
+    real (wp) :: a(*)
+    real (wp) :: bb(*)
+    real (wp) :: c(*)
+    real (wp), intent (in out) :: q(idimq, *)
+    real (wp) :: b(*)
+    real (wp) :: b2(*)
+    real (wp) :: b3(*)
+    real (wp) :: w(*)
+    real (wp) :: w2(*)
+    real (wp) :: w3(*)
+    real (wp) :: d(*)
+    real (wp) :: tcos(*)
+    real (wp), intent (in out) :: p(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -1340,22 +1342,22 @@ subroutine POISP2(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
     !-----------------------------------------------
     !   D u m m y   A r g u m e n t s
     !-----------------------------------------------
-    integer , intent (in) :: m
-    integer , intent (in) :: n
-    integer  :: idimq
-    real  :: a(*)
-    real  :: bb(*)
-    real  :: c(*)
-    real  :: q(idimq, 1)
-    real  :: b(*)
-    real  :: b2(*)
-    real  :: b3(*)
-    real  :: w(*)
-    real  :: w2(*)
-    real  :: w3(*)
-    real  :: d(*)
-    real  :: tcos(*)
-    real  :: p(*)
+    integer (ip), intent (in) :: m
+    integer (ip), intent (in) :: n
+    integer (ip) :: idimq
+    real (wp) :: a(*)
+    real (wp) :: bb(*)
+    real (wp) :: c(*)
+    real (wp) :: q(idimq, 1)
+    real (wp) :: b(*)
+    real (wp) :: b2(*)
+    real (wp) :: b3(*)
+    real (wp) :: w(*)
+    real (wp) :: w2(*)
+    real (wp) :: w3(*)
+    real (wp) :: d(*)
+    real (wp) :: tcos(*)
+    real (wp) :: p(*)
     !-----------------------------------------------
     !   L o c a l   V a r i a b l e s
     !-----------------------------------------------

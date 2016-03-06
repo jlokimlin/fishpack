@@ -474,10 +474,10 @@ contains
         !   L o c a l   V a r i a b l e s
         !-----------------------------------------------
         integer :: m, mbdcnd, n, nbdcnd, idimf, i, j, ierror
-        real , dimension(18, 72) :: f
-        real , dimension(72) :: bda, bdb, bdc, bdd
-        real , dimension(18) :: sint
-        real , dimension(72) :: sinp
+        real (wp), dimension(18, 72) :: f
+        real (wp), dimension(72) :: bda, bdb, bdc, bdd
+        real (wp), dimension(18) :: sint
+        real (wp), dimension(72) :: sinp
         real::pi, a, b, c, d, elmbda, dtheta, dphi, pertrb, err, z
         !-----------------------------------------------
         !
@@ -552,23 +552,23 @@ contains
         !-----------------------------------------------
         !   D u m m y   A r g u m e n t s
         !-----------------------------------------------
-        integer  :: m
-        integer  :: mbdcnd
-        integer  :: n
-        integer  :: nbdcnd
-        integer  :: idimf
-        integer  :: ierror
-        real  :: a
-        real  :: b
-        real  :: c
-        real  :: d
-        real  :: elmbda
-        real  :: pertrb
-        real  :: bda(*)
-        real  :: bdb(*)
-        real  :: bdc(*)
-        real  :: bdd(*)
-        real  :: f(idimf, *)
+        integer (ip) :: m
+        integer (ip) :: mbdcnd
+        integer (ip) :: n
+        integer (ip) :: nbdcnd
+        integer (ip) :: idimf
+        integer (ip) :: ierror
+        real (wp) :: a
+        real (wp) :: b
+        real (wp) :: c
+        real (wp) :: d
+        real (wp) :: elmbda
+        real (wp) :: pertrb
+        real (wp) :: bda(*)
+        real (wp) :: bdb(*)
+        real (wp) :: bdc(*)
+        real (wp) :: bdd(*)
+        real (wp) :: f(idimf, *)
         !-----------------------------------------------
         !   L o c a l   V a r i a b l e s
         !-----------------------------------------------
@@ -622,24 +622,24 @@ contains
         !-----------------------------------------------
         !   D u m m y   A r g u m e n t s
         !-----------------------------------------------
-        integer  :: m
+        integer (ip) :: m
         integer , intent (in) :: mbdcnd
-        integer  :: n
+        integer (ip) :: n
         integer , intent (in) :: nbdcnd
-        integer  :: idimf
+        integer (ip) :: idimf
         integer , intent (out) :: ierror
-        real , intent (in) :: a
-        real , intent (in) :: b
-        real , intent (in) :: c
-        real , intent (in) :: d
-        real , intent (in) :: elmbda
-        real , intent (out) :: pertrb
-        real , intent (in) :: bda(*)
-        real , intent (in) :: bdb(*)
-        real , intent (in) :: bdc(*)
-        real , intent (in) :: bdd(*)
-        real  :: f(idimf, 1)
-        real  :: w(*)
+        real (wp), intent (in) :: a
+        real (wp), intent (in) :: b
+        real (wp), intent (in) :: c
+        real (wp), intent (in) :: d
+        real (wp), intent (in) :: elmbda
+        real (wp), intent (out) :: pertrb
+        real (wp), intent (in) :: bda(*)
+        real (wp), intent (in) :: bdb(*)
+        real (wp), intent (in) :: bdc(*)
+        real (wp), intent (in) :: bdd(*)
+        real (wp) :: f(idimf, 1)
+        real (wp) :: w(*)
         !-----------------------------------------------
         !   L o c a l   V a r i a b l e s
         !-----------------------------------------------
