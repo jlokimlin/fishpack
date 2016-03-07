@@ -8,8 +8,6 @@ module module_genbun
     use type_FishpackWorkspace, only: &
         FishpackWorkspace
 
-    use module_comf
-
     use module_gnbnaux, only: &
         cosgen, &
         merge_ascending_strings_in_tcos, &

@@ -8,7 +8,11 @@ module module_blktri
     use type_FishpackWorkspace, only: &
         FishpackWorkspace
 
-    use module_comf
+    use module_comf, only: &
+        epmach, &
+        psgf, &
+        ppspf, &
+        ppsgf
 
     ! Explicit typing only
     implicit none

@@ -39,7 +39,6 @@ gnbnaux.f90
 genbun.o: \
 type_FishpackWorkspace.o \
 gnbnaux.o \
-comf.o \
 genbun.f90
 	$(FC) $(FFLAGS) -c genbun.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
@@ -47,7 +46,6 @@ genbun.f90
 poistg.o: \
 type_FishpackWorkspace.o \
 gnbnaux.o \
-comf.o \
 poistg.f90
 	$(FC) $(FFLAGS) -c poistg.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)

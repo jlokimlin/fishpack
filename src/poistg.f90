@@ -1,214 +1,3 @@
-!
-!     file poistg.f
-!
-!     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-!     *                                                               *
-!     *                  copyright (c) 2005 by UCAR                   *
-!     *                                                               *
-!     *       University Corporation for Atmospheric Research         *
-!     *                                                               *
-!     *                      all rights reserved                      *
-!     *                                                               *
-!     *                    FISHPACK90  version 1.1                    *
-!     *                                                               *
-!     *                 A Package of Fortran 77 and 90                *
-!     *                                                               *
-!     *                Subroutines and Example Programs               *
-!     *                                                               *
-!     *               for Modeling Geophysical Processes              *
-!     *                                                               *
-!     *                             by                                *
-!     *                                                               *
-!     *        John Adams, Paul Swarztrauber and Roland Sweet         *
-!     *                                                               *
-!     *                             of                                *
-!     *                                                               *
-!     *         the National Center for Atmospheric Research          *
-!     *                                                               *
-!     *                Boulder, Colorado  (80307)  U.S.A.             *
-!     *                                                               *
-!     *                   which is sponsored by                       *
-!     *                                                               *
-!     *              the National Science Foundation                  *
-!     *                                                               *
-!     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-!
-!     SUBROUTINE POISTG (NPEROD, N, MPEROD, M, A, B, C, IDIMY, Y, IERROR)
-!
-!
-! DIMENSION OF           A(M),  B(M),  C(M),  Y(IDIMY, N)
-! ARGUMENTS
-!
-! LATEST REVISION        June 2004
-!
-! PURPOSE                SOLVES THE LINEAR SYSTEM OF EQUATIONS
-!                        FOR UNKNOWN X VALUES, WHERE I=1, 2, ..., M
-!                        AND J=1, 2, ..., N
-!
-!                        A(I)*X(I-1, J) + B(I)*X(I, J) + C(I)*X(I+1, J)
-!                        + X(I, J-1) - 2.*X(I, J) + X(I, J+1)
-!                        = Y(I, J)
-!
-!                        THE INDICES I+1 AND I-1 ARE EVALUATED MODULO M, 
-!                        I.E. X(0, J) = X(M, J) AND X(M+1, J) = X(1, J), AND
-!                        X(I, 0) MAY BE EQUAL TO X(I, 1) OR -X(I, 1), AND
-!                        X(I, N+1) MAY BE EQUAL TO X(I, N) OR -X(I, N), 
-!                        DEPENDING ON AN INPUT PARAMETER.
-!
-! USAGE                  CALL POISTG (NPEROD, N, MPEROD, M, A, B, C, IDIMY, Y, 
-!                                     IERROR)
-!
-! ARGUMENTS
-!
-! ON INPUT
-!
-!                        NPEROD
-!                          INDICATES VALUES WHICH X(I, 0) AND X(I, N+1)
-!                          ARE ASSUMED TO HAVE.
-!                          = 1 IF X(I, 0) = -X(I, 1) AND X(I, N+1) = -X(I, N
-!                          = 2 IF X(I, 0) = -X(I, 1) AND X(I, N+1) =  X(I, N
-!                          = 3 IF X(I, 0) =  X(I, 1) AND X(I, N+1) =  X(I, N
-!                          = 4 IF X(I, 0) =  X(I, 1) AND X(I, N+1) = -X(I, N
-!
-!                        N
-!                          THE NUMBER OF UNKNOWNS IN THE J-DIRECTION.
-!                          N MUST BE GREATER THAN 2.
-!
-!                        MPEROD
-!                          = 0 IF A(1) AND C(M) ARE NOT ZERO
-!                          = 1 IF A(1) = C(M) = 0
-!
-!                        M
-!                          THE NUMBER OF UNKNOWNS IN THE I-DIRECTION.
-!                          M MUST BE GREATER THAN 2.
-!
-!                        A, B, C
-!                          ONE-DIMENSIONAL ARRAYS OF LENGTH M THAT
-!                          SPECIFY THE COEFFICIENTS IN THE LINEAR
-!                          EQUATIONS GIVEN ABOVE.  IF MPEROD = 0 THE
-!                          ARRAY ELEMENTS MUST NOT DEPEND ON INDEX I, 
-!                          BUT MUST BE CONSTANT.  SPECIFICALLY, THE
-!                          SUBROUTINE CHECKS THE FOLLOWING CONDITION
-!                            A(I) = C(1)
-!                            B(I) = B(1)
-!                            C(I) = C(1)
-!                          FOR I = 1, 2, ..., M.
-!
-!                        IDIMY
-!                          THE ROW (OR FIRST) DIMENSION OF THE TWO-
-!                          DIMENSIONAL ARRAY Y AS IT APPEARS IN THE
-!                          PROGRAM CALLING POISTG.  THIS PARAMETER IS
-!                          USED TO SPECIFY THE VARIABLE DIMENSION OF Y.
-!                          IDIMY MUST BE AT LEAST M.
-!
-!                        Y
-!                          A TWO-DIMENSIONAL ARRAY THAT SPECIFIES THE
-!                          VALUES OF THE RIGHT SIDE OF THE LINEAR SYSTEM
-!                          OF EQUATIONS GIVEN ABOVE.
-!                          Y MUST BE DIMENSIONED AT LEAST M X N.
-!
-! ON OUTPUT
-!
-!                        Y
-!                          CONTAINS THE SOLUTION X.
-!
-!                        IERROR
-!                          AN ERROR FLAG THAT INDICATES INVALID INPUT
-!                          PARAMETERS.  EXCEPT FOR NUMBER ZERO, A
-!                          SOLUTION IS NOT ATTEMPTED.
-!                          = 0  NO ERROR
-!                          = 1  IF M .LE. 2
-!                          = 2  IF N .LE. 2
-!                          = 3  IDIMY .LT. M
-!                          = 4  IF NPEROD .LT. 1 OR NPEROD .GT. 4
-!                          = 5  IF MPEROD .LT. 0 OR MPEROD .GT. 1
-!                          = 6  IF MPEROD = 0 AND A(I) .NE. C(1)
-!                               OR B(I) .NE. B(1) OR C(I) .NE. C(1)
-!                               FOR SOME I = 1, 2, ..., M.
-!                          = 7  IF MPEROD .EQ. 1 .AND.
-!                               (A(1).NE.0 .OR. C(M).NE.0)
-!                          = 20 If the dynamic allocation of real and
-!                               complex work space required for solution
-!                               fails (for example if N, M are too large
-!                               for your computer)
-!
-!                          SINCE THIS IS THE ONLY MEANS OF INDICATING A
-!                          POSSIBLY INCORRECT CALL TO POIS3D, THE USER
-!                          SHOULD TEST IERROR AFTER THE CALL.
-!
-!
-!
-! I/O                    NONE
-!
-! PRECISION              SINGLE
-!
-! REQUIRED files         fish.f, gnbnaux.f, comf.f
-!
-! LANGUAGE               FORTRAN 90
-!
-! HISTORY                WRITTEN BY ROLAND SWEET AT NCAR IN THE LATE
-!                        1970'S.  RELEASED ON NCAR'S PUBLIC SOFTWARE
-!                        LIBRARIES IN JANUARY, 1980.
-!                        Revised in June 2004 by John Adams using
-!                        Fortran 90 dynamically allocated work space.
-!
-! PORTABILITY            FORTRAN 90
-!
-! ALGORITHM              THIS SUBROUTINE IS AN IMPLEMENTATION OF THE
-!                        ALGORITHM PRESENTED IN THE REFERENCE BELOW.
-!
-! TIMING                 FOR LARGE M AND N, THE EXECUTION TIME IS
-!                        ROUGHLY PROPORTIONAL TO M*N*LOG2(N).
-!
-! ACCURACY               TO MEASURE THE ACCURACY OF THE ALGORITHM A
-!                        UNIFORM RANDOM NUMBER GENERATOR WAS USED TO
-!                        CREATE A SOLUTION ARRAY X FOR THE SYSTEM GIVEN
-!                        IN THE 'PURPOSE' SECTION ABOVE, WITH
-!                          A(I) = C(I) = -0.5*B(I) = 1,    I=1, 2, ..., M
-!                        AND, WHEN MPEROD = 1
-!                          A(1) = C(M) = 0
-!                          B(1) = B(M) =-1.
-!
-!                        THE SOLUTION X WAS SUBSTITUTED INTO THE GIVEN
-!                        SYSTEM AND, USING DOUBLE PRECISION, A RIGHT SID
-!                        Y WAS COMPUTED.  USING THIS ARRAY Y SUBROUTINE
-!                        POISTG WAS CALLED TO PRODUCE AN APPROXIMATE
-!                        SOLUTION Z.  THEN THE RELATIVE ERROR, DEFINED A
-!                          E = MAX(abs(Z(I, J)-X(I, J)))/MAX(abs(X(I, J)))
-!                        WHERE THE TWO MAXIMA ARE TAKEN OVER I=1, 2, ..., M
-!                        AND J=1, 2, ..., N, WAS COMPUTED.  VALUES OF E ARE
-!                        GIVEN IN THE TABLE BELOW FOR SOME TYPICAL VALUE
-!                        OF M AND N.
-!
-!                        M (=N)    MPEROD    NPEROD      E
-!                        ------    ------    ------    ------
-!
-!                          31        0-1       1-4     9.E-13
-!                          31        1         1       4.E-13
-!                          31        1         3       3.E-13
-!                          32        0-1       1-4     3.E-12
-!                          32        1         1       3.E-13
-!                          32        1         3       1.E-13
-!                          33        0-1       1-4     1.E-12
-!                          33        1         1       4.E-13
-!                          33        1         3       1.E-13
-!                          63        0-1       1-4     3.E-12
-!                          63        1         1       1.E-12
-!                          63        1         3       2.E-13
-!                          64        0-1       1-4     4.E-12
-!                          64        1         1       1.E-12
-!                          64        1         3       6.E-13
-!                          65        0-1       1-4     2.E-13
-!                          65        1         1       1.E-11
-!                          65        1         3       4.E-13
-!
-! REFERENCES             SCHUMANN, U. AND R. SWEET, "A DIRECT METHOD
-!                        FOR THE SOLUTION OF POISSON"S EQUATION WITH
-!                        NEUMANN BOUNDARY CONDITIONS ON A STAGGERED
-!                        GRID OF ARBITRARY SIZE, " J. COMP. PHYS.
-!                        20(1976), PP. 171-182.
-! *********************************************************************
-!
 module module_poistg
 
     use, intrinsic :: iso_fortran_env, only: &
@@ -218,8 +7,6 @@ module module_poistg
 
     use type_FishpackWorkspace, only: &
         FishpackWorkspace
-
-    use module_comf
 
     use module_gnbnaux, only: &
         cosgen, &
@@ -446,7 +233,8 @@ contains
         do i = 1, m
             f(i, n) = F(i, n) - 4.*dy*SIN(X(i))
         end do
-        call POISTG (nperod, n, mperod, m, a, b, c, idimf, f, ierror)
+
+        call POISTG( nperod, n, mperod, m, a, b, c, idimf, f, ierror)
         !
         !     COMPUTE DISCRETIZATION ERROR.  THE EXACT SOLUTION IS
         !
@@ -475,6 +263,217 @@ contains
     !*****************************************************************************************
     !
     subroutine POISTG( nperod, n, mperod, m, a, b, c, idimy, y, ierror )
+        !
+        !     file poistg.f
+        !
+        !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+        !     *                                                               *
+        !     *                  copyright (c) 2005 by UCAR                   *
+        !     *                                                               *
+        !     *       University Corporation for Atmospheric Research         *
+        !     *                                                               *
+        !     *                      all rights reserved                      *
+        !     *                                                               *
+        !     *                    FISHPACK90  version 1.1                    *
+        !     *                                                               *
+        !     *                 A Package of Fortran 77 and 90                *
+        !     *                                                               *
+        !     *                Subroutines and Example Programs               *
+        !     *                                                               *
+        !     *               for Modeling Geophysical Processes              *
+        !     *                                                               *
+        !     *                             by                                *
+        !     *                                                               *
+        !     *        John Adams, Paul Swarztrauber and Roland Sweet         *
+        !     *                                                               *
+        !     *                             of                                *
+        !     *                                                               *
+        !     *         the National Center for Atmospheric Research          *
+        !     *                                                               *
+        !     *                Boulder, Colorado  (80307)  U.S.A.             *
+        !     *                                                               *
+        !     *                   which is sponsored by                       *
+        !     *                                                               *
+        !     *              the National Science Foundation                  *
+        !     *                                                               *
+        !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+        !
+        !     SUBROUTINE POISTG (NPEROD, N, MPEROD, M, A, B, C, IDIMY, Y, IERROR)
+        !
+        !
+        ! DIMENSION OF           A(M),  B(M),  C(M),  Y(IDIMY, N)
+        ! ARGUMENTS
+        !
+        ! LATEST REVISION        June 2004
+        !
+        ! PURPOSE                SOLVES THE LINEAR SYSTEM OF EQUATIONS
+        !                        FOR UNKNOWN X VALUES, WHERE I=1, 2, ..., M
+        !                        AND J=1, 2, ..., N
+        !
+        !                        A(I)*X(I-1, J) + B(I)*X(I, J) + C(I)*X(I+1, J)
+        !                        + X(I, J-1) - 2.*X(I, J) + X(I, J+1)
+        !                        = Y(I, J)
+        !
+        !                        THE INDICES I+1 AND I-1 ARE EVALUATED MODULO M,
+        !                        I.E. X(0, J) = X(M, J) AND X(M+1, J) = X(1, J), AND
+        !                        X(I, 0) MAY BE EQUAL TO X(I, 1) OR -X(I, 1), AND
+        !                        X(I, N+1) MAY BE EQUAL TO X(I, N) OR -X(I, N),
+        !                        DEPENDING ON AN INPUT PARAMETER.
+        !
+        ! USAGE                  CALL POISTG (NPEROD, N, MPEROD, M, A, B, C, IDIMY, Y,
+        !                                     IERROR)
+        !
+        ! ARGUMENTS
+        !
+        ! ON INPUT
+        !
+        !                        NPEROD
+        !                          INDICATES VALUES WHICH X(I, 0) AND X(I, N+1)
+        !                          ARE ASSUMED TO HAVE.
+        !                          = 1 IF X(I, 0) = -X(I, 1) AND X(I, N+1) = -X(I, N
+        !                          = 2 IF X(I, 0) = -X(I, 1) AND X(I, N+1) =  X(I, N
+        !                          = 3 IF X(I, 0) =  X(I, 1) AND X(I, N+1) =  X(I, N
+        !                          = 4 IF X(I, 0) =  X(I, 1) AND X(I, N+1) = -X(I, N
+        !
+        !                        N
+        !                          THE NUMBER OF UNKNOWNS IN THE J-DIRECTION.
+        !                          N MUST BE GREATER THAN 2.
+        !
+        !                        MPEROD
+        !                          = 0 IF A(1) AND C(M) ARE NOT ZERO
+        !                          = 1 IF A(1) = C(M) = 0
+        !
+        !                        M
+        !                          THE NUMBER OF UNKNOWNS IN THE I-DIRECTION.
+        !                          M MUST BE GREATER THAN 2.
+        !
+        !                        A, B, C
+        !                          ONE-DIMENSIONAL ARRAYS OF LENGTH M THAT
+        !                          SPECIFY THE COEFFICIENTS IN THE LINEAR
+        !                          EQUATIONS GIVEN ABOVE.  IF MPEROD = 0 THE
+        !                          ARRAY ELEMENTS MUST NOT DEPEND ON INDEX I,
+        !                          BUT MUST BE CONSTANT.  SPECIFICALLY, THE
+        !                          SUBROUTINE CHECKS THE FOLLOWING CONDITION
+        !                            A(I) = C(1)
+        !                            B(I) = B(1)
+        !                            C(I) = C(1)
+        !                          FOR I = 1, 2, ..., M.
+        !
+        !                        IDIMY
+        !                          THE ROW (OR FIRST) DIMENSION OF THE TWO-
+        !                          DIMENSIONAL ARRAY Y AS IT APPEARS IN THE
+        !                          PROGRAM CALLING POISTG.  THIS PARAMETER IS
+        !                          USED TO SPECIFY THE VARIABLE DIMENSION OF Y.
+        !                          IDIMY MUST BE AT LEAST M.
+        !
+        !                        Y
+        !                          A TWO-DIMENSIONAL ARRAY THAT SPECIFIES THE
+        !                          VALUES OF THE RIGHT SIDE OF THE LINEAR SYSTEM
+        !                          OF EQUATIONS GIVEN ABOVE.
+        !                          Y MUST BE DIMENSIONED AT LEAST M X N.
+        !
+        ! ON OUTPUT
+        !
+        !                        Y
+        !                          CONTAINS THE SOLUTION X.
+        !
+        !                        IERROR
+        !                          AN ERROR FLAG THAT INDICATES INVALID INPUT
+        !                          PARAMETERS.  EXCEPT FOR NUMBER ZERO, A
+        !                          SOLUTION IS NOT ATTEMPTED.
+        !                          = 0  NO ERROR
+        !                          = 1  IF M .LE. 2
+        !                          = 2  IF N .LE. 2
+        !                          = 3  IDIMY .LT. M
+        !                          = 4  IF NPEROD .LT. 1 OR NPEROD .GT. 4
+        !                          = 5  IF MPEROD .LT. 0 OR MPEROD .GT. 1
+        !                          = 6  IF MPEROD = 0 AND A(I) .NE. C(1)
+        !                               OR B(I) .NE. B(1) OR C(I) .NE. C(1)
+        !                               FOR SOME I = 1, 2, ..., M.
+        !                          = 7  IF MPEROD .EQ. 1 .AND.
+        !                               (A(1).NE.0 .OR. C(M).NE.0)
+        !                          = 20 If the dynamic allocation of real and
+        !                               complex work space required for solution
+        !                               fails (for example if N, M are too large
+        !                               for your computer)
+        !
+        !                          SINCE THIS IS THE ONLY MEANS OF INDICATING A
+        !                          POSSIBLY INCORRECT CALL TO POIS3D, THE USER
+        !                          SHOULD TEST IERROR AFTER THE CALL.
+        !
+        !
+        !
+        ! I/O                    NONE
+        !
+        ! PRECISION              SINGLE
+        !
+        ! REQUIRED files         fish.f, gnbnaux.f, comf.f
+        !
+        ! LANGUAGE               FORTRAN 90
+        !
+        ! HISTORY                WRITTEN BY ROLAND SWEET AT NCAR IN THE LATE
+        !                        1970'S.  RELEASED ON NCAR'S PUBLIC SOFTWARE
+        !                        LIBRARIES IN JANUARY, 1980.
+        !                        Revised in June 2004 by John Adams using
+        !                        Fortran 90 dynamically allocated work space.
+        !
+        ! PORTABILITY            FORTRAN 90
+        !
+        ! ALGORITHM              THIS SUBROUTINE IS AN IMPLEMENTATION OF THE
+        !                        ALGORITHM PRESENTED IN THE REFERENCE BELOW.
+        !
+        ! TIMING                 FOR LARGE M AND N, THE EXECUTION TIME IS
+        !                        ROUGHLY PROPORTIONAL TO M*N*LOG2(N).
+        !
+        ! ACCURACY               TO MEASURE THE ACCURACY OF THE ALGORITHM A
+        !                        UNIFORM RANDOM NUMBER GENERATOR WAS USED TO
+        !                        CREATE A SOLUTION ARRAY X FOR THE SYSTEM GIVEN
+        !                        IN THE 'PURPOSE' SECTION ABOVE, WITH
+        !                          A(I) = C(I) = -0.5*B(I) = 1,    I=1, 2, ..., M
+        !                        AND, WHEN MPEROD = 1
+        !                          A(1) = C(M) = 0
+        !                          B(1) = B(M) =-1.
+        !
+        !                        THE SOLUTION X WAS SUBSTITUTED INTO THE GIVEN
+        !                        SYSTEM AND, USING DOUBLE PRECISION, A RIGHT SID
+        !                        Y WAS COMPUTED.  USING THIS ARRAY Y SUBROUTINE
+        !                        POISTG WAS CALLED TO PRODUCE AN APPROXIMATE
+        !                        SOLUTION Z.  THEN THE RELATIVE ERROR, DEFINED A
+        !                          E = MAX(abs(Z(I, J)-X(I, J)))/MAX(abs(X(I, J)))
+        !                        WHERE THE TWO MAXIMA ARE TAKEN OVER I=1, 2, ..., M
+        !                        AND J=1, 2, ..., N, WAS COMPUTED.  VALUES OF E ARE
+        !                        GIVEN IN THE TABLE BELOW FOR SOME TYPICAL VALUE
+        !                        OF M AND N.
+        !
+        !                        M (=N)    MPEROD    NPEROD      E
+        !                        ------    ------    ------    ------
+        !
+        !                          31        0-1       1-4     9.E-13
+        !                          31        1         1       4.E-13
+        !                          31        1         3       3.E-13
+        !                          32        0-1       1-4     3.E-12
+        !                          32        1         1       3.E-13
+        !                          32        1         3       1.E-13
+        !                          33        0-1       1-4     1.E-12
+        !                          33        1         1       4.E-13
+        !                          33        1         3       1.E-13
+        !                          63        0-1       1-4     3.E-12
+        !                          63        1         1       1.E-12
+        !                          63        1         3       2.E-13
+        !                          64        0-1       1-4     4.E-12
+        !                          64        1         1       1.E-12
+        !                          64        1         3       6.E-13
+        !                          65        0-1       1-4     2.E-13
+        !                          65        1         1       1.E-11
+        !                          65        1         3       4.E-13
+        !
+        ! REFERENCES             SCHUMANN, U. AND R. SWEET, "A DIRECT METHOD
+        !                        FOR THE SOLUTION OF POISSON"S EQUATION WITH
+        !                        NEUMANN BOUNDARY CONDITIONS ON A STAGGERED
+        !                        GRID OF ARBITRARY SIZE, " J. COMP. PHYS.
+        !                        20(1976), PP. 171-182.
+        ! *********************************************************************
+        !
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------

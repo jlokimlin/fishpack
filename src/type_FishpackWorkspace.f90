@@ -1,40 +1,38 @@
-!C
-!C     file fish.f
-!C
-!C
-!C     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-!C     *                                                               *
-!C     *                  copyright (c) 2005 by UCAR                   *
-!C     *                                                               *
-!C     *       University Corporation for Atmospheric Research         *
-!C     *                                                               *
-!C     *                      all rights reserved                      *
-!C     *                                                               *
-!C     *                    FISHPACK90  version 1.1                    *
-!C     *                                                               *
-!C     *                 A Package of Fortran 77 and 90                *
-!C     *                                                               *
-!C     *                Subroutines and Example Programs               *
-!C     *                                                               *
-!C     *               for Modeling Geophysical Processes              *
-!C     *                                                               *
-!C     *                             by                                *
-!C     *                                                               *
-!C     *        John Adams, Paul Swarztrauber and Roland Sweet         *
-!C     *                                                               *
-!C     *                             of                                *
-!C     *                                                               *
-!C     *         the National Center for Atmospheric Research          *
-!C     *                                                               *
-!C     *                Boulder, Colorado  (80307)  U.S.A.             *
-!C     *                                                               *
-!C     *                   which is sponsored by                       *
-!C     *                                                               *
-!C     *              the National Science Foundation                  *
-!C     *                                                               *
-!C     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-!C
-!C
+!
+!     file fish.f
+!
+!     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+!     *                                                               *
+!     *                  copyright (c) 2005 by UCAR                   *
+!     *                                                               *
+!     *       University Corporation for Atmospheric Research         *
+!     *                                                               *
+!     *                      all rights reserved                      *
+!     *                                                               *
+!     *                    FISHPACK90  version 1.1                    *
+!     *                                                               *
+!     *                 A Package of Fortran 77 and 90                *
+!     *                                                               *
+!     *                Subroutines and Example Programs               *
+!     *                                                               *
+!     *               for Modeling Geophysical Processes              *
+!     *                                                               *
+!     *                             by                                *
+!     *                                                               *
+!     *        John Adams, Paul Swarztrauber and Roland Sweet         *
+!     *                                                               *
+!     *                             of                                *
+!     *                                                               *
+!     *         the National Center for Atmospheric Research          *
+!     *                                                               *
+!     *                Boulder, Colorado  (80307)  U.S.A.             *
+!     *                                                               *
+!     *                   which is sponsored by                       *
+!     *                                                               *
+!     *              the National Science Foundation                  *
+!     *                                                               *
+!     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+!
 !
 ! Purpose:
 !
