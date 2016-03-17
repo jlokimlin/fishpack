@@ -494,11 +494,33 @@ contains
         type (FishpackWorkspace) :: workspace
         !-----------------------------------------------
         ierror = 0
-        if (m <= 2) ierror = 1
-        if (n <= 2) ierror = 2
-        if (idimy < m) ierror = 3
-        if (nperod<1 .or. nperod>4) ierror = 4
-        if (mperod<0 .or. mperod>1) ierror = 5
+
+        ! Perform sanity checks
+        if (m <= 2) then
+            ierror = 1
+            return
+        end if
+
+        if (n <= 2) then
+            ierror = 2
+            return
+        end if
+
+        if (idimy < m) then
+            ierror = 3
+            return
+        end if
+
+        if (nperod<1 .or. nperod>4) then
+            ierror = 4
+            return
+        end if
+
+        if (mperod<0 .or. mperod>1) then
+            ierror = 5
+            return
+        end if
+
         if (mperod /= 1) then
             do i = 1, m
                 if (A(i) /= C(1)) go to 102

@@ -409,18 +409,22 @@ contains
             ierror = 1
             return
         end if
+
         if (n <= 2) then
             ierror = 2
             return
         end if
+
         if (idimy < m) then
             ierror = 3
             return
         end if
+
         if (nperod<0 .or. nperod>4) then
             ierror = 4
             return
         end if
+
         if (mperod<0 .or. mperod>1) then
             ierror = 5
             return
@@ -429,10 +433,13 @@ contains
         ! compute and allocate real work space for genbun
         call workspace%get_genbun_workspace_dimensions(n, m, irwk)
         icwk = 0
+
         call workspace%create( irwk, icwk, ierror )
+
         ! return if allocation failed (e.g., if n, m are too large)
         if (ierror == 20) return
-        call genbunn(nperod, n, mperod, m, a, b, c, idimy, y, ierror, workspace%rew)
+
+        call genbunn(nperod, n, mperod, m, a, b, c, idimy, y, ierror, workspace%rew )
 
         ! Release allocated work space
         call workspace%destroy()
@@ -463,8 +470,8 @@ contains
         integer (ip)    :: iwd, iwtcos, iwp, k, j, mp, np, ipstor, irev, mh, mhm1, modd
         integer (ip)    :: mhpi, mhmi, nby2, mskip
         real (wp)       :: a1
-        !real (wp), save :: alll
         !-----------------------------------------------
+
         if (mperod /= 1) then
             do i = 2, m
                 if (A(i) /= C(1)) go to 103
@@ -583,7 +590,7 @@ end select
 end do
 133 continue
     w(1) = ipstor + iwp - 1
-    return
+
 end subroutine GENBUNN
     !
     !*****************************************************************************************
@@ -612,7 +619,6 @@ subroutine POISD2(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
     integer (ip)    :: jst, jsp, l, nodd, j, jm1, jp1, jm2, jp2, jm3, jp3, noddpr, ip1
     integer (ip)    :: krpi, ideg, jdeg
     real (wp)       :: fi, t
-    !real (wp), save ::  alll
     !-----------------------------------------------
     !
     !     SUBROUTINE TO SOLVE POISSON'S EQUATION FOR DIRICHLET BOUNDARY
@@ -921,7 +927,6 @@ subroutine POISN2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
     integer (ip)    :: lr, i, nrod, jstart, jstop, i2rby2, j, jp1, jp2, jp3, jm1
     integer (ip)    :: jm2, jm3, nrodpr, ii, i1, i2, jr2, nlastp, jstep
     real (wp)       :: fistag, fnum, fden, fi, t
-    !real (wp), save ::  alll
     !-----------------------------------------------
     !
     !     SUBROUTINE TO SOLVE POISSON'S EQUATION WITH NEUMANN BOUNDARY
@@ -1336,7 +1341,6 @@ end subroutine POISN2
     !*****************************************************************************************
     !
 subroutine POISP2(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
-    implicit none
     !-----------------------------------------------
     !   D u m m y   A r g u m e n t s
     !-----------------------------------------------

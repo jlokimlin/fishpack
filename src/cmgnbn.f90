@@ -487,6 +487,7 @@ contains
         if (idimy < m) ierror = 3
         if (nperod<0 .or. nperod>4) ierror = 4
         if (mperod<0 .or. mperod>1) ierror = 5
+
         if (mperod /= 1) then
             do i = 2, m
                 if (abs(A(i)-C(1)) /= 0.) go to 103
@@ -495,6 +496,7 @@ contains
             end do
             go to 104
         end if
+
         if (abs(A(1))/=0. .and. abs(C(m))/=0.) ierror = 7
         go to 104
 103 continue

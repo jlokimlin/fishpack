@@ -1,411 +1,3 @@
-!
-!     file hstssp.f
-!
-!     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-!     *                                                               *
-!     *                  copyright (c) 2005 by UCAR                   *
-!     *                                                               *
-!     *       University Corporation for Atmospheric Research         *
-!     *                                                               *
-!     *                      all rights reserved                      *
-!     *                                                               *
-!     *                    FISHPACK90  version 1.1                    *
-!     *                                                               *
-!     *                 A Package of Fortran 77 and 90                *
-!     *                                                               *
-!     *                Subroutines and Example Programs               *
-!     *                                                               *
-!     *               for Modeling Geophysical Processes              *
-!     *                                                               *
-!     *                             by                                *
-!     *                                                               *
-!     *        John Adams, Paul Swarztrauber and Roland Sweet         *
-!     *                                                               *
-!     *                             of                                *
-!     *                                                               *
-!     *         the National Center for Atmospheric Research          *
-!     *                                                               *
-!     *                Boulder, Colorado  (80307)  U.S.A.             *
-!     *                                                               *
-!     *                   which is sponsored by                       *
-!     *                                                               *
-!     *              the National Science Foundation                  *
-!     *                                                               *
-!     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-!
-!     SUBROUTINE HSTSSP (A, B, M, MBDCND, BDA, BDB, C, D, N, NBDCND, BDC, BDD, 
-!    +                   ELMBDA, F, IDIMF, PERTRB, IERROR)
-!
-!
-! DIMENSION OF           BDA(N), BDB(N), BDC(M), BDD(M), F(IDIMF, N)
-! ARGUMENTS
-!
-! LATEST REVISION        June 2004
-!
-! PURPOSE                SOLVES THE STANDARD FIVE-POINT FINITE
-!                        DIFFERENCE APPROXIMATION ON A STAGGERED GRID
-!                        TO THE HELMHOLTZ EQUATION IN SPHERICAL
-!                        COORDINATES AND ON THE SURFACE OF THE UNIT
-!                        SPHERE (RADIUS OF 1).  THE EQUATION IS
-!
-!                          (1/SIN(THETA))(D/DTHETA)(SIN(THETA)
-!                          (DU/DTHETA)) + (1/SIN(THETA)**2)
-!                          (D/DPHI)(DU/DPHI) + LAMBDA*U = F(THETA, PHI)
-!
-!                        WHERE THETA IS COLATITUDE AND PHI IS
-!                        LONGITUDE.
-!
-! USAGE                  CALL HSTSSP (A, B, M, MBDCND, BDA, BDB, C, D, N, 
-!                                     NBDCND, BDC, BDD, ELMBDA, F, IDIMF, 
-!                                     PERTRB, IERROR)
-!
-!
-! ARGUMENTS
-! ON INPUT
-!
-!                        A, B
-!                          THE RANGE OF THETA (COLATITUDE), 
-!                          I.E. A .LE. THETA .LE. B.
-!                          A MUST BE LESS THAN B AND A MUST BE
-!                          NON-NEGATIVE.  A AND B ARE IN RADIANS.
-!                          A = 0 CORRESPONDS TO THE NORTH POLE AND
-!                          B = PI CORRESPONDS TO THE SOUTH POLE.
-!
-!
-!                            * * *  IMPORTANT  * * *
-!
-!                          IF B IS EQUAL TO PI, THEN B MUST BE
-!                          COMPUTED USING THE STATEMENT
-!                            B = PI_MACH(DUM)
-!
-!                          THIS INSURES THAT B IN THE USER"S PROGRAM
-!                          IS EQUAL TO PI IN THIS PROGRAM WHICH
-!                          PERMITS SEVERAL TESTS OF THE INPUT
-!                          PARAMETERS THAT OTHERWISE WOULD NOT BE
-!                          POSSIBLE.
-!
-!                            * * * * * * * * * * * *
-!                        M
-!                          THE NUMBER OF GRID POINTS IN THE INTERVAL
-!                          (A, B).  THE GRID POINTS IN THE THETA
-!                          DIRECTION ARE GIVEN BY
-!                          THETA(I) = A + (I-0.5)DTHETA
-!                          FOR I=1, 2, ..., M WHERE DTHETA =(B-A)/M.
-!                          M MUST BE GREATER THAN 2.
-!
-!                        MBDCND
-!                          INDICATES THE TYPE OF BOUNDARY CONDITIONS
-!                          AT THETA = A AND THETA = B.
-!
-!                          = 1  IF THE SOLUTION IS SPECIFIED AT
-!                               THETA = A AND THETA = B.
-!                               (SEE NOTE 3 BELOW)
-!
-!                          = 2  IF THE SOLUTION IS SPECIFIED AT
-!                               THETA = A AND THE DERIVATIVE OF THE
-!                               SOLUTION WITH RESPECT TO THETA IS
-!                               SPECIFIED AT THETA = B
-!                               (SEE NOTES 2 AND 3 BELOW).
-!
-!                          = 3  IF THE DERIVATIVE OF THE SOLUTION
-!                             WITH RESPECT TO THETA IS SPECIFIED
-!                             AT THETA = A
-!                             (SEE NOTES 1, 2 BELOW) AND THETA = B.
-!
-!                          = 4  IF THE DERIVATIVE OF THE SOLUTION
-!                               WITH RESPECT TO THETA IS SPECIFIED
-!                               AT THETA = A
-!                               (SEE NOTES 1 AND 2 BELOW) AND THE
-!                               SOLUTION IS SPECIFIED AT THETA = B.
-!
-!                          = 5  IF THE SOLUTION IS UNSPECIFIED AT
-!                               THETA = A = 0 AND THE SOLUTION IS
-!                               SPECIFIED AT THETA = B.
-!                               (SEE NOTE 3 BELOW)
-!
-!                          = 6  IF THE SOLUTION IS UNSPECIFIED AT
-!                               THETA = A = 0 AND THE DERIVATIVE
-!                               OF THE SOLUTION WITH RESPECT TO THETA
-!                               IS SPECIFIED AT THETA = B
-!                               (SEE NOTE 2 BELOW).
-!
-!                          = 7  IF THE SOLUTION IS SPECIFIED AT
-!                               THETA = A AND THE SOLUTION IS
-!                               UNSPECIFIED AT THETA = B = PI.
-!                               (SEE NOTE 3 BELOW)
-!
-!                          = 8  IF THE DERIVATIVE OF THE SOLUTION
-!                               WITH RESPECT TO THETA IS SPECIFIED AT
-!                               THETA = A (SEE NOTE 1 BELOW)
-!                               AND THE SOLUTION IS UNSPECIFIED AT
-!                               THETA = B = PI.
-!
-!                          = 9  IF THE SOLUTION IS UNSPECIFIED AT
-!                               THETA = A = 0 AND THETA = B = PI.
-!
-!                          NOTE 1:
-!                          IF A = 0, DO NOT USE MBDCND = 3, 4, OR 8, 
-!                          BUT INSTEAD USE MBDCND = 5, 6, OR 9.
-!
-!                          NOTE 2:
-!                          IF B = PI, DO NOT USE MBDCND = 2, 3, OR 6, 
-!                          BUT INSTEAD USE MBDCND = 7, 8, OR 9.
-!
-!                          NOTE 3:
-!                          WHEN THE SOLUTION IS SPECIFIED AT
-!                          THETA = 0 AND/OR THETA = PI AND THE OTHER
-!                          BOUNDARY CONDITIONS ARE COMBINATIONS
-!                          OF UNSPECIFIED, NORMAL DERIVATIVE, OR
-!                          PERIODICITY A SINGULAR SYSTEM RESULTS.
-!                          THE UNIQUE SOLUTION IS DETERMINED BY
-!                          EXTRAPOLATION TO THE SPECIFICATION OF THE
-!                          SOLUTION AT EITHER THETA = 0 OR THETA = PI.
-!                          BUT IN THESE CASES THE RIGHT SIDE OF THE
-!                          SYSTEM  WILL BE PERTURBED BY THE CONSTANT
-!                          PERTRB.
-!
-!                        BDA
-!                          A ONE-DIMENSIONAL ARRAY OF LENGTH N THAT
-!                          SPECIFIES THE BOUNDARY VALUES (IF ANY) OF
-!                          THE SOLUTION AT THETA = A.
-!
-!                          WHEN MBDCND = 1, 2, OR 7, 
-!                            BDA(J) = U(A, PHI(J)) ,      J=1, 2, ..., N.
-!
-!                          WHEN MBDCND = 3, 4, OR 8, 
-!                            BDA(J) = (D/DTHETA)U(A, PHI(J)) , 
-!                            J=1, 2, ..., N.
-!
-!                          WHEN MBDCND HAS ANY OTHER VALUE, 
-!                          BDA IS A DUMMY VARIABLE.
-!
-!                        BDB
-!                          A ONE-DIMENSIONAL ARRAY OF LENGTH N THAT
-!                          SPECIFIES THE BOUNDARY VALUES OF THE
-!                          SOLUTION AT THETA = B.
-!
-!                          WHEN MBDCND = 1, 4, OR 5, 
-!                            BDB(J) = U(B, PHI(J)) ,       J=1, 2, ..., N.
-!
-!                          WHEN MBDCND = 2, 3, OR 6, 
-!                            BDB(J) = (D/DTHETA)U(B, PHI(J)) , 
-!                            J=1, 2, ..., N.
-!
-!                          WHEN MBDCND HAS ANY OTHER VALUE, BDB IS
-!                          A DUMMY VARIABLE.
-!
-!                        C, D
-!                          THE RANGE OF PHI (LONGITUDE), 
-!                          I.E. C .LE. PHI .LE. D.
-!                          C MUST BE LESS THAN D.  IF D-C = 2*PI, 
-!                          PERIODIC BOUNDARY CONDITIONS ARE USUALLY
-!                          USUALLY PRESCRIBED.
-!
-!                        N
-!                          THE NUMBER OF UNKNOWNS IN THE INTERVAL
-!                          (C, D).  THE UNKNOWNS IN THE PHI-DIRECTION
-!                          ARE GIVEN BY PHI(J) = C + (J-0.5)DPHI, 
-!                          J=1, 2, ..., N, WHERE DPHI = (D-C)/N.
-!                          N MUST BE GREATER THAN 2.
-!
-!                        NBDCND
-!                          INDICATES THE TYPE OF BOUNDARY CONDITIONS
-!                          AT PHI = C  AND PHI = D.
-!
-!                          = 0  IF THE SOLUTION IS PERIODIC IN PHI, 
-!                               I.E.  U(I, J) = U(I, N+J).
-!
-!                          = 1  IF THE SOLUTION IS SPECIFIED AT
-!                               PHI = C AND PHI = D
-!                               (SEE NOTE BELOW).
-!
-!                          = 2  IF THE SOLUTION IS SPECIFIED AT
-!                               PHI = C AND THE DERIVATIVE OF THE
-!                               SOLUTION WITH RESPECT TO PHI IS
-!                               SPECIFIED AT PHI = D
-!                               (SEE NOTE BELOW).
-!
-!                          = 3  IF THE DERIVATIVE OF THE SOLUTION
-!                               WITH RESPECT TO PHI IS SPECIFIED
-!                               AT PHI = C AND PHI = D.
-!
-!                          = 4  IF THE DERIVATIVE OF THE SOLUTION
-!                               WITH RESPECT TO PHI IS SPECIFIED
-!                               AT PHI = C AND THE SOLUTION IS
-!                               SPECIFIED AT PHI = D
-!                               (SEE NOTE BELOW).
-!
-!                          NOTE:
-!                          WHEN NBDCND = 1, 2, OR 4, DO NOT USE
-!                          MBDCND = 5, 6, 7, 8, OR 9
-!                          (THE FORMER INDICATES THAT THE SOLUTION
-!                          IS SPECIFIED AT A POLE; THE LATTER
-!                          INDICATES THE SOLUTION IS UNSPECIFIED).
-!                          USE INSTEAD MBDCND = 1 OR 2.
-!
-!                        BDC
-!                          A ONE DIMENSIONAL ARRAY OF LENGTH M THAT
-!                          SPECIFIES THE BOUNDARY VALUES OF THE
-!                          SOLUTION AT PHI = C.
-!
-!                          WHEN NBDCND = 1 OR 2, 
-!                            BDC(I) = U(THETA(I), C) ,     I=1, 2, ..., M.
-!
-!                          WHEN NBDCND = 3 OR 4, 
-!                            BDC(I) = (D/DPHI)U(THETA(I), C), 
-!                            I=1, 2, ..., M.
-!
-!                          WHEN NBDCND = 0, BDC IS A DUMMY VARIABLE.
-!
-!                        BDD
-!                          A ONE-DIMENSIONAL ARRAY OF LENGTH M THAT
-!                          SPECIFIES THE BOUNDARY VALUES OF THE
-!                          SOLUTION AT PHI = D.
-!
-!                          WHEN NBDCND = 1 OR 4, 
-!                            BDD(I) = U(THETA(I), D) ,     I=1, 2, ..., M.
-!
-!                          WHEN NBDCND = 2 OR 3, 
-!                            BDD(I) = (D/DPHI)U(THETA(I), D) , 
-!                            I=1, 2, ..., M.
-!
-!                          WHEN NBDCND = 0, BDD IS A DUMMY VARIABLE.
-!
-!                        ELMBDA
-!                          THE CONSTANT LAMBDA IN THE HELMHOLTZ
-!                          EQUATION.  IF LAMBDA IS GREATER THAN 0, 
-!                          A SOLUTION MAY NOT EXIST.  HOWEVER, 
-!                          HSTSSP WILL ATTEMPT TO FIND A SOLUTION.
-!
-!                        F
-!                          A TWO-DIMENSIONAL ARRAY THAT SPECIFIES
-!                          THE VALUES OF THE RIGHT SIDE OF THE
-!                          HELMHOLTZ EQUATION.
-!                          FOR I=1, 2, ..., M AND J=1, 2, ..., N
-!
-!                            F(I, J) = F(THETA(I), PHI(J)) .
-!
-!                          F MUST BE DIMENSIONED AT LEAST M X N.
-!
-!                        IDIMF
-!                          THE ROW (OR FIRST) DIMENSION OF THE ARRAY
-!                          F AS IT APPEARS IN THE PROGRAM CALLING
-!                          HSTSSP.  THIS PARAMETER IS USED TO SPECIFY
-!                          THE VARIABLE DIMENSION OF F.
-!                          IDIMF MUST BE AT LEAST M.
-!
-!
-! ON OUTPUT              F
-!                          CONTAINS THE SOLUTION U(I, J) OF THE FINITE
-!                          DIFFERENCE APPROXIMATION FOR THE GRID POINT
-!                          (THETA(I), PHI(J)) FOR
-!                          I=1, 2, ..., M, J=1, 2, ..., N.
-!
-!                        PERTRB
-!                          IF A COMBINATION OF PERIODIC, DERIVATIVE, 
-!                          OR UNSPECIFIED BOUNDARY CONDITIONS IS
-!                          SPECIFIED FOR A POISSON EQUATION
-!                          (LAMBDA = 0), A SOLUTION MAY NOT EXIST.
-!                          PERTRB IS A CONSTANT, CALCULATED AND
-!                          SUBTRACTED FROM F, WHICH ENSURES THAT A
-!                          SOLUTION EXISTS.  HSTSSP THEN COMPUTES
-!                          THIS SOLUTION, WHICH IS A LEAST SQUARES
-!                          SOLUTION TO THE ORIGINAL APPROXIMATION.
-!                          THIS SOLUTION PLUS ANY CONSTANT IS ALSO
-!                          A SOLUTION; HENCE, THE SOLUTION IS NOT
-!                          UNIQUE.  THE VALUE OF PERTRB SHOULD BE
-!                          SMALL COMPARED TO THE RIGHT SIDE F.
-!                          OTHERWISE, A SOLUTION IS OBTAINED TO AN
-!                          ESSENTIALLY DIFFERENT PROBLEM.
-!                          THIS COMPARISON SHOULD ALWAYS BE MADE TO
-!                          INSURE THAT A MEANINGFUL SOLUTION HAS BEEN
-!                          OBTAINED.
-!
-!                        IERROR
-!                          AN ERROR FLAG THAT INDICATES INVALID INPUT
-!                          PARAMETERS. EXCEPT TO NUMBERS 0 AND 14, 
-!                          A SOLUTION IS NOT ATTEMPTED.
-!
-!                          =  0  NO ERROR
-!
-!                          =  1  A .LT. 0 OR B .GT. PI
-!
-!                          =  2  A .GE. B
-!
-!                          =  3  MBDCND .LT. 1 OR MBDCND .GT. 9
-!
-!                          =  4  C .GE. D
-!
-!                          =  5  N .LE. 2
-!
-!                          =  6  NBDCND .LT. 0 OR NBDCND .GT. 4
-!
-!                          =  7  A .GT. 0 AND MBDCND = 5, 6, OR 9
-!
-!                          =  8  A = 0 AND MBDCND = 3, 4, OR 8
-!
-!                          =  9  B .LT. PI AND MBDCND .GE. 7
-!
-!                          = 10  B = PI AND MBDCND = 2, 3, OR 6
-!
-!                          = 11  MBDCND .GE. 5 AND NDBCND = 1, 2, OR 4
-!
-!                          = 12  IDIMF .LT. M
-!
-!                          = 13  M .LE. 2
-!
-!                          = 14  LAMBDA .GT. 0
-!
-!                          = 20 If the dynamic allocation of real and
-!                               complex work space required for solution
-!                               fails (for example if N, M are too large
-!                               for your computer)
-!
-!                          SINCE THIS IS THE ONLY MEANS OF INDICATING
-!                          A POSSIBLY INCORRECT CALL TO HSTSSP, THE
-!                          USER SHOULD TEST IERROR AFTER THE CALL.
-!
-! I/O                    NONE
-!
-! PRECISION              SINGLE
-!
-! REQUIRED FILES         fish.f, comf.f, genbun.f, gnbnaux.f, poistg.f
-!
-! LANGUAGE               FORTRAN 90
-!
-! HISTORY                WRITTEN BY ROLAND SWEET AT NCAR IN 1977.
-!                        RELEASED ON NCAR'S PUBLIC SOFTWARE LIBRARIES
-!                        IN JANUARY 1980.
-!                        Revised in June 2004 by John Adams using
-!                        Fortran 90 dynamically allocated work space.
-!
-! PORTABILITY            FORTRAN 90.
-!
-! ALGORITHM              THIS SUBROUTINE DEFINES THE FINITE-
-!                        DIFFERENCE EQUATIONS, INCORPORATES BOUNDARY
-!                        DATA, ADJUSTS THE RIGHT SIDE WHEN THE SYSTEM
-!                        IS SINGULAR AND CALLS EITHER POISTG OR GENBUN
-!                        WHICH SOLVES THE LINEAR SYSTEM OF EQUATIONS.
-!
-! TIMING                 FOR LARGE M AND N, THE OPERATION COUNT
-!                        IS ROUGHLY PROPORTIONAL TO M*N*LOG2(N).
-!
-! ACCURACY               THE SOLUTION PROCESS EMPLOYED RESULTS IN
-!                        A LOSS OF NO MORE THAN FOUR SIGNIFICANT
-!                        DIGITS FOR N AND M AS LARGE AS 64.
-!                        MORE DETAILED INFORMATION ABOUT ACCURACY
-!                        CAN BE FOUND IN THE DOCUMENTATION FOR
-!                        ROUTINE POISTG WHICH IS THE ROUTINE THAT
-!                        ACTUALLY SOLVES THE FINITE DIFFERENCE
-!                        EQUATIONS.
-!
-! REFERENCES             U. SCHUMANN AND R. SWEET, "A DIRECT METHOD
-!                        FOR THE SOLUTION OF POISSON'S EQUATION WITH
-!                        NEUMANN BOUNDARY CONDITIONS ON A STAGGERED
-!                        GRID OF ARBITRARY SIZE, " J. COMP. PHYS.
-!                        20(1976), PP. 171-182.
-!***********************************************************************
-!
 module module_hstssp
 
     use, intrinsic :: iso_fortran_env, only: &
@@ -549,6 +141,414 @@ contains
     !
     subroutine hstssp( a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror )
+        !
+        !     file hstssp.f
+        !
+        !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+        !     *                                                               *
+        !     *                  copyright (c) 2005 by UCAR                   *
+        !     *                                                               *
+        !     *       University Corporation for Atmospheric Research         *
+        !     *                                                               *
+        !     *                      all rights reserved                      *
+        !     *                                                               *
+        !     *                    FISHPACK90  version 1.1                    *
+        !     *                                                               *
+        !     *                 A Package of Fortran 77 and 90                *
+        !     *                                                               *
+        !     *                Subroutines and Example Programs               *
+        !     *                                                               *
+        !     *               for Modeling Geophysical Processes              *
+        !     *                                                               *
+        !     *                             by                                *
+        !     *                                                               *
+        !     *        John Adams, Paul Swarztrauber and Roland Sweet         *
+        !     *                                                               *
+        !     *                             of                                *
+        !     *                                                               *
+        !     *         the National Center for Atmospheric Research          *
+        !     *                                                               *
+        !     *                Boulder, Colorado  (80307)  U.S.A.             *
+        !     *                                                               *
+        !     *                   which is sponsored by                       *
+        !     *                                                               *
+        !     *              the National Science Foundation                  *
+        !     *                                                               *
+        !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+        !
+        !     SUBROUTINE HSTSSP (A, B, M, MBDCND, BDA, BDB, C, D, N, NBDCND, BDC, BDD,
+        !    +                   ELMBDA, F, IDIMF, PERTRB, IERROR)
+        !
+        !
+        ! DIMENSION OF           BDA(N), BDB(N), BDC(M), BDD(M), F(IDIMF, N)
+        ! ARGUMENTS
+        !
+        ! LATEST REVISION        June 2004
+        !
+        ! PURPOSE                SOLVES THE STANDARD FIVE-POINT FINITE
+        !                        DIFFERENCE APPROXIMATION ON A STAGGERED GRID
+        !                        TO THE HELMHOLTZ EQUATION IN SPHERICAL
+        !                        COORDINATES AND ON THE SURFACE OF THE UNIT
+        !                        SPHERE (RADIUS OF 1).  THE EQUATION IS
+        !
+        !                          (1/SIN(THETA))(D/DTHETA)(SIN(THETA)
+        !                          (DU/DTHETA)) + (1/SIN(THETA)**2)
+        !                          (D/DPHI)(DU/DPHI) + LAMBDA*U = F(THETA, PHI)
+        !
+        !                        WHERE THETA IS COLATITUDE AND PHI IS
+        !                        LONGITUDE.
+        !
+        ! USAGE                  CALL HSTSSP (A, B, M, MBDCND, BDA, BDB, C, D, N,
+        !                                     NBDCND, BDC, BDD, ELMBDA, F, IDIMF,
+        !                                     PERTRB, IERROR)
+        !
+        !
+        ! ARGUMENTS
+        ! ON INPUT
+        !
+        !                        A, B
+        !                          THE RANGE OF THETA (COLATITUDE),
+        !                          I.E. A .LE. THETA .LE. B.
+        !                          A MUST BE LESS THAN B AND A MUST BE
+        !                          NON-NEGATIVE.  A AND B ARE IN RADIANS.
+        !                          A = 0 CORRESPONDS TO THE NORTH POLE AND
+        !                          B = PI CORRESPONDS TO THE SOUTH POLE.
+        !
+        !
+        !                            * * *  IMPORTANT  * * *
+        !
+        !                          IF B IS EQUAL TO PI, THEN B MUST BE
+        !                          COMPUTED USING THE STATEMENT
+        !                            B = PI_MACH(DUM)
+        !
+        !                          THIS INSURES THAT B IN THE USER"S PROGRAM
+        !                          IS EQUAL TO PI IN THIS PROGRAM WHICH
+        !                          PERMITS SEVERAL TESTS OF THE INPUT
+        !                          PARAMETERS THAT OTHERWISE WOULD NOT BE
+        !                          POSSIBLE.
+        !
+        !                            * * * * * * * * * * * *
+        !                        M
+        !                          THE NUMBER OF GRID POINTS IN THE INTERVAL
+        !                          (A, B).  THE GRID POINTS IN THE THETA
+        !                          DIRECTION ARE GIVEN BY
+        !                          THETA(I) = A + (I-0.5)DTHETA
+        !                          FOR I=1, 2, ..., M WHERE DTHETA =(B-A)/M.
+        !                          M MUST BE GREATER THAN 2.
+        !
+        !                        MBDCND
+        !                          INDICATES THE TYPE OF BOUNDARY CONDITIONS
+        !                          AT THETA = A AND THETA = B.
+        !
+        !                          = 1  IF THE SOLUTION IS SPECIFIED AT
+        !                               THETA = A AND THETA = B.
+        !                               (SEE NOTE 3 BELOW)
+        !
+        !                          = 2  IF THE SOLUTION IS SPECIFIED AT
+        !                               THETA = A AND THE DERIVATIVE OF THE
+        !                               SOLUTION WITH RESPECT TO THETA IS
+        !                               SPECIFIED AT THETA = B
+        !                               (SEE NOTES 2 AND 3 BELOW).
+        !
+        !                          = 3  IF THE DERIVATIVE OF THE SOLUTION
+        !                             WITH RESPECT TO THETA IS SPECIFIED
+        !                             AT THETA = A
+        !                             (SEE NOTES 1, 2 BELOW) AND THETA = B.
+        !
+        !                          = 4  IF THE DERIVATIVE OF THE SOLUTION
+        !                               WITH RESPECT TO THETA IS SPECIFIED
+        !                               AT THETA = A
+        !                               (SEE NOTES 1 AND 2 BELOW) AND THE
+        !                               SOLUTION IS SPECIFIED AT THETA = B.
+        !
+        !                          = 5  IF THE SOLUTION IS UNSPECIFIED AT
+        !                               THETA = A = 0 AND THE SOLUTION IS
+        !                               SPECIFIED AT THETA = B.
+        !                               (SEE NOTE 3 BELOW)
+        !
+        !                          = 6  IF THE SOLUTION IS UNSPECIFIED AT
+        !                               THETA = A = 0 AND THE DERIVATIVE
+        !                               OF THE SOLUTION WITH RESPECT TO THETA
+        !                               IS SPECIFIED AT THETA = B
+        !                               (SEE NOTE 2 BELOW).
+        !
+        !                          = 7  IF THE SOLUTION IS SPECIFIED AT
+        !                               THETA = A AND THE SOLUTION IS
+        !                               UNSPECIFIED AT THETA = B = PI.
+        !                               (SEE NOTE 3 BELOW)
+        !
+        !                          = 8  IF THE DERIVATIVE OF THE SOLUTION
+        !                               WITH RESPECT TO THETA IS SPECIFIED AT
+        !                               THETA = A (SEE NOTE 1 BELOW)
+        !                               AND THE SOLUTION IS UNSPECIFIED AT
+        !                               THETA = B = PI.
+        !
+        !                          = 9  IF THE SOLUTION IS UNSPECIFIED AT
+        !                               THETA = A = 0 AND THETA = B = PI.
+        !
+        !                          NOTE 1:
+        !                          IF A = 0, DO NOT USE MBDCND = 3, 4, OR 8,
+        !                          BUT INSTEAD USE MBDCND = 5, 6, OR 9.
+        !
+        !                          NOTE 2:
+        !                          IF B = PI, DO NOT USE MBDCND = 2, 3, OR 6,
+        !                          BUT INSTEAD USE MBDCND = 7, 8, OR 9.
+        !
+        !                          NOTE 3:
+        !                          WHEN THE SOLUTION IS SPECIFIED AT
+        !                          THETA = 0 AND/OR THETA = PI AND THE OTHER
+        !                          BOUNDARY CONDITIONS ARE COMBINATIONS
+        !                          OF UNSPECIFIED, NORMAL DERIVATIVE, OR
+        !                          PERIODICITY A SINGULAR SYSTEM RESULTS.
+        !                          THE UNIQUE SOLUTION IS DETERMINED BY
+        !                          EXTRAPOLATION TO THE SPECIFICATION OF THE
+        !                          SOLUTION AT EITHER THETA = 0 OR THETA = PI.
+        !                          BUT IN THESE CASES THE RIGHT SIDE OF THE
+        !                          SYSTEM  WILL BE PERTURBED BY THE CONSTANT
+        !                          PERTRB.
+        !
+        !                        BDA
+        !                          A ONE-DIMENSIONAL ARRAY OF LENGTH N THAT
+        !                          SPECIFIES THE BOUNDARY VALUES (IF ANY) OF
+        !                          THE SOLUTION AT THETA = A.
+        !
+        !                          WHEN MBDCND = 1, 2, OR 7,
+        !                            BDA(J) = U(A, PHI(J)) ,      J=1, 2, ..., N.
+        !
+        !                          WHEN MBDCND = 3, 4, OR 8,
+        !                            BDA(J) = (D/DTHETA)U(A, PHI(J)) ,
+        !                            J=1, 2, ..., N.
+        !
+        !                          WHEN MBDCND HAS ANY OTHER VALUE,
+        !                          BDA IS A DUMMY VARIABLE.
+        !
+        !                        BDB
+        !                          A ONE-DIMENSIONAL ARRAY OF LENGTH N THAT
+        !                          SPECIFIES THE BOUNDARY VALUES OF THE
+        !                          SOLUTION AT THETA = B.
+        !
+        !                          WHEN MBDCND = 1, 4, OR 5,
+        !                            BDB(J) = U(B, PHI(J)) ,       J=1, 2, ..., N.
+        !
+        !                          WHEN MBDCND = 2, 3, OR 6,
+        !                            BDB(J) = (D/DTHETA)U(B, PHI(J)) ,
+        !                            J=1, 2, ..., N.
+        !
+        !                          WHEN MBDCND HAS ANY OTHER VALUE, BDB IS
+        !                          A DUMMY VARIABLE.
+        !
+        !                        C, D
+        !                          THE RANGE OF PHI (LONGITUDE),
+        !                          I.E. C .LE. PHI .LE. D.
+        !                          C MUST BE LESS THAN D.  IF D-C = 2*PI,
+        !                          PERIODIC BOUNDARY CONDITIONS ARE USUALLY
+        !                          USUALLY PRESCRIBED.
+        !
+        !                        N
+        !                          THE NUMBER OF UNKNOWNS IN THE INTERVAL
+        !                          (C, D).  THE UNKNOWNS IN THE PHI-DIRECTION
+        !                          ARE GIVEN BY PHI(J) = C + (J-0.5)DPHI,
+        !                          J=1, 2, ..., N, WHERE DPHI = (D-C)/N.
+        !                          N MUST BE GREATER THAN 2.
+        !
+        !                        NBDCND
+        !                          INDICATES THE TYPE OF BOUNDARY CONDITIONS
+        !                          AT PHI = C  AND PHI = D.
+        !
+        !                          = 0  IF THE SOLUTION IS PERIODIC IN PHI,
+        !                               I.E.  U(I, J) = U(I, N+J).
+        !
+        !                          = 1  IF THE SOLUTION IS SPECIFIED AT
+        !                               PHI = C AND PHI = D
+        !                               (SEE NOTE BELOW).
+        !
+        !                          = 2  IF THE SOLUTION IS SPECIFIED AT
+        !                               PHI = C AND THE DERIVATIVE OF THE
+        !                               SOLUTION WITH RESPECT TO PHI IS
+        !                               SPECIFIED AT PHI = D
+        !                               (SEE NOTE BELOW).
+        !
+        !                          = 3  IF THE DERIVATIVE OF THE SOLUTION
+        !                               WITH RESPECT TO PHI IS SPECIFIED
+        !                               AT PHI = C AND PHI = D.
+        !
+        !                          = 4  IF THE DERIVATIVE OF THE SOLUTION
+        !                               WITH RESPECT TO PHI IS SPECIFIED
+        !                               AT PHI = C AND THE SOLUTION IS
+        !                               SPECIFIED AT PHI = D
+        !                               (SEE NOTE BELOW).
+        !
+        !                          NOTE:
+        !                          WHEN NBDCND = 1, 2, OR 4, DO NOT USE
+        !                          MBDCND = 5, 6, 7, 8, OR 9
+        !                          (THE FORMER INDICATES THAT THE SOLUTION
+        !                          IS SPECIFIED AT A POLE; THE LATTER
+        !                          INDICATES THE SOLUTION IS UNSPECIFIED).
+        !                          USE INSTEAD MBDCND = 1 OR 2.
+        !
+        !                        BDC
+        !                          A ONE DIMENSIONAL ARRAY OF LENGTH M THAT
+        !                          SPECIFIES THE BOUNDARY VALUES OF THE
+        !                          SOLUTION AT PHI = C.
+        !
+        !                          WHEN NBDCND = 1 OR 2,
+        !                            BDC(I) = U(THETA(I), C) ,     I=1, 2, ..., M.
+        !
+        !                          WHEN NBDCND = 3 OR 4,
+        !                            BDC(I) = (D/DPHI)U(THETA(I), C),
+        !                            I=1, 2, ..., M.
+        !
+        !                          WHEN NBDCND = 0, BDC IS A DUMMY VARIABLE.
+        !
+        !                        BDD
+        !                          A ONE-DIMENSIONAL ARRAY OF LENGTH M THAT
+        !                          SPECIFIES THE BOUNDARY VALUES OF THE
+        !                          SOLUTION AT PHI = D.
+        !
+        !                          WHEN NBDCND = 1 OR 4,
+        !                            BDD(I) = U(THETA(I), D) ,     I=1, 2, ..., M.
+        !
+        !                          WHEN NBDCND = 2 OR 3,
+        !                            BDD(I) = (D/DPHI)U(THETA(I), D) ,
+        !                            I=1, 2, ..., M.
+        !
+        !                          WHEN NBDCND = 0, BDD IS A DUMMY VARIABLE.
+        !
+        !                        ELMBDA
+        !                          THE CONSTANT LAMBDA IN THE HELMHOLTZ
+        !                          EQUATION.  IF LAMBDA IS GREATER THAN 0,
+        !                          A SOLUTION MAY NOT EXIST.  HOWEVER,
+        !                          HSTSSP WILL ATTEMPT TO FIND A SOLUTION.
+        !
+        !                        F
+        !                          A TWO-DIMENSIONAL ARRAY THAT SPECIFIES
+        !                          THE VALUES OF THE RIGHT SIDE OF THE
+        !                          HELMHOLTZ EQUATION.
+        !                          FOR I=1, 2, ..., M AND J=1, 2, ..., N
+        !
+        !                            F(I, J) = F(THETA(I), PHI(J)) .
+        !
+        !                          F MUST BE DIMENSIONED AT LEAST M X N.
+        !
+        !                        IDIMF
+        !                          THE ROW (OR FIRST) DIMENSION OF THE ARRAY
+        !                          F AS IT APPEARS IN THE PROGRAM CALLING
+        !                          HSTSSP.  THIS PARAMETER IS USED TO SPECIFY
+        !                          THE VARIABLE DIMENSION OF F.
+        !                          IDIMF MUST BE AT LEAST M.
+        !
+        !
+        ! ON OUTPUT              F
+        !                          CONTAINS THE SOLUTION U(I, J) OF THE FINITE
+        !                          DIFFERENCE APPROXIMATION FOR THE GRID POINT
+        !                          (THETA(I), PHI(J)) FOR
+        !                          I=1, 2, ..., M, J=1, 2, ..., N.
+        !
+        !                        PERTRB
+        !                          IF A COMBINATION OF PERIODIC, DERIVATIVE,
+        !                          OR UNSPECIFIED BOUNDARY CONDITIONS IS
+        !                          SPECIFIED FOR A POISSON EQUATION
+        !                          (LAMBDA = 0), A SOLUTION MAY NOT EXIST.
+        !                          PERTRB IS A CONSTANT, CALCULATED AND
+        !                          SUBTRACTED FROM F, WHICH ENSURES THAT A
+        !                          SOLUTION EXISTS.  HSTSSP THEN COMPUTES
+        !                          THIS SOLUTION, WHICH IS A LEAST SQUARES
+        !                          SOLUTION TO THE ORIGINAL APPROXIMATION.
+        !                          THIS SOLUTION PLUS ANY CONSTANT IS ALSO
+        !                          A SOLUTION; HENCE, THE SOLUTION IS NOT
+        !                          UNIQUE.  THE VALUE OF PERTRB SHOULD BE
+        !                          SMALL COMPARED TO THE RIGHT SIDE F.
+        !                          OTHERWISE, A SOLUTION IS OBTAINED TO AN
+        !                          ESSENTIALLY DIFFERENT PROBLEM.
+        !                          THIS COMPARISON SHOULD ALWAYS BE MADE TO
+        !                          INSURE THAT A MEANINGFUL SOLUTION HAS BEEN
+        !                          OBTAINED.
+        !
+        !                        IERROR
+        !                          AN ERROR FLAG THAT INDICATES INVALID INPUT
+        !                          PARAMETERS. EXCEPT TO NUMBERS 0 AND 14,
+        !                          A SOLUTION IS NOT ATTEMPTED.
+        !
+        !                          =  0  NO ERROR
+        !
+        !                          =  1  A .LT. 0 OR B .GT. PI
+        !
+        !                          =  2  A .GE. B
+        !
+        !                          =  3  MBDCND .LT. 1 OR MBDCND .GT. 9
+        !
+        !                          =  4  C .GE. D
+        !
+        !                          =  5  N .LE. 2
+        !
+        !                          =  6  NBDCND .LT. 0 OR NBDCND .GT. 4
+        !
+        !                          =  7  A .GT. 0 AND MBDCND = 5, 6, OR 9
+        !
+        !                          =  8  A = 0 AND MBDCND = 3, 4, OR 8
+        !
+        !                          =  9  B .LT. PI AND MBDCND .GE. 7
+        !
+        !                          = 10  B = PI AND MBDCND = 2, 3, OR 6
+        !
+        !                          = 11  MBDCND .GE. 5 AND NDBCND = 1, 2, OR 4
+        !
+        !                          = 12  IDIMF .LT. M
+        !
+        !                          = 13  M .LE. 2
+        !
+        !                          = 14  LAMBDA .GT. 0
+        !
+        !                          = 20 If the dynamic allocation of real and
+        !                               complex work space required for solution
+        !                               fails (for example if N, M are too large
+        !                               for your computer)
+        !
+        !                          SINCE THIS IS THE ONLY MEANS OF INDICATING
+        !                          A POSSIBLY INCORRECT CALL TO HSTSSP, THE
+        !                          USER SHOULD TEST IERROR AFTER THE CALL.
+        !
+        ! I/O                    NONE
+        !
+        ! PRECISION              SINGLE
+        !
+        ! REQUIRED FILES         fish.f, comf.f, genbun.f, gnbnaux.f, poistg.f
+        !
+        ! LANGUAGE               FORTRAN 90
+        !
+        ! HISTORY                WRITTEN BY ROLAND SWEET AT NCAR IN 1977.
+        !                        RELEASED ON NCAR'S PUBLIC SOFTWARE LIBRARIES
+        !                        IN JANUARY 1980.
+        !                        Revised in June 2004 by John Adams using
+        !                        Fortran 90 dynamically allocated work space.
+        !
+        ! PORTABILITY            FORTRAN 90.
+        !
+        ! ALGORITHM              THIS SUBROUTINE DEFINES THE FINITE-
+        !                        DIFFERENCE EQUATIONS, INCORPORATES BOUNDARY
+        !                        DATA, ADJUSTS THE RIGHT SIDE WHEN THE SYSTEM
+        !                        IS SINGULAR AND CALLS EITHER POISTG OR GENBUN
+        !                        WHICH SOLVES THE LINEAR SYSTEM OF EQUATIONS.
+        !
+        ! TIMING                 FOR LARGE M AND N, THE OPERATION COUNT
+        !                        IS ROUGHLY PROPORTIONAL TO M*N*LOG2(N).
+        !
+        ! ACCURACY               THE SOLUTION PROCESS EMPLOYED RESULTS IN
+        !                        A LOSS OF NO MORE THAN FOUR SIGNIFICANT
+        !                        DIGITS FOR N AND M AS LARGE AS 64.
+        !                        MORE DETAILED INFORMATION ABOUT ACCURACY
+        !                        CAN BE FOUND IN THE DOCUMENTATION FOR
+        !                        ROUTINE POISTG WHICH IS THE ROUTINE THAT
+        !                        ACTUALLY SOLVES THE FINITE DIFFERENCE
+        !                        EQUATIONS.
+        !
+        ! REFERENCES             U. SCHUMANN AND R. SWEET, "A DIRECT METHOD
+        !                        FOR THE SOLUTION OF POISSON'S EQUATION WITH
+        !                        NEUMANN BOUNDARY CONDITIONS ON A STAGGERED
+        !                        GRID OF ARBITRARY SIZE, " J. COMP. PHYS.
+        !                        20(1976), PP. 171-182.
+        !***********************************************************************
+        !
         !-----------------------------------------------
         !   D u m m y   A r g u m e n t s
         !-----------------------------------------------
@@ -573,7 +573,7 @@ contains
         !   L o c a l   V a r i a b l e s
         !-----------------------------------------------
         integer (ip)             :: irwk, icwk
-        real (wp)                :: pi, dum
+        real (wp)                :: pi
         type (FishpackWorkspace) :: workspace
         !-----------------------------------------------
         !
@@ -748,7 +748,7 @@ end if
 133 continue
     isw = 2
     do j = 1, n
-        pertrb = pertrb + SUM(F(:m, j))
+        pertrb = pertrb + sum(F(:m, j))
     end do
     a1 = real(n)*(COS(a) - COS(b))/(2.*SIN(0.5*deltar))
     pertrb = pertrb/a1
@@ -757,8 +757,8 @@ end if
         a1 = pertrb*W(j)
         f(i, :n) = F(i, :n) - a1
     end do
-    a2 = SUM(F(1, :n))
-    a3 = SUM(F(m, :n))
+    a2 = sum(F(1, :n))
+    a3 = sum(F(m, :n))
     a2 = a2/W(iwr+1)
     a3 = a3/W(iws)
 end if
@@ -783,7 +783,7 @@ end if
     ierr1 = 0
     i1 = 1
     if (nbdcnd /= 0) then
-        call POISTGG (lp, n, i1, m, w, W(iwb+1), W(iwc+1), idimf, f, &
+        call POISTGG(lp, n, i1, m, w, W(iwb+1), W(iwc+1), idimf, f, &
             ierr1, W(iwr+1))
     else
         call GENBUNN (lp, n, i1, m, w, W(iwb+1), W(iwc+1), idimf, f, &
@@ -791,12 +791,12 @@ end if
     end if
     if (isw==2 .and. jsw==2) then
         if (mb == 8) then
-            a1 = SUM(F(m, :n))
+            a1 = sum(F(m, :n))
             a1 = (a1 - dlrsq*a3/16.)/real(n)
             if (nbdcnd == 3) a1 = a1 + (BDD(m)-BDC(m))/(d - c)
             a1 = BDB(1) - a1
         else
-            a1 = SUM(F(1, :n))
+            a1 = sum(F(1, :n))
             a1 = (a1 - dlrsq*a2/16.)/real(n)
             if (nbdcnd == 3) a1 = a1 + (BDD(1)-BDC(1))/(d - c)
             a1 = BDA(1) - a1

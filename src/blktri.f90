@@ -23,6 +23,13 @@ module module_blktri
     public :: blktrii
     public :: blktri_unit_test
 
+    !---------------------------------------------------------------------------------
+    ! Dictionary: global variables confined to the module
+    !---------------------------------------------------------------------------------
+    integer (ip), save :: npp, k, nm, ncmplx, ik
+    real (wp),    save :: eps, cnv
+    !---------------------------------------------------------------------------------
+
 contains
     !
     !*****************************************************************************************
@@ -212,8 +219,8 @@ contains
         iflg = iflg + 1
 
         do while(iflg - 1 <= 0)
-            call blktri (iflg, np, n, an, bn, cn, mp, m, am, bm, cm, idimy &
-                , y, ierror, workspace )
+            call blktri (iflg, np, n, an, bn, cn, mp, m, am, bm, cm, idimy, &
+                y, ierror, workspace )
             iflg = iflg + 1
         end do
 
@@ -556,7 +563,7 @@ contains
     !
     !*****************************************************************************************
     !
-    subroutine blktrii(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
+    subroutine blktrii( iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
         idimy, y, ierror, w, wc)
         !-----------------------------------------------
         !   D u m m y   A r g u m e n t s
@@ -578,21 +585,12 @@ contains
         real (wp) :: w(*)
         complex (wp) :: wc(*)
         !-----------------------------------------------
-        !   c o m m o n   b l o c k s
-        !-----------------------------------------------
-        !...  /cblkt/
-        common /cblkt/ npp, k, eps, cnv, nm, ncmplx, ik
-        integer   npp, k, nm, ncmplx, ik
-        real   eps, cnv
-        !-----------------------------------------------
         !   l o c a l   v a r i a b l e s
         !-----------------------------------------------
-        integer (ip) :: iw1, iw2, iw3, iww, iwu, iwd, nl, nh, iwah, iwbh
+        integer (ip)       ::  nh, iwah, iwbh
+        integer (ip), save :: iw1, iw2, iw3, iww, iwu, iwd, nl
+        !----------------------------------------------
 
-        save iw1, iw2, iw3, iww, iwu, iwd, nl
-        !-----------------------------------------------
-
-        !
         ! test m and n for the proper form
         !
         nm = n
@@ -645,492 +643,486 @@ contains
             call compb (nl, ierror, an, bn, cn, w, wc, w(iwah), w(iwbh))
             return
         end if
+
         ! *** important to reset nm for np = 0
         if (npp == 0) nm = n - 1
 
         if (mp /= 0) then
-            call blktr1 (nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, w( &
-                iw1), w(iw2), w(iw3), w(iwd), w(iww), w(iwu), wc(iw1), wc( &
-                iw2), wc(iw3), prod, cprod)
+            call blktr1 (nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, &
+                w(iw1), w(iw2), w(iw3), w(iwd), w(iww), w(iwu), wc(iw1), &
+                wc(iw2), wc(iw3), prod, cprod)
         else
-            call blktr1 (nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, w( &
-                iw1), w(iw2), w(iw3), w(iwd), w(iww), w(iwu), wc(iw1), wc( &
-                iw2), wc(iw3), prodp, cprodp)
+            call blktr1 (nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, &
+                w(iw1), w(iw2), w(iw3), w(iwd), w(iww), w(iwu), wc(iw1), &
+                wc(iw2), wc(iw3), prodp, cprodp)
         end if
 
     end subroutine blktrii
     !
     !*****************************************************************************************
     !
-    subroutine BLKTR1(N, AN, BN, CN, M, AM, BM, CM, IDIMY, Y, B, BC, &
-        W1, W2, W3, WD, WW, WU, CW1, CW2, CW3, PRDCT, CPRDCT)
+    subroutine blktr1(n, an, bn, cn, m, am, bm, cm, idimy, y, b, bc, &
+        w1, w2, w3, wd, ww, wu, cw1, cw2, cw3, prdct, cprdct)
+        !
+        ! Purpose:
+        !
+        ! blktr1 solves the linear system
+        !
+        ! b  contains the roots of all the b polynomials
+        ! w1, w2, w3, wd, ww, wu  are all working arrays
+        ! prdct  is either prodp or prod depending on whether the boundary
+        ! conditions in the m direction are periodic or not
+        ! cprdct is either cprodp or cprod which are the complex versions
+        ! of prodp and prod. these are called in the event that some
+        ! of the roots of the b sub p polynomial are complex
+        !
+        !
         !-----------------------------------------------
         !   D u m m y   A r g u m e n t s
         !-----------------------------------------------
-        integer (ip) :: N
-        integer (ip) :: M
-        integer (ip), intent (in) :: IDIMY
-        real (wp) :: AN(*)
-        real (wp) :: BN(*)
-        real (wp) :: CN(*)
-        real (wp) :: AM(*)
-        real (wp) :: BM(*)
-        real (wp) :: CM(*)
-        real (wp) :: Y(IDIMY, 1)
-        real (wp) :: B(*)
-        real (wp) :: W1(*)
-        real (wp) :: W2(*)
-        real (wp) :: W3(*)
-        real (wp) :: WD(*)
-        real (wp) :: WW(*)
-        real (wp) :: WU(*)
-        complex (wp) :: BC(*)
-        complex (wp) :: CW1(*)
-        complex (wp) :: CW2(*)
-        complex (wp) :: CW3(*)
-        !-----------------------------------------------
-        !   C o m m o n   B l o c k s
-        !-----------------------------------------------
-        !...  /CBLKT/
-        common /CBLKT/ NPP, K, EPS, CNV, NM, NCMPLX, IK
-        integer   NPP, K, NM, NCMPLX, IK
-        real   EPS, CNV
+        integer (ip)              :: n
+        integer (ip)              :: m
+        integer (ip), intent (in) :: idimy
+        real (wp)                 :: an(*)
+        real (wp)                 :: bn(*)
+        real (wp)                 :: cn(*)
+        real (wp)                 :: am(*)
+        real (wp)                 :: bm(*)
+        real (wp)                 :: cm(*)
+        real (wp)                 :: y(idimy, 1)
+        real (wp)                 :: b(*)
+        real (wp)                 :: w1(*)
+        real (wp)                 :: w2(*)
+        real (wp)                 :: w3(*)
+        real (wp)                 :: wd(*)
+        real (wp)                 :: ww(*)
+        real (wp)                 :: wu(*)
+        complex (wp)              :: bc(*)
+        complex (wp)              :: cw1(*)
+        complex (wp)              :: cw2(*)
+        complex (wp)              :: cw3(*)
         !-----------------------------------------------
         !   L o c a l   V a r i a b l e s
         !-----------------------------------------------
-        integer (ip) :: KDO, L, IR, I2, I1, I3, I4, IRM1, IM2, NM2, IM3, NM3, &
-            IM1, NM1, I0, IF, I, IPI1, IPI2, IPI3, IDXC, NC, IDXA, NA, IP2 &
-            , NP2, IP1, NP1, IP3, NP3, J, IZ, NZ, IZR, LL, IFD, IP, NP, &
-            IMI1, IMI2
-        real (wp) :: DUM
+        integer (ip) :: kdo, l, ir, i2, i1, i3, i4, irm1, im2, nm2, im3, nm3
+        integer (ip) :: im1, nm1, i0, if_rename, i, ipi1, ipi2, ipi3, idxc, nc, idxa, na, ip2
+        integer (ip) :: np2, ip1, np1, ip3, np3, j, iz, nz, izr, ll, ifd, ip_rename, np
+        integer (ip) :: imi1, imi2
+        real (wp) :: dum
         !-----------------------------------------------
+
         !
-        ! BLKTR1 SOLVES THE LINEAR SYSTEM
+        ! begin reduction phase
         !
-        ! B  CONTAINS THE ROOTS OF ALL THE B POLYNOMIALS
-        ! W1, W2, W3, WD, WW, WU  ARE ALL WORKING ARRAYS
-        ! PRDCT  IS EITHER PRODP OR PROD DEPENDING ON WHETHER THE BOUNDARY
-        ! CONDITIONS IN THE M DIRECTION ARE PERIODIC OR NOT
-        ! CPRDCT IS EITHER CPRODP OR CPROD WHICH ARE THE COMPLEX VERSIONS
-        ! OF PRODP AND PROD. THESE ARE CALLED IN THE EVENT THAT SOME
-        ! OF THE ROOTS OF THE B SUB P POLYNOMIAL ARE COMPLEX
-        !
-        !
-        !
-        ! BEGIN REDUCTION PHASE
-        !
-        KDO = K - 1
-        do L = 1, KDO
-            IR = L - 1
-            I2 = 2**IR
-            I1 = I2/2
-            I3 = I2 + I1
-            I4 = I2 + I2
-            IRM1 = IR - 1
-            call INDXB (I2, IR, IM2, NM2)
-            call INDXB (I1, IRM1, IM3, NM3)
-            call INDXB (I3, IRM1, IM1, NM1)
-            I0 = 0
-            call PRDCT (NM2, B(IM2), NM3, B(IM3), NM1, B(IM1), I0, DUM, Y(1 &
-                , I2), W3, M, AM, BM, CM, WD, WW, WU)
-            IF = 2**K
-            do I = I4, IF, I4
-                if (I - NM > 0) cycle
-                IPI1 = I + I1
-                IPI2 = I + I2
-                IPI3 = I + I3
-                call INDXC (I, IR, IDXC, NC)
-                if (I - IF >= 0) cycle
-                call INDXA (I, IR, IDXA, NA)
-                call INDXB (I - I1, IRM1, IM1, NM1)
-                call INDXB (IPI2, IR, IP2, NP2)
-                call INDXB (IPI1, IRM1, IP1, NP1)
-                call INDXB (IPI3, IRM1, IP3, NP3)
-                call PRDCT (NM1, B(IM1), 0, DUM, 0, DUM, NA, AN(IDXA), W3, &
-                    W1, M, AM, BM, CM, WD, WW, WU)
-                if (IPI2 - NM > 0) then
-                    W3(:M) = 0.
-                    W2(:M) = 0.
+        kdo = k - 1
+        do l = 1, kdo
+            ir = l - 1
+            i2 = 2**ir
+            i1 = i2/2
+            i3 = i2 + i1
+            i4 = i2 + i2
+            irm1 = ir - 1
+            call indxb(i2, ir, im2, nm2)
+            call indxb(i1, irm1, im3, nm3)
+            call indxb(i3, irm1, im1, nm1)
+            i0 = 0
+            call prdct(nm2, b(im2), nm3, b(im3), nm1, b(im1), i0, dum, &
+                y(1, i2), w3, m, am, bm, cm, wd, ww, wu)
+            if_rename = 2**k
+            do i = i4, if_rename, i4
+                if (i - nm > 0) cycle
+                ipi1 = i + i1
+                ipi2 = i + i2
+                ipi3 = i + i3
+                call indxc (i, ir, idxc, nc)
+                if (i - if_rename >= 0) cycle
+                call indxa (i, ir, idxa, na)
+                call indxb(i - i1, irm1, im1, nm1)
+                call indxb(ipi2, ir, ip2, np2)
+                call indxb(ipi1, irm1, ip1, np1)
+                call indxb(ipi3, irm1, ip3, np3)
+                call prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa), w3, &
+                    w1, m, am, bm, cm, wd, ww, wu)
+                if (ipi2 - nm > 0) then
+                    w3(:m) = 0.
+                    w2(:m) = 0.
                 else
-                    call PRDCT (NP2, B(IP2), NP1, B(IP1), NP3, B(IP3), 0, DUM &
-                        , Y(1, IPI2), W3, M, AM, BM, CM, WD, WW, WU)
-                    call PRDCT (NP1, B(IP1), 0, DUM, 0, DUM, NC, CN(IDXC), W3 &
-                        , W2, M, AM, BM, CM, WD, WW, WU)
+                    call prdct(np2, b(ip2), np1, b(ip1), np3, b(ip3), 0, dum &
+                        , y(1, ipi2), w3, m, am, bm, cm, wd, ww, wu)
+                    call prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc), w3 &
+                        , w2, m, am, bm, cm, wd, ww, wu)
                 end if
-                Y(:M, I) = W1(:M) + W2(:M) + Y(:M, I)
+                y(:m, i) = w1(:m) + w2(:m) + y(:m, i)
             end do
         end do
-        if (NPP == 0) then
-            IF = 2**K
-            I = IF/2
-            I1 = I/2
-            call INDXB (I - I1, K - 2, IM1, NM1)
-            call INDXB (I + I1, K - 2, IP1, NP1)
-            call INDXB (I, K - 1, IZ, NZ)
-            call PRDCT (NZ, B(IZ), NM1, B(IM1), NP1, B(IP1), 0, DUM, Y(1, I) &
-                , W1, M, AM, BM, CM, WD, WW, WU)
-            IZR = I
-            W2(:M) = W1(:M)
-            do LL = 2, K
-                L = K - LL + 1
-                IR = L - 1
-                I2 = 2**IR
-                I1 = I2/2
-                I = I2
-                call INDXC (I, IR, IDXC, NC)
-                call INDXB (I, IR, IZ, NZ)
-                call INDXB (I - I1, IR - 1, IM1, NM1)
-                call INDXB (I + I1, IR - 1, IP1, NP1)
-                call PRDCT (NP1, B(IP1), 0, DUM, 0, DUM, NC, CN(IDXC), W1, &
-                    W1, M, AM, BM, CM, WD, WW, WU)
-                W1(:M) = Y(:M, I) + W1(:M)
-                call PRDCT (NZ, B(IZ), NM1, B(IM1), NP1, B(IP1), 0, DUM, W1 &
-                    , W1, M, AM, BM, CM, WD, WW, WU)
+        if (npp == 0) then
+            if_rename = 2**k
+            i = if_rename/2
+            i1 = i/2
+            call indxb(i - i1, k - 2, im1, nm1)
+            call indxb(i + i1, k - 2, ip1, np1)
+            call indxb(i, k - 1, iz, nz)
+            call prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dum, y(1, i) &
+                , w1, m, am, bm, cm, wd, ww, wu)
+            izr = i
+            w2(:m) = w1(:m)
+            do ll = 2, k
+                l = k - ll + 1
+                ir = l - 1
+                i2 = 2**ir
+                i1 = i2/2
+                i = i2
+                call indxc (i, ir, idxc, nc)
+                call indxb(i, ir, iz, nz)
+                call indxb(i - i1, ir - 1, im1, nm1)
+                call indxb(i + i1, ir - 1, ip1, np1)
+                call prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc), w1, &
+                    w1, m, am, bm, cm, wd, ww, wu)
+                w1(:m) = y(:m, i) + w1(:m)
+                call prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dum, w1 &
+                    , w1, m, am, bm, cm, wd, ww, wu)
             end do
-            L118: do LL = 2, K
-                L = K - LL + 1
-                IR = L - 1
-                I2 = 2**IR
-                I1 = I2/2
-                I4 = I2 + I2
-                IFD = IF - I2
-                do I = I2, IFD, I4
-                    if (I - I2 - IZR /= 0) cycle
-                    if (I - NM > 0) cycle  L118
-                    call INDXA (I, IR, IDXA, NA)
-                    call INDXB (I, IR, IZ, NZ)
-                    call INDXB (I - I1, IR - 1, IM1, NM1)
-                    call INDXB (I + I1, IR - 1, IP1, NP1)
-                    call PRDCT (NM1, B(IM1), 0, DUM, 0, DUM, NA, AN(IDXA), W2 &
-                        , W2, M, AM, BM, CM, WD, WW, WU)
-                    W2(:M) = Y(:M, I) + W2(:M)
-                    call PRDCT (NZ, B(IZ), NM1, B(IM1), NP1, B(IP1), 0, DUM, &
-                        W2, W2, M, AM, BM, CM, WD, WW, WU)
-                    IZR = I
-                    if (I - NM == 0) exit  L118
+            l118: do ll = 2, k
+                l = k - ll + 1
+                ir = l - 1
+                i2 = 2**ir
+                i1 = i2/2
+                i4 = i2 + i2
+                ifd = if_rename - i2
+                do i = i2, ifd, i4
+                    if (i - i2 - izr /= 0) cycle
+                    if (i - nm > 0) cycle  l118
+                    call indxa (i, ir, idxa, na)
+                    call indxb(i, ir, iz, nz)
+                    call indxb(i - i1, ir - 1, im1, nm1)
+                    call indxb(i + i1, ir - 1, ip1, np1)
+                    call prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa), w2 &
+                        , w2, m, am, bm, cm, wd, ww, wu)
+                    w2(:m) = y(:m, i) + w2(:m)
+                    call prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dum, &
+                        w2, w2, m, am, bm, cm, wd, ww, wu)
+                    izr = i
+                    if (i - nm == 0) exit  l118
                 end do
-            end do L118
+            end do l118
 119     continue
-        Y(:M, NM+1) = Y(:M, NM+1) - CN(NM+1)*W1(:M) - AN(NM+1)*W2(:M)
-        call INDXB (IF/2, K - 1, IM1, NM1)
-        call INDXB (IF, K - 1, IP, NP)
-        if (NCMPLX /= 0) then
-            call CPRDCT (NM + 1, BC(IP), NM1, B(IM1), 0, DUM, 0, DUM, Y( &
-                1, NM+1), Y(1, NM+1), M, AM, BM, CM, CW1, CW2, CW3)
+        y(:m, nm+1) = y(:m, nm+1) - cn(nm+1)*w1(:m) - an(nm+1)*w2(:m)
+        call indxb(if_rename/2, k - 1, im1, nm1)
+        call indxb(if_rename, k - 1, ip_rename, np)
+        if (ncmplx /= 0) then
+            call cprdct(nm + 1, bc(ip_rename), nm1, b(im1), 0, dum, 0, dum, y( &
+                1, nm+1), y(1, nm+1), m, am, bm, cm, cw1, cw2, cw3)
         else
-            call PRDCT (NM + 1, B(IP), NM1, B(IM1), 0, DUM, 0, DUM, Y(1, &
-                NM+1), Y(1, NM+1), M, AM, BM, CM, WD, WW, WU)
+            call prdct(nm + 1, b(ip_rename), nm1, b(im1), 0, dum, 0, dum, y(1, &
+                nm+1), y(1, nm+1), m, am, bm, cm, wd, ww, wu)
         end if
-        W1(:M) = AN(1)*Y(:M, NM+1)
-        W2(:M) = CN(NM)*Y(:M, NM+1)
-        Y(:M, 1) = Y(:M, 1) - W1(:M)
-        Y(:M, NM) = Y(:M, NM) - W2(:M)
-        do L = 1, KDO
-            IR = L - 1
-            I2 = 2**IR
-            I4 = I2 + I2
-            I1 = I2/2
-            I = I4
-            call INDXA (I, IR, IDXA, NA)
-            call INDXB (I - I2, IR, IM2, NM2)
-            call INDXB (I - I2 - I1, IR - 1, IM3, NM3)
-            call INDXB (I - I1, IR - 1, IM1, NM1)
-            call PRDCT (NM2, B(IM2), NM3, B(IM3), NM1, B(IM1), 0, DUM, &
-                W1, W1, M, AM, BM, CM, WD, WW, WU)
-            call PRDCT (NM1, B(IM1), 0, DUM, 0, DUM, NA, AN(IDXA), W1, &
-                W1, M, AM, BM, CM, WD, WW, WU)
-            Y(:M, I) = Y(:M, I) - W1(:M)
+        w1(:m) = an(1)*y(:m, nm+1)
+        w2(:m) = cn(nm)*y(:m, nm+1)
+        y(:m, 1) = y(:m, 1) - w1(:m)
+        y(:m, nm) = y(:m, nm) - w2(:m)
+        do l = 1, kdo
+            ir = l - 1
+            i2 = 2**ir
+            i4 = i2 + i2
+            i1 = i2/2
+            i = i4
+            call indxa (i, ir, idxa, na)
+            call indxb(i - i2, ir, im2, nm2)
+            call indxb(i - i2 - i1, ir - 1, im3, nm3)
+            call indxb(i - i1, ir - 1, im1, nm1)
+            call prdct(nm2, b(im2), nm3, b(im3), nm1, b(im1), 0, dum, &
+                w1, w1, m, am, bm, cm, wd, ww, wu)
+            call prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa), w1, &
+                w1, m, am, bm, cm, wd, ww, wu)
+            y(:m, i) = y(:m, i) - w1(:m)
         end do
         !
-        IZR = NM
-        L131: do L = 1, KDO
-            IR = L - 1
-            I2 = 2**IR
-            I1 = I2/2
-            I3 = I2 + I1
-            I4 = I2 + I2
-            IRM1 = IR - 1
-            do I = I4, IF, I4
-                IPI1 = I + I1
-                IPI2 = I + I2
-                IPI3 = I + I3
-                if (IPI2 - IZR /= 0) then
-                    if (I - IZR /= 0) cycle
-                    cycle  L131
+        izr = nm
+        l131: do l = 1, kdo
+            ir = l - 1
+            i2 = 2**ir
+            i1 = i2/2
+            i3 = i2 + i1
+            i4 = i2 + i2
+            irm1 = ir - 1
+            do i = i4, if_rename, i4
+                ipi1 = i + i1
+                ipi2 = i + i2
+                ipi3 = i + i3
+                if (ipi2 - izr /= 0) then
+                    if (i - izr /= 0) cycle
+                    cycle  l131
                 end if
-                call INDXC (I, IR, IDXC, NC)
-                call INDXB (IPI2, IR, IP2, NP2)
-                call INDXB (IPI1, IRM1, IP1, NP1)
-                call INDXB (IPI3, IRM1, IP3, NP3)
-                call PRDCT (NP2, B(IP2), NP1, B(IP1), NP3, B(IP3), 0, DUM &
-                    , W2, W2, M, AM, BM, CM, WD, WW, WU)
-                call PRDCT (NP1, B(IP1), 0, DUM, 0, DUM, NC, CN(IDXC), W2 &
-                    , W2, M, AM, BM, CM, WD, WW, WU)
-                Y(:M, I) = Y(:M, I) - W2(:M)
-                IZR = I
-                cycle  L131
+                call indxc (i, ir, idxc, nc)
+                call indxb(ipi2, ir, ip2, np2)
+                call indxb(ipi1, irm1, ip1, np1)
+                call indxb(ipi3, irm1, ip3, np3)
+                call prdct(np2, b(ip2), np1, b(ip1), np3, b(ip3), 0, dum &
+                    , w2, w2, m, am, bm, cm, wd, ww, wu)
+                call prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc), w2 &
+                    , w2, m, am, bm, cm, wd, ww, wu)
+                y(:m, i) = y(:m, i) - w2(:m)
+                izr = i
+                cycle  l131
             end do
-        end do L131
+        end do l131
     end if
     !
-    ! BEGIN BACK SUBSTITUTION PHASE
+    ! begin back substitution phase
     !
-    do LL = 1, K
-        L = K - LL + 1
-        IR = L - 1
-        IRM1 = IR - 1
-        I2 = 2**IR
-        I1 = I2/2
-        I4 = I2 + I2
-        IFD = IF - I2
-        do I = I2, IFD, I4
-            if (I - NM > 0) cycle
-            IMI1 = I - I1
-            IMI2 = I - I2
-            IPI1 = I + I1
-            IPI2 = I + I2
-            call INDXA (I, IR, IDXA, NA)
-            call INDXC (I, IR, IDXC, NC)
-            call INDXB (I, IR, IZ, NZ)
-            call INDXB (IMI1, IRM1, IM1, NM1)
-            call INDXB (IPI1, IRM1, IP1, NP1)
-            if (I - I2 <= 0) then
-                W1(:M) = 0.
+    do ll = 1, k
+        l = k - ll + 1
+        ir = l - 1
+        irm1 = ir - 1
+        i2 = 2**ir
+        i1 = i2/2
+        i4 = i2 + i2
+        ifd = if_rename - i2
+        do i = i2, ifd, i4
+            if (i - nm > 0) cycle
+            imi1 = i - i1
+            imi2 = i - i2
+            ipi1 = i + i1
+            ipi2 = i + i2
+            call indxa (i, ir, idxa, na)
+            call indxc (i, ir, idxc, nc)
+            call indxb(i, ir, iz, nz)
+            call indxb(imi1, irm1, im1, nm1)
+            call indxb(ipi1, irm1, ip1, np1)
+            if (i - i2 <= 0) then
+                w1(:m) = 0.
             else
-                call PRDCT (NM1, B(IM1), 0, DUM, 0, DUM, NA, AN(IDXA), Y( &
-                    1, IMI2), W1, M, AM, BM, CM, WD, WW, WU)
+                call prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa), y( &
+                    1, imi2), w1, m, am, bm, cm, wd, ww, wu)
             end if
-            if (IPI2 - NM > 0) then
-                W2(:M) = 0.
+            if (ipi2 - nm > 0) then
+                w2(:m) = 0.
             else
-                call PRDCT (NP1, B(IP1), 0, DUM, 0, DUM, NC, CN(IDXC), Y( &
-                    1, IPI2), W2, M, AM, BM, CM, WD, WW, WU)
+                call prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc), y( &
+                    1, ipi2), w2, m, am, bm, cm, wd, ww, wu)
             end if
-            W1(:M) = Y(:M, I) + W1(:M) + W2(:M)
-            call PRDCT (NZ, B(IZ), NM1, B(IM1), NP1, B(IP1), 0, DUM, W1 &
-                , Y(1, I), M, AM, BM, CM, WD, WW, WU)
+            w1(:m) = y(:m, i) + w1(:m) + w2(:m)
+            call prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dum, w1 &
+                , y(1, i), m, am, bm, cm, wd, ww, wu)
         end do
     end do
 
-end subroutine BLKTR1
+end subroutine blktr1
     !
     !*****************************************************************************************
     !
-real function BSRH (XLL, XRR, IZ, C, A, BH, F, SGN)
+function bsrh(xll, xrr, iz, c, a, bh, f, sgn) result(return_value)
     !-----------------------------------------------
     !   D u m m y   A r g u m e n t s
     !-----------------------------------------------
-    integer (ip) :: IZ
-    real (wp), intent (in) :: XLL
-    real (wp), intent (in) :: XRR
-    real (wp) :: F
-    real (wp), intent (in) :: SGN
-    real (wp) :: C(*)
-    real (wp) :: A(*)
-    real (wp) :: BH(*)
-    !-----------------------------------------------
-    !   C o m m o n   B l o c k s
-    !-----------------------------------------------
-    !...  /CBLKT/
-    common /CBLKT/ NPP, K, EPS, CNV, NM, NCMPLX, IK
-    integer   NPP, K, NM, NCMPLX, IK
-    real   EPS, CNV
+    real (wp), intent (in) :: xll
+    real (wp), intent (in) :: xrr
+    integer (ip)           :: iz
+    real (wp)              :: c(*)
+    real (wp)              :: a(*)
+    real (wp)              :: bh(*)
+    real (wp)              :: f
+    real (wp), intent (in) :: sgn
+    real (wp)              :: return_value
     !-----------------------------------------------
     !   L o c a l   V a r i a b l e s
     !-----------------------------------------------
-    real (wp) :: R1, XL, XR, DX, X
+    real (wp) :: r1, xl, xr, dx, x
     !-----------------------------------------------
-    !   E x t e r n a l   F u n c t i o n s
-    !-----------------------------------------------
-    !-----------------------------------------------
-    XL = XLL
-    XR = XRR
-    DX = 0.5*abs(XR - XL)
-    X = 0.5*(XL + XR)
-    R1 = SGN*F(X, IZ, C, A, BH)
-    if (R1 >= 0.) then
-        if (R1 == 0.) go to 105
-        XR = X
+
+    xl = xll
+    xr = xrr
+    dx = 0.5_wp * abs(xr - xl)
+    x = 0.5_wp * (xl + xr)
+    r1 = sgn * f(x, iz, c, a, bh)
+    if (r1 >= 0.0_wp) then
+        if (r1 == 0.) go to 105
+        xr = x
     else
-        XL = X
+        xl = x
     end if
-    DX = 0.5*DX
-    do while(DX - CNV > 0.)
-        X = 0.5*(XL + XR)
-        R1 = SGN*F(X, IZ, C, A, BH)
-        if (R1 >= 0.) then
-            if (R1 == 0.) go to 105
-            XR = X
+    dx = 0.5_wp * dx
+    do while(dx - cnv > 0.0_wp)
+        x = 0.5_wp * (xl + xr)
+        r1 = sgn * f(x, iz, c, a, bh)
+        if (r1 >= 0.0_wp) then
+            if (r1 == 0.0_wp) go to 105
+            xr = x
         else
-            XL = X
+            xl = x
         end if
-        DX = 0.5*DX
+        dx = 0.5_wp * dx
     end do
 105 continue
-    BSRH = 0.5*(XL + XR)
 
-end function BSRH
+    return_value = 0.5_wp * (xl + xr)
+
+end function bsrh
     !
     !*****************************************************************************************
     !
-subroutine COMPB(N, IERROR, AN, BN, CN, B, BC, AH, BH)
-    real (wp) :: epmach
+subroutine compb(n, ierror, an, bn, cn, b, bc, ah, bh)
     !-----------------------------------------------
     !   D u m m y   A r g u m e n t s
     !-----------------------------------------------
-    integer (ip) :: N
-    integer (ip) :: IERROR
-    real (wp) :: AN(*)
-    real (wp), intent (in) :: BN(*)
-    real (wp) :: CN(*)
-    real (wp) :: B(*)
-    real (wp) :: AH(*)
-    real (wp) :: BH(*)
-    complex (wp) :: BC(*)
-    !-----------------------------------------------
-    !   C o m m o n   B l o c k s
-    !-----------------------------------------------
-    !...  /CBLKT/
-    common /CBLKT/ NPP, K, EPS, CNV, NM, NCMPLX, IK
-    integer   NPP, K, NM, NCMPLX, IK
-    real   EPS, CNV
+    integer (ip)           :: n
+    integer (ip)           :: ierror
+    real (wp)              :: an(*)
+    real (wp), intent (in) :: bn(*)
+    real (wp)              :: cn(*)
+    real (wp)              :: b(*)
+    real (wp)              :: ah(*)
+    real (wp)              :: bh(*)
+    complex (wp)           :: bc(*)
     !-----------------------------------------------
     !   L o c a l   V a r i a b l e s
     !-----------------------------------------------
-    integer (ip) :: J, IF, KDO, L, IR, I2, I4, IPL, IFD, I, IB, NB, JS, JF
-    integer (ip) ::  LS, LH, NMP, L1, L2, J2, J1, N2M2
-    real (wp) :: DUM, BNORM, ARG, D1, D2, D3
+    integer (ip) :: j, if, kdo, l, ir, i2, i4, ipl, ifd, i, ib, nb, js, jf
+    integer (ip) ::  ls, lh, nmp, l1, l2, j2, j1, n2m2
+    real (wp)    :: dum, bnorm, arg, d1, d2, d3
     !-----------------------------------------------
     !
-    !     COMPB COMPUTES THE ROOTS OF THE B POLYNOMIALS USING SUBROUTINE
-    !     TEVLS WHICH IS A MODIFICATION THE EISPACK PROGRAM TQLRAT.
-    !     IERROR IS SET TO 4 IF EITHER TEVLS FAILS OR IF A(J+1)*C(J) IS
-    !     LESS THAN ZERO FOR SOME J.  AH, BH ARE TEMPORARY WORK ARRAYS.
+    !     compb computes the roots of the b polynomials using subroutine
+    !     tevls which is a modification the eispack program tqlrat.
+    !     ierror is set to 4 if either tevls fails or if a(j+1)*c(j) is
+    !     less than zero for some j.  ah, bh are temporary work arrays.
     !
-    EPS = epsilon(DUM)
-    BNORM = abs(BN(1))
-    do J = 2, NM
-        BNORM = max(BNORM, abs(BN(J)))
-        ARG = AN(J)*CN(J-1)
-        if (ARG < 0.) go to 119
-        B(J) = SIGN(SQRT(ARG), AN(J))
+    eps = epsilon(dum)
+    bnorm = abs(bn(1))
+    do j = 2, nm
+        bnorm = max(bnorm, abs(bn(j)))
+        arg = an(j)*cn(j-1)
+        if (arg < 0.) go to 119
+        b(j) = sign(sqrt(arg), an(j))
     end do
-    CNV = EPS*BNORM
-    IF = 2**K
-    KDO = K - 1
-    L108: do L = 1, KDO
-        IR = L - 1
-        I2 = 2**IR
-        I4 = I2 + I2
-        IPL = I4 - 1
-        IFD = IF - I4
-        do I = I4, IFD, I4
-            call INDXB (I, L, IB, NB)
-            if (NB <= 0) cycle  L108
-            JS = I - IPL
-            JF = JS + NB - 1
-            LS = 0
-            BH(:JF-JS+1) = BN(JS:JF)
-            AH(:JF-JS+1) = B(JS:JF)
-            call TEVLS (NB, BH, AH, IERROR)
-            if (IERROR /= 0) go to 118
-            LH = IB - 1
-            if (NB > 0) then
-                B(LH+1:NB+LH) = -BH(:NB)
-                LH = NB + LH
+    cnv = eps*bnorm
+    if = 2**k
+    kdo = k - 1
+    l108: do l = 1, kdo
+        ir = l - 1
+        i2 = 2**ir
+        i4 = i2 + i2
+        ipl = i4 - 1
+        ifd = if - i4
+        do i = i4, ifd, i4
+            call indxb(i, l, ib, nb)
+            if (nb <= 0) cycle  l108
+            js = i - ipl
+            jf = js + nb - 1
+            ls = 0
+            bh(:jf-js+1) = bn(js:jf)
+            ah(:jf-js+1) = b(js:jf)
+            call tevls (nb, bh, ah, ierror)
+            if (ierror /= 0) go to 118
+            lh = ib - 1
+            if (nb > 0) then
+                b(lh+1:nb+lh) = -bh(:nb)
+                lh = nb + lh
             end if
         end do
-    end do L108
-    B(:NM) = -BN(:NM)
-    if (NPP == 0) then
-        NMP = NM + 1
-        NB = NM + NMP
-        do J = 1, NB
-            L1 = mod(J - 1, NMP) + 1
-            L2 = mod(J + NM - 1, NMP) + 1
-            ARG = AN(L1)*CN(L2)
-            if (ARG < 0.) go to 119
-            BH(J) = SIGN(SQRT(ARG), (-AN(L1)))
-            AH(J) = -BN(L1)
+    end do l108
+    b(:nm) = -bn(:nm)
+    if (npp == 0) then
+        nmp = nm + 1
+        nb = nm + nmp
+        do j = 1, nb
+            l1 = mod(j - 1, nmp) + 1
+            l2 = mod(j + nm - 1, nmp) + 1
+            arg = an(l1)*cn(l2)
+            if (arg < 0.) go to 119
+            bh(j) = sign(sqrt(arg), (-an(l1)))
+            ah(j) = -bn(l1)
         end do
-        call TEVLS (NB, AH, BH, IERROR)
-        if (IERROR /= 0) go to 118
-        call INDXB (IF, K - 1, J2, LH)
-        call INDXB (IF/2, K - 1, J1, LH)
-        J2 = J2 + 1
-        LH = J2
-        N2M2 = J2 + NM + NM - 2
+        call tevls (nb, ah, bh, ierror)
+        if (ierror /= 0) go to 118
+        call indxb(if, k - 1, j2, lh)
+        call indxb(if/2, k - 1, j1, lh)
+        j2 = j2 + 1
+        lh = j2
+        n2m2 = j2 + nm + nm - 2
 114 continue
-    D1 = abs(B(J1)-B(J2-1))
-    D2 = abs(B(J1)-B(J2))
-    D3 = abs(B(J1)-B(J2+1))
-    if (D2>=D1 .or. D2>=D3) then
-        B(LH) = B(J2)
-        J2 = J2 + 1
-        LH = LH + 1
-        if (J2 - N2M2 <= 0) go to 114
+    d1 = abs(b(j1)-b(j2-1))
+    d2 = abs(b(j1)-b(j2))
+    d3 = abs(b(j1)-b(j2+1))
+    if (d2>=d1 .or. d2>=d3) then
+        b(lh) = b(j2)
+        j2 = j2 + 1
+        lh = lh + 1
+        if (j2 - n2m2 <= 0) go to 114
     else
-        J2 = J2 + 1
-        J1 = J1 + 1
-        if (J2 - N2M2 <= 0) go to 114
+        j2 = j2 + 1
+        j1 = j1 + 1
+        if (j2 - n2m2 <= 0) go to 114
     end if
-    B(LH) = B(N2M2+1)
-    call INDXB (IF, K - 1, J1, J2)
-    J2 = J1 + NMP + NMP
-    call PPADD (NM + 1, IERROR, AN, CN, BC(J1), B(J1), B(J2))
+    b(lh) = b(n2m2+1)
+    call indxb(if, k - 1, j1, j2)
+    j2 = j1 + nmp + nmp
+    call ppadd(nm + 1, ierror, an, cn, bc(j1), b(j1), b(j2))
 end if
 return 
 118 continue
-    IERROR = 4
+    ierror = 4
     return
 119 continue
-    IERROR = 5
+    ierror = 5
 
-end subroutine COMPB
+end subroutine compb
     !
     !*****************************************************************************************
     !
-subroutine CPROD(ND, BD, NM1, BM1, NM2, BM2, NA, AA, X, YY, M, A, B, C, D, W, Y)
+subroutine cprod(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, b, c, d, w, y)
+    !
+    ! Purpose:
+    !
+    ! cprod applies a sequence of matrix operations to the vector x and
+    ! stores the result in yy (complex case)
+    !
+    ! aa   array containing scalar multipliers of the vector x
+    !
+    ! nd, nm1, nm2 are the lengths of the arrays bd, bm1, bm2 respectively
+    !
+    ! bd, bm1, bm2 are arrays containing roots of certian b polynomials
+    !
+    ! na is the length of the array aa
+    !
+    ! x, yy the matrix operations are applied to x and the result is yy
+    !
+    ! a, b, c  are arrays which contain the tridiagonal matrix
+    !
+    ! m  is the order of the matrix
+    !
+    ! d, w, y are working arrays
+    !
+    ! isgn  determines whether or not a change in sign is made
+    !
     !-----------------------------------------------
     !   D u m m y   A r g u m e n t s
     !-----------------------------------------------
-    integer (ip), intent (in) :: ND
-    integer (ip), intent (in) :: NM1
-    integer (ip), intent (in) :: NM2
-    integer (ip), intent (in) :: NA
-    integer (ip), intent (in) :: M
-    real (wp), intent (in) :: BM1(*)
-    real (wp), intent (in) :: BM2(*)
-    real (wp), intent (in) :: AA(*)
-    real (wp), intent (in) :: X(*)
-    real (wp), intent (out) :: YY(*)
-    real (wp), intent (in) :: A(*)
-    real (wp), intent (in) :: B(*)
-    real (wp), intent (in) :: C(*)
-    complex , intent (in) :: BD(*)
-    complex , intent (in out) :: D(*)
-    complex , intent (in out) :: W(*)
-    complex , intent (in out) :: Y(*)
+    integer (ip), intent (in) :: nd
+    integer (ip), intent (in) :: nm1
+    integer (ip), intent (in) :: nm2
+    integer (ip), intent (in) :: na
+    integer (ip), intent (in) :: m
+    real (wp), intent (in) :: bm1(*)
+    real (wp), intent (in) :: bm2(*)
+    real (wp), intent (in) :: aa(*)
+    real (wp), intent (in) :: x(*)
+    real (wp), intent (out) :: yy(*)
+    real (wp), intent (in) :: a(*)
+    real (wp), intent (in) :: b(*)
+    real (wp), intent (in) :: c(*)
+    complex (wp), intent (in) :: bd(*)
+    complex (wp), intent (in out) :: d(*)
+    complex (wp), intent (in out) :: w(*)
+    complex (wp), intent (in out) :: y(*)
     !-----------------------------------------------
     !   L o c a l   V a r i a b l e s
     !-----------------------------------------------
-    integer (ip) :: J, MM, ID, M1, M2, IA, IFLG, K
-    real (wp) :: RT
-    complex :: CRT, DEN, Y1, Y2
+    integer (ip) :: j, mm, id, m1, m2, ia, iflg, k
+    real (wp)    :: rt
+    complex (wp) :: crt, den, y1, y2
     !-----------------------------------------------
-    !
-    ! PROD APPLIES A SEQUENCE OF MATRIX OPERATIONS TO THE VECTOR X AND
-    ! STORES THE RESULT IN YY           (COMPLEX CASE)
-    ! AA   ARRAY CONTAINING SCALAR MULTIPLIERS OF THE VECTOR X
-    ! ND, NM1, NM2 ARE THE LENGTHS OF THE ARRAYS BD, BM1, BM2 RESPECTIVELY
-    ! BD, BM1, BM2 ARE ARRAYS CONTAINING ROOTS OF CERTIAN B POLYNOMIALS
-    ! NA IS THE LENGTH OF THE ARRAY AA
-    ! X, YY THE MATRIX OPERATIONS ARE APPLIED TO X AND THE RESULT IS YY
-    ! A, B, C  ARE ARRAYS WHICH CONTAIN THE TRIDIAGONAL MATRIX
-    ! M  IS THE ORDER OF THE MATRIX
-    ! D, W, Y ARE WORKING ARRAYS
-    ! ISGN  DETERMINES WHETHER OR NOT A CHANGE IN SIGN IS MADE
-    !
+
     do J = 1, M
         Y(J) = CMPLX(X(J), 0.)
     end do
@@ -1210,467 +1202,442 @@ subroutine CPROD(ND, BD, NM1, BM1, NM2, BM2, NA, AA, X, YY, M, A, B, C, D, W, Y)
         YY(J) = REAL(Y(J))
     end do
     return
-end subroutine CPROD
+end subroutine cprod
     !
     !*****************************************************************************************
     !
-subroutine CPRODP(ND, BD, NM1, BM1, NM2, BM2, NA, AA, X, YY, M, A &
-    , B, C, D, U, Y)
+subroutine cprodp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, &
+    b, c, d, u, y)
+        !
+    ! Purpose:
+    !
+    ! cprodp applies a sequence of matrix operations to the vector x and
+    ! stores the result in yy       periodic boundary conditions
+    ! and  complex  case
+    !
+    ! bd, bm1, bm2 are arrays containing roots of certian b polynomials
+    ! nd, nm1, nm2 are the lengths of the arrays bd, bm1, bm2 respectively
+    ! aa   array containing scalar multipliers of the vector x
+    ! na is the length of the array aa
+    ! x, yy the matrix operations are applied to x and the result is yy
+    ! a, b, c  are arrays which contain the tridiagonal matrix
+    ! m  is the order of the matrix
+    ! d, u, y are working arrays
+    ! isgn  determines whether or not a change in sign is made
+    !
     !-----------------------------------------------
     !   D u m m y   A r g u m e n t s
     !-----------------------------------------------
-    integer (ip), intent (in) :: ND
-    integer (ip), intent (in) :: NM1
-    integer (ip), intent (in) :: NM2
-    integer (ip), intent (in) :: NA
-    integer (ip), intent (in) :: M
-    real (wp), intent (in) :: BM1(*)
-    real (wp), intent (in) :: BM2(*)
-    real (wp), intent (in) :: AA(*)
-    real (wp), intent (in) :: X(*)
-    real (wp), intent (out) :: YY(*)
-    real (wp), intent (in) :: A(*)
-    real (wp), intent (in) :: B(*)
-    real (wp), intent (in) :: C(*)
-    complex , intent (in) :: BD(*)
-    complex , intent (in out) :: D(*)
-    complex , intent (in out) :: U(*)
-    complex , intent (in out) :: Y(*)
+    integer (ip), intent (in) :: nd
+    integer (ip), intent (in) :: nm1
+    integer (ip), intent (in) :: nm2
+    integer (ip), intent (in) :: na
+    integer (ip), intent (in) :: m
+    real (wp), intent (in) :: bm1(*)
+    real (wp), intent (in) :: bm2(*)
+    real (wp), intent (in) :: aa(*)
+    real (wp), intent (in) :: x(*)
+    real (wp), intent (out) :: yy(*)
+    real (wp), intent (in) :: a(*)
+    real (wp), intent (in) :: b(*)
+    real (wp), intent (in) :: c(*)
+    complex (wp), intent (in) :: bd(*)
+    complex (wp), intent (in out) :: d(*)
+    complex (wp), intent (in out) :: u(*)
+    complex (wp), intent (in out) :: y(*)
     !-----------------------------------------------
     !   L o c a l   V a r i a b l e s
     !-----------------------------------------------
-    integer (ip) :: J, MM, MM2, ID, M1, M2, IA, IFLG, K
-    real (wp) :: RT
-    complex :: V, DEN, BH, YM, AM, Y1, Y2, YH, CRT
+    integer (ip) :: j, mm, mm2, id, m1, m2, ia, iflg, k
+    real (wp)    :: rt
+    complex (wp) :: v, den, bh, ym, am, y1, y2, yh, crt
     !-----------------------------------------------
-    !
-    ! PRODP APPLIES A SEQUENCE OF MATRIX OPERATIONS TO THE VECTOR X AND
-    ! STORES THE RESULT IN YY       PERIODIC BOUNDARY CONDITIONS
-    ! AND  COMPLEX  CASE
-    !
-    ! BD, BM1, BM2 ARE ARRAYS CONTAINING ROOTS OF CERTIAN B POLYNOMIALS
-    ! ND, NM1, NM2 ARE THE LENGTHS OF THE ARRAYS BD, BM1, BM2 RESPECTIVELY
-    ! AA   ARRAY CONTAINING SCALAR MULTIPLIERS OF THE VECTOR X
-    ! NA IS THE LENGTH OF THE ARRAY AA
-    ! X, YY THE MATRIX OPERATIONS ARE APPLIED TO X AND THE RESULT IS YY
-    ! A, B, C  ARE ARRAYS WHICH CONTAIN THE TRIDIAGONAL MATRIX
-    ! M  IS THE ORDER OF THE MATRIX
-    ! D, U, Y ARE WORKING ARRAYS
-    ! ISGN  DETERMINES WHETHER OR NOT A CHANGE IN SIGN IS MADE
-    !
-    do J = 1, M
-        Y(J) = CMPLX(X(J), 0.)
+
+    do j = 1, m
+        y(j) = cmplx(x(j), 0.0_wp, kind=wp)
     end do
-    MM = M - 1
-    MM2 = M - 2
-    ID = ND
-    M1 = NM1
-    M2 = NM2
-    IA = NA
+
+    mm = m - 1
+    mm2 = m - 2
+    id = nd
+    m1 = nm1
+    m2 = nm2
+    ia = na
 102 continue
-    IFLG = 0
-    if (ID > 0) then
-        CRT = BD(ID)
-        ID = ID - 1
-        IFLG = 1
+    iflg = 0
+    if (id > 0) then
+        crt = bd(id)
+        id = id - 1
+        iflg = 1
         !
-        ! BEGIN SOLUTION TO SYSTEM
+        ! begin solution to system
         !
-        BH = B(M) - CRT
-        YM = Y(M)
-        DEN = B(1) - CRT
-        D(1) = C(1)/DEN
-        U(1) = A(1)/DEN
-        Y(1) = Y(1)/DEN
-        V = CMPLX(C(M), 0.)
-        if (MM2 - 2 >= 0) then
-            do J = 2, MM2
-                DEN = B(J) - CRT - A(J)*D(J-1)
-                D(J) = C(J)/DEN
-                U(J) = -A(J)*U(J-1)/DEN
-                Y(J) = (Y(J)-A(J)*Y(J-1))/DEN
-                BH = BH - V*U(J-1)
-                YM = YM - V*Y(J-1)
-                V = -V*D(J-1)
+        bh = b(m) - crt
+        ym = y(m)
+        den = b(1) - crt
+        d(1) = c(1)/den
+        u(1) = a(1)/den
+        y(1) = y(1)/den
+        v = cmplx(c(m), 0.0_wp, kind=wp)
+        if (mm2 - 2 >= 0) then
+            do j = 2, mm2
+                den = b(j) - crt - a(j)*d(j-1)
+                d(j) = c(j)/den
+                u(j) = -a(j)*u(j-1)/den
+                y(j) = (y(j)-a(j)*y(j-1))/den
+                bh = bh - v*u(j-1)
+                ym = ym - v*y(j-1)
+                v = -v*d(j-1)
             end do
         end if
-        DEN = B(M-1) - CRT - A(M-1)*D(M-2)
-        D(M-1) = (C(M-1)-A(M-1)*U(M-2))/DEN
-        Y(M-1) = (Y(M-1)-A(M-1)*Y(M-2))/DEN
-        AM = A(M) - V*D(M-2)
-        BH = BH - V*U(M-2)
-        YM = YM - V*Y(M-2)
-        DEN = BH - AM*D(M-1)
-        if (abs(DEN) /= 0.) then
-            Y(M) = (YM - AM*Y(M-1))/DEN
+        den = b(m-1) - crt - a(m-1)*d(m-2)
+        d(m-1) = (c(m-1)-a(m-1)*u(m-2))/den
+        y(m-1) = (y(m-1)-a(m-1)*y(m-2))/den
+        am = a(m) - v*d(m-2)
+        bh = bh - v*u(m-2)
+        ym = ym - v*y(m-2)
+        den = bh - am*d(m-1)
+        if (abs(den) /= 0.) then
+            y(m) = (ym - am*y(m-1))/den
         else
-            Y(M) = (1., 0.)
+            y(m) = (1., 0.)
         end if
-        Y(M-1) = Y(M-1) - D(M-1)*Y(M)
-        do J = 2, MM
-            K = M - J
-            Y(K) = Y(K) - D(K)*Y(K+1) - U(K)*Y(M)
+        y(m-1) = y(m-1) - d(m-1)*y(m)
+        do j = 2, mm
+            k = m - j
+            y(k) = y(k) - d(k)*y(k+1) - u(k)*y(m)
         end do
     end if
-    if (M1 <= 0) then
-        if (M2 <= 0) go to 123
-        RT = BM2(M2)
-        M2 = M2 - 1
+    if (m1 <= 0) then
+        if (m2 <= 0) go to 123
+        rt = bm2(m2)
+        m2 = m2 - 1
     else
-        if (M2 <= 0) then
-            RT = BM1(M1)
-            M1 = M1 - 1
+        if (m2 <= 0) then
+            rt = bm1(m1)
+            m1 = m1 - 1
         else
-            if (abs(BM1(M1)) - abs(BM2(M2)) > 0.) then
-                RT = BM1(M1)
-                M1 = M1 - 1
+            if (abs(bm1(m1)) - abs(bm2(m2)) > 0.) then
+                rt = bm1(m1)
+                m1 = m1 - 1
             else
-                RT = BM2(M2)
-                M2 = M2 - 1
+                rt = bm2(m2)
+                m2 = m2 - 1
             !
-            ! MATRIX MULTIPLICATION
+            ! matrix multiplication
             !
             end if
         end if
     end if
-    YH = Y(1)
-    Y1 = (B(1)-RT)*Y(1) + C(1)*Y(2) + A(1)*Y(M)
-    if (MM - 2 >= 0) then
-        do J = 2, MM
-            Y2 = A(J)*Y(J-1) + (B(J)-RT)*Y(J) + C(J)*Y(J+1)
-            Y(J-1) = Y1
-            Y1 = Y2
+    yh = y(1)
+    y1 = (b(1)-rt)*y(1) + c(1)*y(2) + a(1)*y(m)
+    if (mm - 2 >= 0) then
+        do j = 2, mm
+            y2 = a(j)*y(j-1) + (b(j)-rt)*y(j) + c(j)*y(j+1)
+            y(j-1) = y1
+            y1 = y2
         end do
     end if
-    Y(M) = A(M)*Y(M-1) + (B(M)-RT)*Y(M) + C(M)*YH
-    Y(M-1) = Y1
-    IFLG = 1
+    y(m) = a(m)*y(m-1) + (b(m)-rt)*y(m) + c(m)*yh
+    y(m-1) = y1
+    iflg = 1
     go to 102
 123 continue
-    if (IA > 0) then
-        RT = AA(IA)
-        IA = IA - 1
-        IFLG = 1
+    if (ia > 0) then
+        rt = aa(ia)
+        ia = ia - 1
+        iflg = 1
         !
-        ! SCALAR MULTIPLICATION
+        ! scalar multiplication
         !
-        Y(:M) = RT*Y(:M)
+        y(:m) = rt*y(:m)
     end if
-    if (IFLG > 0) go to 102
-    do J = 1, M
-        YY(J) = REAL(Y(J))
+    if (iflg > 0) go to 102
+    do j = 1, m
+        yy(j) = real(y(j))
     end do
 
-end subroutine CPRODP
+end subroutine cprodp
     !
     !*****************************************************************************************
     !
-subroutine INDXA(I, IR, IDXA, NA)
+subroutine indxa(i, ir, idxa, na)
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    !   d u m m y   a r g u m e n t s
     !-----------------------------------------------
-    integer (ip), intent (in) :: I
-    integer (ip), intent (in) :: IR
-    integer (ip), intent (out) :: IDXA
-    integer (ip), intent (out) :: NA
+    integer (ip), intent (in)  :: i
+    integer (ip), intent (in)  :: ir
+    integer (ip), intent (out) :: idxa
+    integer (ip), intent (out) :: na
     !-----------------------------------------------
-    !   C o m m o n   B l o c k s
-    !-----------------------------------------------
-    !...  /CBLKT/
-    common /CBLKT/ NPP, K, EPS, CNV, NM, NCMPLX, IK
-    integer   NPP, K, NM, NCMPLX, IK
-    real   EPS, CNV
-    !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
-    !-----------------------------------------------
-    !-----------------------------------------------
-    NA = 2**IR
-    IDXA = I - NA + 1
-    if (I - NM > 0) then
-        NA = 0
+
+    na = 2**ir
+    idxa = i - na + 1
+    if (i - nm > 0) then
+        na = 0
     end if
-    return
-end subroutine INDXA
+
+end subroutine indxa
     !
     !*****************************************************************************************
     !
-subroutine INDXB(I, IR, IDX, IDP)
+subroutine indxb(i, ir, idx, idp)
     !-----------------------------------------------
     !   D u m m y   A r g u m e n t s
     !-----------------------------------------------
-    integer (ip), intent (in) :: I
-    integer (ip), intent (in) :: IR
-    integer (ip), intent (out) :: IDX
-    integer (ip), intent (out) :: IDP
-    !-----------------------------------------------
-    !   C o m m o n   B l o c k s
-    !-----------------------------------------------
-    !...  /CBLKT/
-    common /CBLKT/ NPP, K, EPS, CNV, NM, NCMPLX, IK
-    integer   NPP, K, NM, NCMPLX, IK
-    real   EPS, CNV
+    integer (ip), intent (in)  :: i
+    integer (ip), intent (in)  :: ir
+    integer (ip), intent (out) :: idx
+    integer (ip), intent (out) :: idp
     !-----------------------------------------------
     !   L o c a l   V a r i a b l e s
     !-----------------------------------------------
-    integer (ip) :: IZH, ID, IPL
+    integer (ip) :: izh, id, ipl
     !-----------------------------------------------
     !
-    ! B(IDX) IS THE LOCATION OF THE FIRST ROOT OF THE B(I, IR) POLYNOMIAL
+    ! b(idx) is the location of the first root of the b(i, ir) polynomial
     !
-    IDP = 0
-    if (IR >= 0) then
-        if (IR <= 0) then
-            if (I - NM > 0) go to 107
-            IDX = I
-            IDP = 1
+    idp = 0
+    if (ir >= 0) then
+        if (ir <= 0) then
+            if (i - nm > 0) go to 107
+            idx = i
+            idp = 1
             return
         end if
-        IZH = 2**IR
-        ID = I - IZH - IZH
-        IDX = ID + ID + (IR - 1)*IK + IR + (IK - I)/IZH + 4
-        IPL = IZH - 1
-        IDP = IZH + IZH - 1
-        if (I - IPL - NM > 0) then
-            IDP = 0
+        izh = 2**ir
+        id = i - izh - izh
+        idx = id + id + (ir - 1)*ik + ir + (ik - i)/izh + 4
+        ipl = izh - 1
+        idp = izh + izh - 1
+        if (i - ipl - nm > 0) then
+            idp = 0
             return
         end if
-        if (I + IPL - NM > 0) then
-            IDP = NM + IPL - I + 1
+        if (i + ipl - nm > 0) then
+            idp = nm + ipl - i + 1
         end if
     end if
 107 continue
 
-end subroutine INDXB
+end subroutine indxb
     !
     !*****************************************************************************************
     !
-subroutine INDXC(I, IR, IDXC, NC)
+subroutine indxc(i, ir, idxc, nc)
 
     !-----------------------------------------------
     !   D u m m y   A r g u m e n t s
     !-----------------------------------------------
-    integer (ip), intent (in) :: I
-    integer (ip), intent (in) :: IR
-    integer (ip), intent (out) :: IDXC
-    integer (ip), intent (out) :: NC
+    integer (ip), intent (in) :: i
+    integer (ip), intent (in) :: ir
+    integer (ip), intent (out) :: idxc
+    integer (ip), intent (out) :: nc
     !-----------------------------------------------
-    !   C o m m o n   B l o c k s
-    !-----------------------------------------------
-    !...  /CBLKT/
-    common /CBLKT/ NPP, K, EPS, CNV, NM, NCMPLX, IK
-    integer   NPP, K, NM, NCMPLX, IK
-    real   EPS, CNV
-    !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
-    !-----------------------------------------------
-    !-----------------------------------------------
-    NC = 2**IR
-    IDXC = I
-    if (IDXC + NC - 1 - NM > 0) then
-        NC = 0
+
+    nc = 2**ir
+    idxc = i
+    if (idxc + nc - 1 - nm > 0) then
+        nc = 0
     end if
-    return
-end subroutine INDXC
+
+end subroutine indxc
     !
     !*****************************************************************************************
     !
-subroutine PPADD(N, IERROR, A, C, CBP, BP, BH)
+subroutine ppadd(n, ierror, a, c, cbp, bp, bh)
+    !
+    ! Purpose
+    !
+    ! ppadd computes the eigenvalues of the periodic tridiagonal matrix
+    ! with coefficients an, bn, cn
+    !
+    ! n is the order of the bh and bp polynomials
+    ! on output bp contains the eigenvalues
+    ! cbp is the same as bp except type complex
+    ! bh is used to temporarily store the roots of the b hat polynomial
+    ! which enters through bp
+    !
     !-----------------------------------------------
     !   D u m m y   A r g u m e n t s
     !-----------------------------------------------
-    integer (ip), intent (in) :: N
-    integer (ip), intent (out) :: IERROR
-    real (wp) :: A(*)
-    real (wp) :: C(*)
-    real (wp), intent (in out) :: BP(*)
-    real (wp) :: BH(*)
-    complex , intent (in out) :: CBP(*)
-    !-----------------------------------------------
-    !   C o m m o n   B l o c k s
-    !-----------------------------------------------
-    !...  /CBLKT/
-    common /CBLKT/ NPP, K, EPS, CNV, NM, NCMPLX, IK
-    integer   NPP, K, NM, NCMPLX, IK
-    real   EPS, CNV
+    integer (ip), intent (in) :: n
+    integer (ip), intent (out) :: ierror
+    real (wp) :: a(*)
+    real (wp) :: c(*)
+    real (wp), intent (in out) :: bp(*)
+    real (wp) :: bh(*)
+    complex (wp), intent (in out) :: cbp(*)
     !-----------------------------------------------
     !   L o c a l   V a r i a b l e s
     !-----------------------------------------------
-    integer::IZ, IZM, IZM2, J, NT, MODIZ, IS, IF, IG, IT, ICV, I3, I2, NHALF
-    real (wp) :: R4, R5, R6, SCNV, XL, DB, SGN, XR, XM, PSG
-    complex :: CF, CX, FSG, HSG, DD, F, FP, FPP, CDIS, R1, R2, R3
+    integer (ip) :: iz, izm, izm2, j, nt, modiz, is, if, ig, it, icv, i3, i2, nhalf
+    real (wp)    :: r4, r5, r6, scnv, xl, db, sgn, xr, xm, psg
+    complex (wp) :: cf, cx, fsg, hsg, dd, f, fp, fpp, cdis, r1, r2, r3
     !-----------------------------------------------
-    !
-    !     PPADD COMPUTES THE EIGENVALUES OF THE PERIODIC TRIDIAGONAL MATRIX
-    !     WITH COEFFICIENTS AN, BN, CN
-    !
-    ! N IS THE ORDER OF THE BH AND BP POLYNOMIALS
-    !     ON OUTPUT BP CONTIANS THE EIGENVALUES
-    ! CBP IS THE SAME AS BP EXCEPT TYPE COMPLEX
-    ! BH IS USED TO TEMPORARILY STORE THE ROOTS OF THE B HAT POLYNOMIAL
-    ! WHICH ENTERS THROUGH BP
-    !
-    SCNV = SQRT(CNV)
-    IZ = N
-    IZM = IZ - 1
-    IZM2 = IZ - 2
-    if (BP(N) - BP(1) <= 0.) then
-        if (BP(N) - BP(1) == 0.) go to 142
-        BH(:N) = BP(N:1:(-1))
+
+    scnv = sqrt(cnv)
+    iz = n
+    izm = iz - 1
+    izm2 = iz - 2
+    if (bp(n) - bp(1) <= 0.) then
+        if (bp(n) - bp(1) == 0.) go to 142
+        bh(:n) = bp(n:1:(-1))
     else
-        BH(:N) = BP(:N)
+        bh(:n) = bp(:n)
     end if
-    NCMPLX = 0
-    MODIZ = mod(IZ, 2)
-    IS = 1
-    if (MODIZ /= 0) then
-        if (A(1) < 0.) go to 110
-        if (A(1) == 0.) go to 142
+    ncmplx = 0
+    modiz = mod(iz, 2)
+    is = 1
+    if (modiz /= 0) then
+        if (a(1) < 0.) go to 110
+        if (a(1) == 0.) go to 142
     end if
-    XL = BH(1)
-    DB = BH(3) - BH(1)
-    XL = XL - DB
-    R4 = PSGF(XL, IZ, C, A, BH)
-    do while(R4 <= 0.)
-        XL = XL - DB
-        R4 = PSGF(XL, IZ, C, A, BH)
+    xl = bh(1)
+    db = bh(3) - bh(1)
+    xl = xl - db
+    r4 = psgf(xl, iz, c, a, bh)
+    do while(r4 <= 0.)
+        xl = xl - db
+        r4 = psgf(xl, iz, c, a, bh)
     end do
-    SGN = -1.
-    CBP(1) = CMPLX(BSRH(XL, BH(1), IZ, C, A, BH, PSGF, SGN), 0.)
-    BP(1) = REAL(CBP(1))
-    IS = 2
+    sgn = -1.
+    cbp(1) = cmplx(bsrh(xl, bh(1), iz, c, a, bh, psgf, sgn), 0.0_wp, kind=wp)
+    bp(1) = real(cbp(1))
+    is = 2
 110 continue
-    IF = IZ - 1
-    if (MODIZ /= 0) then
-        if (A(1) > 0.) go to 115
-        if (A(1) == 0.) go to 142
+    if = iz - 1
+    if (modiz /= 0) then
+        if (a(1) > 0.0_wp) go to 115
+        if (a(1) == 0.0_wp) go to 142
     end if
-    XR = BH(IZ)
-    DB = BH(IZ) - BH(IZ-2)
-    XR = XR + DB
-    R5 = PSGF(XR, IZ, C, A, BH)
-    do while(R5 < 0.)
-        XR = XR + DB
-        R5 = PSGF(XR, IZ, C, A, BH)
+    xr = bh(iz)
+    db = bh(iz) - bh(iz-2)
+    xr = xr + db
+    r5 = psgf(xr, iz, c, a, bh)
+    do while(r5 < 0.0_wp)
+        xr = xr + db
+        r5 = psgf(xr, iz, c, a, bh)
     end do
-    SGN = 1.
-    CBP(IZ) = CMPLX(BSRH(BH(IZ), XR, IZ, C, A, BH, PSGF, SGN), 0.)
-    IF = IZ - 2
+    sgn = 1.
+    cbp(iz) = cmplx(bsrh(bh(iz), xr, iz, c, a, bh, psgf, sgn), 0.0_wp, kind=wp)
+    if = iz - 2
 115 continue
-    do IG = IS, IF, 2
-        XL = BH(IG)
-        XR = BH(IG+1)
-        SGN = -1.
-        XM = BSRH(XL, XR, IZ, C, A, BH, PPSPF, SGN)
-        PSG = PSGF(XM, IZ, C, A, BH)
-        if (abs(PSG) - EPS <= 0.) go to 118
-        R6 = PSG*PPSGF(XM, IZ, C, A, BH)
-        if (R6 > 0.) go to 119
-        if (R6 == 0.) go to 118
-        SGN = 1.
-        CBP(IG) = CMPLX(BSRH(BH(IG), XM, IZ, C, A, BH, PSGF, SGN), 0.)
+    do ig = is, if, 2
+        xl = bh(ig)
+        xr = bh(ig+1)
+        sgn = -1.
+        xm = bsrh(xl, xr, iz, c, a, bh, ppspf, sgn)
+        psg = psgf(xm, iz, c, a, bh)
+        if (abs(psg) - eps <= 0.) go to 118
+        r6 = psg*ppsgf(xm, iz, c, a, bh)
+        if (r6 > 0.) go to 119
+        if (r6 == 0.) go to 118
+        sgn = 1.
+        cbp(ig) = cmplx(bsrh(bh(ig), xm, iz, c, a, bh, psgf, sgn), 0.0_wp, kind=wp)
         !        bp(ig) = real(cbp(ig))
-        SGN = -1.
-        CBP(IG+1) = CMPLX(BSRH(XM, BH(IG+1), IZ, C, A, BH, PSGF, SGN), 0.)
+        sgn = -1.
+        cbp(ig+1) = cmplx(bsrh(xm, bh(ig+1), iz, c, a, bh, psgf, sgn), 0.0_wp, kind=wp)
         !        bp(ig) = real(cbp(ig))
         !        bp(ig+1) = real(cbp(ig+1))
         cycle
     !
-    !     CASE OF A MULTIPLE ZERO
+    !     case of a multiple zero
     !
 118 continue
-    CBP(IG) = CMPLX(XM, 0.)
-    CBP(IG+1) = CMPLX(XM, 0.)
+    cbp(ig) = cmplx(xm, 0.0_wp, kind=wp)
+    cbp(ig+1) = cmplx(xm, 0.0_wp, kind=wp)
     !        bp(ig) = real(cbp(ig))
     !        bp(ig+1) = real(cbp(ig+1))
     cycle
 !
-!     CASE OF A COMPLEX ZERO
+!     case of a complex zero
 !
 119 continue
-    IT = 0
-    ICV = 0
-    CX = CMPLX(XM, 0.)
+    it = 0
+    icv = 0
+    cx = cmplx(xm, 0.0_wp, kind=wp)
 120 continue
-    FSG = (1., 0.)
-    HSG = (1., 0.)
-    FP = (0., 0.)
-    FPP = (0., 0.)
-    do J = 1, IZ
-        DD = 1./(CX - BH(J))
-        FSG = FSG*A(J)*DD
-        HSG = HSG*C(J)*DD
-        FP = FP + DD
-        FPP = FPP - DD*DD
+    fsg = (1.0_wp, 0.0_wp)
+    hsg = (1.0_wp, 0.0_wp)
+    fp = (0.0_wp, 0.0_wp)
+    fpp = (0.0_wp, 0.0_wp)
+    do j = 1, iz
+        dd = 1./(cx - bh(j))
+        fsg = fsg*a(j)*dd
+        hsg = hsg*c(j)*dd
+        fp = fp + dd
+        fpp = fpp - dd*dd
     end do
-    if (MODIZ == 0) then
-        F = (1., 0.) - FSG - HSG
+    if (modiz == 0) then
+        f = (1.0_wp, 0.0_wp) - fsg - hsg
     else
-        F = (1., 0.) + FSG + HSG
+        f = (1.0_wp, 0.0_wp) + fsg + hsg
     end if
-    I3 = 0
-    if (abs(FP) > 0.) then
-        I3 = 1
-        R3 = -F/FP
+    i3 = 0
+    if (abs(fp) > 0.0_wp) then
+        i3 = 1
+        r3 = -f/fp
     end if
-    I2 = 0
-    if (abs(FPP) > 0.) then
-        I2 = 1
-        CDIS = CSQRT(FP**2 - 2.*F*FPP)
-        R1 = CDIS - FP
-        R2 = (-FP) - CDIS
-        if (abs(R1) - abs(R2) > 0.) then
-            R1 = R1/FPP
+    i2 = 0
+    if (abs(fpp) > 0.0_wp) then
+        i2 = 1
+        cdis = csqrt(fp**2 - 2.*f*fpp)
+        r1 = cdis - fp
+        r2 = (-fp) - cdis
+        if (abs(r1) - abs(r2) > 0.) then
+            r1 = r1/fpp
         else
-            R1 = R2/FPP
+            r1 = r2/fpp
         end if
-        R2 = 2.*F/FPP/R1
-        if (abs(R2) < abs(R1)) R1 = R2
-        if (I3 <= 0) go to 133
-        if (abs(R3) < abs(R1)) R1 = R3
+        r2 = 2.*f/fpp/r1
+        if (abs(r2) < abs(r1)) r1 = r2
+        if (i3 <= 0) go to 133
+        if (abs(r3) < abs(r1)) r1 = r3
         go to 133
     end if
-    R1 = R3
+    r1 = r3
 133 continue
-    CX = CX + R1
-    IT = IT + 1
-    if (IT > 50) go to 142
-    if (abs(R1) > SCNV) go to 120
-    if (ICV > 0) go to 135
-    ICV = 1
+    cx = cx + r1
+    it = it + 1
+    if (it > 50) go to 142
+    if (abs(r1) > scnv) go to 120
+    if (icv > 0) go to 135
+    icv = 1
     go to 120
 135 continue
-    CBP(IG) = CX
-    CBP(IG+1) = CONJG(CX)
+    cbp(ig) = cx
+    cbp(ig+1) = conjg(cx)
 end do
-if (abs(CBP(N)) - abs(CBP(1)) <= 0.) then
-    if (abs(CBP(N)) - abs(CBP(1)) == 0.) go to 142
-    NHALF = N/2
-    do J = 1, NHALF
-        NT = N - J
-        CX = CBP(J)
-        CBP(J) = CBP(NT+1)
-        CBP(NT+1) = CX
+if (abs(cbp(n)) - abs(cbp(1)) <= 0.) then
+    if (abs(cbp(n)) - abs(cbp(1)) == 0.) go to 142
+    nhalf = n/2
+    do j = 1, nhalf
+        nt = n - j
+        cx = cbp(j)
+        cbp(j) = cbp(nt+1)
+        cbp(nt+1) = cx
     end do
 end if
-NCMPLX = 1
-do J = 2, IZ
-    if (AIMAG(CBP(J)) /= 0.) go to 143
+ncmplx = 1
+do j = 2, iz
+    if (aimag(cbp(j)) /= 0.) go to 143
 end do
-NCMPLX = 0
-BP(1) = REAL(CBP(1))
-do J = 2, IZ
-    BP(J) = REAL(CBP(J))
+ncmplx = 0
+bp(1) = real(cbp(1))
+do j = 2, iz
+    bp(j) = real(cbp(j))
 end do
 go to 143
 142 continue
-    IERROR = 4
+    ierror = 4
 143 continue
 
-end subroutine PPADD
+end subroutine ppadd
     !
     !*****************************************************************************************
     !
-subroutine PROD(ND, BD, NM1, BM1, NM2, BM2, NA, AA, X, Y, M, A, B, C, D, W, U)
+subroutine prod(ND, BD, NM1, BM1, NM2, BM2, NA, AA, X, Y, M, A, B, C, D, W, U)
     !-----------------------------------------------
     !   D u m m y   A r g u m e n t s
     !-----------------------------------------------
@@ -1698,7 +1665,7 @@ subroutine PROD(ND, BD, NM1, BM1, NM2, BM2, NA, AA, X, Y, M, A, B, C, D, W, U)
     real (wp) :: RT, DEN
     !-----------------------------------------------
     !
-    ! PROD APPLIES A SEQUENCE OF MATRIX OPERATIONS TO THE VECTOR X AND
+    ! prod APPLIES A SEQUENCE OF MATRIX OPERATIONS TO THE VECTOR X AND
     ! STORES THE RESULT IN Y
     ! BD, BM1, BM2 ARE ARRAYS CONTAINING ROOTS OF CERTIAN B POLYNOMIALS
     ! ND, NM1, NM2 ARE THE LENGTHS OF THE ARRAYS BD, BM1, BM2 RESPECTIVELY
@@ -1782,11 +1749,35 @@ subroutine PROD(ND, BD, NM1, BM1, NM2, BM2, NA, AA, X, Y, M, A, B, C, D, W, U)
     go to 102
 125 continue
 
-end subroutine PROD
+end subroutine prod
     !
     !*****************************************************************************************
     !
-subroutine PRODP(ND, BD, NM1, BM1, NM2, BM2, NA, AA, X, Y, M, A, B, C, D, U, W)
+subroutine prodp( nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, u, w)
+    !
+    ! purpose:
+    !
+    ! prodp applies a sequence of matrix operations to the vector x and
+    ! stores the result in y periodic boundary conditions
+    !
+    ! bd, bm1, bm2 are arrays containing roots of certain b polynomials
+    !
+    ! nd, nm1, nm2 are the lengths of the arrays bd, bm1, bm2 respectively
+    !
+    ! aa   array containing scalar multipliers of the vector x
+    !
+    ! na is the length of the array aa
+    !
+    ! x, y  the matrix operations are applied to x and the result is y
+    !
+    ! a, b, c  are arrays which contain the tridiagonal matrix
+    !
+    ! m  is the order of the matrix
+    !
+    ! d, u, w are working arrays
+    !
+    ! is  determines whether or not a change in sign is made
+    !
     !-----------------------------------------------
     !   D u m m y   A r g u m e n t s
     !-----------------------------------------------
@@ -1813,20 +1804,6 @@ subroutine PRODP(ND, BD, NM1, BM1, NM2, BM2, NA, AA, X, Y, M, A, B, C, D, U, W)
     integer (ip) :: J, MM, MM2, ID, IBR, M1, M2, IA, K
     real (wp) :: RT, BH, YM, DEN, V, AM
     !-----------------------------------------------
-    !
-    ! PRODP APPLIES A SEQUENCE OF MATRIX OPERATIONS TO THE VECTOR X AND
-    ! STORES THE RESULT IN Y        PERIODIC BOUNDARY CONDITIONS
-    !
-    ! BD, BM1, BM2 ARE ARRAYS CONTAINING ROOTS OF CERTIAN B POLYNOMIALS
-    ! ND, NM1, NM2 ARE THE LENGTHS OF THE ARRAYS BD, BM1, BM2 RESPECTIVELY
-    ! AA   ARRAY CONTAINING SCALAR MULTIPLIERS OF THE VECTOR X
-    ! NA IS THE LENGTH OF THE ARRAY AA
-    ! X, Y  THE MATRIX OPERATIONS ARE APPLIED TO X AND THE RESULT IS Y
-    ! A, B, C  ARE ARRAYS WHICH CONTAIN THE TRIDIAGONAL MATRIX
-    ! M  IS THE ORDER OF THE MATRIX
-    ! D, U, W ARE WORKING ARRAYS
-    ! IS  DETERMINES WHETHER OR NOT A CHANGE IN SIGN IS MADE
-    !
 
     Y(:M) = X(:M)
     W(:M) = Y(:M)
@@ -1917,31 +1894,11 @@ subroutine PRODP(ND, BD, NM1, BM1, NM2, BM2, NA, AA, X, Y, M, A, B, C, D, U, W)
     go to 102
 128 continue
     return
-end subroutine PRODP
+end subroutine prodp
     !
     !*****************************************************************************************
     !
-subroutine TEVLS(N, D, E2, IERR)
-    !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
-    !-----------------------------------------------
-    integer (ip), intent (in) :: N
-    integer (ip), intent (out) :: IERR
-    real (wp), intent (in out) :: D(N)
-    real (wp), intent (in out) :: E2(N)
-    !-----------------------------------------------
-    !   C o m m o n   B l o c k s
-    !-----------------------------------------------
-    !...  /CBLKT/
-    common /CBLKT/ NPP, K, MACHEP, CNV, NM, NCMPLX, IK
-    integer   NPP, K, NM, NCMPLX, IK
-    real   MACHEP, CNV
-    !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
-    !-----------------------------------------------
-    integer (ip) :: I, J, L, M, II, L1, MML, NHALF, NTOP
-    real (wp) :: B, C, F, G, H, P, R, S, DHOLD
-    !-----------------------------------------------
+subroutine tevls(N, D, E2, IERR)
     !
     !
     !     REAL SQRT, ABS, SIGN
@@ -1980,11 +1937,25 @@ subroutine TEVLS(N, D, E2, IERR)
     !     APPLIED MATHEMATICS DIVISION, ARGONNE NATIONAL LABORATORY
     !
     !
-    !     ********** MACHEP IS A MACHINE DEPENDENT PARAMETER SPECIFYING
+    !     ********** EPS IS A MACHINE DEPENDENT PARAMETER SPECIFYING
     !                THE RELATIVE PRECISION OF FLOATING POINT ARITHMETIC.
     !
     !                **********
     !
+    !-----------------------------------------------
+    !   D u m m y   A r g u m e n t s
+    !-----------------------------------------------
+    integer (ip), intent (in) :: N
+    integer (ip), intent (out) :: IERR
+    real (wp), intent (in out) :: D(N)
+    real (wp), intent (in out) :: E2(N)
+    !-----------------------------------------------
+    !   L o c a l   V a r i a b l e s
+    !-----------------------------------------------
+    integer (ip) :: I, J, L, M, II, L1, MML, NHALF, NTOP
+    real (wp) :: B, C, F, G, H, P, R, S, DHOLD
+    !-----------------------------------------------
+
     IERR = 0
     if (N /= 1) then
         !
@@ -1996,7 +1967,7 @@ subroutine TEVLS(N, D, E2, IERR)
         !
         do L = 1, N
             J = 0
-            H = MACHEP*(abs(D(L))+SQRT(E2(L)))
+            H = EPS*(abs(D(L))+SQRT(E2(L)))
             if (B <= H) then
                 B = H
                 C = B*B
@@ -2106,7 +2077,7 @@ end if
 !
 !     ********** LAST CARD OF TQLRAT **********
 !
-end subroutine TEVLS
+end subroutine tevls
     !
     !*****************************************************************************************
     !
