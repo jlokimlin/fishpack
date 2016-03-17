@@ -136,7 +136,12 @@ module module_comf
     public :: ppsgf
     public :: ppspf
     public :: psgf
-    public :: get_machine_precision_pi
+
+    !---------------------------------------------------------------------------------
+    ! Dictionary: global variables confined to the module
+    !---------------------------------------------------------------------------------
+    real (wp), save :: v
+    !---------------------------------------------------------------------------------
 
 contains
     !
@@ -151,9 +156,7 @@ contains
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        real (wp), save :: alll
-        real (wp)       :: eps, v
-        common /value/  v
+        real (wp)       :: eps
         !-----------------------------------------------
 
         eps = 1.0_wp
@@ -176,16 +179,7 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        real (wp), intent(in) :: x
-        !-----------------------------------------------
-        ! TODO: Replace common block!!!
-        !-----------------------------------------------
-        common /value/ v
-        real (wp)  v
-        !-----------------------------------------------
-        ! Dictionary: local variables
-        !-----------------------------------------------
-        real (wp), save :: alll
+        real (wp), intent (in) :: x
         !-----------------------------------------------
 
         v = x
@@ -198,17 +192,16 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip), intent(in) :: iz
-        real (wp), intent(in) :: x
+        integer (ip), intent (in) :: iz
+        real (wp), intent (in) :: x
         real (wp) :: c(*)
         real (wp) :: a(*)
-        real (wp), intent(in) :: bh(*)
+        real (wp), intent (in) :: bh(*)
         real (wp) :: return_value
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
         integer (ip)    :: j
-        real (wp), save :: alll
         real (wp)       :: summation
         !-----------------------------------------------
 
@@ -228,17 +221,16 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip), intent(in)  :: iz
-        real (wp),    intent(in)  :: x
+        integer (ip), intent (in)  :: iz
+        real (wp),    intent (in)  :: x
         real (wp)                 :: c(*)
         real (wp)                 :: a(*)
-        real (wp),     intent(in) :: bh(*)
+        real (wp),     intent (in) :: bh(*)
         real (wp)                 :: return_value
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
         integer (wp)     :: j
-        real (wp), save  :: alll
         real (wp)        :: summation
         !-----------------------------------------------
 
@@ -258,17 +250,16 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip), intent(in) :: iz
-        real (wp), intent(in) :: x
-        real (wp), intent(in) :: c(*)
-        real (wp), intent(in) :: a(*)
-        real (wp), intent(in)   :: bh(*)
+        integer (ip), intent (in) :: iz
+        real (wp), intent (in) :: x
+        real (wp), intent (in) :: c(*)
+        real (wp), intent (in) :: a(*)
+        real (wp), intent (in)   :: bh(*)
         real (wp)               :: return_value
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
         integer (ip)    :: j
-        real (wp), save :: alll
         real (wp)       :: fsg, hsg, dd
         !-----------------------------------------------
 
@@ -292,20 +283,6 @@ contains
     !
     !*****************************************************************************************
     !
-    pure function get_machine_precision_pi(x) result (return_value)
-        !-----------------------------------------------
-        ! Dictionary: calling arguments
-        !-----------------------------------------------
-        real (wp), intent (in)  :: x
-        real (wp)               :: return_value
-        !-----------------------------------------------
-
-        return_value = acos( -1.0_wp )
-
-    end function get_machine_precision_pi
-    !
-    !*****************************************************************************************
-    !
 end module module_comf
 !
 ! REVISION HISTORY---
@@ -317,6 +294,4 @@ end module module_comf
 ! FEBRUARY  1985    DOCUMENTATION UPGRADE
 ! NOVEMBER  1988    VERSION 3.2, FORTRAN 77 CHANGES
 ! June      2004    Version 5.0, Fortran 90 changes
-! September 2015    Renamed PIMACH -> PI_MACH to avoid conflicts with SPHEREPACK 3.2
-! February  2016    Extensive refactoring
 !-----------------------------------------------------------------------

@@ -629,28 +629,28 @@ contains
         !-----------------------------------------------
         !   D u m m y   A r g u m e n t s
         !-----------------------------------------------
-        integer , intent(in) :: M
-        integer , intent(in) :: MBDCND
-        integer , intent(in) :: N
+        integer , intent (in) :: M
+        integer , intent (in) :: MBDCND
+        integer , intent (in) :: N
         integer  :: NBDCND
         integer  :: IDIMF
-        real , intent(in) :: TS
-        real , intent(in) :: TF
-        real , intent(in) :: PS
-        real , intent(in) :: PF
-        real , intent(in) :: ELMBDA
-        real , intent(out) :: PERTRB
-        real , intent(in) :: BDTS(*)
-        real , intent(in) :: BDTF(*)
-        real , intent(in) :: BDPS(*)
-        real , intent(in) :: BDPF(*)
+        real , intent (in) :: TS
+        real , intent (in) :: TF
+        real , intent (in) :: PS
+        real , intent (in) :: PF
+        real , intent (in) :: ELMBDA
+        real , intent (out) :: PERTRB
+        real , intent (in) :: BDTS(*)
+        real , intent (in) :: BDTF(*)
+        real , intent (in) :: BDPS(*)
+        real , intent (in) :: BDPF(*)
         real  :: F(IDIMF,*)
         real  :: AM(*)
         real  :: BM(*)
         real  :: CM(*)
-        real , intent(inout) :: SN(*)
-        real , intent(inout) :: SS(*)
-        real , intent(inout) :: SINT(*)
+        real , intent (inout) :: SN(*)
+        real , intent (inout) :: SS(*)
+        real , intent (inout) :: SINT(*)
         real  :: D(*)
         !-----------------------------------------------
         !   L o c a l   V a r i a b l e s

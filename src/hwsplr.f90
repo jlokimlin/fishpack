@@ -571,10 +571,10 @@ contains
         !-----------------------------------------------
         integer :: mp1, np1, np, mstart, mstop, munk, nstart, nstop, nunk &
             , id2, id3, id4, id5, id6, ij, i, j, l, lp, k, i1, ierr1, ip
-        real :: alll, deltar, dlrby2, dlrsq, deltht, dlthsq, a1, r, s2, a2 &
-            , s, s1, ypole
+        real :: deltar, dlrby2, dlrsq, deltht, dlthsq, a1, r, s2, a2, &
+             s, s1, ypole
 
-        save alll
+        !real, save ::  alll
         !-----------------------------------------------
         mp1 = m + 1
         deltar = (b - a)/real(m)

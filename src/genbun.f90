@@ -463,7 +463,7 @@ contains
         integer (ip)    :: iwd, iwtcos, iwp, k, j, mp, np, ipstor, irev, mh, mhm1, modd
         integer (ip)    :: mhpi, mhmi, nby2, mskip
         real (wp)       :: a1
-        real (wp), save :: alll
+        !real (wp), save :: alll
         !-----------------------------------------------
         if (mperod /= 1) then
             do i = 2, m
@@ -612,7 +612,7 @@ subroutine POISD2(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
     integer (ip)    :: jst, jsp, l, nodd, j, jm1, jp1, jm2, jp2, jm3, jp3, noddpr, ip1
     integer (ip)    :: krpi, ideg, jdeg
     real (wp)       :: fi, t
-    real (wp), save ::  alll
+    !real (wp), save ::  alll
     !-----------------------------------------------
     !
     !     SUBROUTINE TO SOLVE POISSON'S EQUATION FOR DIRICHLET BOUNDARY
@@ -921,7 +921,7 @@ subroutine POISN2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
     integer (ip)    :: lr, i, nrod, jstart, jstop, i2rby2, j, jp1, jp2, jp3, jm1
     integer (ip)    :: jm2, jm3, nrodpr, ii, i1, i2, jr2, nlastp, jstep
     real (wp)       :: fistag, fnum, fden, fi, t
-    real (wp), save ::  alll
+    !real (wp), save ::  alll
     !-----------------------------------------------
     !
     !     SUBROUTINE TO SOLVE POISSON'S EQUATION WITH NEUMANN BOUNDARY
@@ -1359,10 +1359,9 @@ subroutine POISP2(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
     !-----------------------------------------------
     !   L o c a l   V a r i a b l e s
     !-----------------------------------------------
-    integer :: mr, nr, nrm1, j, nrmj, nrpj, i, ipstor, lh
-    real :: alll, s, t
-
-    save alll
+    integer (ip) :: mr, nr, nrm1, j, nrmj, nrpj, i, ipstor, lh
+    real (wp)    ::  s, t
+    !real, save ::  alll
     !-----------------------------------------------
     !
     !     SUBROUTINE TO SOLVE POISSON EQUATION WITH PERIODIC BOUNDARY

@@ -194,8 +194,8 @@ contains
             !--------------------------------------------------------------------------------
             ! Dictionary: calling arguments
             !--------------------------------------------------------------------------------
-            real, intent(in) :: s
-            real, intent(in) :: t
+            real, intent (in) :: s
+            real, intent (in) :: t
             real (wp)          :: return_value
 
             return_value =(s*t)**3 + 1.0_wp
@@ -208,8 +208,8 @@ contains
             !--------------------------------------------------------------------------------
             ! Dictionary: calling arguments
             !--------------------------------------------------------------------------------
-            real, intent(in) :: s
-            real, intent(in) :: t
+            real, intent (in) :: s
+            real, intent (in) :: t
             real (wp)          :: return_value
 
             return_value = 3.0_wp *(s**2)*(t**3)
@@ -222,8 +222,8 @@ contains
             !--------------------------------------------------------------------------------
             ! Dictionary: calling arguments
             !--------------------------------------------------------------------------------
-            real, intent(in) :: s
-            real, intent(in) :: t
+            real, intent (in) :: s
+            real, intent (in) :: t
             real (wp)          :: return_value
 
             return_value = 6.0_wp * s *(t**3)
@@ -236,8 +236,8 @@ contains
             !--------------------------------------------------------------------------------
             ! Dictionary: calling arguments
             !--------------------------------------------------------------------------------
-            real, intent(in) :: s
-            real, intent(in) :: t
+            real, intent (in) :: s
+            real, intent (in) :: t
             real (wp) :: return_value
 
             return_value = 3.0_wp *(s**3) *(t**2)
@@ -250,8 +250,8 @@ contains
             !--------------------------------------------------------------------------------
             ! Dictionary: calling arguments
             !--------------------------------------------------------------------------------
-            real, intent(in) :: s
-            real, intent(in) :: t
+            real, intent (in) :: s
+            real, intent (in) :: t
             real (wp) :: return_value
 
             return_value = 6.0_wp *(s**3) * t
@@ -264,10 +264,10 @@ contains
             !--------------------------------------------------------------------------------
             ! Dictionary: calling arguments
             !--------------------------------------------------------------------------------
-            real (wp), intent(in) :: x
-            real (wp), intent(out) :: af
-            real (wp), intent(out) :: bf
-            real (wp), intent(out) :: cf
+            real (wp), intent (in) :: x
+            real (wp), intent (out) :: af
+            real (wp), intent (out) :: bf
+            real (wp), intent (out) :: cf
             !-----------------------------------------------
             !
             !     SET COEFFICIENTS IN THE X-DIRECTION.
@@ -809,24 +809,24 @@ contains
         !-----------------------------------------------
         !   D u m m y   A r g u m e n t s
         !-----------------------------------------------
-        integer , intent(in) :: iorder
-        integer , intent(in) :: m
+        integer , intent (in) :: iorder
+        integer , intent (in) :: m
         integer  :: mbdcnd
-        integer , intent(in) :: n
+        integer , intent (in) :: n
         integer  :: nbdcnd
         integer  :: idmn
-        integer , intent(in out) :: ierror
-        real , intent(in) :: a
-        real , intent(in) :: b
+        integer , intent (in out) :: ierror
+        real , intent (in) :: a
+        real , intent (in) :: b
         real  :: alpha
         real  :: beta
-        real , intent(in) :: c
-        real , intent(in) :: d
+        real , intent (in) :: c
+        real , intent (in) :: d
         real  :: pertrb
-        real , intent(in) :: bda(*)
-        real , intent(in) :: bdb(*)
-        real , intent(in) :: bdc(*)
-        real , intent(in) :: bdd(*)
+        real , intent (in) :: bda(*)
+        real , intent (in) :: bdb(*)
+        real , intent (in) :: bdc(*)
+        real , intent (in) :: bdd(*)
         real  :: an(*)
         real  :: bn(*)
         real  :: cn(*)
@@ -1183,17 +1183,17 @@ contains
         !-----------------------------------------------
         !   D u m m y   A r g u m e n t s
         !-----------------------------------------------
-        integer , intent(in) :: iorder
-        integer , intent(in) :: m
-        integer , intent(in) :: mbdcnd
-        integer , intent(in) :: n
-        integer , intent(in) :: nbdcnd
-        integer , intent(in) :: idmn
-        integer , intent(out) :: ierror
-        real , intent(in) :: a
-        real , intent(in) :: b
-        real , intent(in) :: c
-        real , intent(in) :: d
+        integer , intent (in) :: iorder
+        integer , intent (in) :: m
+        integer , intent (in) :: mbdcnd
+        integer , intent (in) :: n
+        integer , intent (in) :: nbdcnd
+        integer , intent (in) :: idmn
+        integer , intent (out) :: ierror
+        real , intent (in) :: a
+        real , intent (in) :: b
+        real , intent (in) :: c
+        real , intent (in) :: d
         !-----------------------------------------------
         !   L o c a l   V a r i a b l e s
         !-----------------------------------------------
@@ -1276,11 +1276,11 @@ contains
         !-----------------------------------------------
         !   D u m m y   A r g u m e n t s
         !-----------------------------------------------
-        integer , intent(in) :: mbdcnd
-        integer , intent(in) :: nbdcnd
-        real , intent(in) :: alpha
-        real , intent(in) :: beta
-        logical , intent(out) :: singlr
+        integer , intent (in) :: mbdcnd
+        integer , intent (in) :: nbdcnd
+        real , intent (in) :: alpha
+        real , intent (in) :: beta
+        logical , intent (out) :: singlr
         !-----------------------------------------------
         !   C o m m o n   B l o c k s
         !-----------------------------------------------
@@ -1338,7 +1338,7 @@ contains
         !-----------------------------------------------
         integer  :: idmn
         real  :: usol(idmn, *)
-        real , intent(in out) :: grhs(idmn, *)
+        real , intent (in out) :: grhs(idmn, *)
         !-----------------------------------------------
         !   C o m m o n   B l o c k s
         !-----------------------------------------------

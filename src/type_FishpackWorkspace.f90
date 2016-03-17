@@ -82,9 +82,9 @@ contains
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
         class (FishpackWorkspace), intent (in out)  :: this
-        integer,                   intent(in)       :: irwk ! required real work space length
+        integer,                   intent (in)       :: irwk ! required real work space length
         integer (ip),              intent (in)      :: icwk ! required integer work space length
-        integer,                   intent(in out)   :: ierror
+        integer,                   intent (in out)   :: ierror
         !--------------------------------------------------------------------------------
         ! Dictionary: local variables
         !--------------------------------------------------------------------------------
@@ -126,9 +126,9 @@ contains
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
-        integer (ip), intent(in)  :: n,m
-        integer (ip), intent(out) :: irwk
-        integer (ip), intent(out) :: icwk
+        integer (ip), intent (in)  :: n,m
+        integer (ip), intent (out) :: irwk
+        integer (ip), intent (out) :: icwk
         !--------------------------------------------------------------------------------
         ! Dictionary: local variables
         !--------------------------------------------------------------------------------
@@ -162,9 +162,9 @@ contains
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
-        integer (ip), intent(in)  :: n
+        integer (ip), intent (in)  :: n
         integer (ip), intent (in) :: m
-        integer (ip), intent(out) :: irwk
+        integer (ip), intent (out) :: irwk
         !--------------------------------------------------------------------------------
         ! Dictionary: local variables
         !--------------------------------------------------------------------------------
