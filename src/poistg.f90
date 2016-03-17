@@ -255,7 +255,7 @@ contains
         write( stdout, '(A)') '    IERROR = 0,  Discretization Error = 5.6417E-4'
         write( stdout, '(A)') ''
         write( stdout, '(A)') '    The output from your computer is: '
-        write( stdout, '(A,I3,A, E23.15E3)')&
+        write( stdout, *)&
             '    IERROR =', ierror, ' Discretization Error = ', discretization_error
 
     end subroutine poistg_unit_test

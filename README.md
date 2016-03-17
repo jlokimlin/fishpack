@@ -1,6 +1,8 @@
 # **modern\_fishpack**
  
-This Fortran project is a modernization of NCAR's FISHPACK90 library. The original work, written in both FORTRAN 77 and Fortran 90, was heavily refactored to incorporate features of modern Fortran. That is, all the procedures are now encapsulated in modules. Most importantly, the potential memory leak in the derived type **fish**, now rebaptized as **FishpackWorkspace**, was addressed by replacing pointers with allocatable arrays. 
+This Fortran project is a modernization of NCAR's FISHPACK90 library. The original work, written in both FORTRAN 77 and Fortran 90, was heavily refactored to incorporate features of modern Fortran. That is, all the procedures are now encapsulated in modules. 
+
+Most importantly, the potential memory leak in the derived type **fish**, now rebaptized as **FishpackWorkspace**, was addressed by replacing pointers with allocatable arrays. 
 
 This project is still a work in progress.
 
@@ -8,8 +10,12 @@ This project is still a work in progress.
 
 # TODO
 * Introduce interfaces to replace assumed-size arrays with assumed shape arrays. 
+* Replace all instances of **go to** statements with **cycle** and **select case**
+* Address magic constants in *fftpack.f90*
+* There is a bug in *pois3d.f90* that causes both it and *hw3crt.f90* to fail their unit tests.
 * Implement object-oriented features to hide workspace arrays.
-* Replace **COMMON** blocks with module variables.
+* Replace every instance of **COMMON** blocks with module variables.
+* Introduce interfaces to address type casting in *blktri.f90*
 
 -----------------------------------------------------------------------------
 

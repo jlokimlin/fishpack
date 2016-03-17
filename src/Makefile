@@ -24,18 +24,29 @@ blktri.f90
 	$(FC) $(FFLAGS) -c blktri.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
-#cblktri.o: \
-#type_FishpackWorkspace.o \
-#comf.o \
-#cblktri.f90
-#	$(FC) $(FFLAGS) -c cblktri.f90 $(LINKS) \
-#	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+cblktri.o: \
+type_FishpackWorkspace.o \
+comf.o \
+cblktri.f90
+	$(FC) $(FFLAGS) -c cblktri.f90 $(LINKS) \
+	-o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
+cmgnbn.o: \
+type_FishpackWorkspace.o \
+cmgnbn.f90
+	$(FC) $(FFLAGS) -c cmgnbn.f90 $(LINKS) \
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 gnbnaux.o: \
 gnbnaux.f90
 	$(FC) $(FFLAGS) -c gnbnaux.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
+fftpack.o: \
+fftpack.f90
+	$(FC) $(FFLAGS) -c fftpack.f90 $(LINKS) \
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+	 
 genbun.o: \
 type_FishpackWorkspace.o \
 gnbnaux.o \
@@ -50,6 +61,20 @@ poistg.f90
 	$(FC) $(FFLAGS) -c poistg.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
+pois3d.o: \
+type_FishpackWorkspace.o \
+fftpack.o \
+pois3d.f90
+	$(FC) $(FFLAGS) -c pois3d.f90 $(LINKS) \
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
+hw3crt.o: \
+type_FishpackWorkspace.o \
+pois3d.o \
+hw3crt.f90
+	$(FC) $(FFLAGS) -c hw3crt.f90 $(LINKS) \
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+	 
 hstcrt.o: \
 type_FishpackWorkspace.o \
 genbun.o \
@@ -95,6 +120,55 @@ genbun.o \
 poistg.o \
 hwscrt.f90
 	$(FC) $(FFLAGS) -c hwscrt.f90 $(LINKS) \
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
+hwscsp.o: \
+type_FishpackWorkspace.o \
+blktri.o \
+hwscsp.f90
+	$(FC) $(FFLAGS) -c hwscsp.f90 $(LINKS) \
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
+hwscyl.o: \
+type_FishpackWorkspace.o \
+genbun.o \
+hwscyl.f90
+	$(FC) $(FFLAGS) -c hwscyl.f90 $(LINKS) \
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
+hwsplr.o: \
+type_FishpackWorkspace.o \
+genbun.o \
+hwsplr.f90
+	$(FC) $(FFLAGS) -c hwsplr.f90 $(LINKS) \
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
+hwsssp.o: \
+type_FishpackWorkspace.o \
+genbun.o \
+hwsssp.f90
+	$(FC) $(FFLAGS) -c hwsssp.f90 $(LINKS) \
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
+sepaux.o: \
+sepaux.f90
+	$(FC) $(FFLAGS) -c sepaux.f90 $(LINKS) \
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
+sepeli.o: \
+type_FishpackWorkspace.o\
+blktri.o \
+sepaux.o \
+sepeli.f90
+	$(FC) $(FFLAGS) -c sepeli.f90 $(LINKS) \
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
+sepx4.o: \
+type_FishpackWorkspace.o\
+genbun.o \
+sepaux.o \
+sepx4.f90
+	$(FC) $(FFLAGS) -c sepx4.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 main.o: \

@@ -7,8 +7,6 @@ AR = /usr/bin/ar
 
 MAKE = /usr/bin/make
 
-# Set directories
-
 #EXTERNAL_LIBRARY_PATH = /usr/local/lib
 EXTERNAL_LIBRARY_PATH = /usr/local/lib64
 
@@ -22,15 +20,12 @@ LIB_DIRECTORY = ../lib
 
 OBJS = $(addprefix $(OBJ_DIRECTORY)/, $(OBJ))
 
-# Set compiler options
-
 FC = gfortran
 
 FFLAGS = \
 -O3 \
-$(LANGUAGE_OPTIONS) \
-$(ERROR_WARNING_OPTIONS) \
-$(ENFORCE_64_BIT_PRECISION)
+$(ENFORCE_64_BIT_PRECISION) \
+$(LANGUAGE_OPTIONS)
 
 ENFORCE_64_BIT_PRECISION = \
 -fdefault-real-8 \
