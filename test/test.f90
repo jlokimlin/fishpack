@@ -57,24 +57,49 @@ program test
     use module_sepx4, only: &
         sepx4_unit_test
 
-    call blktri_unit_test()
-    call cblktri_unit_test()
-    call cmgnbn_unit_test()
-    call genbun_unit_test()
-    call hstcrt_unit_test()
-    call hstcsp_unit_test()
-    call hstcyl_unit_test()
-    call hstplr_unit_test()
-    call hstssp_unit_test() ! test fails
-    call hw3crt_unit_test() ! test fails
-    call hwscrt_unit_test()
-    call hwscsp_unit_test()
-    call hwscyl_unit_test()
-    call hwsplr_unit_test()
-    call hwsssp_unit_test()
-    call pois3d_unit_test() ! test fails
-    call poistg_unit_test()
-    call sepeli_unit_test()
-    call sepx4_unit_test()
+    use type_HelmholtzSolver, only: &
+        HelmholtzSolver
+
+    call test_procedural_library()
+    call test_object_oriented_library()
+
+contains
+
+
+    subroutine test_object_oriented_library()
+        !--------------------------------------------------------------------------------
+        ! Dictionary: local variables
+        !--------------------------------------------------------------------------------
+        type (HelmholtzSolver) :: helmholtz_solver
+        !--------------------------------------------------------------------------------
+
+        call helmholtz_solver%unit_test()
+
+    end subroutine test_object_oriented_library
+
+
+    subroutine test_procedural_library()
+
+        call blktri_unit_test()
+        call cblktri_unit_test()
+        call cmgnbn_unit_test()
+        call genbun_unit_test()
+        call hstcrt_unit_test()
+        call hstcsp_unit_test()
+        call hstcyl_unit_test()
+        call hstplr_unit_test()
+        call hstssp_unit_test() ! test fails
+        call hw3crt_unit_test() ! test fails
+        call hwscrt_unit_test()
+        call hwscsp_unit_test()
+        call hwscyl_unit_test()
+        call hwsplr_unit_test()
+        call hwsssp_unit_test()
+        call pois3d_unit_test() ! test fails
+        call poistg_unit_test()
+        call sepeli_unit_test()
+        call sepx4_unit_test()
+
+    end subroutine test_procedural_library
 
 end program test

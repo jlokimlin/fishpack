@@ -10,7 +10,7 @@ module module_genbun
 
     use module_gnbnaux, only: &
         cosgen, &
-        merge_ascending_strings_in_tcos, &
+        merge_rename, &
         trix, &
         tri3
 
@@ -744,7 +744,7 @@ subroutine POISD2(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
         end do
     else
         call COSGEN (lr, jstsav, 0., fi, TCOS(jst+1))
-        call merge_ascending_strings_in_tcos(tcos, 0, jst, jst, lr, kr)
+        call merge_rename(tcos, 0, jst, jst, lr, kr)
     end if
     call COSGEN (kr, jstsav, 0.0, fi, tcos)
     call TRIX (kr, kr, m, ba, bb, bc, b, tcos, d, w)
@@ -1075,7 +1075,7 @@ subroutine POISN2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
         b(:mr) = P(ipp+1:mr+ipp) + Q(:mr, jp2)
         if (lr /= 0) then
             call COSGEN (lr, 1, 0.5, fden, TCOS(i2r+1))
-            call merge_ascending_strings_in_tcos(tcos, 0, i2r, i2r, lr, kr)
+            call merge_rename(tcos, 0, i2r, i2r, lr, kr)
         else
             do i = 1, i2r
                 ii = kr + i
@@ -1195,15 +1195,15 @@ end select
     call COSGEN (k2 + istag - 2, 1, 0.0, fnum, TCOS(k4))
     k4 = k1 + k2 + 1
     call COSGEN (jr - 1, 1, 0.0, 1.0, TCOS(k4))
-    call merge_ascending_strings_in_tcos(tcos, k1, k2, k1 + k2, jr - 1, 0)
+    call merge_rename(tcos, k1, k2, k1 + k2, jr - 1, 0)
     k3 = k1 + k2 + lr
     call COSGEN (jr, 1, 0.5, 0.0, TCOS(k3+1))
     k4 = k3 + jr + 1
     call COSGEN (kr, 1, 0.5, fden, TCOS(k4))
-    call merge_ascending_strings_in_tcos(tcos, k3, jr, k3 + jr, kr, k1)
+    call merge_rename(tcos, k3, jr, k3 + jr, kr, k1)
     if (lr /= 0) then
         call COSGEN (lr, 1, 0.5, fden, TCOS(k4))
-        call merge_ascending_strings_in_tcos(tcos, k3, jr, k3 + jr, lr, k3 - lr)
+        call merge_rename(tcos, k3, jr, k3 + jr, lr, k3 - lr)
         call COSGEN (kr, 1, 0.5, fden, TCOS(k4))
     end if
     k3 = kr
@@ -1250,7 +1250,7 @@ k4 = k1 + 3 - istag
 call COSGEN (kr + istag - 2, 1, 0.0, fnum, TCOS(k4))
 k4 = k1 + kr + 1
 call COSGEN (jr - 1, 1, 0.0, 1.0, TCOS(k4))
-call merge_ascending_strings_in_tcos(tcos, k1, kr, k1 + kr, jr - 1, 0)
+call merge_rename(tcos, k1, kr, k1 + kr, jr - 1, 0)
 call COSGEN (kr, 1, 0.5, fden, TCOS(k1+1))
 k2 = kr
 k4 = k1 + k2 + 1

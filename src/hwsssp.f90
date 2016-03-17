@@ -1,5 +1,9 @@
 module module_hwsssp
 
+    use, intrinsic :: iso_fortran_env, only: &
+        ip => INT32, &
+        wp => REAL64
+
     use type_FishpackWorkspace, only: &
         FishpackWorkspace
 
@@ -52,26 +56,19 @@ contains
         !     *                                                               *
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
-        !     PROGRAM TO ILLUSTRATE THE USE OF HWSSSP
+        !     PROGRAM TO ILLUSTRATE THE USE OF hwsssp
         !
         !-----------------------------------------------
         !   L o c a l   V a r i a b l e s
         !-----------------------------------------------
         integer :: m, mbdcnd, n, nbdcnd, idimf, mp1, i, np1, j, ierror
         real , dimension(19, 73) :: f
-        real , dimension(73) :: bdtf
+        real , dimension(73) :: bdtf, bdts, bdps, bdpf
         real , dimension(19) :: sint
         real , dimension(73) :: sinp
-        real :: pi, ts, tf, ps, pf, elmbda, dtheta, dphi, bdts(1), bdps(1), bdpf(1) &
-            , pertrb, err, z
-
-        !        integer :: m, mbdcnd, n, nbdcnd, idimf, mp1, i, np1, j, ierror
-        !        real , dimension(19, 73) :: f
-        !        real , dimension(73) :: bdtf, bdts, bdps, bdpf
-        !        real , dimension(19) :: sint
-        !        real , dimension(73) :: sinp
-        !        real :: pi, ts, tf, ps, pf, elmbda, dtheta, dphi, pertrb, err, z
+        real :: pi, ts, tf, ps, pf, elmbda, dtheta, dphi, pertrb, err, z
         !-----------------------------------------------
+
         pi = acos( -1.0 )
         ts = 0
         tf = pi/2.
@@ -107,7 +104,7 @@ contains
         !
         bdtf(:np1) = 0.
         !
-        call HWSSSP(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
+        call hwsssp(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
             bdps, bdpf, elmbda, f, idimf, pertrb, ierror)
         !
         !     COMPUTE DISCRETIZATION ERROR. SINCE PROBLEM IS SINGULAR, THE
@@ -123,17 +120,16 @@ contains
 
         write( *, *) ''
         write( *, *) '    HWSSSP TEST RUN *** '
-        write( *, *) &
-            '    Previous 64 bit floating point arithmetic result '
+        write( *, *) '    Previous 64 bit floating point arithmetic result '
         write( *, *) '    IERROR = 0,  Discretization Error = 3.38107E-3'
-
+        write( *, *) ''
         write( *, *) '    The output from your computer is: '
         write( *, *) '    IERROR =', ierror, ' Discretization Error = ', &
             err
 
     end subroutine hwsssp_unit_test
 
-    subroutine HWSSSP(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
+    subroutine hwsssp(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
         bdps, bdpf, elmbda, f, idimf, pertrb, ierror)
         !
         !     file hwsssp.f
@@ -170,7 +166,7 @@ contains
         !     *                                                               *
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
-        !     SUBROUTINE HWSSSP (TS, TF, M, MBDCND, BDTS, BDTF, PS, PF, N, NBDCND, BDPS,
+        !     SUBROUTINE hwsssp (TS, TF, M, MBDCND, BDTS, BDTF, PS, PF, N, NBDCND, BDPS,
         !    +                   BDPF, ELMBDA, F, IDIMF, PERTRB, IERROR)
         !
         ! DIMENSION OF           BDTS(N+1),    BDTF(N+1), BDPS(M+1), BDPF(M+1),
@@ -190,7 +186,7 @@ contains
         !                        WHERE THETA IS COLATITUDE AND PHI IS
         !                        LONGITUDE.
         !
-        ! USAGE                  CALL HWSSSP (TS, TF, M, MBDCND, BDTS, BDTF, PS, PF,
+        ! USAGE                  CALL hwsssp (TS, TF, M, MBDCND, BDTS, BDTF, PS, PF,
         !                                     N, NBDCND, BDPS, BDPF, ELMBDA, F,
         !                                     IDIMF, PERTRB, IERROR, W)
         !
@@ -378,7 +374,7 @@ contains
         !                        ELMBDA
         !                          THE CONSTANT LAMBDA IN THE HELMHOLTZ
         !                          EQUATION.  IF LAMBDA .GT. 0, A SOLUTION
-        !                          MAY NOT EXIST.  HOWEVER, HWSSSP WILL
+        !                          MAY NOT EXIST.  HOWEVER, hwsssp WILL
         !                          ATTEMPT TO FIND A SOLUTION.
         !
         !                        F
@@ -424,7 +420,7 @@ contains
         !                        IDIMF
         !                          THE ROW (OR FIRST) DIMENSION OF THE ARRAY
         !                          F AS IT APPEARS IN THE PROGRAM CALLING
-        !                          HWSSSP.  THIS PARAMETER IS USED TO SPECIFY
+        !                          hwsssp.  THIS PARAMETER IS USED TO SPECIFY
         !                          THE VARIABLE DIMENSION OF F. IDIMF MUST BE
         !                          AT LEAST M+1  .
         !
@@ -442,7 +438,7 @@ contains
         !                          (LAMBDA = 0), A SOLUTION MAY NOT EXIST.
         !                          PERTRB IS A CONSTANT, CALCULATED AND
         !                          SUBTRACTED FROM F, WHICH ENSURES THAT A
-        !                          SOLUTION EXISTS.  HWSSSP THEN COMPUTES
+        !                          SOLUTION EXISTS.  hwsssp THEN COMPUTES
         !                          THIS SOLUTION, WHICH IS A LEAST SQUARES
         !                          SOLUTION TO THE ORIGINAL APPROXIMATION.
         !                          THIS SOLUTION IS NOT UNIQUE AND IS
@@ -527,7 +523,7 @@ contains
         !                        ELLIPTIC EQUATIONS", NCAR TN/IA-109, JULY, 
         !                        1975, 138 PP.
         !***********************************************************************
-        type (FishpackWorkspace) :: workspace
+        !
         !-----------------------------------------------
         !   D u m m y   A r g u m e n t s
         !-----------------------------------------------
@@ -551,8 +547,9 @@ contains
         !-----------------------------------------------
         !   L o c a l   V a r i a b l e s
         !-----------------------------------------------
-        integer :: nbr, irwk, icwk
-        real :: pi, dum, tpi
+        type (FishpackWorkspace) :: workspace
+        integer                  :: nbr
+        real                     :: pi, dum, tpi
         !-----------------------------------------------
         !
         nbr = nbdcnd + 1
@@ -576,22 +573,26 @@ contains
         if (mbdcnd>=7 .and. tf/=pi) ierror = 15
         if (ierror/=0 .and. ierror/=9) return
 
-        !     allocate generous work space estimate
-        irwk=4*(n+1)+(16+INT(log(real(n+1))/log(2.0)))*(m+1)
-        icwk = 0
+        ! allocate generous work space estimate
+        associate( &
+            irwk => 4 * (n + 1) + (16 + int(log(real(n+1,kind=wp))/log(2.0_wp), kind=ip)) * (m + 1), &
+            icwk => 0 &
+            )
+            call workspace%create( irwk, icwk, ierror )
+        end associate
 
-        call workspace%create( irwk, icwk, ierror )
-        !     check that allocation was successful
+        ! check that allocation was successful
         if (ierror == 20) return
 
         call hwssspp(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, bdps, &
             bdpf, elmbda, f, idimf, pertrb, ierror, workspace%rew)
-        !     release dynamically allocated work space
+
+        ! release dynamically allocated work space
         call workspace%destroy()
 
-    end subroutine HWSSSP
+    end subroutine hwsssp
 
-    subroutine HWSSSPP(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, &
+    subroutine hwssspp(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, &
         nbdcnd, bdps, bdpf, elmbda, f, idimf, pertrb, ierror, w)
         !-----------------------------------------------
         !   D u m m y   A r g u m e n t s
@@ -615,386 +616,387 @@ contains
         real  :: f(idimf, *)
         real  :: w(*)
         !-----------------------------------------------
-        call HWSSS1 (ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
-            bdps, bdpf, elmbda, f, idimf, pertrb, w, W(m+2), W(2*m+3), W(3* &
-            m+4), W(4*m+5), W(5*m+6), W(6*m+7))
 
-    end subroutine HWSSSPP
+        call hwsss1(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
+            bdps, bdpf, elmbda, f, idimf, pertrb, w, w(m+2), w(2*m+3), &
+            w(3*m+4), w(4*m+5), w(5*m+6), w(6*m+7))
 
+    end subroutine hwssspp
 
-
-    subroutine HWSSS1(TS, TF, M, MBDCND, BDTS, BDTF, PS, PF, N, NBDCND, &
-        BDPS, BDPF, ELMBDA, F, IDIMF, PERTRB, AM, BM, CM, SN, SS, &
-        SINT, D)
+    subroutine hwsss1(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
+        bdps, bdpf, elmbda, f, idimf, pertrb, am, bm, cm, sn, ss, &
+        sint, d)
         !-----------------------------------------------
         !   D u m m y   A r g u m e n t s
         !-----------------------------------------------
-        integer , intent (in) :: M
-        integer , intent (in) :: MBDCND
-        integer , intent (in) :: N
-        integer  :: NBDCND
-        integer  :: IDIMF
-        real , intent (in) :: TS
-        real , intent (in) :: TF
-        real , intent (in) :: PS
-        real , intent (in) :: PF
-        real , intent (in) :: ELMBDA
-        real , intent (out) :: PERTRB
-        real , intent (in) :: BDTS(*)
-        real , intent (in) :: BDTF(*)
-        real , intent (in) :: BDPS(*)
-        real , intent (in) :: BDPF(*)
-        real  :: F(IDIMF,*)
-        real  :: AM(*)
-        real  :: BM(*)
-        real  :: CM(*)
-        real , intent (inout) :: SN(*)
-        real , intent (inout) :: SS(*)
-        real , intent (inout) :: SINT(*)
-        real  :: D(*)
+        integer , intent (in) :: m
+        integer , intent (in) :: mbdcnd
+        integer , intent (in) :: n
+        integer  :: nbdcnd
+        integer  :: idimf
+        real , intent (in) :: ts
+        real , intent (in) :: tf
+        real , intent (in) :: ps
+        real , intent (in) :: pf
+        real , intent (in) :: elmbda
+        real , intent (out) :: pertrb
+        real , intent (in) :: bdts(*)
+        real , intent (in) :: bdtf(*)
+        real , intent (in) :: bdps(*)
+        real , intent (in) :: bdpf(*)
+        real  :: f(idimf,*)
+        real  :: am(*)
+        real  :: bm(*)
+        real  :: cm(*)
+        real , intent (inout) :: sn(*)
+        real , intent (inout) :: ss(*)
+        real , intent (inout) :: sint(*)
+        real  :: d(*)
         !-----------------------------------------------
         !   L o c a l   V a r i a b l e s
         !-----------------------------------------------
-        integer :: MP1, NP1, I, INP, ISP, MBR, ITS, ITF, ITSP, ITFM, MUNK &
-            , IID, II, NBR, JPS, JPF, JPSP, JPFM, NUNK, ISING, J, IERROR
-        real :: PI, DUM, TPI, HPI, FN, FM, DTH, HDTH, TDT, DPHI, TDP, &
-            DPHI2, EDP2, DTH2, CP, WP, FIM1, THETA, T1, AT, CT, WTS, WTF, &
-            WPS, WPF, FJJ, CF, SUM, SUM1, HNE, YHLD, SUM2, DFN, DNN, DSN, &
-            CNP, HLD, DFS, DSS, DNS, CSP, RTN, RTS, DEN
+        integer :: mp1, np1, i, inp, isp, mbr, its, itf, itsp, itfm, munk &
+            , iid, ii, nbr, jps, jpf, jpsp, jpfm, nunk, ising, j, ierror
+        real :: pi, dum, tpi, hpi, fn, fm, dth, hdth, tdt, dphi, tdp, &
+            dphi2, edp2, dth2, cp, wp_rename, fim1, theta, t1, at, ct, wts, wtf, &
+            wps, wpf, fjj, cf, summation, sum1, hne, yhld, sum2, dfn, dnn, dsn, &
+            cnp, hld, dfs, dss, dns, csp, rtn, rts, den
         !-----------------------------------------------
         !
-        PI = 4.0*ATAN(1.0)
-        TPI = PI + PI
-        HPI = PI/2.
-        MP1 = M + 1
-        NP1 = N + 1
-        FN = N
-        FM = M
-        DTH = (TF - TS)/FM
-        HDTH = DTH/2.
-        TDT = DTH + DTH
-        DPHI = (PF - PS)/FN
-        TDP = DPHI + DPHI
-        DPHI2 = DPHI*DPHI
-        EDP2 = ELMBDA*DPHI2
-        DTH2 = DTH*DTH
-        CP = 4./(FN*DTH2)
-        WP = FN*SIN(HDTH)/4.
-        do I = 1, MP1
-            FIM1 = I - 1
-            THETA = FIM1*DTH + TS
-            SINT(I) = SIN(THETA)
-            if (SINT(I) == 0.) cycle
-            T1 = 1./(DTH2*SINT(I))
-            AM(I) = T1*SIN(THETA - HDTH)
-            CM(I) = T1*SIN(THETA + HDTH)
-            BM(I) = (-AM(I)) - CM(I) + ELMBDA
+        pi = acos( -1.0 )
+        tpi = pi + pi
+        hpi = pi/2.
+        mp1 = m + 1
+        np1 = n + 1
+        fn = n
+        fm = m
+        dth = (tf - ts)/fm
+        hdth = dth/2.
+        tdt = dth + dth
+        dphi = (pf - ps)/fn
+        tdp = dphi + dphi
+        dphi2 = dphi*dphi
+        edp2 = elmbda*dphi2
+        dth2 = dth*dth
+        cp = 4./(fn*dth2)
+        wp_rename = fn*SIN(hdth)/4.
+        do i = 1, mp1
+            fim1 = i - 1
+            theta = fim1*dth + ts
+            sint(i) = SIN(theta)
+            if (SINT(i) == 0.) cycle
+            t1 = 1./(dth2*SINT(i))
+            am(i) = t1*SIN(theta - hdth)
+            cm(i) = t1*SIN(theta + hdth)
+            bm(i) = (-AM(i)) - CM(i) + elmbda
         end do
-        INP = 0
-        ISP = 0
+        inp = 0
+        isp = 0
         !
         ! BOUNDARY CONDITION AT THETA=TS
         !
-        MBR = MBDCND + 1
-        go to (103,104,104,105,105,106,106,104,105,106) MBR
+        mbr = mbdcnd + 1
+        go to (103,104,104,105,105,106,106,104,105,106) mbr
 103 continue
-    ITS = 1
+    its = 1
     go to 107
 104 continue
-    AT = AM(2)
-    ITS = 2
+    at = AM(2)
+    its = 2
     go to 107
 105 continue
-    AT = AM(1)
-    ITS = 1
-    CM(1) = AM(1) + CM(1)
+    at = AM(1)
+    its = 1
+    cm(1) = AM(1) + CM(1)
     go to 107
 106 continue
-    AT = AM(2)
-    INP = 1
-    ITS = 2
+    at = AM(2)
+    inp = 1
+    its = 2
 !
 ! BOUNDARY CONDITION THETA=TF
 !
 107 continue
-    go to (108,109,110,110,109,109,110,111,111,111) MBR
+    go to (108,109,110,110,109,109,110,111,111,111) mbr
 108 continue
-    ITF = M
+    itf = m
     go to 112
 109 continue
-    CT = CM(M)
-    ITF = M
+    ct = CM(m)
+    itf = m
     go to 112
 110 continue
-    CT = CM(M+1)
-    AM(M+1) = AM(M+1) + CM(M+1)
-    ITF = M + 1
+    ct = CM(m+1)
+    am(m+1) = AM(m+1) + CM(m+1)
+    itf = m + 1
     go to 112
 111 continue
-    ITF = M
-    ISP = 1
-    CT = CM(M)
+    itf = m
+    isp = 1
+    ct = CM(m)
 !
 ! COMPUTE HOMOGENEOUS SOLUTION WITH SOLUTION AT POLE EQUAL TO ONE
 !
 112 continue
-    ITSP = ITS + 1
-    ITFM = ITF - 1
-    WTS = SINT(ITS+1)*AM(ITS+1)/CM(ITS)
-    WTF = SINT(ITF-1)*CM(ITF-1)/AM(ITF)
-    MUNK = ITF - ITS + 1
-    if (ISP > 0) then
-        D(ITS) = CM(ITS)/BM(ITS)
-        do I = ITSP, M
-            D(I) = CM(I)/(BM(I)-AM(I)*D(I-1))
+    itsp = its + 1
+    itfm = itf - 1
+    wts = SINT(its+1)*AM(its+1)/CM(its)
+    wtf = SINT(itf-1)*CM(itf-1)/AM(itf)
+    munk = itf - its + 1
+    if (isp > 0) then
+        d(its) = CM(its)/BM(its)
+        do i = itsp, m
+            d(i) = CM(i)/(BM(i)-AM(i)*D(i-1))
         end do
-        SS(M) = -D(M)
-        IID = M - ITS
-        do II = 1, IID
-            I = M - II
-            SS(I) = -D(I)*SS(I+1)
+        ss(m) = -D(m)
+        iid = m - its
+        do ii = 1, iid
+            i = m - ii
+            ss(i) = -D(i)*SS(i+1)
         end do
-        SS(M+1) = 1.
-    endif
-    if (INP > 0) then
-        SN(1) = 1.
-        D(ITF) = AM(ITF)/BM(ITF)
-        IID = ITF - 2
-        do II = 1, IID
-            I = ITF - II
-            D(I) = AM(I)/(BM(I)-CM(I)*D(I+1))
+        ss(m+1) = 1.
+    end if
+    if (inp > 0) then
+        sn(1) = 1.
+        d(itf) = AM(itf)/BM(itf)
+        iid = itf - 2
+        do ii = 1, iid
+            i = itf - ii
+            d(i) = AM(i)/(BM(i)-CM(i)*D(i+1))
         end do
-        SN(2) = -D(2)
-        do I = 3, ITF
-            SN(I) = -D(I)*SN(I-1)
+        sn(2) = -D(2)
+        do i = 3, itf
+            sn(i) = -D(i)*SN(i-1)
         end do
-    endif
+    end if
     !
     ! BOUNDARY CONDITIONS AT PHI=PS
     !
-    NBR = NBDCND + 1
-    WPS = 1.
-    WPF = 1.
-    select case (NBR)
+    nbr = nbdcnd + 1
+    wps = 1.
+    wpf = 1.
+    select case (nbr)
         case default
-            JPS = 1
+            jps = 1
         case (2:3)
-            JPS = 2
+            jps = 2
         case (4:5)
-            JPS = 1
-            WPS = 0.5
+            jps = 1
+            wps = 0.5
     end select
 !
 ! BOUNDARY CONDITION AT PHI=PF
 !
 124 continue
-    go to (125,126,127,127,126) NBR
+    go to (125,126,127,127,126) nbr
 125 continue
-    JPF = N
+    jpf = n
     go to 128
 126 continue
-    JPF = N
+    jpf = n
     go to 128
 127 continue
-    WPF = 0.5
-    JPF = N + 1
+    wpf = 0.5
+    jpf = n + 1
 128 continue
-    JPSP = JPS + 1
-    JPFM = JPF - 1
-    NUNK = JPF - JPS + 1
-    FJJ = JPFM - JPSP + 1
+    jpsp = jps + 1
+    jpfm = jpf - 1
+    nunk = jpf - jps + 1
+    fjj = jpfm - jpsp + 1
     !
     ! SCALE COEFFICIENTS FOR SUBROUTINE GENBUN
     !
-    do I = ITS, ITF
-        CF = DPHI2*SINT(I)*SINT(I)
-        AM(I) = CF*AM(I)
-        BM(I) = CF*BM(I)
-        CM(I) = CF*CM(I)
+    do i = its, itf
+        cf = dphi2*SINT(i)*SINT(i)
+        am(i) = cf*AM(i)
+        bm(i) = cf*BM(i)
+        cm(i) = cf*CM(i)
     end do
-    AM(ITS) = 0.
-    CM(ITF) = 0.
-    ISING = 0
-    go to (130,138,138,130,138,138,130,138,130,130) MBR
+    am(its) = 0.
+    cm(itf) = 0.
+    ising = 0
+    go to (130,138,138,130,138,138,130,138,130,130) mbr
 130 continue
-    go to (131,138,138,131,138) NBR
+    go to (131,138,138,131,138) nbr
 131 continue
-    if (ELMBDA >= 0.) then
-        ISING = 1
-        SUM = WTS*WPS + WTS*WPF + WTF*WPS + WTF*WPF
-        if (INP > 0) then
-            SUM = SUM + WP
-        endif
-        if (ISP > 0) then
-            SUM = SUM + WP
-        endif
-        SUM1 = 0.
-        do I = ITSP, ITFM
-            SUM1 = SUM1 + SINT(I)
+    if (elmbda >= 0.) then
+        ising = 1
+        summation = wts*wps + wts*wpf + wtf*wps + wtf*wpf
+        if (inp > 0) then
+            summation = summation + wp_rename
+        end if
+        if (isp > 0) then
+            summation = summation + wp_rename
+        end if
+        sum1 = 0.
+        do i = itsp, itfm
+            sum1 = sum1 + SINT(i)
         end do
-        SUM = SUM + FJJ*(SUM1 + WTS + WTF)
-        SUM = SUM + (WPS + WPF)*SUM1
-        HNE = SUM
-    endif
+        summation = summation + fjj*(sum1 + wts + wtf)
+        summation = summation + (wps + wpf)*sum1
+        hne = summation
+    end if
 138 continue
-    go to (146,142,142,144,144,139,139,142,144,139) MBR
+    go to (146,142,142,144,144,139,139,142,144,139) mbr
 139 continue
-    if (NBDCND - 3 /= 0) go to 146
-    YHLD = F(1,JPS) - 4./(FN*DPHI*DTH2)*(BDPF(2)-BDPS(2))
-    F(1,:NP1) = YHLD
+    if (nbdcnd - 3 /= 0) go to 146
+    yhld = F(1,jps) - 4./(fn*dphi*dth2)*(BDPF(2)-BDPS(2))
+    f(1,:np1) = yhld
     go to 146
 142 continue
-    F(2,JPS:JPF) = F(2,JPS:JPF) - AT*F(1,JPS:JPF)
+    f(2,jps:jpf) = F(2,jps:jpf) - at*F(1,jps:jpf)
     go to 146
 144 continue
-    F(1,JPS:JPF) = F(1,JPS:JPF) + TDT*BDTS(JPS:JPF)*AT
+    f(1,jps:jpf) = F(1,jps:jpf) + tdt*BDTS(jps:jpf)*at
 146 continue
-    go to (154,150,152,152,150,150,152,147,147,147) MBR
+    go to (154,150,152,152,150,150,152,147,147,147) mbr
 147 continue
-    if (NBDCND - 3 /= 0) go to 154
-    YHLD = F(M+1,JPS) - 4./(FN*DPHI*DTH2)*(BDPF(M)-BDPS(M))
-    F(M+1,:NP1) = YHLD
+    if (nbdcnd - 3 /= 0) go to 154
+    yhld = F(m+1,jps) - 4./(fn*dphi*dth2)*(BDPF(m)-BDPS(m))
+    f(m+1,:np1) = yhld
     go to 154
 150 continue
-    F(M,JPS:JPF) = F(M,JPS:JPF) - CT*F(M+1,JPS:JPF)
+    f(m,jps:jpf) = F(m,jps:jpf) - ct*F(m+1,jps:jpf)
     go to 154
 152 continue
-    F(M+1,JPS:JPF) = F(M+1,JPS:JPF) - TDT*BDTF(JPS:JPF)*CT
+    f(m+1,jps:jpf) = F(m+1,jps:jpf) - tdt*BDTF(jps:jpf)*ct
 154 continue
-    go to (159,155,155,157,157) NBR
+    go to (159,155,155,157,157) nbr
 155 continue
-    F(ITS:ITF,2) = F(ITS:ITF,2) - F(ITS:ITF,1)/(DPHI2*SINT(ITS:ITF)* &
-        SINT(ITS:ITF))
+    f(its:itf,2) = F(its:itf,2) - F(its:itf,1)/(dphi2*SINT(its:itf)* &
+        SINT(its:itf))
     go to 159
 157 continue
-    F(ITS:ITF,1) = F(ITS:ITF,1) + TDP*BDPS(ITS:ITF)/(DPHI2*SINT(ITS: &
-        ITF)*SINT(ITS:ITF))
+    f(its:itf,1) = F(its:itf,1) + tdp*BDPS(its:itf)/(dphi2*SINT(its: &
+        itf)*SINT(its:itf))
 159 continue
-    go to (164,160,162,162,160) NBR
+    go to (164,160,162,162,160) nbr
 160 continue
-    F(ITS:ITF,N) = F(ITS:ITF,N) - F(ITS:ITF,N+1)/(DPHI2*SINT(ITS:ITF)* &
-        SINT(ITS:ITF))
+    f(its:itf,n) = F(its:itf,n) - F(its:itf,n+1)/(dphi2*SINT(its:itf)* &
+        SINT(its:itf))
     go to 164
 162 continue
-    F(ITS:ITF,N+1) = F(ITS:ITF,N+1) - TDP*BDPF(ITS:ITF)/(DPHI2*SINT( &
-        ITS:ITF)*SINT(ITS:ITF))
+    f(its:itf,n+1) = F(its:itf,n+1) - tdp*BDPF(its:itf)/(dphi2*SINT( &
+        its:itf)*SINT(its:itf))
 164 continue
-    PERTRB = 0.
-    if (ISING /= 0) then
-        SUM = WTS*WPS*F(ITS,JPS) + WTS*WPF*F(ITS,JPF) + WTF*WPS*F(ITF, &
-            JPS) + WTF*WPF*F(ITF,JPF)
-        if (INP > 0) then
-            SUM = SUM + WP*F(1,JPS)
-        endif
-        if (ISP > 0) then
-            SUM = SUM + WP*F(M+1,JPS)
-        endif
-        do I = ITSP, ITFM
-            SUM1 = 0.
-            do J = JPSP, JPFM
-                SUM1 = SUM1 + F(I,J)
+    pertrb = 0.
+    if (ising /= 0) then
+        summation = wts*wps*F(its,jps) + wts*wpf*F(its,jpf) + wtf*wps*F(itf, &
+            jps) + wtf*wpf*F(itf,jpf)
+        if (inp > 0) then
+            summation = summation + wp_rename*F(1,jps)
+        end if
+        if (isp > 0) then
+            summation = summation + wp_rename*F(m+1,jps)
+        end if
+        do i = itsp, itfm
+            sum1 = 0.
+            do j = jpsp, jpfm
+                sum1 = sum1 + F(i,j)
             end do
-            SUM = SUM + SINT(I)*SUM1
+            summation = summation + SINT(i)*sum1
         end do
-        SUM1 = 0.
-        SUM2 = 0.
-        do J = JPSP, JPFM
-            SUM1 = SUM1 + F(ITS,J)
-            SUM2 = SUM2 + F(ITF,J)
+        sum1 = 0.
+        sum2 = 0.
+        do j = jpsp, jpfm
+            sum1 = sum1 + F(its,j)
+            sum2 = sum2 + F(itf,j)
         end do
-        SUM = SUM + WTS*SUM1 + WTF*SUM2
-        SUM1 = 0.
-        SUM2 = 0.
-        SUM1 = DOT_PRODUCT(SINT(ITSP:ITFM),F(ITSP:ITFM,JPS))
-        SUM2 = DOT_PRODUCT(SINT(ITSP:ITFM),F(ITSP:ITFM,JPF))
-        SUM = SUM + WPS*SUM1 + WPF*SUM2
-        PERTRB = SUM/HNE
-        F(:MP1,:NP1) = F(:MP1,:NP1) - PERTRB
-    endif
+        summation = summation + wts*sum1 + wtf*sum2
+        sum1 = 0.
+        sum2 = 0.
+        sum1 = DOT_PRODUCT(SINT(itsp:itfm),F(itsp:itfm,jps))
+        sum2 = DOT_PRODUCT(SINT(itsp:itfm),F(itsp:itfm,jpf))
+        summation = summation + wps*sum1 + wpf*sum2
+        pertrb = summation/hne
+        f(:mp1,:np1) = F(:mp1,:np1) - pertrb
+    end if
     !
     ! SCALE RIGHT SIDE FOR SUBROUTINE GENBUN
     !
-    do I = ITS, ITF
-        CF = DPHI2*SINT(I)*SINT(I)
-        F(I,JPS:JPF) = CF*F(I,JPS:JPF)
+    do i = its, itf
+        cf = dphi2*SINT(i)*SINT(i)
+        f(i,jps:jpf) = cf*F(i,jps:jpf)
     end do
-    call GENBUNN (NBDCND, NUNK, 1, MUNK, AM(ITS), BM(ITS), CM(ITS), &
-        IDIMF, F(ITS,JPS), IERROR, D)
-    if (ISING <= 0) go to 186
-    if (INP > 0) then
-        if (ISP > 0) go to 186
-        F(1,:NP1) = 0.
+
+    call genbunn(nbdcnd, nunk, 1, munk, AM(its), BM(its), CM(its), &
+        idimf, F(its,jps), ierror, d)
+
+    if (ising <= 0) go to 186
+    if (inp > 0) then
+        if (isp > 0) go to 186
+        f(1,:np1) = 0.
         go to 209
-    endif
-    if (ISP <= 0) go to 186
-    F(M+1,:NP1) = 0.
+    end if
+    if (isp <= 0) go to 186
+    f(m+1,:np1) = 0.
     go to 209
 186 continue
-    if (INP > 0) then
-        SUM = WPS*F(ITS,JPS) + WPF*F(ITS,JPF)
-        do J = JPSP, JPFM
-            SUM = SUM + F(ITS,J)
+    if (inp > 0) then
+        summation = wps*F(its,jps) + wpf*F(its,jpf)
+        do j = jpsp, jpfm
+            summation = summation + F(its,j)
         end do
-        DFN = CP*SUM
-        DNN = CP*((WPS + WPF + FJJ)*(SN(2)-1.)) + ELMBDA
-        DSN = CP*(WPS + WPF + FJJ)*SN(M)
-        if (ISP > 0) go to 194
-        CNP = (F(1,1)-DFN)/DNN
-        do I = ITS, ITF
-            HLD = CNP*SN(I)
-            F(I,JPS:JPF) = F(I,JPS:JPF) + HLD
+        dfn = cp*summation
+        dnn = cp*((wps + wpf + fjj)*(SN(2)-1.)) + elmbda
+        dsn = cp*(wps + wpf + fjj)*SN(m)
+        if (isp > 0) go to 194
+        cnp = (F(1,1)-dfn)/dnn
+        do i = its, itf
+            hld = cnp*SN(i)
+            f(i,jps:jpf) = F(i,jps:jpf) + hld
         end do
-        F(1,:NP1) = CNP
+        f(1,:np1) = cnp
         go to 209
-    endif
-    if (ISP <= 0) go to 209
+    end if
+    if (isp <= 0) go to 209
 194 continue
-    SUM = WPS*F(ITF,JPS) + WPF*F(ITF,JPF)
-    do J = JPSP, JPFM
-        SUM = SUM + F(ITF,J)
+    summation = wps*F(itf,jps) + wpf*F(itf,jpf)
+    do j = jpsp, jpfm
+        summation = summation + F(itf,j)
     end do
-    DFS = CP*SUM
-    DSS = CP*((WPS + WPF + FJJ)*(SS(M)-1.)) + ELMBDA
-    DNS = CP*(WPS + WPF + FJJ)*SS(2)
-    if (INP <= 0) then
-        CSP = (F(M+1,1)-DFS)/DSS
-        do I = ITS, ITF
-            HLD = CSP*SS(I)
-            F(I,JPS:JPF) = F(I,JPS:JPF) + HLD
+    dfs = cp*summation
+    dss = cp*((wps + wpf + fjj)*(SS(m)-1.)) + elmbda
+    dns = cp*(wps + wpf + fjj)*SS(2)
+    if (inp <= 0) then
+        csp = (F(m+1,1)-dfs)/dss
+        do i = its, itf
+            hld = csp*SS(i)
+            f(i,jps:jpf) = F(i,jps:jpf) + hld
         end do
-        F(M+1,:NP1) = CSP
+        f(m+1,:np1) = csp
     else
-        RTN = F(1,1) - DFN
-        RTS = F(M+1,1) - DFS
-        if (ISING > 0) then
-            CSP = 0.
-            CNP = RTN/DNN
+        rtn = F(1,1) - dfn
+        rts = F(m+1,1) - dfs
+        if (ising > 0) then
+            csp = 0.
+            cnp = rtn/dnn
         else
-            if (ABS(DNN) - ABS(DSN) > 0.) then
-                DEN = DSS - DNS*DSN/DNN
-                RTS = RTS - RTN*DSN/DNN
-                CSP = RTS/DEN
-                CNP = (RTN - CSP*DNS)/DNN
+            if (ABS(dnn) - ABS(dsn) > 0.) then
+                den = dss - dns*dsn/dnn
+                rts = rts - rtn*dsn/dnn
+                csp = rts/den
+                cnp = (rtn - csp*dns)/dnn
             else
-                DEN = DNS - DSS*DNN/DSN
-                RTN = RTN - RTS*DNN/DSN
-                CSP = RTN/DEN
-                CNP = (RTS - DSS*CSP)/DSN
-            endif
-        endif
-        do I = ITS, ITF
-            HLD = CNP*SN(I) + CSP*SS(I)
-            F(I,JPS:JPF) = F(I,JPS:JPF) + HLD
+                den = dns - dss*dnn/dsn
+                rtn = rtn - rts*dnn/dsn
+                csp = rtn/den
+                cnp = (rts - dss*csp)/dsn
+            end if
+        end if
+        do i = its, itf
+            hld = cnp*SN(i) + csp*SS(i)
+            f(i,jps:jpf) = F(i,jps:jpf) + hld
         end do
-        F(1,:NP1) = CNP
-        F(M+1,:NP1) = CSP
-    endif
+        f(1,:np1) = cnp
+        f(m+1,:np1) = csp
+    end if
 209 continue
-    if (NBDCND == 0) then
-        F(:MP1,JPF+1) = F(:MP1,JPS)
-    endif
+    if (nbdcnd == 0) then
+        f(:mp1,jpf+1) = F(:mp1,jps)
+    end if
 
-end subroutine HWSSS1
+end subroutine hwsss1
 
 end module module_hwsssp
 !

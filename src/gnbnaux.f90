@@ -75,7 +75,7 @@ module module_gnbnaux
     ! Everything is private unless stated otherwise
     private
     public :: cosgen
-    public :: merge_ascending_strings_in_tcos
+    public :: merge_rename
     public :: trix
     public :: tri3
 
@@ -83,7 +83,7 @@ contains
     !
     !*****************************************************************************************
     !
-    subroutine COSGEN(n, ijump, fnum, fden, a)
+    subroutine cosgen(n, ijump, fnum, fden, a)
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
@@ -95,9 +95,9 @@ contains
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer (ip) :: k3, k4, k, k1, k5, i, k2, np1
-        real (wp)    :: PI = acos( -1.0_wp)
-        real (wp)    :: dum, pibyn, x, y
+        integer (ip)         :: k3, k4, k, k1, k5, i, k2, np1
+        real (wp), parameter :: PI = acos( -1.0_wp)
+        real (wp)            :: dum, pibyn, x, y
         !-----------------------------------------------
         !
         !
@@ -147,11 +147,11 @@ contains
             end if
         end if
 
-    end subroutine COSGEN
+    end subroutine cosgen
     !
     !*****************************************************************************************
     !
-    subroutine TRIX(idegbr, idegcr, m, a, b, c, y, tcos, d, w)
+    subroutine trix(idegbr, idegcr, m, a, b, c, y, tcos, d, w)
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
@@ -173,7 +173,7 @@ contains
         !-----------------------------------------------
         !
         !     SUBROUTINE TO SOLVE A SYSTEM OF LINEAR EQUATIONS WHERE THE
-        !     COEFFICIENT MATRIX IS A RATIONAL FUNCTION IN THE MATRIX GIVEN BY
+        !     COEFFICIENT MAtrix IS A RATIONAL FUNCTION IN THE MAtrix GIVEN BY
         !     TRIDIAGONAL  ( . . . , A(I), B(I), C(I), . . . ).
         !
         mm1 = m - 1
@@ -212,11 +212,19 @@ contains
             l = (lint*ifb)/ifc
         end do
 
-    end subroutine TRIX
+    end subroutine trix
     !
     !*****************************************************************************************
     !
-    subroutine TRI3(m, a, b, c, k, y1, y2, y3, tcos, d, w1, w2, w3)
+    subroutine tri3(m, a, b, c, k, y1, y2, y3, tcos, d, w1, w2, w3)
+        !
+        ! Purpose:
+        !
+        ! subroutine to solve three linear systems whose common coefficient
+        ! matrix is a rational function in the matrix given by
+        !
+        !  tridiagonal (..., a(i), b(i), c(i), ...)
+        !
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
@@ -241,11 +249,7 @@ contains
         real (wp)    :: x, z, xx
         !-----------------------------------------------
         !
-        !     SUBROUTINE TO SOLVE THREE LINEAR SYSTEMS WHOSE COMMON COEFFICIENT
-        !     MATRIX IS A RATIONAL FUNCTION IN THE MATRIX GIVEN BY
-        !
-        !                  TRIDIAGONAL (..., A(I), B(I), C(I), ...)
-        !
+
         mm1 = m - 1
         k1 = K(1)
         k2 = K(2)
@@ -320,11 +324,11 @@ contains
             l3 = (lint3*if1)/if4
         end do
 
-    end subroutine TRI3
+    end subroutine tri3
     !
     !*****************************************************************************************
     !
-    subroutine merge_ascending_strings_in_tcos(tcos, i1, m1, i2, m2, i3)
+    subroutine merge_rename(tcos, i1, m1, i2, m2, i3)
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
@@ -354,7 +358,7 @@ contains
         if (m2 == 0) go to 104
 101 continue
     j11 = j1
-    j3 = MAX(m1, j11)
+    j3 = max(m1, j11)
     do j1 = j11, j3
         j = j + 1
         l = j1 + i1
@@ -389,7 +393,7 @@ contains
     end do
 109 continue
 
-end subroutine merge_ascending_strings_in_tcos
+end subroutine merge_rename
     !
     !*****************************************************************************************
     !

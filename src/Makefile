@@ -171,6 +171,51 @@ sepx4.f90
 	$(FC) $(FFLAGS) -c sepx4.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
+type_RectangularDomain.o: \
+type_RectangularDomain.f90
+	$(FC) $(FFLAGS) -c type_RectangularDomain.f90 $(LINKS)\
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
+type_Grid.o: \
+type_RectangularDomain.o \
+type_Grid.f90
+	$(FC) $(FFLAGS) -c type_Grid.f90 $(LINKS)\
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
+type_CenteredGrid.o: \
+type_Grid.o \
+type_CenteredGrid.f90
+	$(FC) $(FFLAGS) -c type_CenteredGrid.f90 $(LINKS)\
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
+type_StaggeredGrid.o: \
+type_Grid.o \
+type_StaggeredGrid.f90
+	$(FC) $(FFLAGS) -c type_StaggeredGrid.f90 $(LINKS)\
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
+type_MacGrid.o:\
+type_Grid.o \
+type_MacGrid.f90
+	$(FC) $(FFLAGS) -c type_MacGrid.f90 $(LINKS)\
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
+type_HelmholtzData.o: \
+type_RectangularDomain.o \
+type_HelmholtzData.f90
+	$(FC) $(FFLAGS) -c type_HelmholtzData.f90 $(LINKS)\
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
+type_HelmholtzSolver.o: \
+hwscrt.o \
+hstcrt.o \
+type_HelmholtzData.o \
+type_StaggeredGrid.o\
+type_CenteredGrid.o\
+type_HelmholtzSolver.f90
+	$(FC) $(FFLAGS) -c type_HelmholtzSolver.f90 $(LINKS)\
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
 main.o: \
 type_FishpackWorkspace.o \
 main.f90

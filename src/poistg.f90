@@ -10,7 +10,7 @@ module module_poistg
 
     use module_gnbnaux, only: &
         cosgen, &
-        merge_ascending_strings_in_tcos, &
+        merge_rename, &
         trix, &
         tri3
 
@@ -834,7 +834,7 @@ else
         b(:mr) = P(ipp+1:mr+ipp) + Q(:mr, jp2)
         if (lr /= 0) then
             call COSGEN (lr, 1, fnum2, 0.5, TCOS(i2r+1))
-            call merge_ascending_strings_in_tcos(tcos, 0, i2r, i2r, lr, kr)
+            call merge_rename(tcos, 0, i2r, i2r, lr, kr)
         else
             do i = 1, i2r
                 ii = kr + i
@@ -931,7 +931,7 @@ go to (158, 160, 158) np
     tcos(k2) = 2.*real(np - 2)
     call COSGEN (jr, 1, 0.5 - fnum, 0.5, TCOS(k2+1))
     k3 = (3 - np)/2
-    call merge_ascending_strings_in_tcos(tcos, k1, jr - k3, k2 - k3, jr + k3, 0)
+    call merge_rename(tcos, k1, jr - k3, k2 - k3, jr + k3, 0)
     k1 = k1 - 1 + k3
     call COSGEN (jr, 1, fnum, 0.5, TCOS(k1+1))
     k2 = jr
@@ -948,12 +948,12 @@ go to (158, 160, 158) np
     k2 = k1 + jr - 1
     call COSGEN (jr - 1, 1, 0.0, 1.0, TCOS(k1+1))
     call COSGEN (nlast, 1, 0.5, 0.0, TCOS(k2+1))
-    call merge_ascending_strings_in_tcos(tcos, k1, jr - 1, k2, nlast, 0)
+    call merge_rename(tcos, k1, jr - 1, k2, nlast, 0)
     k3 = k1 + nlast - 1
     k4 = k3 + jr
     call COSGEN (jr, 1, 0.5, 0.5, TCOS(k3+1))
     call COSGEN (jr, 1, 0.0, 0.5, TCOS(k4+1))
-    call merge_ascending_strings_in_tcos(tcos, k3, jr, k4, jr, k1)
+    call merge_rename(tcos, k3, jr, k4, jr, k1)
     k2 = nlast - 1
     k3 = jr
     k4 = jr
@@ -994,17 +994,17 @@ k4 = (np - 1)*(3 - np)
 k3 = k2 + 1 - k4
 call COSGEN(kr+jr+k4, 1, real(k4)/2., 1.-real(k4), TCOS(k3))
 k4 = 1 - np/3
-call merge_ascending_strings_in_tcos(tcos, k1, jr - k4, k2 - k4, kr + jr + k4, 0)
+call merge_rename(tcos, k1, jr - k4, k2 - k4, kr + jr + k4, 0)
 if (np == 3) k1 = k1 - 1
 k2 = kr + jr
 k4 = k1 + k2
 call COSGEN (kr, 1, fnum2, 0.5, TCOS(k4+1))
 k3 = k4 + kr
 call COSGEN (jr, 1, fnum, 0.5, TCOS(k3+1))
-call merge_ascending_strings_in_tcos(tcos, k4, kr, k3, jr, k1)
+call merge_rename(tcos, k4, kr, k3, jr, k1)
 k4 = k3 + jr
 call COSGEN (lr, 1, fnum2, 0.5, TCOS(k4+1))
-call merge_ascending_strings_in_tcos(tcos, k3, jr, k4, lr, k1 + k2)
+call merge_rename(tcos, k3, jr, k4, lr, k1 + k2)
 call COSGEN (kr, 1, fnum2, 0.5, TCOS(k3+1))
 k3 = kr
 k4 = kr
@@ -1041,7 +1041,7 @@ go to (182, 183, 182) np
     call COSGEN (kr + 1, 1, 0.5, 0.0, TCOS(k2))
 184 continue
     k4 = 1 - np/3
-    call merge_ascending_strings_in_tcos(tcos, k1, jr - k4, k2 - k4, kr + k4, 0)
+    call merge_rename(tcos, k1, jr - k4, k2 - k4, kr + k4, 0)
     if (np == 3) k1 = k1 - 1
     k2 = kr
     call COSGEN (kr, 1, fnum2, 0.5, TCOS(k1+1))
