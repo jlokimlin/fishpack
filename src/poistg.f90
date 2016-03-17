@@ -24,10 +24,7 @@ module module_poistg
     public :: poistgg
 
 contains
-    !
-    !*****************************************************************************************
-    !
-    !
+
     subroutine poistg_unit_test()
         !     file tpoistg.f
         !
@@ -64,7 +61,7 @@ contains
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
         !
-        !     PROGRAM TO ILLUSTRATE THE USE OF SUBROUTINE POISTG TO
+        !     PROGRAM TO ILLUSTRATE THE USE OF SUBROUTINE poistg TO
         !     SOLVE THE EQUATION
         !
         !     (1/COS(X))(D/DX)(COS(X)(DU/DX)) + (D/DY)(DU/DY) =
@@ -234,7 +231,7 @@ contains
             f(i, n) = F(i, n) - 4.*dy*SIN(X(i))
         end do
 
-        call POISTG( nperod, n, mperod, m, a, b, c, idimf, f, ierror)
+        call poistg( nperod, n, mperod, m, a, b, c, idimf, f, ierror)
         !
         !     COMPUTE DISCRETIZATION ERROR.  THE EXACT SOLUTION IS
         !
@@ -250,7 +247,7 @@ contains
         end do
 
         write( stdout, '(A)') ''
-        write( stdout, '(A)') '    POISTG UNIT TEST *** '
+        write( stdout, '(A)') '    poistg UNIT TEST *** '
         write( stdout, '(A)') '    Previous 64 bit floating point arithmetic result '
         write( stdout, '(A)') '    IERROR = 0,  Discretization Error = 5.6417E-4'
         write( stdout, '(A)') ''
@@ -262,7 +259,7 @@ contains
     !
     !*****************************************************************************************
     !
-    subroutine POISTG( nperod, n, mperod, m, a, b, c, idimy, y, ierror )
+    subroutine poistg( nperod, n, mperod, m, a, b, c, idimy, y, ierror )
         !
         !     file poistg.f
         !
@@ -298,7 +295,7 @@ contains
         !     *                                                               *
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
-        !     SUBROUTINE POISTG (NPEROD, N, MPEROD, M, A, B, C, IDIMY, Y, IERROR)
+        !     SUBROUTINE poistg (NPEROD, N, MPEROD, M, A, B, C, IDIMY, Y, IERROR)
         !
         !
         ! DIMENSION OF           A(M),  B(M),  C(M),  Y(IDIMY, N)
@@ -320,7 +317,7 @@ contains
         !                        X(I, N+1) MAY BE EQUAL TO X(I, N) OR -X(I, N),
         !                        DEPENDING ON AN INPUT PARAMETER.
         !
-        ! USAGE                  CALL POISTG (NPEROD, N, MPEROD, M, A, B, C, IDIMY, Y,
+        ! USAGE                  CALL poistg (NPEROD, N, MPEROD, M, A, B, C, IDIMY, Y,
         !                                     IERROR)
         !
         ! ARGUMENTS
@@ -362,7 +359,7 @@ contains
         !                        IDIMY
         !                          THE ROW (OR FIRST) DIMENSION OF THE TWO-
         !                          DIMENSIONAL ARRAY Y AS IT APPEARS IN THE
-        !                          PROGRAM CALLING POISTG.  THIS PARAMETER IS
+        !                          PROGRAM CALLING poistg.  THIS PARAMETER IS
         !                          USED TO SPECIFY THE VARIABLE DIMENSION OF Y.
         !                          IDIMY MUST BE AT LEAST M.
         !
@@ -437,7 +434,7 @@ contains
         !                        THE SOLUTION X WAS SUBSTITUTED INTO THE GIVEN
         !                        SYSTEM AND, USING DOUBLE PRECISION, A RIGHT SID
         !                        Y WAS COMPUTED.  USING THIS ARRAY Y SUBROUTINE
-        !                        POISTG WAS CALLED TO PRODUCE AN APPROXIMATE
+        !                        poistg WAS CALLED TO PRODUCE AN APPROXIMATE
         !                        SOLUTION Z.  THEN THE RELATIVE ERROR, DEFINED A
         !                          E = MAX(abs(Z(I, J)-X(I, J)))/MAX(abs(X(I, J)))
         !                        WHERE THE TWO MAXIMA ARE TAKEN OVER I=1, 2, ..., M
@@ -483,10 +480,10 @@ contains
         integer (ip) :: m
         integer (ip) :: idimy
         integer (ip) :: ierror
-        real (wp) :: a(*)
-        real (wp) :: b(*)
-        real (wp) :: c(*)
-        real (wp) :: y(idimy, *)
+        real (wp)    :: a(*)
+        real (wp)    :: b(*)
+        real (wp)    :: c(*)
+        real (wp)    :: y(idimy, *)
         !--------------------------------------------------------------------------------
         ! Dictionary: local variables
         !--------------------------------------------------------------------------------
@@ -545,11 +542,10 @@ contains
     !     release work space
     call workspace%destroy()
 
-end subroutine POISTG
-    !
-    !*****************************************************************************************
-    !
-subroutine POISTGG(nperod, n, mperod, m, a, b, c, idimy, y, ierror, w)
+end subroutine poistg
+
+
+subroutine poistgg(nperod, n, mperod, m, a, b, c, idimy, y, ierror, w)
     !--------------------------------------------------------------------------------
     ! Dictionary: local variables
     !--------------------------------------------------------------------------------
@@ -598,7 +594,7 @@ subroutine POISTGG(nperod, n, mperod, m, a, b, c, idimy, y, ierror, w)
 107 continue
     go to (108, 108, 108, 119) nperod
 108 continue
-    call POSTG2 (np, n, m, W(iwba), W(iwbb), W(iwbc), idimy, y, w, W( &
+    call postg2 (np, n, m, W(iwba), W(iwbb), W(iwbc), idimy, y, w, W( &
         iwb2), W(iwb3), W(iww1), W(iww2), W(iww3), W(iwd), W(iwtcos), W &
         (iwp))
     ipstor = W(iww1)
@@ -665,12 +661,11 @@ end select
 end do
 129 continue
     w(1) = ipstor + iwp - 1
-    return
-end subroutine POISTGG
-    !
-    !*****************************************************************************************
-    !
-subroutine POSTG2(nperod, n, m, a, bb, c, idimq, q, b, b2, b3, w, &
+
+end subroutine poistgg
+
+
+subroutine postg2(nperod, n, m, a, bb, c, idimq, q, b, b2, b3, w, &
     w2, w3, d, tcos, p)
     implicit none
     !-----------------------------------------------
@@ -1115,12 +1110,10 @@ go to (182, 183, 182) np
     go to 197
 210 continue
     w(1) = ipstor
-    return
 
-end subroutine POSTG2
-    !
-    !*****************************************************************************************
-    !
+end subroutine postg2
+
+
 end module module_poistg
 !
 ! REVISION HISTORY---

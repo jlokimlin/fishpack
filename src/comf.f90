@@ -40,7 +40,7 @@
 !                        AND CBLKTRI. THAT IS, THESE ROUTINES ARE
 !                        NOT CALLED DIRECTLY BY USERS, BUT RATHER
 !                        BY ENTRIES WITHIN BLKTRI AND CBLKTRI.
-!                        DESCRIPTION OF ENTRIES EPMACH AND PI_MACH
+!                        DESCRIPTION OF ENTRIES epmach AND PI_MACH
 !                        FOLLOW BELOW.
 !
 ! LATEST REVISION        JUNE 2004
@@ -57,14 +57,14 @@
 ! LANGUAGE               FORTRAN 90
 ! ********************************************************************
 !
-! FUNCTION EPMACH (DUM)
+! FUNCTION epmach (DUM)
 !
 ! PURPOSE                TO COMPUTE AN APPROXIMATE MACHINE ACCURACY
 !                        EPSILON ACCORDING TO THE FOLLOWING DEFINITION:
 !                        EPSILON IS THE SMALLEST NUMBER SUCH THAT
 !                        (1.+EPSILON).GT.1.)
 !
-! USAGE                  EPS = EPMACH (DUM)
+! USAGE                  EPS = epmach (DUM)
 !
 ! ARGUMENTS
 ! ON INPUT               DUM
@@ -144,10 +144,9 @@ module module_comf
     !---------------------------------------------------------------------------------
 
 contains
-    !
-    !*****************************************************************************************
-    !
-    function EPMACH( dum ) result( return_value )
+
+
+    function epmach( dum ) result( return_value )
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
@@ -156,26 +155,25 @@ contains
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        real (wp)       :: eps
+        real (wp) :: eps
         !-----------------------------------------------
 
         eps = 1.0_wp
         eps = eps/2
 
-        call STRWRD(eps + 1.0_wp)
+        call strwrd(eps + 1.0_wp)
 
         do while(v - 1.0_wp > 0.0_wp)
             eps = eps/2
-            call STRWRD(eps + 1.0_wp)
+            call strwrd(eps + 1.0_wp)
         end do
 
         return_value = 100.0_wp * eps
 
-    end function EPMACH
-    !
-    !*****************************************************************************************
-    !
-    subroutine STRWRD(x)
+    end function epmach
+
+
+    subroutine strwrd(x)
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
@@ -184,20 +182,19 @@ contains
 
         v = x
 
-    end subroutine STRWRD
-    !
-    !*****************************************************************************************
-    !
-    function PPSGF(x, iz, c, a, bh) result( return_value )
+    end subroutine strwrd
+
+
+    pure function ppsgf(x, iz, c, a, bh) result( return_value )
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
         integer (ip), intent (in) :: iz
-        real (wp), intent (in) :: x
-        real (wp) :: c(*)
-        real (wp) :: a(*)
-        real (wp), intent (in) :: bh(*)
-        real (wp) :: return_value
+        real (wp),    intent (in) :: x
+        real (wp),    intent (in) :: c(*)
+        real (wp),    intent (in) :: a(*)
+        real (wp),    intent (in) :: bh(*)
+        real (wp)                 :: return_value
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
@@ -213,25 +210,24 @@ contains
 
         return_value = summation
 
-    end function PPSGF
-    !
-    !*****************************************************************************************
-    !
-    function PPSPF(x, iz, c, a, bh) result( return_value )
+    end function ppsgf
+
+
+    pure function ppspf(x, iz, c, a, bh) result( return_value )
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip), intent (in)  :: iz
-        real (wp),    intent (in)  :: x
-        real (wp)                 :: c(*)
-        real (wp)                 :: a(*)
-        real (wp),     intent (in) :: bh(*)
+        integer (ip), intent (in) :: iz
+        real (wp),    intent (in) :: x
+        real (wp),    intent (in) :: c(*)
+        real (wp),    intent (in) :: a(*)
+        real (wp),    intent (in) :: bh(*)
         real (wp)                 :: return_value
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer (wp)     :: j
-        real (wp)        :: summation
+        integer (wp) :: j
+        real (wp)    :: summation
         !-----------------------------------------------
 
         summation = 0.0_wp
@@ -242,20 +238,19 @@ contains
 
         return_value = summation
 
-    end function PPSPF
-    !
-    !*****************************************************************************************
-    !
-    function PSGF(x, iz, c, a, bh) result( return_value )
+    end function ppspf
+
+
+    pure function psgf(x, iz, c, a, bh) result( return_value )
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
         integer (ip), intent (in) :: iz
-        real (wp), intent (in) :: x
-        real (wp), intent (in) :: c(*)
-        real (wp), intent (in) :: a(*)
-        real (wp), intent (in)   :: bh(*)
-        real (wp)               :: return_value
+        real (wp),    intent (in) :: x
+        real (wp),    intent (in) :: c(*)
+        real (wp),    intent (in) :: a(*)
+        real (wp),    intent (in) :: bh(*)
+        real (wp)                 :: return_value
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
@@ -279,10 +274,9 @@ contains
 
         return_value = 1.0_wp + fsg + hsg
 
-    end function PSGF
-    !
-    !*****************************************************************************************
-    !
+    end function psgf
+
+
 end module module_comf
 !
 ! REVISION HISTORY---

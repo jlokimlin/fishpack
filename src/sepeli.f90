@@ -132,8 +132,8 @@ contains
         !     OBTAIN SECOND ORDER APPROXIMATION
         !
         iorder = 2
-        call SEPELI (intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta &
-            , c, d, n, nbdcnd, dum(1), dum(1), dum(1), dum(1), &
+        call SEPELI(intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta &
+            , c, d, n, nbdcnd, dum(1:1), dum(1), dum(1:1), dum(1), &
             get_coefficients_in_x_direction, get_coefficients_in_y_direction, grhs, usol, &
             idmn, workspace, pertrb, ierror)
         err = 0.0
@@ -154,7 +154,7 @@ contains
         !
         intl = 1
         call SEPELI (intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta &
-            , c, d, n, nbdcnd, dum(1), dum(1), dum(1), dum(1), &
+            , c, d, n, nbdcnd, dum(1:1), dum(1), dum(1:1), dum(1), &
             get_coefficients_in_x_direction, get_coefficients_in_y_direction, grhs, usol, &
             idmn, workspace, pertrb, ierror)
         !
@@ -256,7 +256,7 @@ contains
             !
             !     SET COEFFICIENTS IN Y DIRECTION
             !
-            df = EXP(y)
+            df = exp(y)
             ef = 0.0
             ff = -y
 
@@ -801,10 +801,10 @@ contains
         real  :: gama
         real  :: xnu
         real  :: pertrb
-        real  :: bda(*)
-        real  :: bdb(*)
-        real  :: bdc(*)
-        real  :: bdd(*)
+        real  :: bda(:)
+        real  :: bdb(:)
+        real  :: bdc(:)
+        real  :: bdd(:)
         real  :: grhs(idmn, *)
         real  :: usol(idmn, *)
         !-----------------------------------------------

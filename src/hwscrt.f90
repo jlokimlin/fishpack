@@ -1,316 +1,3 @@
-!
-!     file hwscrt.f
-!
-!     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-!     *                                                               *
-!     *                  copyright (c) 2005 by UCAR                   *
-!     *                                                               *
-!     *       University Corporation for Atmospheric Research         *
-!     *                                                               *
-!     *                      all rights reserved                      *
-!     *                                                               *
-!     *                    FISHPACK90  version 1.1                    *
-!     *                                                               *
-!     *                 A Package of Fortran 77 and 90                *
-!     *                                                               *
-!     *                Subroutines and Example Programs               *
-!     *                                                               *
-!     *               for Modeling Geophysical Processes              *
-!     *                                                               *
-!     *                             by                                *
-!     *                                                               *
-!     *        John Adams, Paul Swarztrauber and Roland Sweet         *
-!     *                                                               *
-!     *                             of                                *
-!     *                                                               *
-!     *         the National Center for Atmospheric Research          *
-!     *                                                               *
-!     *                Boulder, Colorado  (80307)  U.S.A.             *
-!     *                                                               *
-!     *                   which is sponsored by                       *
-!     *                                                               *
-!     *              the National Science Foundation                  *
-!     *                                                               *
-!     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-!
-!     SUBROUTINE HWSCRT (A, B, M, MBDCND, BDA, BDB, C, D, N, NBDCND, BDC, BDD, 
-!    +                   ELMBDA, F, IDIMF, PERTRB, IERROR)
-!
-! DIMENSION OF           BDA(N),      BDB(N),   BDC(M), BDD(M), 
-! ARGUMENTS              F(IDIMF, N)
-!
-! LATEST REVISION        June 2004
-!
-! PURPOSE                SOLVES THE STANDARD FIVE-POINT FINITE
-!                        DIFFERENCE APPROXIMATION TO THE HELMHOLTZ
-!                        EQUATION IN CARTESIAN COORDINATES.  THIS
-!                        EQUATION IS
-!
-!                          (D/DX)(DU/DX) + (D/DY)(DU/DY)
-!                          + LAMBDA*U = F(X, Y).
-!
-! USAGE                  CALL HWSCRT (A, B, M, MBDCND, BDA, BDB, C, D, N, 
-!                                     NBDCND, BDC, BDD, ELMBDA, F, IDIMF, 
-!                                     PERTRB, IERROR)
-!
-! ARGUMENTS
-! ON INPUT               A, B
-!
-!                          THE RANGE OF X, I.E., A .LE. X .LE. B.
-!                          A MUST BE LESS THAN B.
-!
-!                        M
-!                          THE NUMBER OF PANELS INTO WHICH THE
-!                          INTERVAL (A, B) IS SUBDIVIDED.
-!                          HENCE, THERE WILL BE M+1 GRID POINTS
-!                          IN THE X-DIRECTION GIVEN BY
-!                          X(I) = A+(I-1)DX FOR I = 1, 2, ..., M+1, 
-!                          WHERE DX = (B-A)/M IS THE PANEL WIDTH.
-!                          M MUST BE GREATER THAN 3.
-!
-!                        MBDCND
-!                          INDICATES THE TYPE OF BOUNDARY CONDITIONS
-!                          AT X = A AND X = B.
-!
-!                          = 0  IF THE SOLUTION IS PERIODIC IN X, 
-!                               I.E., U(I, J) = U(M+I, J).
-!                          = 1  IF THE SOLUTION IS SPECIFIED AT
-!                               X = A AND X = B.
-!                          = 2  IF THE SOLUTION IS SPECIFIED AT
-!                               X = A AND THE DERIVATIVE OF THE
-!                               SOLUTION WITH RESPECT TO X IS
-!                               SPECIFIED AT X = B.
-!                          = 3  IF THE DERIVATIVE OF THE SOLUTION
-!                               WITH RESPECT TO X IS SPECIFIED AT
-!                               AT X = A AND X = B.
-!                          = 4  IF THE DERIVATIVE OF THE SOLUTION
-!                               WITH RESPECT TO X IS SPECIFIED AT
-!                               X = A AND THE SOLUTION IS SPECIFIED
-!                               AT X = B.
-!
-!                        BDA
-!                          A ONE-DIMENSIONAL ARRAY OF LENGTH N+1 THAT
-!                          SPECIFIES THE VALUES OF THE DERIVATIVE
-!                          OF THE SOLUTION WITH RESPECT TO X AT X = A.
-!
-!                          WHEN MBDCND = 3 OR 4, 
-!
-!                            BDA(J) = (D/DX)U(A, Y(J)), J = 1, 2, ..., N+1.
-!
-!                          WHEN MBDCND HAS ANY OTHER VALUE, BDA IS
-!                          A DUMMY VARIABLE.
-!
-!                        BDB
-!                          A ONE-DIMENSIONAL ARRAY OF LENGTH N+1
-!                          THAT SPECIFIES THE VALUES OF THE DERIVATIVE
-!                          OF THE SOLUTION WITH RESPECT TO X AT X = B.
-!
-!                          WHEN MBDCND = 2 OR 3, 
-!
-!                            BDB(J) = (D/DX)U(B, Y(J)), J = 1, 2, ..., N+1
-!
-!                          WHEN MBDCND HAS ANY OTHER VALUE BDB IS A
-!                          DUMMY VARIABLE.
-!
-!                        C, D
-!                          THE RANGE OF Y, I.E., C .LE. Y .LE. D.
-!                          C MUST BE LESS THAN D.
-!
-!                        N
-!                          THE NUMBER OF PANELS INTO WHICH THE
-!                          INTERVAL (C, D) IS SUBDIVIDED.  HENCE, 
-!                          THERE WILL BE N+1 GRID POINTS IN THE
-!                          Y-DIRECTION GIVEN BY Y(J) = C+(J-1)DY
-!                          FOR J = 1, 2, ..., N+1, WHERE
-!                          DY = (D-C)/N IS THE PANEL WIDTH.
-!                          N MUST BE GREATER THAN 3.
-!
-!                        NBDCND
-!                          INDICATES THE TYPE OF BOUNDARY CONDITIONS AT
-!                          Y = C AND Y = D.
-!
-!                          = 0  IF THE SOLUTION IS PERIODIC IN Y, 
-!                               I.E., U(I, J) = U(I, N+J).
-!                          = 1  IF THE SOLUTION IS SPECIFIED AT
-!                               Y = C AND Y = D.
-!                          = 2  IF THE SOLUTION IS SPECIFIED AT
-!                               Y = C AND THE DERIVATIVE OF THE
-!                               SOLUTION WITH RESPECT TO Y IS
-!                               SPECIFIED AT Y = D.
-!                          = 3  IF THE DERIVATIVE OF THE SOLUTION
-!                               WITH RESPECT TO Y IS SPECIFIED AT
-!                               Y = C AND Y = D.
-!                          = 4  IF THE DERIVATIVE OF THE SOLUTION
-!                               WITH RESPECT TO Y IS SPECIFIED AT
-!                               Y = C AND THE SOLUTION IS SPECIFIED
-!                               AT Y = D.
-!
-!                        BDC
-!                          A ONE-DIMENSIONAL ARRAY OF LENGTH M+1 THAT
-!                          SPECIFIES THE VALUES OF THE DERIVATIVE
-!                          OF THE SOLUTION WITH RESPECT TO Y AT Y = C.
-!
-!                          WHEN NBDCND = 3 OR 4, 
-!
-!                            BDC(I) = (D/DY)U(X(I), C), I = 1, 2, ..., M+1
-!
-!                          WHEN NBDCND HAS ANY OTHER VALUE, BDC IS
-!                          A DUMMY VARIABLE.
-!
-!                        BDD
-!                          A ONE-DIMENSIONAL ARRAY OF LENGTH M+1 THAT
-!                          SPECIFIES THE VALUES OF THE DERIVATIVE
-!                          OF THE SOLUTION WITH RESPECT TO Y AT Y = D.
-!
-!                          WHEN NBDCND = 2 OR 3, 
-!
-!                            BDD(I) = (D/DY)U(X(I), D), I = 1, 2, ..., M+1
-!
-!                          WHEN NBDCND HAS ANY OTHER VALUE, BDD IS
-!                          A DUMMY VARIABLE.
-!
-!                        ELMBDA
-!                          THE CONSTANT LAMBDA IN THE HELMHOLTZ
-!                          EQUATION.  IF LAMBDA .GT. 0, A SOLUTION
-!                          MAY NOT EXIST.  HOWEVER, HWSCRT WILL
-!                          ATTEMPT TO FIND A SOLUTION.
-!
-!                        F
-!                          A TWO-DIMENSIONAL ARRAY, OF DIMENSION AT
-!                          LEAST (M+1)*(N+1), SPECIFYING VALUES OF THE
-!                          RIGHT SIDE OF THE HELMHOLTZ  EQUATION AND
-!                          BOUNDARY VALUES (IF ANY).
-!
-!                          ON THE INTERIOR, F IS DEFINED AS FOLLOWS:
-!                          FOR I = 2, 3, ..., M AND J = 2, 3, ..., N
-!                          F(I, J) = F(X(I), Y(J)).
-!
-!                          ON THE BOUNDARIES, F IS DEFINED AS FOLLOWS:
-!                          FOR J=1, 2, ..., N+1,  I=1, 2, ..., M+1, 
-!
-!                          MBDCND     F(1, J)        F(M+1, J)
-!                          ------     ---------     --------
-!
-!                            0        F(A, Y(J))     F(A, Y(J))
-!                            1        U(A, Y(J))     U(B, Y(J))
-!                            2        U(A, Y(J))     F(B, Y(J))
-!                            3        F(A, Y(J))     F(B, Y(J))
-!                            4        F(A, Y(J))     U(B, Y(J))
-!
-!
-!                          NBDCND     F(I, 1)        F(I, N+1)
-!                          ------     ---------     --------
-!
-!                            0        F(X(I), C)     F(X(I), C)
-!                            1        U(X(I), C)     U(X(I), D)
-!                            2        U(X(I), C)     F(X(I), D)
-!                            3        F(X(I), C)     F(X(I), D)
-!                            4        F(X(I), C)     U(X(I), D)
-!
-!                          NOTE:
-!                          IF THE TABLE CALLS FOR BOTH THE SOLUTION U
-!                          AND THE RIGHT SIDE F AT A CORNER THEN THE
-!                          SOLUTION MUST BE SPECIFIED.
-!
-!                        IDIMF
-!                          THE ROW (OR FIRST) DIMENSION OF THE ARRAY
-!                          F AS IT APPEARS IN THE PROGRAM CALLING
-!                          HWSCRT.  THIS PARAMETER IS USED TO SPECIFY
-!                          THE VARIABLE DIMENSION OF F.  IDIMF MUST
-!                          BE AT LEAST M+1  .
-!
-!
-! ON OUTPUT              F
-!                          CONTAINS THE SOLUTION U(I, J) OF THE FINITE
-!                          DIFFERENCE APPROXIMATION FOR THE GRID POINT
-!                          (X(I), Y(J)), I = 1, 2, ..., M+1, 
-!                          J = 1, 2, ..., N+1  .
-!
-!                        PERTRB
-!                          IF A COMBINATION OF PERIODIC OR DERIVATIVE
-!                          BOUNDARY CONDITIONS IS SPECIFIED FOR A
-!                          POISSON EQUATION (LAMBDA = 0), A SOLUTION
-!                          MAY NOT EXIST.  PERTRB IS A CONSTANT, 
-!                          CALCULATED AND SUBTRACTED FROM F, WHICH
-!                          ENSURES THAT A SOLUTION EXISTS.  HWSCRT
-!                          THEN COMPUTES THIS SOLUTION, WHICH IS A
-!                          LEAST SQUARES SOLUTION TO THE ORIGINAL
-!                          APPROXIMATION.  THIS SOLUTION PLUS ANY
-!                          CONSTANT IS ALSO A SOLUTION.  HENCE, THE
-!                          SOLUTION IS NOT UNIQUE.  THE VALUE OF
-!                          PERTRB SHOULD BE SMALL COMPARED TO THE
-!                          RIGHT SIDE F.  OTHERWISE, A SOLUTION IS
-!                          OBTAINED TO AN ESSENTIALLY DIFFERENT
-!                          PROBLEM. THIS COMPARISON SHOULD ALWAYS
-!                          BE MADE TO INSURE THAT A MEANINGFUL
-!                          SOLUTION HAS BEEN OBTAINED.
-!
-!                        IERROR
-!                          AN ERROR FLAG THAT INDICATES INVALID INPUT
-!                          PARAMETERS.  EXCEPT FOR NUMBERS 0 AND 6, 
-!                          A SOLUTION IS NOT ATTEMPTED.
-!
-!                          = 0  NO ERROR
-!                          = 1  A .GE. B
-!                          = 2  MBDCND .LT. 0 OR MBDCND .GT. 4
-!                          = 3  C .GE. D
-!                          = 4  N .LE. 3
-!                          = 5  NBDCND .LT. 0 OR NBDCND .GT. 4
-!                          = 6  LAMBDA .GT. 0
-!                          = 7  IDIMF .LT. M+1
-!                          = 8  M .LE. 3
-!                          = 20 If the dynamic allocation of real and
-!                               complex work space required for solution
-!                               fails (for example if N, M are too large
-!                               for your computer)
-!
-!                          SINCE THIS IS THE ONLY MEANS OF INDICATING
-!                          A POSSIBLY INCORRECT CALL TO HWSCRT, THE
-!                          USER SHOULD TEST IERROR AFTER THE CALL.
-!
-!
-! SPECIAL CONDITIONS     NONE
-!
-! I/O                    NONE
-!
-! PRECISION              SINGLE
-!
-! REQUIRED files         fish.f, genbun.f, gnbnaux.f, comf.f
-!
-! LANGUAGE               FORTRAN 90
-!
-! HISTORY                WRITTEN BY ROLAND SWEET AT NCAR IN THE LATE
-!                        1970'S.  RELEASED ON NCAR'S PUBLIC SOFTWARE
-!                        LIBRARIES IN JANUARY 1980.
-!                        Revised in June 2004 by John Adams using
-!                        Fortran 90 dynamically allocated work space.
-!
-! PORTABILITY            FORTRAN 90
-!
-! ALGORITHM              THE ROUTINE DEFINES THE FINITE DIFFERENCE
-!                        EQUATIONS, INCORPORATES BOUNDARY DATA, AND
-!                        ADJUSTS THE RIGHT SIDE OF SINGULAR SYSTEMS
-!                        AND THEN CALLS GENBUN TO SOLVE THE SYSTEM.
-!
-! TIMING                 FOR LARGE  M AND N, THE OPERATION COUNT
-!                        IS ROUGHLY PROPORTIONAL TO
-!                          M*N*(LOG2(N)
-!                        BUT ALSO DEPENDS ON INPUT PARAMETERS NBDCND
-!                        AND MBDCND.
-!
-! ACCURACY               THE SOLUTION PROCESS EMPLOYED RESULTS IN A LOSS
-!                        OF NO MORE THAN THREE SIGNIFICANT DIGITS FOR N
-!                        AND M AS LARGE AS 64.  MORE DETAILS ABOUT
-!                        ACCURACY CAN BE FOUND IN THE DOCUMENTATION FOR
-!                        SUBROUTINE GENBUN WHICH IS THE ROUTINE THAT
-!                        SOLVES THE FINITE DIFFERENCE EQUATIONS.
-!
-! REFERENCES             SWARZTRAUBER, P. AND R. SWEET, "EFFICIENT
-!                        FORTRAN SUBPROGRAMS FOR THE SOLUTION OF
-!                        ELLIPTIC EQUATIONS"
-!                          NCAR TN/IA-109, JULY, 1975, 138 PP.
-!***********************************************************************
-!
 module module_hwscrt
 
     use, intrinsic :: iso_fortran_env, only: &
@@ -459,6 +146,317 @@ contains
     !
     subroutine hwscrt( a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror )
+        !
+        !     file hwscrt.f
+        !
+        !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+        !     *                                                               *
+        !     *                  copyright (c) 2005 by UCAR                   *
+        !     *                                                               *
+        !     *       University Corporation for Atmospheric Research         *
+        !     *                                                               *
+        !     *                      all rights reserved                      *
+        !     *                                                               *
+        !     *                    FISHPACK90  version 1.1                    *
+        !     *                                                               *
+        !     *                 A Package of Fortran 77 and 90                *
+        !     *                                                               *
+        !     *                Subroutines and Example Programs               *
+        !     *                                                               *
+        !     *               for Modeling Geophysical Processes              *
+        !     *                                                               *
+        !     *                             by                                *
+        !     *                                                               *
+        !     *        John Adams, Paul Swarztrauber and Roland Sweet         *
+        !     *                                                               *
+        !     *                             of                                *
+        !     *                                                               *
+        !     *         the National Center for Atmospheric Research          *
+        !     *                                                               *
+        !     *                Boulder, Colorado  (80307)  U.S.A.             *
+        !     *                                                               *
+        !     *                   which is sponsored by                       *
+        !     *                                                               *
+        !     *              the National Science Foundation                  *
+        !     *                                                               *
+        !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+        !
+        !     SUBROUTINE HWSCRT (A, B, M, MBDCND, BDA, BDB, C, D, N, NBDCND, BDC, BDD,
+        !    +                   ELMBDA, F, IDIMF, PERTRB, IERROR)
+        !
+        ! DIMENSION OF           BDA(N),      BDB(N),   BDC(M), BDD(M),
+        ! ARGUMENTS              F(IDIMF, N)
+        !
+        ! LATEST REVISION        June 2004
+        !
+        ! PURPOSE                SOLVES THE STANDARD FIVE-POINT FINITE
+        !                        DIFFERENCE APPROXIMATION TO THE HELMHOLTZ
+        !                        EQUATION IN CARTESIAN COORDINATES.  THIS
+        !                        EQUATION IS
+        !
+        !                          (D/DX)(DU/DX) + (D/DY)(DU/DY)
+        !                          + LAMBDA*U = F(X, Y).
+        !
+        ! USAGE                  CALL HWSCRT (A, B, M, MBDCND, BDA, BDB, C, D, N,
+        !                                     NBDCND, BDC, BDD, ELMBDA, F, IDIMF,
+        !                                     PERTRB, IERROR)
+        !
+        ! ARGUMENTS
+        ! ON INPUT               A, B
+        !
+        !                          THE RANGE OF X, I.E., A .LE. X .LE. B.
+        !                          A MUST BE LESS THAN B.
+        !
+        !                        M
+        !                          THE NUMBER OF PANELS INTO WHICH THE
+        !                          INTERVAL (A, B) IS SUBDIVIDED.
+        !                          HENCE, THERE WILL BE M+1 GRID POINTS
+        !                          IN THE X-DIRECTION GIVEN BY
+        !                          X(I) = A+(I-1)DX FOR I = 1, 2, ..., M+1,
+        !                          WHERE DX = (B-A)/M IS THE PANEL WIDTH.
+        !                          M MUST BE GREATER THAN 3.
+        !
+        !                        MBDCND
+        !                          INDICATES THE TYPE OF BOUNDARY CONDITIONS
+        !                          AT X = A AND X = B.
+        !
+        !                          = 0  IF THE SOLUTION IS PERIODIC IN X,
+        !                               I.E., U(I, J) = U(M+I, J).
+        !                          = 1  IF THE SOLUTION IS SPECIFIED AT
+        !                               X = A AND X = B.
+        !                          = 2  IF THE SOLUTION IS SPECIFIED AT
+        !                               X = A AND THE DERIVATIVE OF THE
+        !                               SOLUTION WITH RESPECT TO X IS
+        !                               SPECIFIED AT X = B.
+        !                          = 3  IF THE DERIVATIVE OF THE SOLUTION
+        !                               WITH RESPECT TO X IS SPECIFIED AT
+        !                               AT X = A AND X = B.
+        !                          = 4  IF THE DERIVATIVE OF THE SOLUTION
+        !                               WITH RESPECT TO X IS SPECIFIED AT
+        !                               X = A AND THE SOLUTION IS SPECIFIED
+        !                               AT X = B.
+        !
+        !                        BDA
+        !                          A ONE-DIMENSIONAL ARRAY OF LENGTH N+1 THAT
+        !                          SPECIFIES THE VALUES OF THE DERIVATIVE
+        !                          OF THE SOLUTION WITH RESPECT TO X AT X = A.
+        !
+        !                          WHEN MBDCND = 3 OR 4,
+        !
+        !                            BDA(J) = (D/DX)U(A, Y(J)), J = 1, 2, ..., N+1.
+        !
+        !                          WHEN MBDCND HAS ANY OTHER VALUE, BDA IS
+        !                          A DUMMY VARIABLE.
+        !
+        !                        BDB
+        !                          A ONE-DIMENSIONAL ARRAY OF LENGTH N+1
+        !                          THAT SPECIFIES THE VALUES OF THE DERIVATIVE
+        !                          OF THE SOLUTION WITH RESPECT TO X AT X = B.
+        !
+        !                          WHEN MBDCND = 2 OR 3,
+        !
+        !                            BDB(J) = (D/DX)U(B, Y(J)), J = 1, 2, ..., N+1
+        !
+        !                          WHEN MBDCND HAS ANY OTHER VALUE BDB IS A
+        !                          DUMMY VARIABLE.
+        !
+        !                        C, D
+        !                          THE RANGE OF Y, I.E., C .LE. Y .LE. D.
+        !                          C MUST BE LESS THAN D.
+        !
+        !                        N
+        !                          THE NUMBER OF PANELS INTO WHICH THE
+        !                          INTERVAL (C, D) IS SUBDIVIDED.  HENCE,
+        !                          THERE WILL BE N+1 GRID POINTS IN THE
+        !                          Y-DIRECTION GIVEN BY Y(J) = C+(J-1)DY
+        !                          FOR J = 1, 2, ..., N+1, WHERE
+        !                          DY = (D-C)/N IS THE PANEL WIDTH.
+        !                          N MUST BE GREATER THAN 3.
+        !
+        !                        NBDCND
+        !                          INDICATES THE TYPE OF BOUNDARY CONDITIONS AT
+        !                          Y = C AND Y = D.
+        !
+        !                          = 0  IF THE SOLUTION IS PERIODIC IN Y,
+        !                               I.E., U(I, J) = U(I, N+J).
+        !                          = 1  IF THE SOLUTION IS SPECIFIED AT
+        !                               Y = C AND Y = D.
+        !                          = 2  IF THE SOLUTION IS SPECIFIED AT
+        !                               Y = C AND THE DERIVATIVE OF THE
+        !                               SOLUTION WITH RESPECT TO Y IS
+        !                               SPECIFIED AT Y = D.
+        !                          = 3  IF THE DERIVATIVE OF THE SOLUTION
+        !                               WITH RESPECT TO Y IS SPECIFIED AT
+        !                               Y = C AND Y = D.
+        !                          = 4  IF THE DERIVATIVE OF THE SOLUTION
+        !                               WITH RESPECT TO Y IS SPECIFIED AT
+        !                               Y = C AND THE SOLUTION IS SPECIFIED
+        !                               AT Y = D.
+        !
+        !                        BDC
+        !                          A ONE-DIMENSIONAL ARRAY OF LENGTH M+1 THAT
+        !                          SPECIFIES THE VALUES OF THE DERIVATIVE
+        !                          OF THE SOLUTION WITH RESPECT TO Y AT Y = C.
+        !
+        !                          WHEN NBDCND = 3 OR 4,
+        !
+        !                            BDC(I) = (D/DY)U(X(I), C), I = 1, 2, ..., M+1
+        !
+        !                          WHEN NBDCND HAS ANY OTHER VALUE, BDC IS
+        !                          A DUMMY VARIABLE.
+        !
+        !                        BDD
+        !                          A ONE-DIMENSIONAL ARRAY OF LENGTH M+1 THAT
+        !                          SPECIFIES THE VALUES OF THE DERIVATIVE
+        !                          OF THE SOLUTION WITH RESPECT TO Y AT Y = D.
+        !
+        !                          WHEN NBDCND = 2 OR 3,
+        !
+        !                            BDD(I) = (D/DY)U(X(I), D), I = 1, 2, ..., M+1
+        !
+        !                          WHEN NBDCND HAS ANY OTHER VALUE, BDD IS
+        !                          A DUMMY VARIABLE.
+        !
+        !                        ELMBDA
+        !                          THE CONSTANT LAMBDA IN THE HELMHOLTZ
+        !                          EQUATION.  IF LAMBDA .GT. 0, A SOLUTION
+        !                          MAY NOT EXIST.  HOWEVER, HWSCRT WILL
+        !                          ATTEMPT TO FIND A SOLUTION.
+        !
+        !                        F
+        !                          A TWO-DIMENSIONAL ARRAY, OF DIMENSION AT
+        !                          LEAST (M+1)*(N+1), SPECIFYING VALUES OF THE
+        !                          RIGHT SIDE OF THE HELMHOLTZ  EQUATION AND
+        !                          BOUNDARY VALUES (IF ANY).
+        !
+        !                          ON THE INTERIOR, F IS DEFINED AS FOLLOWS:
+        !                          FOR I = 2, 3, ..., M AND J = 2, 3, ..., N
+        !                          F(I, J) = F(X(I), Y(J)).
+        !
+        !                          ON THE BOUNDARIES, F IS DEFINED AS FOLLOWS:
+        !                          FOR J=1, 2, ..., N+1,  I=1, 2, ..., M+1,
+        !
+        !                          MBDCND     F(1, J)        F(M+1, J)
+        !                          ------     ---------     --------
+        !
+        !                            0        F(A, Y(J))     F(A, Y(J))
+        !                            1        U(A, Y(J))     U(B, Y(J))
+        !                            2        U(A, Y(J))     F(B, Y(J))
+        !                            3        F(A, Y(J))     F(B, Y(J))
+        !                            4        F(A, Y(J))     U(B, Y(J))
+        !
+        !
+        !                          NBDCND     F(I, 1)        F(I, N+1)
+        !                          ------     ---------     --------
+        !
+        !                            0        F(X(I), C)     F(X(I), C)
+        !                            1        U(X(I), C)     U(X(I), D)
+        !                            2        U(X(I), C)     F(X(I), D)
+        !                            3        F(X(I), C)     F(X(I), D)
+        !                            4        F(X(I), C)     U(X(I), D)
+        !
+        !                          NOTE:
+        !                          IF THE TABLE CALLS FOR BOTH THE SOLUTION U
+        !                          AND THE RIGHT SIDE F AT A CORNER THEN THE
+        !                          SOLUTION MUST BE SPECIFIED.
+        !
+        !                        IDIMF
+        !                          THE ROW (OR FIRST) DIMENSION OF THE ARRAY
+        !                          F AS IT APPEARS IN THE PROGRAM CALLING
+        !                          HWSCRT.  THIS PARAMETER IS USED TO SPECIFY
+        !                          THE VARIABLE DIMENSION OF F.  IDIMF MUST
+        !                          BE AT LEAST M+1  .
+        !
+        !
+        ! ON OUTPUT              F
+        !                          CONTAINS THE SOLUTION U(I, J) OF THE FINITE
+        !                          DIFFERENCE APPROXIMATION FOR THE GRID POINT
+        !                          (X(I), Y(J)), I = 1, 2, ..., M+1,
+        !                          J = 1, 2, ..., N+1  .
+        !
+        !                        PERTRB
+        !                          IF A COMBINATION OF PERIODIC OR DERIVATIVE
+        !                          BOUNDARY CONDITIONS IS SPECIFIED FOR A
+        !                          POISSON EQUATION (LAMBDA = 0), A SOLUTION
+        !                          MAY NOT EXIST.  PERTRB IS A CONSTANT,
+        !                          CALCULATED AND SUBTRACTED FROM F, WHICH
+        !                          ENSURES THAT A SOLUTION EXISTS.  HWSCRT
+        !                          THEN COMPUTES THIS SOLUTION, WHICH IS A
+        !                          LEAST SQUARES SOLUTION TO THE ORIGINAL
+        !                          APPROXIMATION.  THIS SOLUTION PLUS ANY
+        !                          CONSTANT IS ALSO A SOLUTION.  HENCE, THE
+        !                          SOLUTION IS NOT UNIQUE.  THE VALUE OF
+        !                          PERTRB SHOULD BE SMALL COMPARED TO THE
+        !                          RIGHT SIDE F.  OTHERWISE, A SOLUTION IS
+        !                          OBTAINED TO AN ESSENTIALLY DIFFERENT
+        !                          PROBLEM. THIS COMPARISON SHOULD ALWAYS
+        !                          BE MADE TO INSURE THAT A MEANINGFUL
+        !                          SOLUTION HAS BEEN OBTAINED.
+        !
+        !                        IERROR
+        !                          AN ERROR FLAG THAT INDICATES INVALID INPUT
+        !                          PARAMETERS.  EXCEPT FOR NUMBERS 0 AND 6,
+        !                          A SOLUTION IS NOT ATTEMPTED.
+        !
+        !                          = 0  NO ERROR
+        !                          = 1  A .GE. B
+        !                          = 2  MBDCND .LT. 0 OR MBDCND .GT. 4
+        !                          = 3  C .GE. D
+        !                          = 4  N .LE. 3
+        !                          = 5  NBDCND .LT. 0 OR NBDCND .GT. 4
+        !                          = 6  LAMBDA .GT. 0
+        !                          = 7  IDIMF .LT. M+1
+        !                          = 8  M .LE. 3
+        !                          = 20 If the dynamic allocation of real and
+        !                               complex work space required for solution
+        !                               fails (for example if N, M are too large
+        !                               for your computer)
+        !
+        !                          SINCE THIS IS THE ONLY MEANS OF INDICATING
+        !                          A POSSIBLY INCORRECT CALL TO HWSCRT, THE
+        !                          USER SHOULD TEST IERROR AFTER THE CALL.
+        !
+        !
+        ! SPECIAL CONDITIONS     NONE
+        !
+        ! I/O                    NONE
+        !
+        ! PRECISION              SINGLE
+        !
+        ! REQUIRED files         fish.f, genbun.f, gnbnaux.f, comf.f
+        !
+        ! LANGUAGE               FORTRAN 90
+        !
+        ! HISTORY                WRITTEN BY ROLAND SWEET AT NCAR IN THE LATE
+        !                        1970'S.  RELEASED ON NCAR'S PUBLIC SOFTWARE
+        !                        LIBRARIES IN JANUARY 1980.
+        !                        Revised in June 2004 by John Adams using
+        !                        Fortran 90 dynamically allocated work space.
+        !
+        ! PORTABILITY            FORTRAN 90
+        !
+        ! ALGORITHM              THE ROUTINE DEFINES THE FINITE DIFFERENCE
+        !                        EQUATIONS, INCORPORATES BOUNDARY DATA, AND
+        !                        ADJUSTS THE RIGHT SIDE OF SINGULAR SYSTEMS
+        !                        AND THEN CALLS GENBUN TO SOLVE THE SYSTEM.
+        !
+        ! TIMING                 FOR LARGE  M AND N, THE OPERATION COUNT
+        !                        IS ROUGHLY PROPORTIONAL TO
+        !                          M*N*(LOG2(N)
+        !                        BUT ALSO DEPENDS ON INPUT PARAMETERS NBDCND
+        !                        AND MBDCND.
+        !
+        ! ACCURACY               THE SOLUTION PROCESS EMPLOYED RESULTS IN A LOSS
+        !                        OF NO MORE THAN THREE SIGNIFICANT DIGITS FOR N
+        !                        AND M AS LARGE AS 64.  MORE DETAILS ABOUT
+        !                        ACCURACY CAN BE FOUND IN THE DOCUMENTATION FOR
+        !                        SUBROUTINE GENBUN WHICH IS THE ROUTINE THAT
+        !                        SOLVES THE FINITE DIFFERENCE EQUATIONS.
+        !
+        ! REFERENCES             SWARZTRAUBER, P. AND R. SWEET, "EFFICIENT
+        !                        FORTRAN SUBPROGRAMS FOR THE SOLUTION OF
+        !                        ELLIPTIC EQUATIONS"
+        !                          NCAR TN/IA-109, JULY, 1975, 138 PP.
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
@@ -524,24 +522,24 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: m
-        integer (ip), intent (in) :: mbdcnd
-        integer (ip), intent (in) :: n
-        integer (ip), intent (in) :: nbdcnd
-        integer (ip) :: idimf
+        integer (ip), intent (in)  :: m
+        integer (ip), intent (in)  :: mbdcnd
+        integer (ip), intent (in)  :: n
+        integer (ip), intent (in)  :: nbdcnd
+        integer (ip)               :: idimf
         integer (ip), intent (out) :: ierror
-        real (wp), intent (in) :: a
-        real (wp), intent (in) :: b
-        real (wp), intent (in) :: c
-        real (wp), intent (in) :: d
-        real (wp), intent (in) :: elmbda
+        real (wp),    intent (in) :: a
+        real (wp),    intent (in) :: b
+        real (wp),    intent (in) :: c
+        real (wp),    intent (in) :: d
+        real (wp),    intent (in) :: elmbda
         real (wp), intent (out) :: pertrb
         real (wp), intent (in) :: bda(*)
         real (wp), intent (in) :: bdb(*)
         real (wp), intent (in) :: bdc(*)
         real (wp), intent (in) :: bdd(*)
-        real (wp) :: f(idimf, *)
-        real (wp) :: w(*)
+        real (wp)              :: f(idimf, *)
+        real (wp)              :: w(*)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------

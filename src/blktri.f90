@@ -1421,10 +1421,9 @@ subroutine indxb(i, ir, idx, idp)
 107 continue
 
 end subroutine indxb
-    !
-    !*****************************************************************************************
-    !
-subroutine indxc(i, ir, idxc, nc)
+
+
+pure subroutine indxc(i, ir, idxc, nc)
 
     !-----------------------------------------------
     !   D u m m y   A r g u m e n t s
@@ -1442,9 +1441,8 @@ subroutine indxc(i, ir, idxc, nc)
     end if
 
 end subroutine indxc
-    !
-    !*****************************************************************************************
-    !
+
+
 subroutine ppadd(n, ierror, a, c, cbp, bp, bh)
     !
     ! Purpose
@@ -1634,9 +1632,8 @@ go to 143
 143 continue
 
 end subroutine ppadd
-    !
-    !*****************************************************************************************
-    !
+
+
 subroutine prod(ND, BD, NM1, BM1, NM2, BM2, NA, AA, X, Y, M, A, B, C, D, W, U)
     !-----------------------------------------------
     !   D u m m y   A r g u m e n t s
@@ -1750,9 +1747,8 @@ subroutine prod(ND, BD, NM1, BM1, NM2, BM2, NA, AA, X, Y, M, A, B, C, D, W, U)
 125 continue
 
 end subroutine prod
-    !
-    !*****************************************************************************************
-    !
+
+
 subroutine prodp( nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, u, w)
     !
     ! purpose:
@@ -1893,11 +1889,10 @@ subroutine prodp( nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, u, w)
     Y(:M) = Y(:M) + RT*W(:M)
     go to 102
 128 continue
-    return
+
 end subroutine prodp
-    !
-    !*****************************************************************************************
-    !
+
+
 subroutine tevls(N, D, E2, IERR)
     !
     !
@@ -2078,9 +2073,7 @@ end if
 !     ********** LAST CARD OF TQLRAT **********
 !
 end subroutine tevls
-    !
-    !*****************************************************************************************
-    !
+
 end module module_blktri
 !
 ! REVISION HISTORY---

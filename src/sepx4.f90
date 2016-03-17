@@ -277,10 +277,10 @@ contains
             cf = -x
 
         end subroutine get_coefficients_in_x_direction
-    !
-    !*****************************************************************************************
-    !
+
+
     end subroutine sepx4_unit_test
+
 
     subroutine SEPX4(iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta, c, &
         d, n, nbdcnd, bdc, bdd, cofx, grhs, usol, idmn, pertrb, &
@@ -1179,7 +1179,6 @@ contains
 
     subroutine C4KPRM(iorder, a, b, m, mbdcnd, c, d, n, nbdcnd, cofx, &
         idmn, ierror)
-
         !-----------------------------------------------
         !   D u m m y   A r g u m e n t s
         !-----------------------------------------------
@@ -1336,8 +1335,8 @@ contains
         !-----------------------------------------------
         !   D u m m y   A r g u m e n t s
         !-----------------------------------------------
-        integer  :: idmn
-        real  :: usol(idmn, *)
+        integer                :: idmn
+        real                   :: usol(idmn, *)
         real , intent (in out) :: grhs(idmn, *)
         !-----------------------------------------------
         !   C o m m o n   B l o c k s

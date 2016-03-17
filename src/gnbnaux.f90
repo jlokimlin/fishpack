@@ -80,10 +80,9 @@ module module_gnbnaux
     public :: tri3
 
 contains
-    !
-    !*****************************************************************************************
-    !
-    subroutine cosgen(n, ijump, fnum, fden, a)
+
+
+    pure subroutine cosgen(n, ijump, fnum, fden, a)
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
@@ -148,9 +147,8 @@ contains
         end if
 
     end subroutine cosgen
-    !
-    !*****************************************************************************************
-    !
+
+
     subroutine trix(idegbr, idegcr, m, a, b, c, y, tcos, d, w)
         !-----------------------------------------------
         ! Dictionary: calling arguments
@@ -213,9 +211,8 @@ contains
         end do
 
     end subroutine trix
-    !
-    !*****************************************************************************************
-    !
+
+
     subroutine tri3(m, a, b, c, k, y1, y2, y3, tcos, d, w1, w2, w3)
         !
         ! Purpose:
@@ -394,9 +391,8 @@ contains
 109 continue
 
 end subroutine merge_rename
-    !
-    !*****************************************************************************************
-    !
+
+
 end module module_gnbnaux
 !
 ! REVISION HISTORY---
