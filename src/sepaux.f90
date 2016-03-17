@@ -62,8 +62,12 @@
 !                        features
 !
 ! PORTABILITY            FORTRAN 90
-! **********************************************************************
+!
 module module_sepaux
+
+    use, intrinsic :: iso_fortran_env, only: &
+        ip => INT32, &
+        wp => REAL64
 
     ! Explicit typing only
     implicit none
@@ -75,6 +79,13 @@ module module_sepaux
     public :: septri
     public :: sepdx
     public :: sepdy
+
+    !---------------------------------------------------------------------------------
+    ! Dictionary: global variables shared with sepeli.f90 and sepx4.f90
+    !---------------------------------------------------------------------------------
+    integer (ip), save, public :: kswx, kswy, k, l, mit, nit, is, ms, js, ns
+    real (wp),    save, public :: ait, bit, cit, dit, dlx, dly, tdlx3, tdly3, dlx4, dly4
+    !---------------------------------------------------------------------------------
 
 contains
 
@@ -88,14 +99,6 @@ contains
         real , intent (in out) :: usol(idmn, 1)
         real , intent (in) :: zn(*)
         real , intent (in) :: zm(*)
-        !-----------------------------------------------
-        !   C o m m o n   B l o c k s
-        !-----------------------------------------------
-        !...  /SPLP/
-        common /SPLP/ kswx, kswy, k, l, ait, bit, cit, dit, mit, nit, is, &
-            ms, js, ns, dlx, dly, tdlx3, tdly3, dlx4, dly4
-        integer   kswx, kswy, k, l, mit, nit, is, ms, js, ns
-        real   ait, bit, cit, dit, dlx, dly, tdlx3, tdly3, dlx4, dly4
         !-----------------------------------------------
         !   L o c a l   V a r i a b l e s
         !-----------------------------------------------
@@ -141,14 +144,6 @@ contains
         real , intent (in out) :: usol(idmn, 1)
         real , intent (in) :: zn(*)
         real , intent (in) :: zm(*)
-        !-----------------------------------------------
-        !   C o m m o n   B l o c k s
-        !-----------------------------------------------
-        !...  /SPLP/
-        common /SPLP/ kswx, kswy, k, l, ait, bit, cit, dit, mit, nit, is, &
-            ms, js, ns, dlx, dly, tdlx3, tdly3, dlx4, dly4
-        integer   kswx, kswy, k, l, mit, nit, is, ms, js, ns
-        real   ait, bit, cit, dit, dlx, dly, tdlx3, tdly3, dlx4, dly4
         !-----------------------------------------------
         !   L o c a l   V a r i a b l e s
         !-----------------------------------------------
@@ -244,7 +239,7 @@ contains
 
     end subroutine SEPTRI
 
-    subroutine SEPDX(u, idmn, i, j, uxxx, uxxxx)
+   pure subroutine SEPDX(u, idmn, i, j, uxxx, uxxxx)
 
         !-----------------------------------------------
         !   D u m m y   A r g u m e n t s
@@ -256,17 +251,7 @@ contains
         real , intent (out) :: uxxxx
         real , intent (in) :: u(idmn, 1)
         !-----------------------------------------------
-        !   C o m m o n   B l o c k s
-        !-----------------------------------------------
-        !...  /SPLP/
-        common /SPLP/ kswx, kswy, k, l, ait, bit, cit, dit, mit, nit, is, &
-            ms, js, ns, dlx, dly, tdlx3, tdly3, dlx4, dly4
-        integer   kswx, kswy, k, l, mit, nit, is, ms, js, ns
-        real   ait, bit, cit, dit, dlx, dly, tdlx3, tdly3, dlx4, dly4
-        !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
-        !-----------------------------------------------
-        !-----------------------------------------------
+
         !
         !     THIS PROGRAM COMPUTES SECOND ORDER FINITE DIFFERENCE
         !     APPROXIMATIONS TO THE THIRD AND FOURTH X
@@ -350,7 +335,7 @@ contains
 
     end subroutine SEPDX
 
-    subroutine SEPDY(u, idmn, i, j, uyyy, uyyyy)
+    pure subroutine SEPDY(u, idmn, i, j, uyyy, uyyyy)
 
         !-----------------------------------------------
         !   D u m m y   A r g u m e n t s
@@ -362,17 +347,7 @@ contains
         real , intent (out) :: uyyyy
         real , intent (in) :: u(idmn, 6)
         !-----------------------------------------------
-        !   C o m m o n   B l o c k s
-        !-----------------------------------------------
-        !...  /SPLP/
-        common /SPLP/ kswx, kswy, k, l, ait, bit, cit, dit, mit, nit, is, &
-            ms, js, ns, dlx, dly, tdlx3, tdly3, dlx4, dly4
-        integer   kswx, kswy, k, l, mit, nit, is, ms, js, ns
-        real   ait, bit, cit, dit, dlx, dly, tdlx3, tdly3, dlx4, dly4
-        !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
-        !-----------------------------------------------
-        !-----------------------------------------------
+
         !
         !     THIS PROGRAM COMPUTES SECOND ORDER FINITE DIFFERENCE
         !     APPROXIMATIONS TO THE THIRD AND FOURTH Y

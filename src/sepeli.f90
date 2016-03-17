@@ -1,5 +1,8 @@
 module module_sepeli
 
+    use, intrinsic :: iso_fortran_env, only: &
+        ip => INT32, &
+        wp => REAL64
 
     use type_FishpackWorkspace, only: &
         FishpackWorkspace
@@ -12,7 +15,9 @@ module module_sepeli
         sepmin, &
         septri, &
         sepdx, &
-        sepdy
+        sepdy, &
+        kswx, kswy, k, l, mit, nit, is, ms, js, ns, & ! saved integer constants
+        ait, bit, cit, dit, dlx, dly, tdlx3, tdly3, dlx4, dly4 ! saved real constants
 
     ! Explicit typing only!
     implicit none
@@ -21,6 +26,20 @@ module module_sepeli
     private
     public :: sepeli
     public :: sepeli_unit_test
+
+    interface
+        pure subroutine get_coefficients( grid, a, b, c)
+            import :: wp
+            !-----------------------------------------------
+            ! Dictionary: calling arguments
+            !-----------------------------------------------
+            real (wp), intent (in)  :: grid
+            real (wp), intent (out) :: a
+            real (wp), intent (out) :: b
+            real (wp), intent (out) :: c
+            !-----------------------------------------------
+        end subroutine get_coefficients
+    end interface
 
 contains
 
@@ -64,12 +83,16 @@ contains
         !-----------------------------------------------
         !   L o c a l   V a r i a b l e s
         !-----------------------------------------------
-        integer::m, n, nx, ny, i, j, mbdcnd, nbdcnd, idmn, intl, iorder, ierror
-        real , dimension(33, 33) :: usol, grhs
-        real , dimension(33) :: bda, bdb
-        real :: a, b, c, d, dlx, dly, x, af, bf, cf, y, df, ef, ff, alpha &
-            , beta, dum(1), pertrb, err, err2, err4
+        integer (ip)            :: m, n, nx, ny, i, j, mbdcnd, nbdcnd, idmn, intl, iorder, ierror
+        real (wp), allocatable  :: usol(:,:), grhs(:,:)
+        real (wp), allocatable  :: bda(:), bdb(:)
+        real (wp)               :: a, b, c, d, dlx, dly
+        real (wp)               :: x, af, bf, cf, y, df, ef, ff, alpha
+        real (wp)               :: beta, dum(1), pertrb, err, err2, err4
         !-----------------------------------------------
+
+        ! Allocate memory
+        allocate( usol(33,33), grhs(33,33), bda(33), bdb(33) )
 
         !     DEFINE ARITHMETIC FUNCTIONS GIVING EXACT SOLUTION
         !
@@ -132,7 +155,7 @@ contains
         !     OBTAIN SECOND ORDER APPROXIMATION
         !
         iorder = 2
-        call SEPELI(intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta &
+        call sepeli(intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta &
             , c, d, n, nbdcnd, dum(1:1), dum(1), dum(1:1), dum(1), &
             get_coefficients_in_x_direction, get_coefficients_in_y_direction, grhs, usol, &
             idmn, workspace, pertrb, ierror)
@@ -153,7 +176,7 @@ contains
         !     NON-INITIAL CALL
         !
         intl = 1
-        call SEPELI (intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta &
+        call sepeli (intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta &
             , c, d, n, nbdcnd, dum(1:1), dum(1), dum(1:1), dum(1), &
             get_coefficients_in_x_direction, get_coefficients_in_y_direction, grhs, usol, &
             idmn, workspace, pertrb, ierror)
@@ -172,7 +195,7 @@ contains
         !     Print earlier output from platforms with 32 and 64 bit floating point
         !     arithemtic followed by the output from this computer
         write( *, *) ''
-        write( *, *) '    SEPELI TEST RUN *** '
+        write( *, *) '    sepeli TEST RUN *** '
         write( *, *) &
             '    Previous 64 bit floating point arithmetic result '
         write( *, *) '    IERROR = 0'
@@ -183,8 +206,12 @@ contains
         write( *, *) '    IERROR =', ierror
         write( *, *) '    Second Order Discretization Error =', err2
         write( *, *) '    Fourth Order Discretization Error =', err4
-        !     release dynamically allocated real and complex work space
+
+        ! release dynamically allocated real and complex work space
         call workspace%destroy()
+
+        ! Release memory
+        deallocate( usol, grhs, bda, bdb )
 
     contains
 
@@ -225,14 +252,14 @@ contains
             return
         end function UYYE
 
-        subroutine get_coefficients_in_x_direction(x, af, bf, cf)
+        pure subroutine get_coefficients_in_x_direction(x, af, bf, cf)
             !-----------------------------------------------
             !   D u m m y   A r g u m e n t s
             !-----------------------------------------------
-            real , intent (in) :: x
-            real , intent (out) :: af
-            real , intent (out) :: bf
-            real , intent (out) :: cf
+            real (wp), intent (in) :: x
+            real (wp), intent (out) :: af
+            real (wp), intent (out) :: bf
+            real (wp), intent (out) :: cf
             !-----------------------------------------------
             !
             !     SET COEFFICIENTS IN THE X-DIRECTION.
@@ -244,14 +271,14 @@ contains
         end subroutine get_coefficients_in_x_direction
 
 
-        subroutine get_coefficients_in_y_direction(y, df, ef, ff)
+        pure subroutine get_coefficients_in_y_direction(y, df, ef, ff)
             !-----------------------------------------------
             !   D u m m y   A r g u m e n t s
             !-----------------------------------------------
-            real , intent (in) :: y
-            real , intent (out) :: df
-            real , intent (out) :: ef
-            real , intent (out) :: ff
+            real (wp), intent (in) :: y
+            real (wp), intent (out) :: df
+            real (wp), intent (out) :: ef
+            real (wp), intent (out) :: ff
             !-----------------------------------------------
             !
             !     SET COEFFICIENTS IN Y DIRECTION
@@ -264,7 +291,7 @@ contains
 
     end subroutine sepeli_unit_test
 
-    subroutine SEPELI(intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, &
+    subroutine sepeli(intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, &
         beta, c, d, n, nbdcnd, bdc, gama, bdd, xnu, cofx, cofy, grhs, &
         usol, idmn, w, pertrb, ierror)
         !
@@ -302,7 +329,7 @@ contains
         !     *                                                               *
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
-        !     SUBROUTINE SEPELI (INTL, IORDER, A, B, M, MBDCND, BDA, ALPHA, BDB, BETA, C,
+        !     SUBROUTINE sepeli (INTL, IORDER, A, B, M, MBDCND, BDA, ALPHA, BDB, BETA, C,
         !    +                   D, N, NBDCND, BDC, GAMA, BDD, XNU, COFX, COFY, GRHS,
         !    +                   USOL, IDMN, W, PERTRB, IERROR)
         !
@@ -311,7 +338,7 @@ contains
         !
         ! LATEST REVISION        JUNE 2004
         !
-        ! PURPOSE                SEPELI SOLVES FOR EITHER THE SECOND-ORDER
+        ! PURPOSE                sepeli SOLVES FOR EITHER THE SECOND-ORDER
         !                        FINITE DIFFERENCE APPROXIMATION OR A
         !                        FOURTH-ORDER APPROXIMATION TO A SEPARABLE
         !                        ELLIPTIC EQUATION
@@ -351,14 +378,14 @@ contains
         !                        (4) DU(X, C)/DY+GAMA*U(X, C), U(X, D) ARE
         !                            SPECIFIED FOR ALL X
         !
-        ! USAGE                  CALL SEPELI (INTL, IORDER, A, B, M, MBDCND, BDA,
+        ! USAGE                  CALL sepeli (INTL, IORDER, A, B, M, MBDCND, BDA,
         !                                     ALPHA, BDB, BETA, C, D, N, NBDCND, BDC,
         !                                     GAMA, BDD, XNU, COFX, COFY, GRHS, USOL,
         !                                     IDMN, W, PERTRB, IERROR)
         !
         ! ARGUMENTS
         ! ON INPUT               INTL
-        !                          = 0 ON INITIAL ENTRY TO SEPELI OR IF ANY
+        !                          = 0 ON INITIAL ENTRY TO sepeli OR IF ANY
         !                              OF THE ARGUMENTS C, D, N, NBDCND, COFY
         !                              ARE CHANGED FROM A PREVIOUS CALL
         !                          = 1 IF C, D, N, NBDCND, COFY ARE UNCHANGED
@@ -609,7 +636,7 @@ contains
         !                        IDMN
         !                          THE ROW (OR FIRST) DIMENSION OF THE ARRAYS
         !                          GRHS AND USOL AS IT APPEARS IN THE PROGRAM
-        !                          CALLING SEPELI.  THIS PARAMETER IS USED
+        !                          CALLING sepeli.  THIS PARAMETER IS USED
         !                          TO SPECIFY THE VARIABLE DIMENSION OF GRHS
         !                          AND USOL.  IDMN MUST BE AT LEAST 7 AND
         !                          GREATER THAN OR EQUAL TO M+1.
@@ -618,32 +645,32 @@ contains
         !                          A fortran 90 derived TYPE (FishpackWorkspace) variable
         !                          that must be declared by the user.  The first
         !                          two declarative statements in the user program
-        !                          calling SEPELI must be:
+        !                          calling sepeli must be:
         !
         !                               use type_FishpackWorkspace
         !                               TYPE (FishpackWorkspace) :: W
         !
         !                          The first statement makes the fishpack module
         !                          defined in the file "fish.f" available to the
-        !                          user program calling SEPELI.  The second statement
+        !                          user program calling sepeli.  The second statement
         !                          declares a derived type variable (defined in
         !                          the module "fish.f") which is used internally
-        !                          in SEPELI to dynamically allocate real and complex
+        !                          in sepeli to dynamically allocate real and complex
         !                          work space used in solution.  An error flag
         !                          (IERROR = 20) is set if the required work space
         !                          allocation fails (for example if N, M are too large)
         !                          Real and complex values are set in the components
-        !                          of W on a initial (INTL=0) call to SEPELI.  These
+        !                          of W on a initial (INTL=0) call to sepeli.  These
         !                          must be preserved on non-initial calls (INTL=1)
-        !                          to SEPELI.  This eliminates redundant calculations
+        !                          to sepeli.  This eliminates redundant calculations
         !                          and saves compute time.
-        !               ****       IMPORTANT!  The user program calling SEPELI should
+        !               ****       IMPORTANT!  The user program calling sepeli should
         !                          include the statement:
         !
         !                               CALL FISHFIN(W)
         !
         !                          after the final approximation is generated by
-        !                          SEPELI.  The will deallocate the real and complex
+        !                          sepeli.  The will deallocate the real and complex
         !                          work space of W.  Failure to include this statement
         !                          could result in serious memory leakage.
         !
@@ -660,7 +687,7 @@ contains
         !                        W
         !                          The derived type (FishpackWorkspace) variable W
         !                          contains real and complex values that must not
-        !                          be destroyed if SEPELI is called again with
+        !                          be destroyed if sepeli is called again with
         !                          INTL=1.
         !
         !                        PERTRB
@@ -677,8 +704,8 @@ contains
         !                          SOLUTION MAY NOT EXIST.  PERTRB IS A
         !                          CONSTANT CALCULATED AND SUBTRACTED FROM
         !                          THE RIGHT-HAND SIDE OF THE MATRIX EQUATIONS
-        !                          GENERATED BY SEPELI WHICH INSURES THAT A
-        !                          SOLUTION EXISTS. SEPELI THEN COMPUTES THIS
+        !                          GENERATED BY sepeli WHICH INSURES THAT A
+        !                          SOLUTION EXISTS. sepeli THEN COMPUTES THIS
         !                          SOLUTION WHICH IS A WEIGHTED MINIMAL LEAST
         !                          SQUARES SOLUTION TO THE ORIGINAL PROBLEM.
         !
@@ -739,14 +766,14 @@ contains
         !                        mode conflicts in the earlier versions. All
         !                        statement labels, arithmetic if statements and
         !                        computed GO TO statements have been removed from
-        !                        the current version of SEPELI.
+        !                        the current version of sepeli.
         !
-        ! ALGORITHM              SEPELI AUTOMATICALLY DISCRETIZES THE
+        ! ALGORITHM              sepeli AUTOMATICALLY DISCRETIZES THE
         !                        SEPARABLE ELLIPTIC EQUATION WHICH IS THEN
         !                        SOLVED BY A GENERALIZED CYCLIC REDUCTION
         !                        ALGORITHM IN THE SUBROUTINE, BLKTRI.  THE
         !                        FOURTH-ORDER SOLUTION IS OBTAINED USING
-        !                        'DEFERRED CORRECTIONS' WHICH IS DESCRIBED
+        !                        'deferRED CORRECTIONS' WHICH IS DESCRIBED
         !                        AND REFERENCED IN SECTIONS, REFERENCES AND
         !                        METHOD.
         !
@@ -779,7 +806,7 @@ contains
         !                        NCAR-TN/IA-109, PP. 135-137.
         !***********************************************************************
 
-        type (FishpackWorkspace) :: w
+
         external cofx, cofy
         !-----------------------------------------------
         !   D u m m y   A r g u m e n t s
@@ -792,21 +819,22 @@ contains
         integer  :: nbdcnd
         integer  :: idmn
         integer  :: ierror
-        real  :: a
-        real  :: b
-        real  :: alpha
-        real  :: beta
-        real  :: c
-        real  :: d
-        real  :: gama
-        real  :: xnu
-        real  :: pertrb
-        real  :: bda(:)
-        real  :: bdb(:)
-        real  :: bdc(:)
-        real  :: bdd(:)
-        real  :: grhs(idmn, *)
-        real  :: usol(idmn, *)
+        real (wp) :: a
+        real (wp) :: b
+        real (wp) :: alpha
+        real (wp) :: beta
+        real (wp) :: c
+        real (wp) :: d
+        real (wp) :: gama
+        real (wp) :: xnu
+        real (wp) :: pertrb
+        real (wp) :: bda(:)
+        real (wp) :: bdb(:)
+        real (wp) :: bdc(:)
+        real (wp) :: bdd(:)
+        real (wp) :: grhs(idmn, *)
+        real (wp) :: usol(idmn, *)
+        type (FishpackWorkspace) :: w
         !-----------------------------------------------
         !   L o c a l   V a r i a b l e s
         !-----------------------------------------------
@@ -819,7 +847,7 @@ contains
         !-----------------------------------------------
         !     save local variable work space pointers for noninitial call
         !     check input arguments
-        call CHKPRM (intl, iorder, a, b, m, mbdcnd, c, d, n, nbdcnd, cofx &
+        call chkprm (intl, iorder, a, b, m, mbdcnd, c, d, n, nbdcnd, cofx &
             , cofy, idmn, ierror)
         if (ierror /= 0) return
         if (intl == 0) then
@@ -855,16 +883,16 @@ contains
         end if
         ierror = 0
         !     compute second or fourth order solution
-        call SPELIP (intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta, c, d, n, &
+        call spelip(intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta, c, d, n, &
             nbdcnd, bdc, gama, bdd, xnu, cofx, cofy, w%rew(i1), w%rew(i2), w%rew(i3), &
             w%rew(i4), w%rew(i5), w%rew(i6), w%rew(i7), w%rew(i8), w%rew(i9), &
             w%rew(i10), w%rew(i11), w%rew(i12), grhs, usol, idmn, w%rew, w%cxw, &
             pertrb, ierror)
 
-    end subroutine SEPELI
+    end subroutine sepeli
 
 
-    subroutine SPELIP(intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, &
+    subroutine spelip(intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, &
         beta, c, d, n, nbdcnd, bdc, gama, bdd, xnu, cofx, cofy, an, bn &
         , cn, dn, un, zn, am, bm, cm, dm, um, zm, grhs, usol, idmn, w, &
         wc, pertrb, ierror)
@@ -874,54 +902,46 @@ contains
         !   D u m m y   A r g u m e n t s
         !-----------------------------------------------
         integer  :: intl
-        integer , intent (in) :: iorder
-        integer , intent (in) :: m
+        integer (ip), intent (in) :: iorder
+        integer (ip), intent (in) :: m
         integer  :: mbdcnd
-        integer , intent (in) :: n
+        integer (ip), intent (in) :: n
         integer  :: nbdcnd
         integer  :: idmn
         integer  :: ierror
-        real , intent (in) :: a
-        real , intent (in) :: b
-        real  :: alpha
-        real  :: beta
-        real , intent (in) :: c
-        real , intent (in) :: d
-        real  :: gama
-        real  :: xnu
-        real  :: pertrb
-        real , intent (in) :: bda(*)
-        real , intent (in) :: bdb(*)
-        real , intent (in) :: bdc(*)
-        real , intent (in) :: bdd(*)
-        real  :: an(*)
-        real  :: bn(*)
-        real  :: cn(*)
-        real  :: dn(*)
-        real  :: un(*)
-        real  :: zn(*)
-        real  :: am(*)
-        real  :: bm(*)
-        real  :: cm(*)
-        real  :: dm(*)
-        real  :: um(*)
-        real  :: zm(*)
-        real  :: grhs(idmn, *)
-        real  :: usol(idmn, *)
-        real  :: w(*)
+        real (wp), intent (in) :: a
+        real (wp), intent (in) :: b
+        real (wp) :: alpha
+        real (wp) :: beta
+        real (wp), intent (in) :: c
+        real (wp), intent (in) :: d
+        real (wp) :: gama
+        real (wp) :: xnu
+        real (wp) :: pertrb
+        real (wp), intent (in) :: bda(*)
+        real (wp), intent (in) :: bdb(*)
+        real (wp), intent (in) :: bdc(*)
+        real (wp), intent (in) :: bdd(*)
+        real (wp) :: an(*)
+        real (wp) :: bn(*)
+        real (wp) :: cn(*)
+        real (wp) :: dn(*)
+        real (wp) :: un(*)
+        real (wp) :: zn(*)
+        real (wp) :: am(*)
+        real (wp) :: bm(*)
+        real (wp) :: cm(*)
+        real (wp) :: dm(*)
+        real (wp) :: um(*)
+        real (wp) :: zm(*)
+        real (wp) :: grhs(idmn, *)
+        real (wp) :: usol(idmn, *)
+        real (wp) :: w(*)
         complex  :: wc(*)
-        !-----------------------------------------------
-        !   C o m m o n   B l o c k s
-        !-----------------------------------------------
-        !...  /SPLP/
-        common /SPLP/ kswx, kswy, k, l, ait, bit, cit, dit, mit, nit, is, &
-            ms, js, ns, dlx, dly, tdlx3, tdly3, dlx4, dly4
-        integer   kswx, kswy, k, l, mit, nit, is, ms, js, ns
-        real   ait, bit, cit, dit, dlx, dly, tdlx3, tdly3, dlx4, dly4
         !-----------------------------------------------
         !   L o c a l   V a r i a b l e s
         !-----------------------------------------------
-        integer :: i, j, i1, mp, np
+        integer (ip) :: i, j, i1, mp, np
         real :: xi, ai, bi, ci, axi, bxi, cxi, yj, dj, ej, fj, dyj, eyj, &
             fyj, ax1, cxm, dy1, fyn, prtrb
         logical :: singlr
@@ -930,9 +950,9 @@ contains
         !-----------------------------------------------
         !-----------------------------------------------
         !
-        !     SPELIP SETS UP VECTORS AND ARRAYS FOR INPUT TO BLKTRI
+        !     spelip SETS UP VECTORS AND ARRAYS FOR INPUT TO BLKTRI
         !     AND COMPUTES A SECOND ORDER SOLUTION IN USOL.  A RETURN JUMP TO
-        !     SEPELI OCCURRS IF IORDER=2.  IF IORDER=4 A FOURTH ORDER
+        !     sepeli OCCURRS IF IORDER=2.  IF IORDER=4 A FOURTH ORDER
         !     SOLUTION IS GENERATED IN USOL.
         !
         !
@@ -1165,7 +1185,7 @@ contains
         !
         !     CHECK IF OPERATOR IS SINGULAR
         !
-        call CHKSNG(mbdcnd, nbdcnd, alpha, beta, gama, xnu, cofx, cofy, singlr)
+        call chksng(mbdcnd, nbdcnd, alpha, beta, gama, xnu, cofx, cofy, singlr)
         !
         !     COMPUTE NON-ZERO EIGENVECTOR IN NULL SPACE OF TRANSPOSE
         !     IF SINGULAR
@@ -1205,14 +1225,14 @@ contains
         !
         if (singlr) call SEPMIN (usol, idmn, zn, zm, prtrb)
         !
-        !     RETURN IF DEFERRED CORRECTIONS AND A FOURTH ORDER SOLUTION ARE
+        !     RETURN IF deferRED CORRECTIONS AND A FOURTH ORDER SOLUTION ARE
         !     NOT FLAGGED
         !
         if (iorder == 2) return
         !
         !     COMPUTE NEW RIGHT HAND SIDE FOR FOURTH ORDER SOLUTION
         !
-        call DEFER (cofx, cofy, idmn, usol, grhs)
+        call defer (cofx, cofy, idmn, usol, grhs)
         if (singlr) call SEPORT (usol, idmn, zn, zm, pertrb)
         !
         !     COMPUTE fourth order SOLUTION
@@ -1235,30 +1255,30 @@ contains
         !
         if (singlr) call SEPMIN (usol, idmn, zn, zm, prtrb)
 
-    end subroutine SPELIP
+    end subroutine spelip
 
-    subroutine CHKPRM(intl, iorder, a, b, m, mbdcnd, c, d, n, nbdcnd, &
+    subroutine chkprm(intl, iorder, a, b, m, mbdcnd, c, d, n, nbdcnd, &
         cofx, cofy, idmn, ierror)
 
         !-----------------------------------------------
         !   D u m m y   A r g u m e n t s
         !-----------------------------------------------
-        integer , intent (in) :: intl
-        integer , intent (in) :: iorder
-        integer , intent (in) :: m
-        integer , intent (in) :: mbdcnd
-        integer , intent (in) :: n
-        integer , intent (in) :: nbdcnd
-        integer , intent (in) :: idmn
-        integer , intent (out) :: ierror
-        real , intent (in) :: a
-        real , intent (in) :: b
-        real , intent (in) :: c
-        real , intent (in) :: d
+        integer (ip), intent (in) :: intl
+        integer (ip), intent (in) :: iorder
+        integer (ip), intent (in) :: m
+        integer (ip), intent (in) :: mbdcnd
+        integer (ip), intent (in) :: n
+        integer (ip), intent (in) :: nbdcnd
+        integer (ip), intent (in) :: idmn
+        integer (ip), intent (out) :: ierror
+        real (wp), intent (in) :: a
+        real (wp), intent (in) :: b
+        real (wp), intent (in) :: c
+        real (wp), intent (in) :: d
         !-----------------------------------------------
         !   L o c a l   V a r i a b l e s
         !-----------------------------------------------
-        integer :: i, j
+        integer (ip) :: i, j
         real :: dlx, dly, xi, ai, bi, ci, yj, dj, ej, fj
         !-----------------------------------------------
         !   E x t e r n a l   F u n c t i o n s
@@ -1340,40 +1360,30 @@ contains
         !
         ierror = 0
 
-    end subroutine CHKPRM
+    end subroutine chkprm
 
-    subroutine CHKSNG(mbdcnd, nbdcnd, alpha, beta, gama, xnu, cofx, &
+
+    subroutine chksng(mbdcnd, nbdcnd, alpha, beta, gama, xnu, cofx, &
         cofy, singlr)
-
         !-----------------------------------------------
         !   D u m m y   A r g u m e n t s
         !-----------------------------------------------
-        integer , intent (in) :: mbdcnd
-        integer , intent (in) :: nbdcnd
-        real , intent (in) :: alpha
-        real , intent (in) :: beta
-        real , intent (in) :: gama
-        real , intent (in) :: xnu
+        integer (ip), intent (in) :: mbdcnd
+        integer (ip), intent (in) :: nbdcnd
+        real (wp),    intent (in) :: alpha
+        real (wp), intent (in) :: beta
+        real (wp), intent (in) :: gama
+        real (wp), intent (in) :: xnu
         logical , intent (out) :: singlr
-        !-----------------------------------------------
-        !   C o m m o n   B l o c k s
-        !-----------------------------------------------
-        !...  /SPLP/
-        common /SPLP/ kswx, kswy, k, l, ait, bit, cit, dit, mit, nit, is, &
-            ms, js, ns, dlx, dly, tdlx3, tdly3, dlx4, dly4
-        integer   kswx, kswy, k, l, mit, nit, is, ms, js, ns
-        real   ait, bit, cit, dit, dlx, dly, tdlx3, tdly3, dlx4, dly4
         !-----------------------------------------------
         !   L o c a l   V a r i a b l e s
         !-----------------------------------------------
-        integer :: i, j
+        integer (ip) :: i, j
         real :: xi, ai, bi, ci, yj, dj, ej, fj
         !-----------------------------------------------
-        !   E x t e r n a l   F u n c t i o n s
-        !-----------------------------------------------
-        !-----------------------------------------------
+
         !
-        !     THIS SUBROUTINE CHECKS IF THE PDE   SEPELI
+        !     THIS SUBROUTINE CHECKS IF THE PDE   sepeli
         !     MUST SOLVE IS A SINGULAR OPERATOR
         !
         singlr = .false.
@@ -1402,6 +1412,7 @@ contains
             if (ci == 0.0) cycle
             return
         end do
+
         do j = js, ns
             yj = cit + real(j - 1)*dly
             call COFY (yj, dj, ej, fj)
@@ -1413,32 +1424,25 @@ contains
         !
         singlr = .true.
 
-    end subroutine CHKSNG
+    end subroutine chksng
 
-    subroutine DEFER(cofx, cofy, idmn, usol, grhs)
+
+    subroutine defer(cofx, cofy, idmn, usol, grhs)
 
         !-----------------------------------------------
         !   D u m m y   A r g u m e n t s
         !-----------------------------------------------
-        integer  :: idmn
-        real  :: usol(idmn, *)
-        real , intent (in out) :: grhs(idmn, *)
-        !-----------------------------------------------
-        !   C o m m o n   B l o c k s
-        !-----------------------------------------------
-        !...  /SPLP/
-        common /SPLP/ kswx, kswy, k, l, ait, bit, cit, dit, mit, nit, is, &
-            ms, js, ns, dlx, dly, tdlx3, tdly3, dlx4, dly4
-        integer   kswx, kswy, k, l, mit, nit, is, ms, js, ns
-        real   ait, bit, cit, dit, dlx, dly, tdlx3, tdly3, dlx4, dly4
+        integer (ip), intent (in)  :: idmn
+        real (wp)                  :: usol(idmn, *)
+        real (wp), intent (in out) :: grhs(idmn, *)
         !-----------------------------------------------
         !   L o c a l   V a r i a b l e s
         !-----------------------------------------------
-        integer :: j, i
-        real::yj, dj, ej, fj, xi, ai, bi, ci, uxxx, uxxxx, uyyy, uyyyy, tx, ty
+        integer (ip) :: j, i
+        real (wp)    :: yj, dj, ej, fj, xi, ai, bi, ci
+        real (wp)    :: uxxx, uxxxx, uyyy, uyyyy, tx, ty
         !-----------------------------------------------
-        !   E x t e r n a l   F u n c t i o n s
-        !-----------------------------------------------
+
         !-----------------------------------------------
         !
         !     THIS SUBROUTINE FIRST APPROXIMATES THE TRUNCATION ERROR GIVEN BY
@@ -1487,7 +1491,7 @@ contains
         !
         usol(is:ms, js:ns) = GRHS(is:ms, js:ns)
 
-    end subroutine DEFER
+    end subroutine defer
 
 end module module_sepeli
 !

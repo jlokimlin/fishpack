@@ -15,7 +15,9 @@ module module_sepx4
         sepmin, &
         septri, &
         sepdx, &
-        sepdy
+        sepdy, &
+        kswx, kswy, k, l, mit, nit, is, ms, js, ns, & ! saved integer constants
+        ait, bit, cit, dit, dlx, dly, tdlx3, tdly3, dlx4, dly4 ! saved real constants
 
     ! Explicit typing only!
     implicit none
@@ -1338,14 +1340,6 @@ contains
         integer                :: idmn
         real                   :: usol(idmn, *)
         real , intent (in out) :: grhs(idmn, *)
-        !-----------------------------------------------
-        !   C o m m o n   B l o c k s
-        !-----------------------------------------------
-        !...  /SPLP/
-        common /SPLP/ kswx, kswy, k, l, ait, bit, cit, dit, mit, nit, is, &
-            ms, js, ns, dlx, dly, tdlx3, tdly3, dlx4, dly4
-        integer   kswx, kswy, k, l, mit, nit, is, ms, js, ns
-        real   ait, bit, cit, dit, dlx, dly, tdlx3, tdly3, dlx4, dly4
         !-----------------------------------------------
         !   L o c a l   V a r i a b l e s
         !-----------------------------------------------

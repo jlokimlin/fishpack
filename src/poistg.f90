@@ -474,123 +474,152 @@ contains
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
-        integer (ip) :: nperod
-        integer (ip) :: n
-        integer (ip) :: mperod
-        integer (ip) :: m
-        integer (ip) :: idimy
-        integer (ip) :: ierror
-        real (wp)    :: a(*)
-        real (wp)    :: b(*)
-        real (wp)    :: c(*)
-        real (wp)    :: y(idimy, *)
+        integer (ip),          intent (in)     :: nperod
+        integer (ip),          intent (in)     :: n
+        integer (ip),          intent (in)     :: mperod
+        integer (ip),          intent (in)     :: m
+        integer (ip),          intent (in)     :: idimy
+        integer (ip),          intent (out)    :: ierror
+        real (wp), contiguous, intent (in)     :: a(:)
+        real (wp), contiguous, intent (in)     :: b(:)
+        real (wp), contiguous, intent (in)     :: c(:)
+        real (wp), contiguous, intent (in out) :: y(:,:)
         !--------------------------------------------------------------------------------
         ! Dictionary: local variables
         !--------------------------------------------------------------------------------
-        integer (ip)             :: i, irwk, icwk
+        integer (ip)             :: i !! Counter
         type (FishpackWorkspace) :: workspace
         !-----------------------------------------------
+
+        ! Initialize error flag
         ierror = 0
 
-        ! Perform sanity checks
+        ! Perform sanity check: case 1
         if (m <= 2) then
             ierror = 1
             return
         end if
 
+        ! Perform sanity check: case 2
         if (n <= 2) then
             ierror = 2
             return
         end if
 
+        ! Perform sanity check: case 3
         if (idimy < m) then
             ierror = 3
             return
         end if
 
-        if (nperod<1 .or. nperod>4) then
+        ! Perform sanity check: case 4
+        if (nperod < 1 .or. nperod > 4) then
             ierror = 4
             return
         end if
 
-        if (mperod<0 .or. mperod>1) then
+        ! Perform sanity check: case 5
+        if (mperod < 0 .or. mperod > 1) then
             ierror = 5
             return
         end if
 
+        ! Perform sanity check: case 6
         if (mperod /= 1) then
             do i = 1, m
-                if (A(i) /= C(1)) go to 102
-                if (C(i) /= C(1)) go to 102
-                if (B(i) /= B(1)) go to 102
+                if (A(i) /= C(1)) then
+                    ierror = 6
+                    exit
+                end if
+                if (C(i) /= C(1)) then
+                    ierror = 6
+                    exit
+                end if
+                if (B(i) /= B(1)) then
+                    ierror = 6
+                    exit
+                end if
             end do
-            go to 104
-102     continue
-        ierror = 6
-        return
-    end if
-    if (A(1)/=0. .or. C(m)/=0.) ierror = 7
-104 continue
-    if (ierror /= 0) return
-    !     compute and allocate real work space for poistg
-    irwk = m*(9 + INT(log(real(n))/log(2.0))) + 4*n
-    icwk = 0
-    call workspace%create( irwk, icwk, ierror )
-    !     return if allocation failed (e.g., if n, m are too large)
-    if (ierror == 20) return
-    call  poistgg(nperod, n, mperod, m, a, b, c, idimy, y, ierror, workspace%rew)
-    !     release work space
-    call workspace%destroy()
+        end if
 
-end subroutine poistg
+        ! Perform sanity check: case 7
+        if (A(1)/= 0.0_wp .or. C(m)/= 0.0_wp) then
+            ierror = 7
+            return
+        end if
+
+        ! Final sanity check
+        if (ierror /= 0) then
+            return
+        end if
+
+        ! Compute and allocate real work space for poistg
+
+        associate( &
+            irwk => m * (9 + int(log(real(n, kind=wp))/log(2.0_wp),kind=ip)) + 4 * n, &
+            icwk => 0 &
+            )
+            call workspace%create( irwk, icwk, ierror )
+        end associate
+
+        ! return if allocation failed (e.g., if n, m are too large)
+        if (ierror == 20) return
+
+        ! Solve system
+        call  poistgg( nperod, n, mperod, m, a, b, c, idimy, y, ierror, workspace%rew )
+
+        ! release work space
+        call workspace%destroy()
+
+    end subroutine poistg
 
 
-subroutine poistgg(nperod, n, mperod, m, a, b, c, idimy, y, ierror, w)
-    !--------------------------------------------------------------------------------
-    ! Dictionary: local variables
-    !--------------------------------------------------------------------------------
-    integer (ip), intent (in) :: nperod
-    integer (ip) :: n
-    integer (ip), intent (in) :: mperod
-    integer (ip) :: m
-    integer (ip) :: idimy
-    integer (ip) :: ierror
-    real (wp), intent (in) :: a(*)
-    real (wp), intent (in) :: b(*)
-    real (wp), intent (in) :: c(*)
-    real (wp) :: y(idimy, *)
-    real (wp) :: w(*)
-    !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
-    !-----------------------------------------------
-    integer (ip) :: iwba, iwbb, iwbc, iwb2, iwb3, iww1, iww2, iww3, iwd
-    integer (ip) :: iwtcos, iwp, i, k, j, np, mp, ipstor, irev, mh, mhm1, modd
-    integer (ip) :: mhpi, mhmi, nby2, mskip
-    real (wp)    :: a1
-    !-----------------------------------------------
-    iwba = m + 1
-    iwbb = iwba + m
-    iwbc = iwbb + m
-    iwb2 = iwbc + m
-    iwb3 = iwb2 + m
-    iww1 = iwb3 + m
-    iww2 = iww1 + m
-    iww3 = iww2 + m
-    iwd = iww3 + m
-    iwtcos = iwd + m
-    iwp = iwtcos + 4*n
-    do i = 1, m
-        k = iwba + i - 1
-        w(k) = -A(i)
-        k = iwbc + i - 1
-        w(k) = -C(i)
-        k = iwbb + i - 1
-        w(k) = 2. - B(i)
-        y(i, :n) = -Y(i, :n)
-    end do
-    np = nperod
-    mp = mperod + 1
-    go to (110, 107) mp
+    subroutine poistgg(nperod, n, mperod, m, a, b, c, idimy, y, ierror, w)
+        !--------------------------------------------------------------------------------
+        ! Dictionary: local variables
+        !--------------------------------------------------------------------------------
+        integer (ip), intent (in)     :: nperod
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: mperod
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: idimy
+        integer (ip), intent (in)     :: ierror
+        real (wp),    intent (in)     :: a(*)
+        real (wp),    intent (in)     :: b(*)
+        real (wp),    intent (in)     :: c(*)
+        real (wp),    intent (in out) :: y(idimy, *)
+        real (wp),    intent (in out) :: w(*)
+        !-----------------------------------------------
+        !   L o c a l   V a r i a b l e s
+        !-----------------------------------------------
+        integer (ip) :: iwba, iwbb, iwbc, iwb2, iwb3, iww1, iww2, iww3, iwd
+        integer (ip) :: iwtcos, iwp, i, k, j, np, mp, ipstor, irev, mh, mhm1, modd
+        integer (ip) :: mhpi, mhmi, nby2, mskip
+        real (wp)    :: a1
+        !-----------------------------------------------
+        iwba = m + 1
+        iwbb = iwba + m
+        iwbc = iwbb + m
+        iwb2 = iwbc + m
+        iwb3 = iwb2 + m
+        iww1 = iwb3 + m
+        iww2 = iww1 + m
+        iww3 = iww2 + m
+        iwd = iww3 + m
+        iwtcos = iwd + m
+        iwp = iwtcos + 4*n
+        do i = 1, m
+            k = iwba + i - 1
+            w(k) = -A(i)
+            k = iwbc + i - 1
+            w(k) = -C(i)
+            k = iwbb + i - 1
+            w(k) = 2. - B(i)
+            y(i, :n) = -Y(i, :n)
+        end do
+        np = nperod
+        mp = mperod + 1
+        go to (110, 107) mp
 107 continue
     go to (108, 108, 108, 119) nperod
 108 continue
