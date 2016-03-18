@@ -79,357 +79,385 @@ module module_sepaux
     public :: septri
     public :: sepdx
     public :: sepdy
+    public :: get_coefficients
 
     !---------------------------------------------------------------------------------
     ! Dictionary: global variables shared with sepeli.f90 and sepx4.f90
     !---------------------------------------------------------------------------------
     integer (ip), save, public :: kswx, kswy, k, l, mit, nit, is, ms, js, ns
-    real (wp),    save, public :: ait, bit, cit, dit, dlx, dly, tdlx3, tdly3, dlx4, dly4
+    real (wp),    save, public :: ait, bit, cit, dit
+    real (wp),    save, public :: dlx, dly, tdlx3, tdly3, dlx4, dly4
     !---------------------------------------------------------------------------------
+
+    interface
+
+        pure subroutine get_coefficients( grid, a, b, c)
+            import :: wp
+            !-----------------------------------------------
+            ! Dictionary: calling arguments
+            !-----------------------------------------------
+            real (wp), intent (in)  :: grid
+            real (wp), intent (out) :: a
+            real (wp), intent (out) :: b
+            real (wp), intent (out) :: c
+            !-----------------------------------------------
+        end subroutine get_coefficients
+
+    end interface
+
 
 contains
 
-    subroutine SEPORT(usol, idmn, zn, zm, pertrb)
 
-        !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
-        !-----------------------------------------------
-        integer , intent (in) :: idmn
-        real , intent (out) :: pertrb
-        real , intent (in out) :: usol(idmn, 1)
-        real , intent (in) :: zn(*)
-        real , intent (in) :: zm(*)
-        !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
-        !-----------------------------------------------
-        integer :: istr, ifnl, jstr, jfnl, i, ii, j, jj
-        real :: ute, ete
-        !-----------------------------------------------
+    subroutine seport(usol, idmn, zn, zm, pertrb)
         !
-        !     THIS SUBROUTINE ORTHOGANALIZES THE ARRAY USOL WITH RESPECT TO
-        !     THE CONSTANT ARRAY IN A WEIGHTED LEAST SQUARES NORM
+        ! Purpose:
         !
+        !    this subroutine orthoganalizes the array usol with respect to
+        !     the constant array in a weighted least squares norm
+        !
+        !--------------------------------------------------------------------------------
+        ! Dictionary: calling arguments
+        !--------------------------------------------------------------------------------
+        integer (ip), intent (in)     :: idmn
+        real (wp),    intent (out)    :: pertrb
+        real (wp),    intent (in out) :: usol(idmn, 1)
+        real (wp),    intent (in)     :: zn(*)
+        real (wp),    intent (in)     :: zm(*)
+        !--------------------------------------------------------------------------------
+        ! Dictionary: local variables
+        !--------------------------------------------------------------------------------
+        integer (ip) :: istr, ifnl, jstr, jfnl, i, ii, j, jj
+        real (wp)    :: ute, ete
+        !--------------------------------------------------------------------------------
+
         istr = is
         ifnl = ms
         jstr = js
         jfnl = ns
         !
-        !     COMPUTE WEIGHTED INNER PRODUCTS
+        !     compute weighted inner products
         !
         ute = 0.0
         ete = 0.0
         do i = is, ms
             ii = i - is + 1
-            ete = ete + SUM(ZM(ii)*ZN(:ns-js+1))
-            ute = ute + SUM(USOL(i, js:ns)*ZM(ii)*ZN(:ns-js+1))
+            ete = ete + sum(zm(ii)*zn(:ns-js+1))
+            ute = ute + sum(usol(i, js:ns)*zm(ii)*zn(:ns-js+1))
         end do
         !
-        !     SET PERTURBATION PARAMETER
+        !     set perturbation parameter
         !
         pertrb = ute/ete
         !
-        !     SUBTRACT OFF CONSTANT PERTRB
+        !     subtract off constant pertrb
         !
-        usol(istr:ifnl, jstr:jfnl) = USOL(istr:ifnl, jstr:jfnl) - pertrb
+        usol(istr:ifnl, jstr:jfnl) = usol(istr:ifnl, jstr:jfnl) - pertrb
 
-    end subroutine SEPORT
+    end subroutine seport
 
-    subroutine SEPMIN(usol, idmn, zn, zm, pertb)
 
-        !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
-        !-----------------------------------------------
-        integer , intent (in) :: idmn
-        real  :: pertb
-        real , intent (in out) :: usol(idmn, 1)
-        real , intent (in) :: zn(*)
-        real , intent (in) :: zm(*)
-        !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
-        !-----------------------------------------------
-        integer :: istr, ifnl, jstr, jfnl, i, ii, j, jj
-        real :: ute, ete, pertrb
-        !-----------------------------------------------
+    subroutine sepmin(usol, idmn, zn, zm, pertb)
         !
-        !     THIS SUBROUTINE ORHTOGONALIZES THE ARRAY USOL WITH RESPECT TO
-        !     THE CONSTANT ARRAY IN A WEIGHTED LEAST SQUARES NORM
+        ! Purpose:
+        !
+        !     this subroutine orhtogonalizes the array usol with respect to
+        !     the constant array in a weighted least squares norm
         !
         !
-        !     ENTRY AT SEPMIN OCCURRS WHEN THE FINAL SOLUTION IS
-        !     TO BE MINIMIZED WITH RESPECT TO THE WEIGHTED
-        !     LEAST SQUARES NORM
+        !     entry at sepmin occurrs when the final solution is
+        !     to be minimized with respect to the weighted
+        !     least squares norm
         !
+        !--------------------------------------------------------------------------------
+        ! Dictionary: calling arguments
+        !--------------------------------------------------------------------------------
+        integer (ip), intent (in)     :: idmn
+        real (wp),    intent (out)    :: pertb
+        real (wp),    intent (in out) :: usol(idmn, 1)
+        real (wp),    intent (in)     :: zn(*)
+        real (wp),    intent (in)     :: zm(*)
+        !--------------------------------------------------------------------------------
+        ! Dictionary: local variables
+        !--------------------------------------------------------------------------------
+        integer (ip) :: istr, ifnl, jstr, jfnl, i, ii, j, jj
+        real (wp)    :: ute, ete, pertrb
+        !-----------------------------------------------
+
         istr = 1
         ifnl = k
         jstr = 1
         jfnl = l
-        !
-        !     COMPUTE WEIGHTED INNER PRODUCTS
-        !
-        ute = 0.0
-        ete = 0.0
+
+        ! compute weighted inner products
+        ute = 0.0_wp
+        ete = 0.0_wp
         do i = is, ms
             ii = i - is + 1
-            ete = ete + SUM(ZM(ii)*ZN(:ns-js+1))
-            ute = ute + SUM(USOL(i, js:ns)*ZM(ii)*ZN(:ns-js+1))
+            ete = ete + sum(zm(ii) * zn(:ns-js+1))
+            ute = ute + sum(usol(i, js:ns) * zm(ii) * zn(:ns-js+1))
         end do
-        !
-        !     SET PERTURBATION PARAMETER
-        !
+
+        ! set perturbation parameter
         pertrb = ute/ete
-        !
-        !     SUBTRACT OFF CONSTANT PERTRB
-        !
-        usol(istr:ifnl, jstr:jfnl) = USOL(istr:ifnl, jstr:jfnl) - pertrb
 
-    end subroutine SEPMIN
+        ! subtract off constant pertrb
+        usol(istr:ifnl, jstr:jfnl) = usol(istr:ifnl, jstr:jfnl) - pertrb
 
-    subroutine SEPTRI(n, a, b, c, d, u, z)
+    end subroutine sepmin
 
-        !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
-        !-----------------------------------------------
-        integer , intent (in) :: n
-        real , intent (in) :: a(n)
-        real , intent (in) :: b(n)
-        real , intent (in) :: c(n)
-        real , intent (in out) :: d(n)
-        real , intent (in out) :: u(n)
-        real , intent (in out) :: z(n)
-        !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
-        !-----------------------------------------------
-        integer :: nm2, j, nm1, k
-        real :: bn, v, den, an
-        !-----------------------------------------------
+
+    subroutine septri(n, a, b, c, d, u, z)
+            !
+        !     this subroutine solves for a non-zero eigenvector corresponding
+        !     to the zero eigenvalue of the transpose of the rank
+        !     deficient one matrix with subdiagonal a, diagonal b, and
+        !     superdiagonal c , with a(1) in the (1, n) position, with
+        !     c(n) in the (n, 1) position, and all other elements zero.
         !
-        !     THIS SUBROUTINE SOLVES FOR A NON-ZERO EIGENVECTOR CORRESPONDING
-        !     TO THE ZERO EIGENVALUE OF THE TRANSPOSE OF THE RANK
-        !     DEFICIENT ONE MATRIX WITH SUBDIAGONAL A, DIAGONAL B, AND
-        !     SUPERDIAGONAL C , WITH A(1) IN THE (1, N) POSITION, WITH
-        !     C(N) IN THE (N, 1) POSITION, AND ALL OTHER ELEMENTS ZERO.
-        !
-        bn = B(n)
-        d(1) = A(2)/B(1)
-        v = A(1)
-        u(1) = C(n)/B(1)
+        !--------------------------------------------------------------------------------
+        ! Dictionary: calling arguments
+        !--------------------------------------------------------------------------------
+        integer (ip), intent (in)     :: n
+        real (wp),    intent (in)     :: a(n)
+        real (wp),    intent (in)     :: b(n)
+        real (wp),    intent (in)     :: c(n)
+        real (wp),    intent (in out) :: d(n)
+        real (wp),    intent (in out) :: u(n)
+        real (wp),    intent (in out) :: z(n)
+        !--------------------------------------------------------------------------------
+        ! Dictionary: local variables
+        !--------------------------------------------------------------------------------
+        integer (ip) :: nm2, j, nm1, k
+        real (wp)    :: bn, v, den, an
+        !--------------------------------------------------------------------------------
+
+        bn = b(n)
+        d(1) = a(2)/b(1)
+        v = a(1)
+        u(1) = c(n)/b(1)
         nm2 = n - 2
         do j = 2, nm2
-            den = B(j) - C(j-1)*D(j-1)
-            d(j) = A(j+1)/den
-            u(j) = -C(j-1)*U(j-1)/den
-            bn = bn - v*U(j-1)
-            v = -v*D(j-1)
+            den = b(j) - c(j-1)*d(j-1)
+            d(j) = a(j+1)/den
+            u(j) = -c(j-1)*u(j-1)/den
+            bn = bn - v*u(j-1)
+            v = -v*d(j-1)
         end do
-        den = B(n-1) - C(n-2)*D(n-2)
-        d(n-1) = (A(n)-C(n-2)*U(n-2))/den
-        an = C(n-1) - v*D(n-2)
-        bn = bn - v*U(n-2)
-        den = bn - an*D(n-1)
+        den = b(n-1) - c(n-2)*d(n-2)
+        d(n-1) = (a(n)-c(n-2)*u(n-2))/den
+        an = c(n-1) - v*d(n-2)
+        bn = bn - v*u(n-2)
+        den = bn - an*d(n-1)
         !
-        !     SET LAST COMPONENT EQUAL TO ONE
+        !     set last component equal to one
         !
-        z(n) = 1.0
-        z(n-1) = -D(n-1)
+        z(n) = 1.0_wp
+        z(n-1) = -d(n-1)
         nm1 = n - 1
         do j = 2, nm1
             k = n - j
-            z(k) = (-D(k)*Z(k+1)) - U(k)*Z(n)
+            z(k) = (-d(k)*z(k+1)) - u(k)*z(n)
         end do
 
-    end subroutine SEPTRI
+    end subroutine septri
 
-   pure subroutine SEPDX(u, idmn, i, j, uxxx, uxxxx)
 
-        !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
-        !-----------------------------------------------
-        integer , intent (in) :: idmn
-        integer , intent (in) :: i
-        integer , intent (in) :: j
-        real , intent (out) :: uxxx
-        real , intent (out) :: uxxxx
-        real , intent (in) :: u(idmn, 1)
-        !-----------------------------------------------
+    pure subroutine sepdx(u, idmn, i, j, uxxx, uxxxx)
 
         !
-        !     THIS PROGRAM COMPUTES SECOND ORDER FINITE DIFFERENCE
-        !     APPROXIMATIONS TO THE THIRD AND FOURTH X
-        !     PARTIAL DERIVATIVES OF U AT THE (I, J) MESH POINT
+        !     this program computes second order finite difference
+        !     approximations to the third and fourth x
+        !     partial derivatives of u at the (i, j) mesh point
         !
         !
-        !     COMPUTE PARTIAL DERIVATIVE APPROXIMATIONS AT X=A
+        !--------------------------------------------------------------------------------
+        ! Dictionary: local variables
+        !--------------------------------------------------------------------------------
+        integer (ip), intent (in) :: idmn
+        integer (ip), intent (in) :: i
+        integer (ip), intent (in) :: j
+        real (wp),    intent (out) :: uxxx
+        real (wp),    intent (out) :: uxxxx
+        real (wp),    intent (in) :: u(idmn, 1)
+        !--------------------------------------------------------------------------------
+
+        !     compute partial derivative approximations at x=a
         !
         if (i == 1) then
             if (kswx /= 1) then
-                uxxx = ((-5.0*U(1, j))+18.0*U(2, j)-24.0*U(3, j)+14.0*U(4, j)- &
-                    3.0*U(5, j))/tdlx3
-                uxxxx = (3.0*U(1, j)-14.0*U(2, j)+26.0*U(3, j)-24.0*U(4, j)+11.0 &
-                    *U(5, j)-2.0*U(6, j))/dlx4
+                uxxx = ((-5.0_wp * u(1, j))+18.0_wp * u(2, j)-24.0_wp * u(3, j)+14.0_wp * u(4, j)- &
+                    3.0_wp * u(5, j))/tdlx3
+                uxxxx = (3.0_wp * u(1, j)-14.0_wp * u(2, j)+26.0_wp * u(3, j)-24.0_wp * u(4, j)+11.0 &
+                    *u(5, j)-2.0_wp * u(6, j))/dlx4
                 return
             else
                 !
-                !     PERIODIC AT X=A
+                !     periodic at x=a
                 !
-                uxxx = ((-U(k-2, j))+2.0*U(k-1, j)-2.0*U(2, j)+U(3, j))/tdlx3
-                uxxxx = (U(k-2, j)-4.0*U(k-1, j)+6.0*U(1, j)-4.0*U(2, j)+U(3, j)) &
+                uxxx = ((-u(k-2, j))+2.0_wp * u(k-1, j)-2.0_wp * u(2, j)+u(3, j))/tdlx3
+                uxxxx = (u(k-2, j)-4.0_wp * u(k-1, j)+6.0_wp * u(1, j)-4.0_wp * u(2, j)+u(3, j)) &
                     /dlx4
                 return
             end if
         !
-        !     COMPUTE PARTIAL DERIVATIVE APPROXIMATIONS AT X=A+DLX
+        !     compute partial derivative approximations at x=a+dlx
         !
         else if (i == 2) then
             if (kswx /= 1) then
-                uxxx = ((-3.0*U(1, j))+10.0*U(2, j)-12.0*U(3, j)+6.0*U(4, j)-U(5 &
+                uxxx = ((-3.0_wp * u(1, j))+10.0_wp * u(2, j)-12.0_wp * u(3, j)+6.0_wp * u(4, j)-u(5 &
                     , j))/tdlx3
-                uxxxx = (2.0*U(1, j)-9.0*U(2, j)+16.0*U(3, j)-14.0*U(4, j)+6.0*U &
-                    (5, j)-U(6, j))/dlx4
+                uxxxx = (2.0_wp * u(1, j)-9.0_wp * u(2, j)+16.0_wp * u(3, j)-14.0_wp * u(4, j)+6.0_wp * u &
+                    (5, j)-u(6, j))/dlx4
                 return
             else
                 !
-                !     PERIODIC AT X=A+DLX
+                !     periodic at x=a+dlx
                 !
-                uxxx = ((-U(k-1, j))+2.0*U(1, j)-2.0*U(3, j)+U(4, j))/tdlx3
-                uxxxx = (U(k-1, j)-4.0*U(1, j)+6.0*U(2, j)-4.0*U(3, j)+U(4, j))/ &
+                uxxx = ((-u(k-1, j))+2.0_wp * u(1, j)-2.0_wp * u(3, j)+u(4, j))/tdlx3
+                uxxxx = (u(k-1, j)-4.0_wp * u(1, j)+6.0_wp * u(2, j)-4.0_wp * u(3, j)+u(4, j))/ &
                     dlx4
                 return
             end if
         else if (i>2 .and. i<k-1) then
             !
-            !     COMPUTE PARTIAL DERIVATIVE APPROXIMATIONS ON THE INTERIOR
+            !     compute partial derivative approximations on the interior
             !
-            uxxx = ((-U(i-2, j))+2.0*U(i-1, j)-2.0*U(i+1, j)+U(i+2, j))/tdlx3
-            uxxxx = (U(i-2, j)-4.0*U(i-1, j)+6.0*U(i, j)-4.0*U(i+1, j)+U(i+2, j) &
+            uxxx = ((-u(i-2, j))+2.0_wp * u(i-1, j)-2.0_wp * u(i+1, j)+u(i+2, j))/tdlx3
+            uxxxx = (u(i-2, j)-4.0_wp * u(i-1, j)+6.0_wp * u(i, j)-4.0_wp * u(i+1, j)+u(i+2, j) &
                 )/dlx4
             return
         else if (i == k - 1) then
             !
-            !     COMPUTE PARTIAL DERIVATIVE APPROXIMATIONS AT X=B-DLX
+            !     compute partial derivative approximations at x=b-dlx
             !
             if (kswx /= 1) then
-                uxxx = (U(k-4, j)-6.0*U(k-3, j)+12.0*U(k-2, j)-10.0*U(k-1, j)+ &
-                    3.0*U(k, j))/tdlx3
-                uxxxx = ((-U(k-5, j))+6.0*U(k-4, j)-14.0*U(k-3, j)+16.0*U(k-2, j &
-                    )-9.0*U(k-1, j)+2.0*U(k, j))/dlx4
+                uxxx = (u(k-4, j)-6.0_wp * u(k-3, j)+12.0_wp * u(k-2, j)-10.0_wp * u(k-1, j)+ &
+                    3.0_wp * u(k, j))/tdlx3
+                uxxxx = ((-u(k-5, j))+6.0_wp * u(k-4, j)-14.0_wp * u(k-3, j)+16.0_wp * u(k-2, j &
+                    )-9.0_wp * u(k-1, j)+2.0_wp * u(k, j))/dlx4
                 return
             else
                 !
-                !     PERIODIC AT X=B-DLX
+                !     periodic at x=b-dlx
                 !
-                uxxx = ((-U(k-3, j))+2.0*U(k-2, j)-2.0*U(1, j)+U(2, j))/tdlx3
-                uxxxx = (U(k-3, j)-4.0*U(k-2, j)+6.0*U(k-1, j)-4.0*U(1, j)+U(2, j &
+                uxxx = ((-u(k-3, j))+2.0_wp * u(k-2, j)-2.0_wp * u(1, j)+u(2, j))/tdlx3
+                uxxxx = (u(k-3, j)-4.0_wp * u(k-2, j)+6.0_wp * u(k-1, j)-4.0_wp * u(1, j)+u(2, j &
                     ))/dlx4
                 return
             end if
         else if (i == k) then
             !
-            !     COMPUTE PARTIAL DERIVATIVE APPROXIMATIONS AT X=B
+            !     compute partial derivative approximations at x=b
             !
-            uxxx = -(3.0*U(k-4, j)-14.0*U(k-3, j)+24.0*U(k-2, j)-18.0*U(k-1, j) &
-                +5.0*U(k, j))/tdlx3
-            uxxxx = ((-2.0*U(k-5, j))+11.0*U(k-4, j)-24.0*U(k-3, j)+26.0*U(k-2 &
-                , j)-14.0*U(k-1, j)+3.0*U(k, j))/dlx4
+            uxxx = -(3.0_wp * u(k-4, j)-14.0_wp * u(k-3, j)+24.0_wp * u(k-2, j)&
+                -18.0_wp * u(k-1, j) + 5.0_wp * u(k, j))/tdlx3
+
+            uxxxx = ((-2.0_wp * u(k-5, j))+11.0_wp * u(k-4, j)-24.0_wp * u(k-3, j)&
+                +26.0_wp * u(k-2, j)-14.0_wp * u(k-1, j)+3.0_wp * u(k, j))/dlx4
             return
         end if
 
-    end subroutine SEPDX
+    end subroutine sepdx
 
-    pure subroutine SEPDY(u, idmn, i, j, uyyy, uyyyy)
 
-        !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
-        !-----------------------------------------------
-        integer , intent (in) :: idmn
-        integer , intent (in) :: i
-        integer , intent (in) :: j
-        real , intent (out) :: uyyy
-        real , intent (out) :: uyyyy
-        real , intent (in) :: u(idmn, 6)
-        !-----------------------------------------------
+    pure subroutine sepdy(u, idmn, i, j, uyyy, uyyyy)
+        !
+        ! Purpose:
+        !
+        !     this program computes second order finite difference
+        !     approximations to the third and fourth y
+        !     partial derivatives of u at the (i, j) mesh point
+        !
+        !--------------------------------------------------------------------------------
+        ! Dictionary: calling arguments
+        !--------------------------------------------------------------------------------
+        integer (ip), intent (in)  :: idmn
+        integer (ip), intent (in)  :: i
+        integer (ip), intent (in)  :: j
+        real (wp),    intent (out) :: uyyy
+        real (wp),    intent (out) :: uyyyy
+        real (wp),    intent (in)  :: u(idmn, 6)
+        !--------------------------------------------------------------------------------
 
-        !
-        !     THIS PROGRAM COMPUTES SECOND ORDER FINITE DIFFERENCE
-        !     APPROXIMATIONS TO THE THIRD AND FOURTH Y
-        !     PARTIAL DERIVATIVES OF U AT THE (I, J) MESH POINT
-        !
-        !
-        !     COMPUTE PARTIAL DERIVATIVE APPROXIMATIONS AT Y=C
+
+        !     compute partial derivative approximations at y=c
         !
         if (j == 1) then
             if (kswy /= 1) then
-                uyyy = ((-5.0*U(i, 1))+18.0*U(i, 2)-24.0*U(i, 3)+14.0*U(i, 4)- &
-                    3.0*U(i, 5))/tdly3
-                uyyyy = (3.0*U(i, 1)-14.0*U(i, 2)+26.0*U(i, 3)-24.0*U(i, 4)+11.0 &
-                    *U(i, 5)-2.0*U(i, 6))/dly4
+                uyyy = ((-5.0_wp * u(i, 1))+18.0_wp * u(i, 2)-24.0_wp * u(i, 3)+14.0_wp * u(i, 4)- &
+                    3.0_wp * u(i, 5))/tdly3
+                uyyyy = (3.0_wp * u(i, 1)-14.0_wp * u(i, 2)+26.0_wp * u(i, 3)-24.0_wp * u(i, 4)+11.0 &
+                    *u(i, 5)-2.0_wp * u(i, 6))/dly4
                 return
             else
                 !
-                !     PERIODIC AT X=A
+                !     periodic at x=a
                 !
-                uyyy = ((-U(i, l-2))+2.0*U(i, l-1)-2.0*U(i, 2)+U(i, 3))/tdly3
-                uyyyy = (U(i, l-2)-4.0*U(i, l-1)+6.0*U(i, 1)-4.0*U(i, 2)+U(i, 3)) &
+                uyyy = ((-u(i, l-2))+2.0_wp * u(i, l-1)-2.0_wp * u(i, 2)+u(i, 3))/tdly3
+                uyyyy = (u(i, l-2)-4.0_wp * u(i, l-1)+6.0_wp * u(i, 1)-4.0_wp * u(i, 2)+u(i, 3)) &
                     /dly4
                 return
             end if
         !
-        !     COMPUTE PARTIAL DERIVATIVE APPROXIMATIONS AT Y=C+DLY
+        !     compute partial derivative approximations at y=c+dly
         !
         else if (j == 2) then
             if (kswy /= 1) then
-                uyyy = ((-3.0*U(i, 1))+10.0*U(i, 2)-12.0*U(i, 3)+6.0*U(i, 4)-U(i &
+                uyyy = ((-3.0_wp * u(i, 1))+10.0_wp * u(i, 2)-12.0_wp * u(i, 3)+6.0_wp * u(i, 4)-u(i &
                     , 5))/tdly3
-                uyyyy = (2.0*U(i, 1)-9.0*U(i, 2)+16.0*U(i, 3)-14.0*U(i, 4)+6.0*U &
-                    (i, 5)-U(i, 6))/dly4
+                uyyyy = (2.0_wp * u(i, 1)-9.0_wp * u(i, 2)+16.0_wp * u(i, 3)-14.0_wp * u(i, 4)+6.0_wp * u &
+                    (i, 5)-u(i, 6))/dly4
                 return
             else
                 !
-                !     PERIODIC AT Y=C+DLY
+                !     periodic at y=c+dly
                 !
-                uyyy = ((-U(i, l-1))+2.0*U(i, 1)-2.0*U(i, 3)+U(i, 4))/tdly3
-                uyyyy = (U(i, l-1)-4.0*U(i, 1)+6.0*U(i, 2)-4.0*U(i, 3)+U(i, 4))/ &
+                uyyy = ((-u(i, l-1))+2.0_wp * u(i, 1)-2.0_wp * u(i, 3)+u(i, 4))/tdly3
+                uyyyy = (u(i, l-1)-4.0_wp * u(i, 1)+6.0_wp * u(i, 2)-4.0_wp * u(i, 3)+u(i, 4))/ &
                     dly4
                 return
             end if
         !
-        !     COMPUTE PARTIAL DERIVATIVE APPROXIMATIONS ON THE INTERIOR
+        !     compute partial derivative approximations on the interior
         !
         else if (j>2 .and. j<l-1) then
-            uyyy = ((-U(i, j-2))+2.0*U(i, j-1)-2.0*U(i, j+1)+U(i, j+2))/tdly3
-            uyyyy = (U(i, j-2)-4.0*U(i, j-1)+6.0*U(i, j)-4.0*U(i, j+1)+U(i, j+2) &
+            uyyy = ((-u(i, j-2))+2.0_wp * u(i, j-1)-2.0_wp * u(i, j+1)+u(i, j+2))/tdly3
+            uyyyy = (u(i, j-2)-4.0_wp * u(i, j-1)+6.0_wp * u(i, j)-4.0_wp * u(i, j+1)+u(i, j+2) &
                 )/dly4
             return
         else if (j == l - 1) then
             !
-            !     COMPUTE PARTIAL DERIVATIVE APPROXIMATIONS AT Y=D-DLY
+            !     compute partial derivative approximations at y=d-dly
             !
             if (kswy /= 1) then
-                uyyy = (U(i, l-4)-6.0*U(i, l-3)+12.0*U(i, l-2)-10.0*U(i, l-1)+ &
-                    3.0*U(i, l))/tdly3
-                uyyyy = ((-U(i, l-5))+6.0*U(i, l-4)-14.0*U(i, l-3)+16.0*U(i, l-2 &
-                    )-9.0*U(i, l-1)+2.0*U(i, l))/dly4
+                uyyy = (u(i, l-4)-6.0_wp * u(i, l-3)+12.0_wp * u(i, l-2)-10.0_wp * u(i, l-1)+ &
+                    3.0_wp * u(i, l))/tdly3
+                uyyyy = ((-u(i, l-5))+6.0_wp * u(i, l-4)-14.0_wp * u(i, l-3)+16.0_wp * u(i, l-2 &
+                    )-9.0_wp * u(i, l-1)+2.0_wp * u(i, l))/dly4
                 return
             else
                 !
-                !     PERIODIC AT Y=D-DLY
+                !     periodic at y=d-dly
                 !
-                uyyy = ((-U(i, l-3))+2.0*U(i, l-2)-2.0*U(i, 1)+U(i, 2))/tdly3
-                uyyyy = (U(i, l-3)-4.0*U(i, l-2)+6.0*U(i, l-1)-4.0*U(i, 1)+U(i, 2 &
+                uyyy = ((-u(i, l-3))+2.0_wp * u(i, l-2)-2.0_wp * u(i, 1)+u(i, 2))/tdly3
+                uyyyy = (u(i, l-3)-4.0_wp * u(i, l-2)+6.0_wp * u(i, l-1)-4.0_wp * u(i, 1)+u(i, 2 &
                     ))/dly4
                 return
             end if
         else if (j == l) then
             !
-            !     COMPUTE PARTIAL DERIVATIVE APPROXIMATIONS AT Y=D
+            !     compute partial derivative approximations at y=d
             !
-            uyyy = -(3.0*U(i, l-4)-14.0*U(i, l-3)+24.0*U(i, l-2)-18.0*U(i, l-1) &
-                +5.0*U(i, l))/tdly3
-            uyyyy = ((-2.0*U(i, l-5))+11.0*U(i, l-4)-24.0*U(i, l-3)+26.0*U(i, l &
-                -2)-14.0*U(i, l-1)+3.0*U(i, l))/dly4
+            uyyy = -(3.0_wp * u(i, l-4)-14.0_wp * u(i, l-3)+24.0_wp * u(i, l-2)-18.0_wp * u(i, l-1) &
+                +5.0_wp * u(i, l))/tdly3
+            uyyyy = ((-2.0_wp * u(i, l-5))+11.0_wp * u(i, l-4)-24.0_wp * u(i, l-3)+26.0_wp * u(i, l &
+                -2)-14.0_wp * u(i, l-1)+3.0_wp * u(i, l))/dly4
             return
         end if
 
-    end subroutine SEPDY
+    end subroutine sepdy
+
 
 end module module_sepaux
 !

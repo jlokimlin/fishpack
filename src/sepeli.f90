@@ -17,7 +17,8 @@ module module_sepeli
         sepdx, &
         sepdy, &
         kswx, kswy, k, l, mit, nit, is, ms, js, ns, & ! saved integer constants
-        ait, bit, cit, dit, dlx, dly, tdlx3, tdly3, dlx4, dly4 ! saved real constants
+        ait, bit, cit, dit, dlx, dly, tdlx3, tdly3, dlx4, dly4, & ! saved real constants
+        get_coefficients
 
     ! Explicit typing only!
     implicit none
@@ -27,21 +28,9 @@ module module_sepeli
     public :: sepeli
     public :: sepeli_unit_test
 
-    interface
-        pure subroutine get_coefficients( grid, a, b, c)
-            import :: wp
-            !-----------------------------------------------
-            ! Dictionary: calling arguments
-            !-----------------------------------------------
-            real (wp), intent (in)  :: grid
-            real (wp), intent (out) :: a
-            real (wp), intent (out) :: b
-            real (wp), intent (out) :: c
-            !-----------------------------------------------
-        end subroutine get_coefficients
-    end interface
 
 contains
+
 
     subroutine sepeli_unit_test()
         !
@@ -117,8 +106,8 @@ contains
             !
             !     SET SPECIFIED BOUNDARY CONDITIONS AT Y=C, D
             !
-            usol(i, 1) = UE(x, c)
-            usol(i, ny) = UE(x, d)
+            usol(i, 1) = ue(x, c)
+            usol(i, ny) = ue(x, d)
             call get_coefficients_in_x_direction (x, af, bf, cf)
             do j = 1, ny
                 y = c + real(j - 1)*dly
@@ -126,8 +115,8 @@ contains
                 !
                 !     SET RIGHT HAND SIDE
                 !
-                grhs(i, j) = af*UXXE(x, y) + bf*UXE(x, y) + cf*UE(x, y) + df* &
-                    UYYE(x, y) + ef*UYE(x, y) + ff*UE(x, y)
+                grhs(i, j) = af*uxxe(x, y) + bf*uxe(x, y) + cf*ue(x, y) + df* &
+                    uyye(x, y) + ef*uye(x, y) + ff*ue(x, y)
             end do
         end do
         !
@@ -137,8 +126,8 @@ contains
         beta = 1.0
         do j = 1, ny
             y = c + real(j - 1)*dly
-            bda(j) = UXE(a, y) + alpha*UE(a, y)
-            bdb(j) = UXE(b, y) + beta*UE(b, y)
+            bda(j) = uxe(a, y) + alpha*ue(a, y)
+            bdb(j) = uxe(b, y) + beta*ue(b, y)
         end do
         !
         !     SET BOUNDARY SWITHCES
@@ -164,7 +153,7 @@ contains
             x = a + real(i - 1)*dlx
             do j = 1, ny
                 y = c + real(j - 1)*dly
-                err = max(err, abs((USOL(i, j)-UE(x, y))/UE(x, y)))
+                err = max(err, abs((USOL(i, j)-ue(x, y))/ue(x, y)))
             end do
         end do
         err2 = err
@@ -188,7 +177,7 @@ contains
             y = c + real(j - 1)*dly
             do i = 1, nx
                 x = a + real(i - 1)*dlx
-                err = max(err, abs((USOL(i, j)-UE(x, y))/UE(x, y)))
+                err = max(err, abs((USOL(i, j)-ue(x, y))/ue(x, y)))
             end do
         end do
         err4 = err
@@ -215,73 +204,105 @@ contains
 
     contains
 
-        real function UE (s, t)
-            real, intent (in) :: s
-            real, intent (in) :: t
-            UE = (s*t)**3 + 1.0
-            return
-        end function UE
 
-        real function UXE (s, t)
-            real, intent (in) :: s
-            real, intent (in) :: t
-            UXE = 3.0*s**2*t**3
-            return
-        end function UXE
+        pure function ue (s, t) result( return_value )
+            !--------------------------------------------------------------------------------
+            ! Dictionary: calling arguments
+            !--------------------------------------------------------------------------------
+            real (wp), intent (in) :: s
+            real (wp), intent (in) :: t
+            real (wp)              :: return_value
+            !--------------------------------------------------------------------------------
 
-        real function UXXE (s, t)
-            real, intent (in) :: s
-            real, intent (in) :: t
-            UXXE = 6.0*s*t**3
-            return
-        end function UXXE
+            return_value = (s * t)**3 + 1.0_wp
+
+        end function ue
 
 
-        real function UYE (s, t)
-            real, intent (in) :: s
-            real, intent (in) :: t
-            UYE = 3.0*s**3*t**2
-            return
-        end function UYE
+        pure function uxe (s, t) result( return_value )
+            !--------------------------------------------------------------------------------
+            ! Dictionary: calling arguments
+            !--------------------------------------------------------------------------------
+            real (wp), intent (in) :: s
+            real (wp), intent (in) :: t
+            real (wp)              :: return_value
+            !--------------------------------------------------------------------------------
+
+            return_value = 3.0_wp * s**2*t**3
+
+        end function uxe
 
 
-        real function UYYE (s, t)
-            real, intent (in) :: s
-            real, intent (in) :: t
-            UYYE = 6.0*s**3*t
-            return
-        end function UYYE
+        pure function uxxe(s, t) result( return_value )
+            !--------------------------------------------------------------------------------
+            ! Dictionary: calling arguments
+            !--------------------------------------------------------------------------------
+            real (wp), intent (in) :: s
+            real (wp), intent (in) :: t
+            real (wp)              :: return_value
+            !--------------------------------------------------------------------------------
+
+            return_value = 6.0_wp * s * (t**3)
+
+        end function uxxe
+
+
+        pure function uye(s, t) result( return_value )
+            !--------------------------------------------------------------------------------
+            ! Dictionary: calling arguments
+            !--------------------------------------------------------------------------------
+            real (wp), intent (in) :: s
+            real (wp), intent (in) :: t
+            real (wp)              :: return_value
+
+            return_value = 3.0_wp * (s**3) * (t**2)
+
+        end function uye
+
+
+        pure function uyye (s, t) result( return_value )
+            !--------------------------------------------------------------------------------
+            ! Dictionary: calling arguments
+            !--------------------------------------------------------------------------------
+            real (wp), intent (in) :: s
+            real (wp), intent (in) :: t
+            real (wp)              :: return_value
+
+            return_value = 6.0_wp * (s**3) * t
+
+        end function uyye
+
 
         pure subroutine get_coefficients_in_x_direction(x, af, bf, cf)
-            !-----------------------------------------------
-            !   D u m m y   A r g u m e n t s
-            !-----------------------------------------------
-            real (wp), intent (in) :: x
+            !--------------------------------------------------------------------------------
+            ! Dictionary: calling arguments
+            !--------------------------------------------------------------------------------
+            real (wp), intent (in)  :: x
             real (wp), intent (out) :: af
             real (wp), intent (out) :: bf
             real (wp), intent (out) :: cf
             !-----------------------------------------------
             !
-            !     SET COEFFICIENTS IN THE X-DIRECTION.
+            !     set coefficients in the x-direction.
             !
-            af = (x + 1.)**2
-            bf = 2.0*(x + 1.)
+            af = (x + 1.0_wp)**2
+            bf = 2.0_wp * (x + 1.0_wp)
             cf = -x
 
         end subroutine get_coefficients_in_x_direction
 
 
         pure subroutine get_coefficients_in_y_direction(y, df, ef, ff)
-            !-----------------------------------------------
-            !   D u m m y   A r g u m e n t s
-            !-----------------------------------------------
-            real (wp), intent (in) :: y
+            !--------------------------------------------------------------------------------
+            ! Dictionary: calling arguments
+            !--------------------------------------------------------------------------------
+            real (wp), intent (in)  :: y
             real (wp), intent (out) :: df
             real (wp), intent (out) :: ef
             real (wp), intent (out) :: ff
             !-----------------------------------------------
             !
-            !     SET COEFFICIENTS IN Y DIRECTION
+            !     set coefficients in y direction
             !
             df = exp(y)
             ef = 0.0
@@ -290,6 +311,7 @@ contains
         end subroutine get_coefficients_in_y_direction
 
     end subroutine sepeli_unit_test
+
 
     subroutine sepeli(intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, &
         beta, c, d, n, nbdcnd, bdc, gama, bdd, xnu, cofx, cofy, grhs, &
@@ -437,12 +459,12 @@ contains
         !
         !                        BDA
         !                          A ONE-DIMENSIONAL ARRAY OF LENGTH N+1
-        !                          THAT SPECIFIES THE VALUES OF
+        !                          THAT SPECIFIES THE VALueS OF
         !                          DU(A, Y)/DX+ ALPHA*U(A, Y) AT X=A, WHEN
         !                          MBDCND=3 OR 4.
         !                          BDA(J) = DU(A, YJ)/DX+ALPHA*U(A, YJ),
         !                          J=1, 2, ..., N+1. WHEN MBDCND HAS ANY OTHER
-        !                          OTHER VALUE, BDA IS A DUMMY PARAMETER.
+        !                          OTHER VALue, BDA IS A DUMMY PARAMETER.
         !
         !                        ALPHA
         !                          THE SCALAR MULTIPLYING THE SOLUTION IN
@@ -453,12 +475,12 @@ contains
         !
         !                        BDB
         !                          A ONE-DIMENSIONAL ARRAY OF LENGTH N+1
-        !                          THAT SPECIFIES THE VALUES OF
+        !                          THAT SPECIFIES THE VALueS OF
         !                          DU(B, Y)/DX+ BETA*U(B, Y) AT X=B.
         !                          WHEN MBDCND=2 OR 3
         !                          BDB(J) = DU(B, YJ)/DX+BETA*U(B, YJ),
         !                          J=1, 2, ..., N+1. WHEN MBDCND HAS ANY OTHER
-        !                          OTHER VALUE, BDB IS A DUMMY PARAMETER.
+        !                          OTHER VALue, BDB IS A DUMMY PARAMETER.
         !
         !                        BETA
         !                          THE SCALAR MULTIPLYING THE SOLUTION IN
@@ -508,11 +530,11 @@ contains
         !
         !                        BDC
         !                          A ONE-DIMENSIONAL ARRAY OF LENGTH M+1
-        !                          THAT SPECIFIES THE VALUE OF
+        !                          THAT SPECIFIES THE VALue OF
         !                          DU(X, C)/DY+GAMA*U(X, C) AT Y=C.
         !                          WHEN NBDCND=3 OR 4 BDC(I) = DU(XI, C)/DY +
         !                          GAMA*U(XI, C), I=1, 2, ..., M+1.
-        !                          WHEN NBDCND HAS ANY OTHER VALUE, BDC
+        !                          WHEN NBDCND HAS ANY OTHER VALue, BDC
         !                          IS A DUMMY PARAMETER.
         !
         !                        GAMA
@@ -524,11 +546,11 @@ contains
         !
         !                        BDD
         !                          A ONE-DIMENSIONAL ARRAY OF LENGTH M+1
-        !                          THAT SPECIFIES THE VALUE OF
+        !                          THAT SPECIFIES THE VALue OF
         !                          DU(X, D)/DY + XNU*U(X, D) AT Y=C.
         !                          WHEN NBDCND=2 OR 3 BDD(I) = DU(XI, D)/DY +
         !                          XNU*U(XI, D), I=1, 2, ..., M+1.
-        !                          WHEN NBDCND HAS ANY OTHER VALUE, BDD
+        !                          WHEN NBDCND HAS ANY OTHER VALue, BDD
         !                          IS A DUMMY PARAMETER.
         !
         !                        XNU
@@ -541,20 +563,20 @@ contains
         !                        COFX
         !                          A USER-SUPPLIED SUBPROGRAM WITH
         !                          PARAMETERS X, AFUN, BFUN, CFUN WHICH
-        !                          RETURNS THE VALUES OF THE X-DEPENDENT
+        !                          RETURNS THE VALueS OF THE X-DEPENDENT
         !                          COEFFICIENTS AF(X), BF(X), CF(X) IN THE
         !                          ELLIPTIC EQUATION AT X.
         !
         !                        COFY
         !                          A USER-SUPPLIED SUBPROGRAM WITH PARAMETERS
         !                          Y, DFUN, EFUN, FFUN WHICH RETURNS THE
-        !                          VALUES OF THE Y-DEPENDENT COEFFICIENTS
+        !                          VALueS OF THE Y-DEPENDENT COEFFICIENTS
         !                          DF(Y), EF(Y), FF(Y) IN THE ELLIPTIC
         !                          EQUATION AT Y.
         !
         !                          NOTE:  COFX AND COFY MUST BE DECLARED
         !                          EXTERNAL IN THE CALLING ROUTINE.
-        !                          THE VALUES RETURNED IN AFUN AND DFUN
+        !                          THE VALueS RETURNED IN AFUN AND DFUN
         !                          MUST SATISFY AFUN*DFUN GREATER THAN 0
         !                          FOR A LESS THAN X LESS THAN B, C LESS
         !                          THAN Y LESS THAN D (SEE IERROR=10).
@@ -565,7 +587,7 @@ contains
         !
         !                        GRHS
         !                          A TWO-DIMENSIONAL ARRAY THAT SPECIFIES THE
-        !                          VALUES OF THE RIGHT-HAND SIDE OF THE
+        !                          VALueS OF THE RIGHT-HAND SIDE OF THE
         !                          ELLIPTIC EQUATION, I.E.,
         !                          GRHS(I, J)=G(XI, YI), FOR I=2, ..., M,
         !                          J=2, ..., N.  AT THE BOUNDARIES, GRHS IS
@@ -593,7 +615,7 @@ contains
         !
         !                        USOL
         !                          A TWO-DIMENSIONAL ARRAY THAT SPECIFIES THE
-        !                          VALUES OF THE SOLUTION ALONG THE BOUNDARIES.
+        !                          VALueS OF THE SOLUTION ALONG THE BOUNDARIES.
         !                          AT THE BOUNDARIES, USOL IS DEFINED BY
         !
         !                          MBDCND   USOL(1, J)   USOL(M+1, J)
@@ -619,7 +641,7 @@ contains
         !                          AND USOL TO SAVE SPACE.  NOTE THAT IN THIS
         !                          CASE THE TABLES SPECIFYING THE BOUNDARIES
         !                          OF THE GRHS AND USOL ARRAYS DETERMINE THE
-        !                          BOUNDARIES UNIQUELY EXCEPT AT THE CORNERS.
+        !                          BOUNDARIES UNIQueLY EXCEPT AT THE CORNERS.
         !                          IF THE TABLES CALL FOR BOTH G(X, Y) AND
         !                          U(X, Y) AT A CORNER THEN THE SOLUTION MUST
         !                          BE CHOSEN.  FOR EXAMPLE, IF MBDCND=2 AND
@@ -745,7 +767,7 @@ contains
         !                          MAY FAIL.  THIS CANNOT HAPPEN IN THE LIMIT
         !                          AS DLX, DLY APPROACH ZERO.  HENCE, THE
         !                          CONDITION MAY BE REMEDIED BY TAKING LARGER
-        !                          VALUES FOR M OR N.
+        !                          VALueS FOR M OR N.
         !
         ! SPECIAL CONDITIONS     SEE COFX, COFY ARGUMENT DESCRIPTIONS ABOVE.
         !
@@ -796,7 +818,7 @@ contains
         !
         !
         ! REFERENCES             KELLER, H.B., NUMERICAL METHODS FOR TWO-POINT
-        !                        BOUNDARY-VALUE PROBLEMS, BLAISDEL (1968),
+        !                        BOUNDARY-VALue PROBLEMS, BLAISDEL (1968),
         !                        WALTHAM, MASS.
         !
         !                        SWARZTRAUBER, P., AND R. SWEET (1975):
@@ -804,51 +826,48 @@ contains
         !                        SOLUTION OF ELLIPTIC PARTIAL DIFFERENTIAL
         !                        EQUATIONS.  NCAR TECHNICAL NOTE
         !                        NCAR-TN/IA-109, PP. 135-137.
-        !***********************************************************************
+        !
+        !--------------------------------------------------------------------------------
+        ! Dictionary: calling arguments
+        !--------------------------------------------------------------------------------
+        integer (ip),              intent (in)     :: intl
+        integer (ip),              intent (in)     :: iorder
+        integer (ip),              intent (in)     :: m
+        integer (ip),              intent (in)     :: mbdcnd
+        integer (ip),              intent (in)     :: n
+        integer (ip),              intent (in)     :: nbdcnd
+        integer (ip),              intent (in)     :: idmn
+        integer (ip),              intent (out)    :: ierror
+        real (wp),                 intent (in)     :: a
+        real (wp),                 intent (in)     :: b
+        real (wp),                 intent (in)     :: alpha
+        real (wp),                 intent (in)     :: beta
+        real (wp),                 intent (in)     :: c
+        real (wp),                 intent (in)     :: d
+        real (wp),                 intent (in)     :: gama
+        real (wp),                 intent (in)     :: xnu
+        real (wp),                 intent (out)    :: pertrb
+        real (wp), contiguous,     intent (in)     :: bda(:)
+        real (wp), contiguous,     intent (in)     :: bdb(:)
+        real (wp), contiguous,     intent (in)     :: bdc(:)
+        real (wp), contiguous,     intent (in)     :: bdd(:)
+        real (wp)                                  :: grhs(idmn, *)
+        real (wp)                                  :: usol(idmn, *)
+        class (FishpackWorkspace)                  :: w
+        procedure (get_coefficients)               :: cofx
+        procedure (get_coefficients)               :: cofy
+        !--------------------------------------------------------------------------------
+        ! Dictionary: local variables
+        !--------------------------------------------------------------------------------
+        integer (ip)       :: k, l, np, irwk, icwk
+        integer (ip), save :: i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12
+        !-----------------------------------------------
 
-
-        external cofx, cofy
-        !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
-        !-----------------------------------------------
-        integer  :: intl
-        integer  :: iorder
-        integer  :: m
-        integer  :: mbdcnd
-        integer  :: n
-        integer  :: nbdcnd
-        integer  :: idmn
-        integer  :: ierror
-        real (wp) :: a
-        real (wp) :: b
-        real (wp) :: alpha
-        real (wp) :: beta
-        real (wp) :: c
-        real (wp) :: d
-        real (wp) :: gama
-        real (wp) :: xnu
-        real (wp) :: pertrb
-        real (wp) :: bda(:)
-        real (wp) :: bdb(:)
-        real (wp) :: bdc(:)
-        real (wp) :: bdd(:)
-        real (wp) :: grhs(idmn, *)
-        real (wp) :: usol(idmn, *)
-        type (FishpackWorkspace) :: w
-        !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
-        !-----------------------------------------------
-        integer::i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, k, l, np, irwk, icwk
-
-        save I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, I11, I12
-        !-----------------------------------------------
-        !   E x t e r n a l   F u n c t i o n s
-        !-----------------------------------------------
-        !-----------------------------------------------
         !     save local variable work space pointers for noninitial call
         !     check input arguments
-        call chkprm (intl, iorder, a, b, m, mbdcnd, c, d, n, nbdcnd, cofx &
-            , cofy, idmn, ierror)
+        call chkprm (intl, iorder, a, b, m, mbdcnd, c, d, n, nbdcnd, cofx, &
+            cofy, idmn, ierror)
+
         if (ierror /= 0) return
         if (intl == 0) then
             !     allocate space and set work space indices on initial call only
@@ -892,71 +911,71 @@ contains
     end subroutine sepeli
 
 
-    subroutine spelip(intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, &
-        beta, c, d, n, nbdcnd, bdc, gama, bdd, xnu, cofx, cofy, an, bn &
-        , cn, dn, un, zn, am, bm, cm, dm, um, zm, grhs, usol, idmn, w, &
-        wc, pertrb, ierror)
-
-        external cofx, cofy
-        !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
-        !-----------------------------------------------
-        integer  :: intl
-        integer (ip), intent (in) :: iorder
-        integer (ip), intent (in) :: m
-        integer  :: mbdcnd
-        integer (ip), intent (in) :: n
-        integer  :: nbdcnd
-        integer  :: idmn
-        integer  :: ierror
-        real (wp), intent (in) :: a
-        real (wp), intent (in) :: b
-        real (wp) :: alpha
-        real (wp) :: beta
-        real (wp), intent (in) :: c
-        real (wp), intent (in) :: d
-        real (wp) :: gama
-        real (wp) :: xnu
-        real (wp) :: pertrb
-        real (wp), intent (in) :: bda(*)
-        real (wp), intent (in) :: bdb(*)
-        real (wp), intent (in) :: bdc(*)
-        real (wp), intent (in) :: bdd(*)
-        real (wp) :: an(*)
-        real (wp) :: bn(*)
-        real (wp) :: cn(*)
-        real (wp) :: dn(*)
-        real (wp) :: un(*)
-        real (wp) :: zn(*)
-        real (wp) :: am(*)
-        real (wp) :: bm(*)
-        real (wp) :: cm(*)
-        real (wp) :: dm(*)
-        real (wp) :: um(*)
-        real (wp) :: zm(*)
-        real (wp) :: grhs(idmn, *)
-        real (wp) :: usol(idmn, *)
-        real (wp) :: w(*)
-        complex  :: wc(*)
-        !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
-        !-----------------------------------------------
+    subroutine spelip( intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, &
+        beta, c, d, n, nbdcnd, bdc, gama, bdd, xnu, cofx, cofy, an, bn, &
+        cn, dn, un, zn, am, bm, cm, dm, um, zm, grhs, usol, idmn, w, &
+        wc, pertrb, ierror )
+        !
+        ! Purpose:
+        !
+        !     spelip sets up vectors and arrays for input to blktri
+        !     and computes a second order solution in usol.  a return jump to
+        !     sepeli occurrs if iorder=2.  if iorder=4 a fourth order
+        !     solution is generated in usol.
+        !
+        !--------------------------------------------------------------------------------
+        ! Dictionary: calling arguments
+        !--------------------------------------------------------------------------------
+        integer (ip), intent (in)     :: intl
+        integer (ip), intent (in)     :: iorder
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: mbdcnd
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: nbdcnd
+        integer (ip), intent (in)     :: idmn
+        integer (ip), intent (out)    :: ierror
+        real (wp),    intent (in)     :: a
+        real (wp),    intent (in)     :: b
+        real (wp),    intent (in)     :: alpha
+        real (wp),    intent (in)     :: beta
+        real (wp),    intent (in)     :: c
+        real (wp),    intent (in)     :: d
+        real (wp),    intent (in)     :: gama
+        real (wp),    intent (in)     :: xnu
+        real (wp),    intent (out)    :: pertrb
+        real (wp),    intent (in)     :: bda(*)
+        real (wp),    intent (in)     :: bdb(*)
+        real (wp),    intent (in)     :: bdc(*)
+        real (wp),    intent (in)     :: bdd(*)
+        real (wp),    intent (in out) :: an(*)
+        real (wp),    intent (in out) :: bn(*)
+        real (wp),    intent (in out) :: cn(*)
+        real (wp),    intent (in out) :: dn(*)
+        real (wp),    intent (in out) :: un(*)
+        real (wp),    intent (in out) :: zn(*)
+        real (wp),    intent (in out) :: am(*)
+        real (wp),    intent (in out) :: bm(*)
+        real (wp),    intent (in out) :: cm(*)
+        real (wp),    intent (in out) :: dm(*)
+        real (wp),    intent (in out) :: um(*)
+        real (wp),    intent (in out) :: zm(*)
+        real (wp),    intent (in out) :: grhs(idmn, *)
+        real (wp),    intent (in out) :: usol(idmn, *)
+        real (wp),    intent (in out) :: w(*)
+        complex (wp)                  :: wc(*)
+        procedure (get_coefficients)  :: cofx
+        procedure (get_coefficients)  :: cofy
+        !--------------------------------------------------------------------------------
+        ! Dictionary: local variables
+        !--------------------------------------------------------------------------------
         integer (ip) :: i, j, i1, mp, np
-        real :: xi, ai, bi, ci, axi, bxi, cxi, yj, dj, ej, fj, dyj, eyj, &
-            fyj, ax1, cxm, dy1, fyn, prtrb
-        logical :: singlr
-        !-----------------------------------------------
-        !   E x t e r n a l   F u n c t i o n s
-        !-----------------------------------------------
-        !-----------------------------------------------
-        !
-        !     spelip SETS UP VECTORS AND ARRAYS FOR INPUT TO BLKTRI
-        !     AND COMPUTES A SECOND ORDER SOLUTION IN USOL.  A RETURN JUMP TO
-        !     sepeli OCCURRS IF IORDER=2.  IF IORDER=4 A FOURTH ORDER
-        !     SOLUTION IS GENERATED IN USOL.
-        !
-        !
-        !     SET PARAMETERS INTERNALLY
+        real (wp)    :: xi, ai, bi, ci, axi, bxi, cxi
+        real (wp)    :: yj, dj, ej, fj, dyj, eyj
+        real (wp)    :: fyj, ax1, cxm, dy1, fyn, prtrb
+        logical      :: singlr
+        !--------------------------------------------------------------------------------
+
+        !     set parameters internally
         !
         kswx = mbdcnd + 1
         kswy = nbdcnd + 1
@@ -967,41 +986,41 @@ contains
         cit = c
         dit = d
         !
-        !     SET RIGHT HAND SIDE VALUES FROM GRHS IN USOL ON THE INTERIOR
-        !     AND NON-SPECIFIED BOUNDARIES.
+        !     set right hand side values from grhs in usol on the interior
+        !     and non-specified boundaries.
         !
-        usol(2:m, 2:n) = GRHS(2:m, 2:n)
+        usol(2:m, 2:n) = grhs(2:m, 2:n)
         if (kswx/=2 .and. kswx/=3) then
-            usol(1, 2:n) = GRHS(1, 2:n)
+            usol(1, 2:n) = grhs(1, 2:n)
         end if
         if (kswx/=2 .and. kswx/=5) then
-            usol(k, 2:n) = GRHS(k, 2:n)
+            usol(k, 2:n) = grhs(k, 2:n)
         end if
         if (kswy/=2 .and. kswy/=3) then
-            usol(2:m, 1) = GRHS(2:m, 1)
+            usol(2:m, 1) = grhs(2:m, 1)
         end if
         if (kswy/=2 .and. kswy/=5) then
-            usol(2:m, l) = GRHS(2:m, l)
+            usol(2:m, l) = grhs(2:m, l)
         end if
         if (kswx/=2 .and. kswx/=3 .and. kswy/=2 .and. kswy/=3) usol(1, 1) &
-            = GRHS(1, 1)
+            = grhs(1, 1)
         if (kswx/=2 .and. kswx/=5 .and. kswy/=2 .and. kswy/=3) usol(k, 1) &
-            = GRHS(k, 1)
+            = grhs(k, 1)
         if (kswx/=2 .and. kswx/=3 .and. kswy/=2 .and. kswy/=5) usol(1, l) &
-            = GRHS(1, l)
+            = grhs(1, l)
         if (kswx/=2 .and. kswx/=5 .and. kswy/=2 .and. kswy/=5) usol(k, l) &
-            = GRHS(k, l)
+            = grhs(k, l)
         i1 = 1
         !
-        !     SET SWITCHES FOR PERIODIC OR NON-PERIODIC BOUNDARIES
+        !     set switches for periodic or non-periodic boundaries
         !
         mp = 1
         np = 1
         if (kswx == 1) mp = 0
         if (kswy == 1) np = 0
         !
-        !     SET DLX, DLY AND SIZE OF BLOCK TRI-DIAGONAL SYSTEM GENERATED
-        !     IN NINT, MINT
+        !     set dlx, dly and size of block tri-diagonal system generated
+        !     in nint, mint
         !
         dlx = (bit - ait)/real(m)
         mit = k - 1
@@ -1011,12 +1030,12 @@ contains
         nit = l - 1
         if (kswy == 2) nit = l - 2
         if (kswy == 4) nit = l
-        tdlx3 = 2.0*dlx**3
+        tdlx3 = 2.0_wp * dlx**3
         dlx4 = dlx**4
-        tdly3 = 2.0*dly**3
+        tdly3 = 2.0_wp * dly**3
         dly4 = dly**4
         !
-        !     SET SUBSCRIPT LIMITS FOR PORTION OF ARRAY TO INPUT TO BLKTRI
+        !     set subscript limits for portion of array to input to blktri
         !
         is = 1
         js = 1
@@ -1025,11 +1044,11 @@ contains
         ns = nit + js - 1
         ms = mit + is - 1
         !
-        !     SET X - DIRECTION
+        !     set x - direction
         !
         do i = 1, mit
             xi = ait + real(is + i - 2)*dlx
-            call COFX (xi, ai, bi, ci)
+            call cofx(xi, ai, bi, ci)
             axi = (ai/dlx - 0.5*bi)/dlx
             bxi = (-2.*ai/dlx**2) + ci
             cxi = (ai/dlx + 0.5*bi)/dlx
@@ -1038,11 +1057,11 @@ contains
             cm(i) = cxi
         end do
         !
-        !     SET Y DIRECTION
+        !     set y direction
         !
         do j = 1, nit
             yj = cit + real(js + j - 2)*dly
-            call COFY (yj, dj, ej, fj)
+            call cofy (yj, dj, ej, fj)
             dyj = (dj/dly - 0.5*ej)/dly
             eyj = (-2.*dj/dly**2) + fj
             fyj = (dj/dly + 0.5*ej)/dly
@@ -1051,244 +1070,247 @@ contains
             cn(j) = fyj
         end do
         !
-        !     ADJUST EDGES IN X DIRECTION UNLESS PERIODIC
+        !     adjust edges in x direction unless periodic
         !
-        ax1 = AM(1)
-        cxm = CM(mit)
+        ax1 = am(1)
+        cxm = cm(mit)
         select case (kswx)
             case (2)
                 !
-                !     DIRICHLET-DIRICHLET IN X DIRECTION
+                !     dirichlet-dirichlet in x direction
                 !
                 am(1) = 0.0
                 cm(mit) = 0.0
             case (5)
                 !
-                !     MIXED-DIRICHLET IN X DIRECTION
+                !     mixed-dirichlet in x direction
                 !
                 am(1) = 0.0
-                bm(1) = BM(1) + 2.*alpha*dlx*ax1
-                cm(1) = CM(1) + ax1
+                bm(1) = bm(1) + 2.*alpha*dlx*ax1
+                cm(1) = cm(1) + ax1
                 cm(mit) = 0.0
             case (3)
                 !
-                !     DIRICHLET-MIXED IN X DIRECTION
+                !     dirichlet-mixed in x direction
                 !
                 am(1) = 0.0
-                am(mit) = AM(mit) + cxm
-                bm(mit) = BM(mit) - 2.*beta*dlx*cxm
+                am(mit) = am(mit) + cxm
+                bm(mit) = bm(mit) - 2.*beta*dlx*cxm
                 cm(mit) = 0.0
             !
-            !     MIXED - MIXED IN X DIRECTION
+            !     mixed - mixed in x direction
             !
             case (4)
                 am(1) = 0.0
-                bm(1) = BM(1) + 2.*dlx*alpha*ax1
-                cm(1) = CM(1) + ax1
-                am(mit) = AM(mit) + cxm
-                bm(mit) = BM(mit) - 2.*dlx*beta*cxm
+                bm(1) = bm(1) + 2.*dlx*alpha*ax1
+                cm(1) = cm(1) + ax1
+                am(mit) = am(mit) + cxm
+                bm(mit) = bm(mit) - 2.*dlx*beta*cxm
                 cm(mit) = 0.0
         end select
         !
-        !     ADJUST IN Y DIRECTION UNLESS PERIODIC
+        !     adjust in y direction unless periodic
         !
-        dy1 = AN(1)
-        fyn = CN(nit)
+        dy1 = an(1)
+        fyn = cn(nit)
         select case (kswy)
             case (2)
                 !
-                !     DIRICHLET-DIRICHLET IN Y DIRECTION
+                !     dirichlet-dirichlet in y direction
                 !
                 an(1) = 0.0
                 cn(nit) = 0.0
             case (5)
                 !
-                !     MIXED-DIRICHLET IN Y DIRECTION
+                !     mixed-dirichlet in y direction
                 !
                 an(1) = 0.0
-                bn(1) = BN(1) + 2.*dly*gama*dy1
-                cn(1) = CN(1) + dy1
+                bn(1) = bn(1) + 2.*dly*gama*dy1
+                cn(1) = cn(1) + dy1
                 cn(nit) = 0.0
             case (3)
                 !
-                !     DIRICHLET-MIXED IN Y DIRECTION
+                !     dirichlet-mixed in y direction
                 !
                 an(1) = 0.0
-                an(nit) = AN(nit) + fyn
-                bn(nit) = BN(nit) - 2.*dly*xnu*fyn
+                an(nit) = an(nit) + fyn
+                bn(nit) = bn(nit) - 2.*dly*xnu*fyn
                 cn(nit) = 0.0
             case (4)
                 !
-                !     MIXED - MIXED DIRECTION IN Y DIRECTION
+                !     mixed - mixed direction in y direction
                 !
                 an(1) = 0.0
-                bn(1) = BN(1) + 2.*dly*gama*dy1
-                cn(1) = CN(1) + dy1
-                an(nit) = AN(nit) + fyn
-                bn(nit) = BN(nit) - 2.0*dly*xnu*fyn
+                bn(1) = bn(1) + 2.*dly*gama*dy1
+                cn(1) = cn(1) + dy1
+                an(nit) = an(nit) + fyn
+                bn(nit) = bn(nit) - 2.0_wp * dly*xnu*fyn
                 cn(nit) = 0.0
         end select
         if (kswx /= 1) then
             !
-            !     ADJUST USOL ALONG X EDGE
+            !     adjust usol along x edge
             !
             if (kswx==2 .or. kswx==3) then
                 if (kswx==2 .or. kswx==5) then
-                    usol(is, js:ns) = USOL(is, js:ns) - ax1*USOL(1, js:ns)
-                    usol(ms, js:ns) = USOL(ms, js:ns) - cxm*USOL(k, js:ns)
+                    usol(is, js:ns) = usol(is, js:ns) - ax1*usol(1, js:ns)
+                    usol(ms, js:ns) = usol(ms, js:ns) - cxm*usol(k, js:ns)
                 else
-                    usol(is, js:ns) = USOL(is, js:ns) - ax1*USOL(1, js:ns)
-                    usol(ms, js:ns) = USOL(ms, js:ns) - 2.0*dlx*cxm*BDB(js:ns)
+                    usol(is, js:ns) = usol(is, js:ns) - ax1*usol(1, js:ns)
+                    usol(ms, js:ns) = usol(ms, js:ns) - 2.0_wp * dlx*cxm*bdb(js:ns)
                 end if
             else
                 if (kswx==2 .or. kswx==5) then
-                    usol(is, js:ns) = USOL(is, js:ns) + 2.0*dlx*ax1*BDA(js:ns)
-                    usol(ms, js:ns) = USOL(ms, js:ns) - cxm*USOL(k, js:ns)
+                    usol(is, js:ns) = usol(is, js:ns) + 2.0_wp * dlx*ax1*bda(js:ns)
+                    usol(ms, js:ns) = usol(ms, js:ns) - cxm*usol(k, js:ns)
                 else
-                    usol(is, js:ns) = USOL(is, js:ns) + 2.0*dlx*ax1*BDA(js:ns)
-                    usol(ms, js:ns) = USOL(ms, js:ns) - 2.0*dlx*cxm*BDB(js:ns)
+                    usol(is, js:ns) = usol(is, js:ns) + 2.0_wp * dlx*ax1*bda(js:ns)
+                    usol(ms, js:ns) = usol(ms, js:ns) - 2.0_wp * dlx*cxm*bdb(js:ns)
                 end if
             end if
         end if
         if (kswy /= 1) then
             !
-            !     ADJUST USOL ALONG Y EDGE
+            !     adjust usol along y edge
             !
             if (kswy==2 .or. kswy==3) then
                 if (kswy==2 .or. kswy==5) then
-                    usol(is:ms, js) = USOL(is:ms, js) - dy1*USOL(is:ms, 1)
-                    usol(is:ms, ns) = USOL(is:ms, ns) - fyn*USOL(is:ms, l)
+                    usol(is:ms, js) = usol(is:ms, js) - dy1*usol(is:ms, 1)
+                    usol(is:ms, ns) = usol(is:ms, ns) - fyn*usol(is:ms, l)
                 else
-                    usol(is:ms, js) = USOL(is:ms, js) - dy1*USOL(is:ms, 1)
-                    usol(is:ms, ns) = USOL(is:ms, ns) - 2.0*dly*fyn*BDD(is:ms)
+                    usol(is:ms, js) = usol(is:ms, js) - dy1*usol(is:ms, 1)
+                    usol(is:ms, ns) = usol(is:ms, ns) - 2.0_wp * dly*fyn*bdd(is:ms)
                 end if
             else
                 if (kswy==2 .or. kswy==5) then
-                    usol(is:ms, js) = USOL(is:ms, js) + 2.0*dly*dy1*BDC(is:ms)
-                    usol(is:ms, ns) = USOL(is:ms, ns) - fyn*USOL(is:ms, l)
+                    usol(is:ms, js) = usol(is:ms, js) + 2.0_wp * dly*dy1*bdc(is:ms)
+                    usol(is:ms, ns) = usol(is:ms, ns) - fyn*usol(is:ms, l)
                 else
-                    usol(is:ms, js) = USOL(is:ms, js) + 2.0*dly*dy1*BDC(is:ms)
-                    usol(is:ms, ns) = USOL(is:ms, ns) - 2.0*dly*fyn*BDD(is:ms)
+                    usol(is:ms, js) = usol(is:ms, js) + 2.0_wp * dly*dy1*bdc(is:ms)
+                    usol(is:ms, ns) = usol(is:ms, ns) - 2.0_wp * dly*fyn*bdd(is:ms)
                 end if
             end if
         end if
         !
-        !     SAVE ADJUSTED EDGES IN GRHS IF IORDER=4
+        !     save adjusted edges in grhs if iorder=4
         !
         if (iorder == 4) then
-            grhs(is, js:ns) = USOL(is, js:ns)
-            grhs(ms, js:ns) = USOL(ms, js:ns)
-            grhs(is:ms, js) = USOL(is:ms, js)
-            grhs(is:ms, ns) = USOL(is:ms, ns)
+            grhs(is, js:ns) = usol(is, js:ns)
+            grhs(ms, js:ns) = usol(ms, js:ns)
+            grhs(is:ms, js) = usol(is:ms, js)
+            grhs(is:ms, ns) = usol(is:ms, ns)
         end if
         pertrb = 0.0
         !
-        !     CHECK IF OPERATOR IS SINGULAR
+        !     check if operator is singular
         !
         call chksng(mbdcnd, nbdcnd, alpha, beta, gama, xnu, cofx, cofy, singlr)
         !
-        !     COMPUTE NON-ZERO EIGENVECTOR IN NULL SPACE OF TRANSPOSE
-        !     IF SINGULAR
+        !     compute non-zero eigenvector in null space of transpose
+        !     if singular
         !
-        if (singlr) call SEPTRI (mit, am, bm, cm, dm, um, zm)
-        if (singlr) call SEPTRI (nit, an, bn, cn, dn, un, zn)
+        if (singlr) call septri (mit, am, bm, cm, dm, um, zm)
+        if (singlr) call septri (nit, an, bn, cn, dn, un, zn)
         !
-        !     MAKE INITIALIZATION CALL TO blktrii
+        !     make initialization call to blktrii
         !
         if (intl == 0) then
-            call BLKTRII (intl, np, nit, an, bn, cn, mp, mit, am, bm, cm, &
-                idmn, USOL(is, js), ierror, w, wc)
+            call blktrii (intl, np, nit, an, bn, cn, mp, mit, am, bm, cm, &
+                idmn, usol(is, js), ierror, w, wc)
             if (ierror /= 0) return
         end if
         !
-        !     ADJUST RIGHT HAND SIDE IF NECESSARY
+        !     adjust right hand side if necessary
         !
-        if (singlr) call SEPORT (usol, idmn, zn, zm, pertrb)
+        if (singlr) call seport (usol, idmn, zn, zm, pertrb)
         !
-        !     COMPUTE SOLUTION
+        !     compute solution
         !
-        call BLKTRII (i1, np, nit, an, bn, cn, mp, mit, am, bm, cm, idmn, &
-            USOL(is, js), ierror, w, wc)
+        call blktrii (i1, np, nit, an, bn, cn, mp, mit, am, bm, cm, idmn, &
+            usol(is, js), ierror, w, wc)
         if (ierror /= 0) return
         !
-        !     SET PERIODIC BOUNDARIES IF NECESSARY
+        !     set periodic boundaries if necessary
         !
         if (kswx == 1) then
-            usol(k, :l) = USOL(1, :l)
+            usol(k, :l) = usol(1, :l)
         end if
         if (kswy == 1) then
-            usol(:k, l) = USOL(:k, 1)
+            usol(:k, l) = usol(:k, 1)
         end if
         !
-        !     MINIMIZE SOLUTION WITH RESPECT TO WEIGHTED LEAST SQUARES
-        !     NORM IF OPERATOR IS SINGULAR
+        !     minimize solution with respect to weighted least squares
+        !     norm if operator is singular
         !
-        if (singlr) call SEPMIN (usol, idmn, zn, zm, prtrb)
+        if (singlr) call sepmin (usol, idmn, zn, zm, prtrb)
         !
-        !     RETURN IF deferRED CORRECTIONS AND A FOURTH ORDER SOLUTION ARE
-        !     NOT FLAGGED
+        !     return if deferred corrections and a fourth order solution are
+        !     not flagged
         !
         if (iorder == 2) return
         !
-        !     COMPUTE NEW RIGHT HAND SIDE FOR FOURTH ORDER SOLUTION
+        !     compute new right hand side for fourth order solution
         !
         call defer (cofx, cofy, idmn, usol, grhs)
-        if (singlr) call SEPORT (usol, idmn, zn, zm, pertrb)
+        if (singlr) call seport (usol, idmn, zn, zm, pertrb)
         !
-        !     COMPUTE fourth order SOLUTION
+        !     compute fourth order solution
         !
-        call BLKTRII (i1, np, nit, an, bn, cn, mp, mit, am, bm, cm, idmn, &
-            USOL(is, js), ierror, w, wc)
+        call blktrii (i1, np, nit, an, bn, cn, mp, mit, am, bm, cm, idmn, &
+            usol(is, js), ierror, w, wc)
         if (ierror /= 0) return
         !
-        !     SET PERIODIC BOUNDARIES IF NECESSARY
+        !     set periodic boundaries if necessary
         !
         if (kswx == 1) then
-            usol(k, :l) = USOL(1, :l)
+            usol(k, :l) = usol(1, :l)
         end if
         if (kswy == 1) then
-            usol(:k, l) = USOL(:k, 1)
+            usol(:k, l) = usol(:k, 1)
         end if
         !
-        !     MINIMIZE SOLUTION WITH RESPECT TO WEIGHTED LEAST SQUARES
-        !     NORM IF OPERATOR IS SINGULAR
+        !     minimize solution with respect to weighted least squares
+        !     norm if operator is singular
         !
-        if (singlr) call SEPMIN (usol, idmn, zn, zm, prtrb)
+        if (singlr) call sepmin (usol, idmn, zn, zm, prtrb)
 
     end subroutine spelip
 
-    subroutine chkprm(intl, iorder, a, b, m, mbdcnd, c, d, n, nbdcnd, &
-        cofx, cofy, idmn, ierror)
 
-        !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
-        !-----------------------------------------------
-        integer (ip), intent (in) :: intl
-        integer (ip), intent (in) :: iorder
-        integer (ip), intent (in) :: m
-        integer (ip), intent (in) :: mbdcnd
-        integer (ip), intent (in) :: n
-        integer (ip), intent (in) :: nbdcnd
-        integer (ip), intent (in) :: idmn
-        integer (ip), intent (out) :: ierror
-        real (wp), intent (in) :: a
-        real (wp), intent (in) :: b
-        real (wp), intent (in) :: c
-        real (wp), intent (in) :: d
-        !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
-        !-----------------------------------------------
+    subroutine chkprm( intl, iorder, a, b, m, mbdcnd, c, d, n, nbdcnd, &
+        cofx, cofy, idmn, ierror )
+        !
+        ! Purpose:
+        !
+        ! This program checks the input arguments for errors
+        !
+        !
+        !--------------------------------------------------------------------------------
+        ! Dictionary: calling arguments
+        !--------------------------------------------------------------------------------
+        integer (ip), intent (in)    :: intl
+        integer (ip), intent (in)    :: iorder
+        integer (ip), intent (in)    :: m
+        integer (ip), intent (in)    :: mbdcnd
+        integer (ip), intent (in)    :: n
+        integer (ip), intent (in)    :: nbdcnd
+        integer (ip), intent (in)    :: idmn
+        integer (ip), intent (out)   :: ierror
+        real (wp),    intent (in)    :: a
+        real (wp),    intent (in)    :: b
+        real (wp),    intent (in)    :: c
+        real (wp),    intent (in)    :: d
+        procedure (get_coefficients) :: cofx
+        procedure (get_coefficients) :: cofy
+        !--------------------------------------------------------------------------------
+        ! Dictionary: calling arguments
+        !--------------------------------------------------------------------------------
         integer (ip) :: i, j
-        real :: dlx, dly, xi, ai, bi, ci, yj, dj, ej, fj
+        real (wp)    :: dlx, dly, xi, ai, bi, ci, yj, dj, ej, fj
         !-----------------------------------------------
-        !   E x t e r n a l   F u n c t i o n s
-        !-----------------------------------------------
-        !-----------------------------------------------
-        !
-        !     THIS PROGRAM CHECKS THE INPUT arguments FOR ERRORS
-        !
-        !
-        !     CHECK DEFINITION OF SOLUTION REGION
+
+
+        !     check definition of solution region
         !
         if (a>=b .or. c>=d) then
             ierror = 1
@@ -1306,14 +1328,14 @@ contains
             return
         end if
         !
-        !     CHECK FIRST DIMENSION IN CALLING ROUTINE
+        !     check first dimension in calling routine
         !
         if (idmn < 7) then
             ierror = 5
             return
         end if
         !
-        !     CHECK M, N
+        !     check m, n
         !
         if (m>idmn - 1 .or. m<6) then
             ierror = 6
@@ -1324,31 +1346,31 @@ contains
             return
         end if
         !
-        !     CHECK IORDER
+        !     check iorder
         !
         if (iorder/=2 .and. iorder/=4) then
             ierror = 8
             return
         end if
         !
-        !     CHECK INTL
+        !     check intl
         !
         if (intl/=0 .and. intl/=1) then
             ierror = 9
             return
         end if
         !
-        !     CHECK THAT EQUATION IS ELLIPTIC (only on initial call)
+        !     check that equation is elliptic (only on initial call)
         !
         if (intl == 0) then
             dlx = (b - a)/real(m)
             dly = (d - c)/real(n)
             do i = 2, m
                 xi = a + real(i - 1)*dlx
-                call COFX (xi, ai, bi, ci)
+                call cofx(xi, ai, bi, ci)
                 do j = 2, n
                     yj = c + real(j - 1)*dly
-                    call COFY (yj, dj, ej, fj)
+                    call cofy (yj, dj, ej, fj)
                     if (ai*dj > 0.0) cycle
                     ierror = 10
                     return
@@ -1356,44 +1378,50 @@ contains
             end do
         end if
         !
-        !     NO ERROR FOUND
+        !     no error found
         !
         ierror = 0
 
     end subroutine chkprm
 
 
-    subroutine chksng(mbdcnd, nbdcnd, alpha, beta, gama, xnu, cofx, &
-        cofy, singlr)
-        !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
-        !-----------------------------------------------
-        integer (ip), intent (in) :: mbdcnd
-        integer (ip), intent (in) :: nbdcnd
-        real (wp),    intent (in) :: alpha
-        real (wp), intent (in) :: beta
-        real (wp), intent (in) :: gama
-        real (wp), intent (in) :: xnu
-        logical , intent (out) :: singlr
-        !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
-        !-----------------------------------------------
+    subroutine chksng( mbdcnd, nbdcnd, alpha, beta, gama, xnu, cofx, &
+        cofy, singlr )
+        !
+        ! Purpose:
+        !
+        !     this subroutine checks if the pde   sepeli
+        !     must solve is a singular operator
+        !
+        !--------------------------------------------------------------------------------
+        ! Dictionary: calling arguments
+        !--------------------------------------------------------------------------------
+        integer (ip), intent (in)     :: mbdcnd
+        integer (ip), intent (in)     :: nbdcnd
+        real (wp),    intent (in)     :: alpha
+        real (wp),    intent (in)     :: beta
+        real (wp),    intent (in)     :: gama
+        real (wp),    intent (in)     :: xnu
+        logical ,     intent (out)    :: singlr
+        procedure (get_coefficients)  :: cofx
+        procedure (get_coefficients)  :: cofy
+        !--------------------------------------------------------------------------------
+        ! Dictionary: local variables
+        !--------------------------------------------------------------------------------
         integer (ip) :: i, j
         real :: xi, ai, bi, ci, yj, dj, ej, fj
         !-----------------------------------------------
 
-        !
-        !     THIS SUBROUTINE CHECKS IF THE PDE   sepeli
-        !     MUST SOLVE IS A SINGULAR OPERATOR
-        !
+
+        ! Initialize flag
         singlr = .false.
         !
-        !     CHECK IF THE BOUNDARY CONDITIONS ARE
-        !     ENTIRELY PERIODIC AND/OR MIXED
+        !     check if the boundary conditions are
+        !     entirely periodic and/or mixed
         !
         if(mbdcnd/=0.and.mbdcnd/=3.or.nbdcnd/=0.and.nbdcnd/=3)return
         !
-        !     CHECK THAT MIXED CONDITIONS ARE PURE NEUMAN
+        !     check that mixed conditions are pure neuman
         !
         if (mbdcnd == 3) then
             if (alpha/=0.0 .or. beta/=0.0) return
@@ -1403,93 +1431,95 @@ contains
             if (gama/=0.0 .or. xnu/=0.0) return
         end if
         !
-        !     CHECK THAT NON-DERIVATIVE COEFFICIENT FUNCTIONS
-        !     ARE ZERO
+        !     check that non-derivative coefficient functions
+        !     are zero
         !
         do i = is, ms
             xi = ait + real(i - 1)*dlx
-            call COFX (xi, ai, bi, ci)
+            call cofx(xi, ai, bi, ci)
             if (ci == 0.0) cycle
             return
         end do
 
         do j = js, ns
             yj = cit + real(j - 1)*dly
-            call COFY (yj, dj, ej, fj)
+            call cofy (yj, dj, ej, fj)
             if (fj == 0.0) cycle
             return
         end do
         !
-        !     THE OPERATOR MUST BE SINGULAR IF THIS POINT IS REACHED
+        !     the operator must be singular if this point is reached
         !
         singlr = .true.
 
     end subroutine chksng
 
 
-    subroutine defer(cofx, cofy, idmn, usol, grhs)
-
-        !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
-        !-----------------------------------------------
-        integer (ip), intent (in)  :: idmn
-        real (wp)                  :: usol(idmn, *)
-        real (wp), intent (in out) :: grhs(idmn, *)
-        !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
-        !-----------------------------------------------
+    subroutine defer( cofx, cofy, idmn, usol, grhs )
+        !
+        ! Purpose:
+        !
+        !     this subroutine first approximates the truncation error given by
+        !     trun1(x, y)=dlx**2*tx+dly**2*ty where
+        !     tx=afun(x)*uxxxx/12.0+bfun(x)*uxxx/6.0 on the interior and
+        !     at the boundaries if periodic(here uxxx, uxxxx are the third
+        !     and fourth partial derivatives of u with respect to x).
+        !     tx is of the form afun(x)/3.0_wp * (uxxxx/4.0+uxxx/dlx)
+        !     at x=a or x=b if the boundary condition there is mixed.
+        !     tx=0.0 along specified boundaries.  ty has symmetric form
+        !     in y with x, afun(x), bfun(x) replaced by y, dfun(y), efun(y).
+        !     the second order solution in usol is used to approximate
+        !     (via second order finite differencing) the truncation error
+        !     and the result is added to the right hand side in grhs
+        !     and then transferred to usol to be used as a new right
+        !     hand side when calling blktri for a fourth order solution.
+        !
+        !--------------------------------------------------------------------------------
+        ! Dictionary: calling arguments
+        !--------------------------------------------------------------------------------
+        integer (ip), intent (in)     :: idmn
+        real (wp),    intent (in out) :: usol(idmn, *)
+        real (wp),    intent (in out) :: grhs(idmn, *)
+        procedure (get_coefficients)  :: cofx
+        procedure (get_coefficients)  :: cofy
+        !--------------------------------------------------------------------------------
+        ! Dictionary: local variables
+        !--------------------------------------------------------------------------------
         integer (ip) :: j, i
         real (wp)    :: yj, dj, ej, fj, xi, ai, bi, ci
         real (wp)    :: uxxx, uxxxx, uyyy, uyyyy, tx, ty
         !-----------------------------------------------
 
-        !-----------------------------------------------
         !
-        !     THIS SUBROUTINE FIRST APPROXIMATES THE TRUNCATION ERROR GIVEN BY
-        !     TRUN1(X, Y)=DLX**2*TX+DLY**2*TY WHERE
-        !     TX=AFUN(X)*UXXXX/12.0+BFUN(X)*UXXX/6.0 ON THE INTERIOR AND
-        !     AT THE BOUNDARIES IF PERIODIC(HERE UXXX, UXXXX ARE THE THIRD
-        !     AND FOURTH PARTIAL DERIVATIVES OF U WITH RESPECT TO X).
-        !     TX IS OF THE FORM AFUN(X)/3.0*(UXXXX/4.0+UXXX/DLX)
-        !     AT X=A OR X=B IF THE BOUNDARY CONDITION THERE IS MIXED.
-        !     TX=0.0 ALONG SPECIFIED BOUNDARIES.  TY HAS SYMMETRIC FORM
-        !     IN Y WITH X, AFUN(X), BFUN(X) REPLACED BY Y, DFUN(Y), EFUN(Y).
-        !     THE SECOND ORDER SOLUTION IN USOL IS USED TO APPROXIMATE
-        !     (VIA SECOND ORDER FINITE DIFFERENCING) THE TRUNCATION ERROR
-        !     AND THE RESULT IS ADDED TO THE RIGHT HAND SIDE IN GRHS
-        !     AND THEN TRANSFERRED TO USOL TO BE USED AS A NEW RIGHT
-        !     HAND SIDE WHEN CALLING BLKTRI FOR A FOURTH ORDER SOLUTION.
-        !
-        !
-        !     COMPUTE TRUNCATION ERROR APPROXIMATION OVER THE ENTIRE MESH
+        !     compute truncation error approximation over the entire mesh
         !
         do j = js, ns
             yj = cit + real(j - 1)*dly
-            call COFY (yj, dj, ej, fj)
+            call cofy (yj, dj, ej, fj)
             do i = is, ms
                 xi = ait + real(i - 1)*dlx
-                call COFX (xi, ai, bi, ci)
+                call cofx(xi, ai, bi, ci)
                 !
-                !     COMPUTE PARTIAL DERIVATIVE APPROXIMATIONS AT (XI, YJ)
+                !     compute partial derivative approximations at (xi, yj)
                 !
-                call SEPDX (usol, idmn, i, j, uxxx, uxxxx)
-                call SEPDY (usol, idmn, i, j, uyyy, uyyyy)
+                call sepdx (usol, idmn, i, j, uxxx, uxxxx)
+                call sepdy (usol, idmn, i, j, uyyy, uyyyy)
                 tx = ai*uxxxx/12.0 + bi*uxxx/6.0
                 ty = dj*uyyyy/12.0 + ej*uyyy/6.0
                 !
-                !     RESET FORM OF TRUNCATION IF AT BOUNDARY WHICH IS NON-PERIODIC
+                !     reset form of truncation if at boundary which is non-periodic
                 !
-                if (kswx/=1 .and. (i==1 .or. i==k)) tx = ai/3.0*(uxxxx/4.0 &
+                if (kswx/=1 .and. (i==1 .or. i==k)) tx = ai/3.0_wp * (uxxxx/4.0 &
                     + uxxx/dlx)
-                if (kswy/=1 .and. (j==1 .or. j==l)) ty = dj/3.0*(uyyyy/4.0 &
+                if (kswy/=1 .and. (j==1 .or. j==l)) ty = dj/3.0_wp * (uyyyy/4.0 &
                     + uyyy/dly)
-                grhs(i, j) = GRHS(i, j) + dlx**2*tx + dly**2*ty
+                grhs(i, j) = grhs(i, j) + dlx**2*tx + dly**2*ty
             end do
         end do
         !
-        !     RESET THE RIGHT HAND SIDE IN USOL
+        !     reset the right hand side in usol
         !
-        usol(is:ms, js:ns) = GRHS(is:ms, js:ns)
+        usol(is:ms, js:ns) = grhs(is:ms, js:ns)
 
     end subroutine defer
 

@@ -1,5 +1,9 @@
 module module_pois3d
 
+    use, intrinsic :: iso_fortran_env, only: &
+        ip => INT32, &
+        wp => REAL64
+
     use type_FishpackWorkspace, only: &
         FishpackWorkspace
 
@@ -75,11 +79,11 @@ contains
         !   L o c a l   V a r i a b l e s
         !-----------------------------------------------
         integer::ldimf, mdimf, lperod, l, mperod, m, nperod, n, i, j, k, ierror
-        real , dimension(32, 33, 10) :: f
-        real , dimension(10) :: a, b, c
-        real , dimension(30) :: x, y
-        real , dimension(10) :: z
-        real :: pi, dx, c1, dy, c2, dz, dzsq, t, err
+        real (wp), dimension(32, 33, 10) :: f
+        real (wp), dimension(10) :: a, b, c
+        real (wp), dimension(30) :: x, y
+        real (wp), dimension(10) :: z
+        real (wp) :: pi, dx, c1, dy, c2, dz, dzsq, t, err
         !-----------------------------------------------
         !
         !     FROM THE DIMENSION STATEMENT WE GET THAT LDIMF = 32, MDIMF = 33,
@@ -140,9 +144,9 @@ contains
         end do
         c(n) = 0.
         !
-        !     CALL POIS3D TO SOLVE EQUATIONS.
+        !     CALL pois3d TO SOLVE EQUATIONS.
         !
-        call POIS3D(lperod, l, c1, mperod, m, c2, nperod, n, a, b, c, &
+        call pois3d(lperod, l, c1, mperod, m, c2, nperod, n, a, b, c, &
             ldimf, mdimf, f, ierror)
         !
         !     COMPUTE DISCRETIZATION ERROR.  THE EXACT SOLUTION IS
@@ -161,7 +165,7 @@ contains
         !     Print earlier output from platforms with 32 and 64 bit floating point
         !     arithemtic followed by the output from this computer
         write( *, *) ''
-        write( *, *) '    POIS3D TEST RUN *** '
+        write( *, *) '    pois3d TEST RUN *** '
         write( *, *) &
             '    Previous 64 bit floating point arithmetic result '
         write( *, *) '    IERROR = 0,  Discretization Error = 2.93277E-2'
@@ -172,7 +176,8 @@ contains
 
     end subroutine pois3d_unit_test
 
-    subroutine POIS3D( lperod, l, c1, mperod, m, c2, nperod, n, a, b, c, &
+
+    subroutine pois3d( lperod, l, c1, mperod, m, c2, nperod, n, a, b, c, &
         ldimf, mdimf, f, ierror)
             !
         !     file pois3d.f
@@ -209,7 +214,7 @@ contains
         !     *                                                               *
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
-        !     SUBROUTINE POIS3D (LPEROD, L, C1, MPEROD, M, C2, NPEROD, N, A, B, C, LDIMF,
+        !     SUBROUTINE pois3d (LPEROD, L, C1, MPEROD, M, C2, NPEROD, N, A, B, C, LDIMF,
         !    +                   MDIMF, F, IERROR)
         !
         !
@@ -234,7 +239,7 @@ contains
         !                        ARE ASSUMED TO TAKE ON CERTAIN PRESCRIBED
         !                        VALUES DESCRIBED BELOW.
         !
-        ! USAGE                  CALL POIS3D (LPEROD, L, C1, MPEROD, M, C2, NPEROD,
+        ! USAGE                  CALL pois3d (LPEROD, L, C1, MPEROD, M, C2, NPEROD,
         !                        N, A, B, C, LDIMF, MDIMF, F, IERROR)
         !
         ! ARGUMENTS
@@ -299,14 +304,14 @@ contains
         !                        LDIMF
         !                          THE ROW (OR FIRST) DIMENSION OF THE THREE-
         !                          DIMENSIONAL ARRAY F AS IT APPEARS IN THE
-        !                          PROGRAM CALLING POIS3D.  THIS PARAMETER IS
+        !                          PROGRAM CALLING pois3d.  THIS PARAMETER IS
         !                          USED TO SPECIFY THE VARIABLE DIMENSION
         !                          OF F.  LDIMF MUST BE AT LEAST L.
         !
         !                        MDIMF
         !                          THE COLUMN (OR SECOND) DIMENSION OF THE THREE
         !                          DIMENSIONAL ARRAY F AS IT APPEARS IN THE
-        !                          PROGRAM CALLING POIS3D.  THIS PARAMETER IS
+        !                          PROGRAM CALLING pois3d.  THIS PARAMETER IS
         !                          USED TO SPECIFY THE VARIABLE DIMENSION
         !                          OF F.  MDIMF MUST BE AT LEAST M.
         !
@@ -344,7 +349,7 @@ contains
         !                               for your computer)
         !
         !                          SINCE THIS IS THE ONLY MEANS OF INDICATING A
-        !                          POSSIBLY INCORRECT CALL TO POIS3D, THE USER
+        !                          POSSIBLY INCORRECT CALL TO pois3d, THE USER
         !                          SHOULD TEST IERROR AFTER THE CALL.
         !
         ! SPECIAL CONDITIONS     NONE
@@ -366,7 +371,7 @@ contains
         ! PORTABILITY            FORTRAN 90
         !
         ! ALGORITHM              THIS SUBROUTINE SOLVES THREE-DIMENSIONAL BLOCK
-        !                        TRIDIAGONAL LINEAR SYSTEMS ARISING FROM FINITE
+        !                        tridIAGONAL LINEAR SYSTEMS ARISING FROM FINITE
         !                        DIFFERENCE APPROXIMATIONS TO THREE-DIMENSIONAL
         !                        POISSON EQUATIONS USING THE FFT PACKAGE
         !                        FFTPACK WRITTEN BY PAUL SWARZTRAUBER.
@@ -389,7 +394,7 @@ contains
         !                        THE SOLUTION X WAS SUBSTITUTED INTO THE GIVEN
         !                        SYSTEM AND, USING DOUBLE PRECISION, A RIGHT
         !                        SIDE Y WAS COMPUTED.  USING THIS ARRAY Y
-        !                        SUBROUTINE POIS3D WAS CALLED TO PRODUCE AN
+        !                        SUBROUTINE pois3d WAS CALLED TO PRODUCE AN
         !                        APPROXIMATE SOLUTION Z.  RELATIVE ERROR
         !
         !                        E = MAX(abs(Z(I, J, K)-X(I, J, K)))/MAX(abs(X(I, J, K
@@ -416,27 +421,27 @@ contains
         !-----------------------------------------------
         !   D u m m y   A r g u m e n t s
         !-----------------------------------------------
-        integer  :: lperod
-        integer  :: l
-        integer  :: mperod
-        integer  :: m
-        integer  :: nperod
-        integer  :: n
-        integer  :: ldimf
-        integer  :: mdimf
-        integer  :: ierror
-        real  :: c1
-        real  :: c2
-        real  :: a(*)
-        real  :: b(*)
-        real  :: c(*)
-        real  :: f(ldimf, mdimf, *)
+        integer (ip) :: lperod
+        integer (ip) :: l
+        integer (ip) :: mperod
+        integer (ip) :: m
+        integer (ip) :: nperod
+        integer (ip) :: n
+        integer (ip) :: ldimf
+        integer (ip) :: mdimf
+        integer (ip) :: ierror
+        real (wp) :: c1
+        real (wp) :: c2
+        real (wp) :: a(*)
+        real (wp) :: b(*)
+        real (wp) :: c(*)
+        real (wp) :: f(ldimf, mdimf, *)
         !-----------------------------------------------
         !   L o c a l   V a r i a b l e s
         !-----------------------------------------------
-        integer :: lp, mp, np, k, irwk, icwk
-        
+        integer (ip) :: lp, mp, np, k
         !-----------------------------------------------
+
         lp = lperod + 1
         mp = mperod + 1
         np = nperod + 1
@@ -466,48 +471,58 @@ contains
 ! 104 IF (IERROR .NE. 0) GO TO 122
 104 continue
     if (ierror /= 0) return
-    !     allocate required work space length (generous estimate)
-    irwk=30+l+m+2*n+max(l, m, n)+7*(INT((l+1)/2)+INT((m+1)/2))
-    icwk = 0
-    call workspace%create( irwk, icwk, ierror )
-    !     check that allocation was successful
+
+    ! allocate required work space length (generous estimate)
+    associate( &
+        irwk=>30+l+m+2*n+max(l, m, n)+7*(int((l+1)/2)+int((m+1)/2)), &
+        icwk => 0 &
+        )
+        call workspace%create( irwk, icwk, ierror )
+    end associate
+
+    ! check that allocation was successful
     if (ierror == 20) return
+
+    ! solve system
     call pois3dd(lperod, l, c1, mperod, m, c2, nperod, n, a, b, c, ldimf, &
         mdimf, f, ierror, workspace%rew)
-    !     release work space
+
+    ! Release dynamically allocated memory
     call workspace%destroy()
 
-end subroutine POIS3D
+end subroutine pois3d
 
-subroutine POIS3DD(lperod, l, c1, mperod, m, c2, nperod, n, a, b, &
+
+subroutine pois3dd(lperod, l, c1, mperod, m, c2, nperod, n, a, b, &
     c, ldimf, mdimf, f, ierror, w)
 
     !-----------------------------------------------
     !   D u m m y   A r g u m e n t s
     !-----------------------------------------------
-    integer , intent (in) :: lperod
-    integer  :: l
-    integer , intent (in) :: mperod
-    integer  :: m
-    integer , intent (in) :: nperod
-    integer  :: n
-    integer  :: ldimf
-    integer  :: mdimf
-    integer  :: ierror
-    real  :: c1
-    real  :: c2
-    real  :: a(*)
-    real  :: b(*)
-    real  :: c(*)
-    real  :: f(ldimf, mdimf, *)
-    real  :: w(*)
+    integer (ip), intent (in) :: lperod
+    integer (ip) :: l
+    integer (ip), intent (in) :: mperod
+    integer (ip) :: m
+    integer (ip), intent (in) :: nperod
+    integer (ip) :: n
+    integer (ip) :: ldimf
+    integer (ip) :: mdimf
+    integer (ip) :: ierror
+    real (wp) :: c1
+    real (wp) :: c2
+    real (wp) :: a(*)
+    real (wp) :: b(*)
+    real (wp) :: c(*)
+    real (wp) :: f(ldimf, mdimf, *)
+    real (wp) :: w(*)
     !-----------------------------------------------
     !   L o c a l   V a r i a b l e s
     !-----------------------------------------------
-    integer :: lp, mp, np, iwyrt, iwt, iwd, iwbb, iwx, iwy, nh, nhm1, &
-        nodd, i, j, k
-    real, dimension(6) :: save
+    integer (ip) :: lp, mp, np, iwyrt, iwt, iwd, iwbb
+    integer (ip) :: iwx, iwy, nh, nhm1, nodd, i, j, k
+    real (wp)    :: save_rename(6)
     !-----------------------------------------------
+
     lp = lperod + 1
     mp = mperod + 1
     np = nperod + 1
@@ -519,7 +534,7 @@ subroutine POIS3DD(lperod, l, c1, mperod, m, c2, nperod, n, a, b, &
     iwy = iwx + 7*((l + 1)/2) + 15
     go to (105, 114) np
 !
-!     REORDER UNKNOWNS WHEN NPEROD = 0.
+!     reorder unknowns when nperod = 0.
 !
 105 continue
     nh = (n + 1)/2
@@ -529,102 +544,102 @@ subroutine POIS3DD(lperod, l, c1, mperod, m, c2, nperod, n, a, b, &
     do i = 1, l
         do j = 1, m
             do k = 1, nhm1
-                w(k) = F(i, j, nh-k) - F(i, j, k+nh)
-                w(k+nh) = F(i, j, nh-k) + F(i, j, k+nh)
+                w(k) = f(i, j, nh-k) - f(i, j, k+nh)
+                w(k+nh) = f(i, j, nh-k) + f(i, j, k+nh)
             end do
-            w(nh) = 2.*F(i, j, nh)
+            w(nh) = 2.*f(i, j, nh)
             go to (108, 107) nodd
 107     continue
-        w(n) = 2.*F(i, j, n)
+        w(n) = 2.*f(i, j, n)
 108 continue
-    f(i, j, :n) = W(:n)
+    f(i, j, :n) = w(:n)
 end do
 end do
-save(1) = C(nhm1)
-save(2) = A(nh)
-save(3) = C(nh)
-save(4) = B(nhm1)
-save(5) = B(n)
-save(6) = A(n)
+save_rename(1) = c(nhm1)
+save_rename(2) = a(nh)
+save_rename(3) = c(nh)
+save_rename(4) = b(nhm1)
+save_rename(5) = b(n)
+save_rename(6) = a(n)
 c(nhm1) = 0.
 a(nh) = 0.
-c(nh) = 2.*C(nh)
+c(nh) = 2.*c(nh)
 select case (nodd)
     case default
-        b(nhm1) = B(nhm1) - A(nh-1)
-        b(n) = B(n) + A(n)
+        b(nhm1) = b(nhm1) - a(nh-1)
+        b(n) = b(n) + a(n)
     case (2)
-        a(n) = C(nh)
+        a(n) = c(nh)
 end select
 114 continue
-    call POS3D1 (lp, l, mp, m, n, a, b, c, ldimf, mdimf, f, w, W(iwyrt &
-        ), W(iwt), W(iwd), W(iwx), W(iwy), c1, c2, W(iwbb))
+    call pos3d1 (lp, l, mp, m, n, a, b, c, ldimf, mdimf, f, w, w(iwyrt &
+        ), w(iwt), w(iwd), w(iwx), w(iwy), c1, c2, w(iwbb))
     go to (115, 122) np
 115 continue
     do i = 1, l
         do j = 1, m
-            w(nh-1:nh-nhm1:(-1))=0.5*(F(i, j, nh+1:nhm1+nh)+F(i, j, :nhm1))
-            w(nh+1:nhm1+nh) = 0.5*(F(i, j, nh+1:nhm1+nh)-F(i, j, :nhm1))
-            w(nh) = 0.5*F(i, j, nh)
+            w(nh-1:nh-nhm1:(-1))=0.5*(f(i, j, nh+1:nhm1+nh)+f(i, j, :nhm1))
+            w(nh+1:nhm1+nh) = 0.5*(f(i, j, nh+1:nhm1+nh)-f(i, j, :nhm1))
+            w(nh) = 0.5*f(i, j, nh)
             go to (118, 117) nodd
 117     continue
-        w(n) = 0.5*F(i, j, n)
+        w(n) = 0.5*f(i, j, n)
 118 continue
-    f(i, j, :n) = W(:n)
+    f(i, j, :n) = w(:n)
 end do
 end do
-c(nhm1) = SAVE(1)
-a(nh) = SAVE(2)
-c(nh) = SAVE(3)
-b(nhm1) = SAVE(4)
-b(n) = SAVE(5)
-a(n) = SAVE(6)
+c(nhm1) = save_rename(1)
+a(nh) = save_rename(2)
+c(nh) = save_rename(3)
+b(nhm1) = save_rename(4)
+b(n) = save_rename(5)
+a(n) = save_rename(6)
 122 continue
 
-end subroutine POIS3DD
+end subroutine pois3dd
 
-subroutine POS3D1(lp, l, mp, m, n, a, b, c, ldimf, mdimf, f, xrt, &
+subroutine pos3d1(lp, l, mp, m, n, a, b, c, ldimf, mdimf, f, xrt, &
     yrt, t, d, wx, wy, c1, c2, bb)
-
-    !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
-    !-----------------------------------------------
-    integer , intent (in) :: lp
-    integer , intent (in) :: l
-    integer , intent (in) :: mp
-    integer , intent (in) :: m
-    integer , intent (in) :: n
-    integer , intent (in) :: ldimf
-    integer , intent (in) :: mdimf
-    real , intent (in) :: c1
-    real , intent (in) :: c2
-    real  :: a(*)
-    real , intent (in) :: b(*)
-    real  :: c(*)
-    real , intent (in out) :: f(ldimf, mdimf, 1)
-    real , intent (in out) :: xrt(*)
-    real , intent (in out) :: yrt(*)
-    real  :: t(*)
-    real  :: d(*)
-    real  :: wx(*)
-    real  :: wy(*)
-    real  :: bb(*)
+    !--------------------------------------------------------------------------------
+    ! Dictionary: calling arguments
+    !--------------------------------------------------------------------------------
+    integer (ip), intent (in)     :: lp
+    integer (ip), intent (in)     :: l
+    integer (ip), intent (in)     :: mp
+    integer (ip), intent (in)     :: m
+    integer (ip), intent (in)     :: n
+    integer (ip), intent (in)     :: ldimf
+    integer (ip), intent (in)     :: mdimf
+    real (wp),    intent (in)     :: c1
+    real (wp),    intent (in)     :: c2
+    real (wp),    intent (in out) :: a(*)
+    real (wp),    intent (in)     :: b(*)
+    real (wp),    intent (in out) ::c(*)
+    real (wp),    intent (in out) :: f(ldimf, mdimf, 1)
+    real (wp),    intent (in out) :: xrt(*)
+    real (wp),    intent (in out) :: yrt(*)
+    real (wp),    intent (in out) :: t(*)
+    real (wp),    intent (in out) :: d(*)
+    real (wp),    intent (in out) ::wx(*)
+    real (wp),    intent (in out) ::wy(*)
+    real (wp),    intent (in out) :: bb(*)
     !-----------------------------------------------
     !   L o c a l   V a r i a b l e s
     !-----------------------------------------------
-    integer :: lr, mr, nr, lrdel, i, mrdel, j, ifwrd, is, k
-    real :: pi, scalx, dx, di, scaly, dy, dj
+    integer (ip)         :: lr, mr, nr, lrdel, i, mrdel, j, ifwrd, is, k
+    real (wp), parameter :: PI = acos( -1.0_wp )
+    real (wp)            :: scalx, dx, di, scaly, dy, dj
     !-----------------------------------------------
-    pi = acos( -1.0 )
+
     lr = l
     mr = m
     nr = n
     !
-    !     GENERATE TRANSFORM ROOTS
+    !     generate transform roots
     !
     lrdel = ((lp - 1)*(lp - 3)*(lp - 5))/3
     scalx = lr + lrdel
-    dx = pi/(2.*scalx)
+    dx = PI/(2.*scalx)
     go to (108, 103, 101, 102, 101) lp
 101 continue
     di = 0.5
@@ -637,34 +652,34 @@ subroutine POS3D1(lp, l, mp, m, n, a, b, c, ldimf, mdimf, f, xrt, &
     di = 0.0
 104 continue
     do i = 1, lr
-        xrt(i) = -4.*c1*SIN((real(i) - di)*dx)**2
+        xrt(i) = -4.*c1*sin((real(i) - di)*dx)**2
     end do
     scalx = 2.*scalx
     go to (112, 106, 110, 107, 111) lp
 106 continue
-    call SINTI (lr, wx)
+    call sinti (lr, wx)
     go to 112
 107 continue
-    call COSTI (lr, wx)
+    call costi (lr, wx)
     go to 112
 108 continue
     xrt(1) = 0.
     xrt(lr) = -4.*c1
     do i = 3, lr, 2
-        xrt(i-1) = -4.*c1*SIN(real(i - 1)*dx)**2
-        xrt(i) = XRT(i-1)
+        xrt(i-1) = -4.*c1*sin(real(i - 1)*dx)**2
+        xrt(i) = xrt(i-1)
     end do
-    call RFFTI (lr, wx)
+    call rffti (lr, wx)
     go to 112
 110 continue
-    call SINQI (lr, wx)
+    call sinqi (lr, wx)
     go to 112
 111 continue
-    call COSQI (lr, wx)
+    call cosqi (lr, wx)
 112 continue
     mrdel = ((mp - 1)*(mp - 3)*(mp - 5))/3
     scaly = mr + mrdel
-    dy = pi/(2.*scaly)
+    dy = PI/(2.*scaly)
     go to (120, 115, 113, 114, 113) mp
 113 continue
     dj = 0.5
@@ -677,99 +692,99 @@ subroutine POS3D1(lp, l, mp, m, n, a, b, c, ldimf, mdimf, f, xrt, &
     dj = 0.0
 116 continue
     do j = 1, mr
-        yrt(j) = -4.*c2*SIN((real(j) - dj)*dy)**2
+        yrt(j) = -4.*c2*sin((real(j) - dj)*dy)**2
     end do
     scaly = 2.*scaly
     go to (124, 118, 122, 119, 123) mp
 118 continue
-    call SINTI (mr, wy)
+    call sinti (mr, wy)
     go to 124
 119 continue
-    call COSTI (mr, wy)
+    call costi (mr, wy)
     go to 124
 120 continue
     yrt(1) = 0.
     yrt(mr) = -4.*c2
     do j = 3, mr, 2
-        yrt(j-1) = -4.*c2*SIN(real(j - 1)*dy)**2
-        yrt(j) = YRT(j-1)
+        yrt(j-1) = -4.*c2*sin(real(j - 1)*dy)**2
+        yrt(j) = yrt(j-1)
     end do
-    call RFFTI (mr, wy)
+    call rffti (mr, wy)
     go to 124
 122 continue
-    call SINQI (mr, wy)
+    call sinqi (mr, wy)
     go to 124
 123 continue
-    call COSQI (mr, wy)
+    call cosqi (mr, wy)
 124 continue
     ifwrd = 1
     is = 1
 125 continue
     !
-    !     TRANSFORM X
+    !     transform x
     !
     do j=1, mr
         do k=1, nr
             do i=1, lr
-                t(i) = F(i, j, k)
+                t(i) = f(i, j, k)
             end do
             go to (127, 130, 131, 134, 135), lp
 127         go to (128, 129), ifwrd
-128         call RFFTF (lr, t, wx)
+128         call rfftf (lr, t, wx)
             go to 138
-129         call RFFTB (lr, t, wx)
+129         call rfftb (lr, t, wx)
             go to 138
-130         call SINT (lr, t, wx)
+130         call sint (lr, t, wx)
             go to 138
 131         go to (132, 133), ifwrd
-132         call SINQF (lr, t, wx)
+132         call sinqf (lr, t, wx)
             go to 138
-133         call SINQB (lr, t, wx)
+133         call sinqb (lr, t, wx)
             go to 138
-134         call COST (lr, t, wx)
+134         call cost (lr, t, wx)
             go to 138
 135         go to (136, 137), ifwrd
-136         call COSQF (lr, t, wx)
+136         call cosqf (lr, t, wx)
             go to 138
-137         call COSQB (lr, t, wx)
+137         call cosqb (lr, t, wx)
 138     continue
         do i=1, lr
-            f(i, j, k) = T(i)
+            f(i, j, k) = t(i)
         end do
     end do
 end do
 go to (142, 164) ifwrd
 !
-!     TRANSFORM Y
+!     transform y
 !
 142 continue
     do i=1, lr
         do k=1, nr
             do j=1, mr
-                t(j) = F(i, j, k)
+                t(j) = f(i, j, k)
             end do
             go to (144, 147, 148, 151, 152), mp
 144         go to (145, 146), ifwrd
-145         call RFFTF (mr, t, wy)
+145         call rfftf (mr, t, wy)
             go to 155
-146         call RFFTB (mr, t, wy)
+146         call rfftb (mr, t, wy)
             go to 155
-147         call SINT (mr, t, wy)
+147         call sint (mr, t, wy)
             go to 155
 148         go to (149, 150), ifwrd
-149         call SINQF (mr, t, wy)
+149         call sinqf (mr, t, wy)
             go to 155
-150         call SINQB (mr, t, wy)
+150         call sinqb (mr, t, wy)
             go to 155
-151         call COST (mr, t, wy)
+151         call cost (mr, t, wy)
             go to 155
 152         go to (153, 154), ifwrd
-153         call COSQF (mr, t, wy)
+153         call cosqf (mr, t, wy)
             go to 155
-154         call COSQB (mr, t, wy)
+154         call cosqb (mr, t, wy)
 155     continue
         do j=1, mr
-            f(i, j, k) = T(j)
+            f(i, j, k) = t(j)
         end do
     end do
 end do
@@ -777,59 +792,59 @@ go to (159, 125) ifwrd
 159 continue
     do i = 1, lr
         do j = 1, mr
-            bb(:nr) = B(:nr) + XRT(i) + YRT(j)
-            t(:nr) = F(i, j, :nr)
-            call TRID (nr, a, bb, c, t, d)
-            f(i, j, :nr) = T(:nr)
+            bb(:nr) = b(:nr) + xrt(i) + yrt(j)
+            t(:nr) = f(i, j, :nr)
+            call trid (nr, a, bb, c, t, d)
+            f(i, j, :nr) = t(:nr)
         end do
     end do
     ifwrd = 2
     is = -1
     go to 142
 164 continue
-    f(:lr, :mr, :nr) = F(:lr, :mr, :nr)/(scalx*scaly)
+    f(:lr, :mr, :nr) = f(:lr, :mr, :nr)/(scalx*scaly)
 
-end subroutine POS3D1
+end subroutine pos3d1
 
-subroutine TRID(mr, a, b, c, y, d)
+subroutine trid(mr, a, b, c, y, d)
 
     !-----------------------------------------------
     !   D u m m y   A r g u m e n t s
     !-----------------------------------------------
-    integer , intent (in) :: mr
-    real , intent (in) :: a(*)
-    real , intent (in) :: b(*)
-    real , intent (in) :: c(*)
-    real , intent (in out) :: y(*)
-    real , intent (in out) :: d(*)
+    integer (ip), intent (in)  :: mr
+    real (wp), intent (in)     :: a(*)
+    real (wp), intent (in)     :: b(*)
+    real (wp), intent (in)     :: c(*)
+    real (wp), intent (in out) :: y(*)
+    real (wp), intent (in out) :: d(*)
     !-----------------------------------------------
     !   L o c a l   V a r i a b l e s
     !-----------------------------------------------
-    integer :: m, mm1, i, ip
-    real :: z
+    integer (ip) :: m, mm1, i, ip_rename
+    real (wp)    :: z
     !-----------------------------------------------
     m = mr
     mm1 = m - 1
-    z = 1./B(1)
-    d(1) = C(1)*z
-    y(1) = Y(1)*z
+    z = 1.0_wp/b(1)
+    d(1) = c(1)*z
+    y(1) = y(1)*z
     do i = 2, mm1
-        z = 1./(B(i)-A(i)*D(i-1))
-        d(i) = C(i)*z
-        y(i) = (Y(i)-A(i)*Y(i-1))*z
+        z = 1.0_wp/(b(i)-a(i)*d(i-1))
+        d(i) = c(i)*z
+        y(i) = (y(i)-a(i)*y(i-1))*z
     end do
-    z = B(m) - A(m)*D(mm1)
-    if (z == 0.) then
-        y(m) = 0.
+    z = b(m) - a(m)*d(mm1)
+    if (z == 0._wp) then
+        y(m) = 0.0_wp
     else
-        y(m) = (Y(m)-A(m)*Y(mm1))/z
+        y(m) = (y(m)-a(m)*y(mm1))/z
     end if
-    do ip = 1, mm1
-        i = m - ip
-        y(i) = Y(i) - D(i)*Y(i+1)
+    do ip_rename = 1, mm1
+        i = m - ip_rename
+        y(i) = y(i) - d(i)*y(i+1)
     end do
 
-end subroutine TRID
+end subroutine trid
 
 end module module_pois3d
 !
