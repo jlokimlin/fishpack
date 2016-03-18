@@ -1,10 +1,11 @@
 # **modern\_fishpack**
  
-This Fortran project is a modernization of NCAR's FISHPACK90 library. The original work, written in both FORTRAN 77 and Fortran 90, was heavily refactored to incorporate features of modern Fortran (2008+). That is, all the procedures are now encapsulated in modules. 
+This Fortran project is a modernization of NCAR's FISHPACK90 library. The original work, written in both FORTRAN 77 and Fortran 90, was heavily refactored to incorporate features of modern Fortran (2008+). 
 
-Most importantly, the potential memory leak in the derived type **fish**, now rebaptized as **FishpackWorkspace**, was addressed by replacing pointers with allocatable arrays. 
 
-This project is still a work in progress. All of the refactored procedural solvers passed their unit tests.
+Every common block, subroutine, and function is now encapsulated in a module. Most importantly, the potential memory leak in the derived type **fish**, now rebaptized as **FishpackWorkspace**, is resolved by replacing pointers with allocatable arrays. 
+
+This project is still a work in progress and every refactored solver passes their original rest run.
 
 -----------------------------------------------------------------------------
 
