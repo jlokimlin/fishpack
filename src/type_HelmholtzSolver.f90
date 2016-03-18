@@ -301,9 +301,9 @@ contains
         !
         !< Purpose:
         !
-        !     To illustrate the use of the FishpackWrapper type-bound procedure
+        !     To illustrates the usage of TYPE (HelmholtzSolver) type-bound procedure'
         !
-        !     solve_2D_HELMHOLTZ_CENTERED
+        !     SOLVE_2D_HELMHOLTZ_CENTERED
         !
         !     to solve the equation
         !
@@ -329,7 +329,7 @@ contains
         !--------------------------------------------------------------------------------
         ! Dictionary: local variables
         !--------------------------------------------------------------------------------
-        type (HelmholtzSolver)  :: mixed_robin
+        type (HelmholtzSolver)  :: solver
         type (CenteredGrid)     :: grid
         integer (ip)            :: error_flag
         integer (ip)            :: i, j    !! Counters
@@ -344,31 +344,29 @@ contains
 
         ! Print description to console
         write( stdout, '(A)' ) ''
-        write( stdout, '(A)' ) '   Usage of type-bound procedure'
+        write( stdout, '(A)' ) '     To illustrates the usage of TYPE (HelmholtzSolver) type-bound procedure'
         write( stdout, '(A)' ) ''
-        write( stdout, '(A)' ) '   SOLVE_2D_HELMHOLTZ_STAGGERED'
+        write( stdout, '(A)' ) '     SOLVE_2D_HELMHOLTZ_CENTERED'
         write( stdout, '(A)' ) ''
-        write( stdout, '(A)' ) '   to solve the equation'
+        write( stdout, '(A)' ) '     to solve the equation'
         write( stdout, '(A)' ) ''
-        write( stdout, '(A)' ) '    (d/dx)(du/dx) + (d/dy)(du/dy) - 2*u = -2(pi**2+1)sin(pi*x)cos(pi*y)'
+        write( stdout, '(A)' ) '     (d/dx)(du/dx) + (d/dy)(du/dy) - 4*u'
+        write( stdout, '(A)' ) ''
+        write( stdout, '(A)' ) '     = (2 - (4 + pi**2/4) * x**2 ) * cos((y+1)*pi/2)'
         write( stdout, '(A)' ) ''
         write( stdout, '(A)' ) '    with the boundary conditions on the rectangle'
         write( stdout, '(A)' ) ''
-        write( stdout, '(A)' ) '    (x,y) in [1,3]x[-1,1] with'
+        write( stdout, '(A)' ) '    (x,y) in [0,2]x[-1,3] with'
         write( stdout, '(A)' ) ''
         write( stdout, '(A)' ) '    MIXED ROBIN CONDITION:'
         write( stdout, '(A)' ) ''
-        write( stdout, '(A)' ) '     u(1,y)       = 0,                for -1 <= y <= 3'
-        write( stdout, '(A)' ) '     (du/dx)(3,y) = -pi*cos(pi*y),    for -1 <= y <= 3'
+        write( stdout, '(A)' ) '    u(0,y)       = 0                 for -1 <= y <= 3'
+        write( stdout, '(A)' ) '    (du/dx)(2,y) = 4*cos((y+1)*pi/2) for -1 <= y <= 3'
         write( stdout, '(A)' ) ''
-        write( stdout, '(A)' ) '     and u is PERIODIC in y.'
+        write( stdout, '(A)' ) '    and with u PERIODIC in y.'
         write( stdout, '(A)' ) ''
-        write( stdout, '(A)' ) '     we want to have 48 unknowns in the x-interval and 53 unknowns'
-        write( stdout, '(A)' ) '     in the y-interval.'
-        write( stdout, '(A)' ) ''
-        write( stdout, '(A)' ) '     The exact solution to this problem is'
-        write( stdout, '(A)' ) ''
-        write( stdout, '(A)' ) '         u(x,y) = sin(pi*x) * cos(pi*y).'
+        write( stdout, '(A)' ) '    the x-interval will be divided into 40 panels and the'
+        write( stdout, '(A)' ) '    y-interval will be divided into 80 panels.'
         write( stdout, '(A)' ) ''
 
         ! Create centered grid
@@ -379,9 +377,10 @@ contains
             call grid%create( x_interval, y_interval, NX, NY )
         end associate
 
-        solver: associate( &
+        associate( &
             x => grid%x, &
             y => grid%y, &
+            domain => grid%domain, &
             ROBIN_CONDITIONS_IN_X => 2, &
             PERIODIC_IN_Y => 0, &
             HELMHOLTZ_CONSTANT => -4.0_wp, &
@@ -391,20 +390,25 @@ contains
             PI_SQUARED => PI**2 &
             )
 
+            !
             ! Set the boundary conditions
-            call mixed_robin%create( NX + 1, NY + 1, PERIODIC_IN_Y, ROBIN_CONDITIONS_IN_X, grid%domain )
+            !
+            call solver%create( NX + 1, NY + 1, PERIODIC_IN_Y, ROBIN_CONDITIONS_IN_X, domain )
 
+            !
             ! generate boundary data
-            associate( bdb => mixed_robin%east )
+            !
+            associate( bdb => solver%east )
                 do  j = 1, NY + 1
                     bdb(j) = 4.0_wp * cos( ( y(j) + 1.0_wp ) * HALF_PI)
                     ! Remark: The west (bda), south(bdc), and north (bdd) components are dummy variables.
                 end do
             end associate
 
-            f(1, :NY + 1) = 0.0_wp
-
+            !
             ! Set source, i.e., right side of helmholtz equation
+            !
+            f(1, :NY + 1) = 0.0_wp
             do j = 1, NY + 1
                 do i = 2, NX + 1
                     f(i, j) = ( &
@@ -413,41 +417,35 @@ contains
                 end do
             end do
 
+            !
             ! Solve helmholtz equation
-            call mixed_robin%solve_2d_helmholtz_centered( &
+            !
+            call solver%solve_2d_helmholtz_centered( &
                 HELMHOLTZ_CONSTANT, f, u, error_flag = error_flag )
-
+            !
             ! Compute discretization error
+            !
             discretization_error = 0.0_wp
-            do i = 1, NX + 1
-                do j = 1, NY + 1
-
+            do j = 1, NY + 1
+                do i = 1, NX + 1
                     exact_solution = ( x(i)**2 ) * cos( ( y(j)+1.0_wp ) * HALF_PI )
-
                     associate( local_error => abs( u(i, j) - exact_solution ))
-
                         discretization_error = max( discretization_error, local_error)
-
                     end associate
                 end do
             end do
-
-        end associate solver
+        end associate
 
         !     Print earlier output from platforms with 32 and 64 bit floating point
         !     arithmetic followed by the output from this computer
 
         write( stdout, '(A)' ) ''
-        write( stdout, '(A)' ) '    TEST_SOLVE_2D_HELMHOLTZ_CENTERED (Thwscrt)    '
-        write( stdout, '(A)' ) ''
+        write( stdout, '(A)' ) '    *** TEST_SOLVE_2D_HELMHOLTZ_CENTERED ***    '
         write( stdout, '(A)' ) '    Previous 64 bit floating point arithmetic result '
         write( stdout, '(A)' ) '    ierror = 0,  discretization error = 5.3650e-4'
-        write( stdout, '(A)' ) ''
         write( stdout, '(A)' ) '    Output from your computer is: '
-        write( stdout, '(A, I2, A, E23.15E3)' ) &
+        write( stdout, '(A,I3,A,1pe15.6)') &
             '    ierror = ', error_flag, '    discretization error = ', discretization_error
-        write( stdout, '(A)' ) ''
-        write( stdout, '(A)' ) '************************************************************************'
         write( stdout, '(A)' ) ''
 
     end subroutine test_solve_2d_helmholtz_centered
@@ -498,6 +496,35 @@ contains
         real (wp)               :: discretization_error
         real (wp)               :: exact_solution
         !--------------------------------------------------------------------------------
+
+        ! Print description to console
+        write( stdout, '(A)' ) ''
+        write( stdout, '(A)' ) '   Illustrates the usage of TYPE (HelmholtzSolver) type-bound procedure'
+        write( stdout, '(A)' ) ''
+        write( stdout, '(A)' ) '   SOLVE_2D_HELMHOLTZ_STAGGERED'
+        write( stdout, '(A)' ) ''
+        write( stdout, '(A)' ) '   to solve the equation'
+        write( stdout, '(A)' ) ''
+        write( stdout, '(A)' ) '    (d/dx)(du/dx) + (d/dy)(du/dy) - 2*u = -2(pi**2+1)sin(pi*x)cos(pi*y)'
+        write( stdout, '(A)' ) ''
+        write( stdout, '(A)' ) '    with the boundary conditions on the rectangle'
+        write( stdout, '(A)' ) ''
+        write( stdout, '(A)' ) '    (x,y) in [1,3]x[-1,1] with'
+        write( stdout, '(A)' ) ''
+        write( stdout, '(A)' ) '    MIXED ROBIN CONDITION:'
+        write( stdout, '(A)' ) ''
+        write( stdout, '(A)' ) '     u(1,y)       = 0,                for -1 <= y <= 3'
+        write( stdout, '(A)' ) '     (du/dx)(3,y) = -pi*cos(pi*y),    for -1 <= y <= 3'
+        write( stdout, '(A)' ) ''
+        write( stdout, '(A)' ) '     and u is PERIODIC in y.'
+        write( stdout, '(A)' ) ''
+        write( stdout, '(A)' ) '     we want to have 48 unknowns in the x-interval and 53 unknowns'
+        write( stdout, '(A)' ) '     in the y-interval.'
+        write( stdout, '(A)' ) ''
+        write( stdout, '(A)' ) '     The exact solution to this problem is'
+        write( stdout, '(A)' ) ''
+        write( stdout, '(A)' ) '         u(x,y) = sin(pi*x) * cos(pi*y).'
+        write( stdout, '(A)' ) ''
 
         ! Create staggered grid
         associate( &
@@ -578,15 +605,11 @@ contains
         !     arithmetic followed by the output from this computer
 
         write( stdout, '(A)' ) ''
-        write( stdout, '(A)' ) '************************************************************************'
-        write( stdout, '(A)' ) ''
-        write( stdout, '(A)' ) '    TEST_SOLVE_2D_HELMHOLTZ_STAGGERED (Thstcrt)    '
-        write( stdout, '(A)' ) ''
+        write( stdout, '(A)' ) '    *** TEST_SOLVE_2D_HELMHOLTZ_STAGGERED ***    '
         write( stdout, '(A)' ) '    Previous 64 bit floating point arithmetic result '
         write( stdout, '(A)' ) '    ierror = 0,  discretization error = 1.2600e-3'
-        write( stdout, '(A)' ) ''
         write( stdout, '(A)' ) '    The output from your computer is: '
-        write( stdout, '(A, i2, A, E23.15E3)' ) &
+        write( stdout, '(A,I3,A,1pe15.6)' ) &
             '    ierror = ', error_flag, '    discretization error = ', discretization_error
         write( stdout, '(A)' ) ''
 
@@ -597,14 +620,14 @@ contains
         !
         ! Purpose:
         !
-        ! *** TEST RUN ***
+        ! *** UNIT TESTS ***
         !
         !--------------------------------------------------------------------------------
 
         write( stdout, '(A)' ) ''
         write( stdout, '(A)' ) '************************************************************************'
         write( stdout, '(A)' ) ''
-        write( stdout, '(A)' ) '     *** TEST RUN *** '
+        write( stdout, '(A)' ) '     *** TYPE (HelmholtzSovler) UNIT TESTS *** '
         write( stdout, '(A)' ) ''
 
         call test_solve_2d_helmholtz_centered() ! Thwscrt

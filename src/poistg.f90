@@ -468,7 +468,6 @@ contains
         !                        NEUMANN BOUNDARY CONDITIONS ON A STAGGERED
         !                        GRID OF ARBITRARY SIZE, " J. COMP. PHYS.
         !                        20(1976), PP. 171-182.
-        ! *********************************************************************
         !
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments

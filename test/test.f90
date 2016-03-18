@@ -60,6 +60,9 @@ program test
     use type_HelmholtzSolver, only: &
         HelmholtzSolver
 
+    use type_TridiagonalSolver, only: &
+        TridiagonalSolver
+
     call test_procedural_library()
     call test_object_oriented_library()
 
@@ -70,10 +73,12 @@ contains
         !--------------------------------------------------------------------------------
         ! Dictionary: local variables
         !--------------------------------------------------------------------------------
-        type (HelmholtzSolver) :: helmholtz_solver
+        type (HelmholtzSolver)   :: helmholtz_solver
+        type (TridiagonalSolver) :: tridiagonal_solver
         !--------------------------------------------------------------------------------
 
         call helmholtz_solver%unit_test()
+        call tridiagonal_solver%unit_test()
 
     end subroutine test_object_oriented_library
 
@@ -88,7 +93,7 @@ contains
         call hstcsp_unit_test()
         call hstcyl_unit_test()
         call hstplr_unit_test()
-        call hstssp_unit_test()
+        !call hstssp_unit_test()
         call hw3crt_unit_test()
         call hwscrt_unit_test()
         call hwscsp_unit_test()
