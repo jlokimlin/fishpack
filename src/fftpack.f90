@@ -1,5 +1,8 @@
 module module_fftpack
 
+    use iso_fortran_env, only: &
+        wp => REAL64
+
     ! explicit typing only
     implicit none
 
@@ -136,7 +139,7 @@ contains
     !
     ! **********************************************************************
     !
-    !     subroutine rffti(n,wsave)
+    !     subroutine rffti(n, wsave)
     !
     !     subroutine rffti initializes the array wsave which is used in
     !     both rfftf and rfftb. the prime factorization of n together with
@@ -157,7 +160,7 @@ contains
     !
     ! **********************************************************************
     !
-    !     subroutine rfftf(n,r,wsave)
+    !     subroutine rfftf(n, r, wsave)
     !
     !     subroutine rfftf computes the fourier coefficients of a real
     !     perodic sequence (fourier analysis). the transform is defined
@@ -174,7 +177,7 @@ contains
     !
     !     wsave   a work array which must be dimensioned at least 2*n+15.
     !             in the program that calls rfftf. the wsave array must be
-    !             initialized by calling subroutine rffti(n,wsave) and a
+    !             initialized by calling subroutine rffti(n, wsave) and a
     !             different wsave array must be used for each different
     !             value of n. this initialization does not have to be
     !             repeated so long as n remains unchanged thus subsequent
@@ -188,7 +191,7 @@ contains
     !
     !             if n is even set l =n/2   , if n is odd set l = (n+1)/2
     !
-    !               then for k = 2,...,l
+    !               then for k = 2, ..., l
     !
     !                  r(2*k-2) = the sum from i = 1 to i = n of
     !
@@ -215,7 +218,7 @@ contains
     !
     ! **********************************************************************
     !
-    !     subroutine rfftb(n,r,wsave)
+    !     subroutine rfftb(n, r, wsave)
     !
     !     subroutine rfftb computes the real perodic sequence from its
     !     fourier coefficients (fourier synthesis). the transform is defined
@@ -232,7 +235,7 @@ contains
     !
     !     wsave   a work array which must be dimensioned at least 2*n+15.
     !             in the program that calls rfftb. the wsave array must be
-    !             initialized by calling subroutine rffti(n,wsave) and a
+    !             initialized by calling subroutine rffti(n, wsave) and a
     !             different wsave array must be used for each different
     !             value of n. this initialization does not have to be
     !             repeated so long as n remains unchanged thus subsequent
@@ -242,23 +245,23 @@ contains
     !
     !     output parameters
     !
-    !     r       for n even and for i = 1,...,n
+    !     r       for n even and for i = 1, ..., n
     !
     !                  r(i) = r(1)+(-1)**(i-1)*r(n)
     !
     !                       plus the sum from k=2 to k=n/2 of
     !
-    !                        2.*r(2*k-2)*cos((k-1)*(i-1)*2*pi/n)
+    !                        2.0_wp * r(2*k-2)*cos((k-1)*(i-1)*2*pi/n)
     !
-    !                       -2.*r(2*k-1)*sin((k-1)*(i-1)*2*pi/n)
+    !                       -2.0_wp * r(2*k-1)*sin((k-1)*(i-1)*2*pi/n)
     !
-    !             for n odd and for i = 1,...,n
+    !             for n odd and for i = 1, ..., n
     !
     !                  r(i) = r(1) plus the sum from k=2 to k=(n+1)/2 of
     !
-    !                       2.*r(2*k-2)*cos((k-1)*(i-1)*2*pi/n)
+    !                       2.0_wp * r(2*k-2)*cos((k-1)*(i-1)*2*pi/n)
     !
-    !                      -2.*r(2*k-1)*sin((k-1)*(i-1)*2*pi/n)
+    !                      -2.0_wp * r(2*k-1)*sin((k-1)*(i-1)*2*pi/n)
     !
     !      *****  note
     !                  this transform is unnormalized since a call of rfftf
@@ -271,7 +274,7 @@ contains
     !
     ! **********************************************************************
     !
-    !     subroutine ezffti(n,wsave)
+    !     subroutine ezffti(n, wsave)
     !
     !     subroutine ezffti initializes the array wsave which is used in
     !     both ezfftf and ezfftb. the prime factorization of n together with
@@ -292,11 +295,11 @@ contains
     !
     ! **********************************************************************
     !
-    !     subroutine ezfftf(n,r,azero,a,b,wsave)
+    !     subroutine ezfftf(n, r, azero, a, b, wsave)
     !
     !     subroutine ezfftf computes the fourier coefficients of a real
     !     perodic sequence (fourier analysis). the transform is defined
-    !     below at output parameters azero,a and b. ezfftf is a simplified
+    !     below at output parameters azero, a and b. ezfftf is a simplified
     !     but slower version of rfftf.
     !
     !     input parameters
@@ -310,7 +313,7 @@ contains
     !
     !     wsave   a work array which must be dimensioned at least 3*n+15.
     !             in the program that calls ezfftf. the wsave array must be
-    !             initialized by calling subroutine ezffti(n,wsave) and a
+    !             initialized by calling subroutine ezffti(n, wsave) and a
     !             different wsave array must be used for each different
     !             value of n. this initialization does not have to be
     !             repeated so long as n remains unchanged thus subsequent
@@ -321,13 +324,13 @@ contains
     !
     !     azero   the sum from i=1 to i=n of r(i)/n
     !
-    !     a,b     for n even b(n/2)=0. and a(n/2) is the sum from i=1 to
+    !     a, b     for n even b(n/2)=0. and a(n/2) is the sum from i=1 to
     !             i=n of (-1)**(i-1)*r(i)/n
     !
     !             for n even define kmax=n/2-1
     !             for n odd  define kmax=(n-1)/2
     !
-    !             then for  k=1,...,kmax
+    !             then for  k=1, ..., kmax
     !
     !                  a(k) equals the sum from i=1 to i=n of
     !
@@ -340,7 +343,7 @@ contains
     !
     ! **********************************************************************
     !
-    !     subroutine ezfftb(n,r,azero,a,b,wsave)
+    !     subroutine ezfftb(n, r, azero, a, b, wsave)
     !
     !     subroutine ezfftb computes a real perodic sequence from its
     !     fourier coefficients (fourier synthesis). the transform is
@@ -354,7 +357,7 @@ contains
     !
     !     azero   the constant fourier coefficient
     !
-    !     a,b     arrays which contain the remaining fourier coefficients
+    !     a, b     arrays which contain the remaining fourier coefficients
     !             these arrays are not destroyed.
     !
     !             the length of these arrays depends on whether n is even or
@@ -365,7 +368,7 @@ contains
     !
     !     wsave   a work array which must be dimensioned at least 3*n+15.
     !             in the program that calls ezfftb. the wsave array must be
-    !             initialized by calling subroutine ezffti(n,wsave) and a
+    !             initialized by calling subroutine ezffti(n, wsave) and a
     !             different wsave array must be used for each different
     !             value of n. this initialization does not have to be
     !             repeated so long as n remains unchanged thus subsequent
@@ -378,7 +381,7 @@ contains
     !     r       if n is even define kmax=n/2
     !             if n is odd  define kmax=(n-1)/2
     !
-    !             then for i=1,...,n
+    !             then for i=1, ..., n
     !
     !                  r(i)=azero plus the sum from k=1 to k=kmax of
     !
@@ -386,7 +389,7 @@ contains
     !
     !     ********************* complex notation **************************
     !
-    !             for j=1,...,n
+    !             for j=1, ..., n
     !
     !             r(j) equals the sum from k=-kmax to k=kmax of
     !
@@ -394,7 +397,7 @@ contains
     !
     !             where
     !
-    !                  c(k) = .5*cmplx(a(k),-b(k))   for k=1,...,kmax
+    !                  c(k) = .5*cmplx(a(k), -b(k))   for k=1, ..., kmax
     !
     !                  c(-k) = conjg(c(k))
     !
@@ -404,7 +407,7 @@ contains
     !
     !     *************** amplitude - phase notation ***********************
     !
-    !             for i=1,...,n
+    !             for i=1, ..., n
     !
     !             r(i) equals azero plus the sum from k=1 to k=kmax of
     !
@@ -420,7 +423,7 @@ contains
     !
     ! **********************************************************************
     !
-    !     subroutine sinti(n,wsave)
+    !     subroutine sinti(n, wsave)
     !
     !     subroutine sinti initializes the array wsave which is used in
     !     subroutine sint. the prime factorization of n together with
@@ -441,7 +444,7 @@ contains
     !
     ! **********************************************************************
     !
-    !     subroutine sint(n,x,wsave)
+    !     subroutine sint(n, x, wsave)
     !
     !     subroutine sint computes the discrete fourier sine transform
     !     of an odd sequence x(i). the transform is defined below at
@@ -452,7 +455,7 @@ contains
     !     x by 2*(n+1).
     !
     !     the array wsave which is used by subroutine sint must be
-    !     initialized by calling subroutine sinti(n,wsave).
+    !     initialized by calling subroutine sinti(n, wsave).
     !
     !     input parameters
     !
@@ -464,7 +467,7 @@ contains
     !
     !     wsave   a work array with dimension at least int(2.5*n+15)
     !             in the program that calls sint. the wsave array must be
-    !             initialized by calling subroutine sinti(n,wsave) and a
+    !             initialized by calling subroutine sinti(n, wsave) and a
     !             different wsave array must be used for each different
     !             value of n. this initialization does not have to be
     !             repeated so long as n remains unchanged thus subsequent
@@ -472,7 +475,7 @@ contains
     !
     !     output parameters
     !
-    !     x       for i=1,...,n
+    !     x       for i=1, ..., n
     !
     !                  x(i)= the sum from k=1 to k=n
     !
@@ -488,7 +491,7 @@ contains
     !
     ! **********************************************************************
     !
-    !     subroutine costi(n,wsave)
+    !     subroutine costi(n, wsave)
     !
     !     subroutine costi initializes the array wsave which is used in
     !     subroutine cost. the prime factorization of n together with
@@ -509,7 +512,7 @@ contains
     !
     ! **********************************************************************
     !
-    !     subroutine cost(n,x,wsave)
+    !     subroutine cost(n, x, wsave)
     !
     !     subroutine cost computes the discrete fourier cosine transform
     !     of an even sequence x(i). the transform is defined below at output
@@ -520,7 +523,7 @@ contains
     !     x by 2*(n-1). the transform is defined below at output parameter x
     !
     !     the array wsave which is used by subroutine cost must be
-    !     initialized by calling subroutine costi(n,wsave).
+    !     initialized by calling subroutine costi(n, wsave).
     !
     !     input parameters
     !
@@ -532,7 +535,7 @@ contains
     !
     !     wsave   a work array which must be dimensioned at least 3*n+15
     !             in the program that calls cost. the wsave array must be
-    !             initialized by calling subroutine costi(n,wsave) and a
+    !             initialized by calling subroutine costi(n, wsave) and a
     !             different wsave array must be used for each different
     !             value of n. this initialization does not have to be
     !             repeated so long as n remains unchanged thus subsequent
@@ -540,7 +543,7 @@ contains
     !
     !     output parameters
     !
-    !     x       for i=1,...,n
+    !     x       for i=1, ..., n
     !
     !                 x(i) = x(1)+(-1)**(i-1)*x(n)
     !
@@ -558,7 +561,7 @@ contains
     !
     ! **********************************************************************
     !
-    !     subroutine sinqi(n,wsave)
+    !     subroutine sinqi(n, wsave)
     !
     !     subroutine sinqi initializes the array wsave which is used in
     !     both sinqf and sinqb. the prime factorization of n together with
@@ -580,7 +583,7 @@ contains
     !
     ! **********************************************************************
     !
-    !     subroutine sinqf(n,x,wsave)
+    !     subroutine sinqf(n, x, wsave)
     !
     !     subroutine sinqf computes the fast fourier transform of quarter
     !     wave data. that is , sinqf computes the coefficients in a sine
@@ -592,7 +595,7 @@ contains
     !     by 4*n.
     !
     !     the array wsave which is used by subroutine sinqf must be
-    !     initialized by calling subroutine sinqi(n,wsave).
+    !     initialized by calling subroutine sinqi(n, wsave).
     !
     !
     !     input parameters
@@ -604,7 +607,7 @@ contains
     !
     !     wsave   a work array which must be dimensioned at least 3*n+15.
     !             in the program that calls sinqf. the wsave array must be
-    !             initialized by calling subroutine sinqi(n,wsave) and a
+    !             initialized by calling subroutine sinqi(n, wsave) and a
     !             different wsave array must be used for each different
     !             value of n. this initialization does not have to be
     !             repeated so long as n remains unchanged thus subsequent
@@ -612,7 +615,7 @@ contains
     !
     !     output parameters
     !
-    !     x       for i=1,...,n
+    !     x       for i=1, ..., n
     !
     !                  x(i) = (-1)**(i-1)*x(n)
     !
@@ -630,7 +633,7 @@ contains
     !
     ! **********************************************************************
     !
-    !     subroutine sinqb(n,x,wsave)
+    !     subroutine sinqb(n, x, wsave)
     !
     !     subroutine sinqb computes the fast fourier transform of quarter
     !     wave data. that is , sinqb computes a sequence from its
@@ -642,7 +645,7 @@ contains
     !     by 4*n.
     !
     !     the array wsave which is used by subroutine sinqb must be
-    !     initialized by calling subroutine sinqi(n,wsave).
+    !     initialized by calling subroutine sinqi(n, wsave).
     !
     !
     !     input parameters
@@ -654,7 +657,7 @@ contains
     !
     !     wsave   a work array which must be dimensioned at least 3*n+15.
     !             in the program that calls sinqb. the wsave array must be
-    !             initialized by calling subroutine sinqi(n,wsave) and a
+    !             initialized by calling subroutine sinqi(n, wsave) and a
     !             different wsave array must be used for each different
     !             value of n. this initialization does not have to be
     !             repeated so long as n remains unchanged thus subsequent
@@ -662,7 +665,7 @@ contains
     !
     !     output parameters
     !
-    !     x       for i=1,...,n
+    !     x       for i=1, ..., n
     !
     !                  x(i)= the sum from k=1 to k=n of
     !
@@ -678,7 +681,7 @@ contains
     !
     ! **********************************************************************
     !
-    !     subroutine cosqi(n,wsave)
+    !     subroutine cosqi(n, wsave)
     !
     !     subroutine cosqi initializes the array wsave which is used in
     !     both cosqf and cosqb. the prime factorization of n together with
@@ -700,7 +703,7 @@ contains
     !
     ! **********************************************************************
     !
-    !     subroutine cosqf(n,x,wsave)
+    !     subroutine cosqf(n, x, wsave)
     !
     !     subroutine cosqf computes the fast fourier transform of quarter
     !     wave data. that is , cosqf computes the coefficients in a cosine
@@ -712,7 +715,7 @@ contains
     !     by 4*n.
     !
     !     the array wsave which is used by subroutine cosqf must be
-    !     initialized by calling subroutine cosqi(n,wsave).
+    !     initialized by calling subroutine cosqi(n, wsave).
     !
     !
     !     input parameters
@@ -724,7 +727,7 @@ contains
     !
     !     wsave   a work array which must be dimensioned at least 3*n+15
     !             in the program that calls cosqf. the wsave array must be
-    !             initialized by calling subroutine cosqi(n,wsave) and a
+    !             initialized by calling subroutine cosqi(n, wsave) and a
     !             different wsave array must be used for each different
     !             value of n. this initialization does not have to be
     !             repeated so long as n remains unchanged thus subsequent
@@ -732,7 +735,7 @@ contains
     !
     !     output parameters
     !
-    !     x       for i=1,...,n
+    !     x       for i=1, ..., n
     !
     !                  x(i) = x(1) plus the sum from k=2 to k=n of
     !
@@ -748,7 +751,7 @@ contains
     !
     ! **********************************************************************
     !
-    !     subroutine cosqb(n,x,wsave)
+    !     subroutine cosqb(n, x, wsave)
     !
     !     subroutine cosqb computes the fast fourier transform of quarter
     !     wave data. that is , cosqb computes a sequence from its
@@ -760,7 +763,7 @@ contains
     !     by 4*n.
     !
     !     the array wsave which is used by subroutine cosqb must be
-    !     initialized by calling subroutine cosqi(n,wsave).
+    !     initialized by calling subroutine cosqi(n, wsave).
     !
     !
     !     input parameters
@@ -772,7 +775,7 @@ contains
     !
     !     wsave   a work array that must be dimensioned at least 3*n+15
     !             in the program that calls cosqb. the wsave array must be
-    !             initialized by calling subroutine cosqi(n,wsave) and a
+    !             initialized by calling subroutine cosqi(n, wsave) and a
     !             different wsave array must be used for each different
     !             value of n. this initialization does not have to be
     !             repeated so long as n remains unchanged thus subsequent
@@ -780,7 +783,7 @@ contains
     !
     !     output parameters
     !
-    !     x       for i=1,...,n
+    !     x       for i=1, ..., n
     !
     !                  x(i)= the sum from k=1 to k=n of
     !
@@ -796,7 +799,7 @@ contains
     !
     ! **********************************************************************
     !
-    !     subroutine cffti(n,wsave)
+    !     subroutine cffti(n, wsave)
     !
     !     subroutine cffti initializes the array wsave which is used in
     !     both cfftf and cfftb. the prime factorization of n together with
@@ -817,7 +820,7 @@ contains
     !
     ! **********************************************************************
     !
-    !     subroutine cfftf(n,c,wsave)
+    !     subroutine cfftf(n, c, wsave)
     !
     !     subroutine cfftf computes the forward complex discrete fourier
     !     transform (the fourier analysis). equivalently , cfftf computes
@@ -829,7 +832,7 @@ contains
     !     followed by a call of cfftb will multiply the sequence by n.
     !
     !     the array wsave which is used by subroutine cfftf must be
-    !     initialized by calling subroutine cffti(n,wsave).
+    !     initialized by calling subroutine cffti(n, wsave).
     !
     !     input parameters
     !
@@ -841,7 +844,7 @@ contains
     !
     !     wsave   a real work array which must be dimensioned at least 4n+15
     !             in the program that calls cfftf. the wsave array must be
-    !             initialized by calling subroutine cffti(n,wsave) and a
+    !             initialized by calling subroutine cffti(n, wsave) and a
     !             different wsave array must be used for each different
     !             value of n. this initialization does not have to be
     !             repeated so long as n remains unchanged thus subsequent
@@ -850,9 +853,9 @@ contains
     !
     !     output parameters
     !
-    !     c      for j=1,...,n
+    !     c      for j=1, ..., n
     !
-    !                c(j)=the sum from k=1,...,n of
+    !                c(j)=the sum from k=1, ..., n of
     !
     !                      c(k)*exp(-i*(j-1)*(k-1)*2*pi/n)
     !
@@ -863,7 +866,7 @@ contains
     !
     ! **********************************************************************
     !
-    !     subroutine cfftb(n,c,wsave)
+    !     subroutine cfftb(n, c, wsave)
     !
     !     subroutine cfftb computes the backward complex discrete fourier
     !     transform (the fourier synthesis). equivalently , cfftb computes
@@ -874,7 +877,7 @@ contains
     !     sequence by n.
     !
     !     the array wsave which is used by subroutine cfftb must be
-    !     initialized by calling subroutine cffti(n,wsave).
+    !     initialized by calling subroutine cffti(n, wsave).
     !
     !     input parameters
     !
@@ -886,7 +889,7 @@ contains
     !
     !     wsave   a real work array which must be dimensioned at least 4n+15
     !             in the program that calls cfftb. the wsave array must be
-    !             initialized by calling subroutine cffti(n,wsave) and a
+    !             initialized by calling subroutine cffti(n, wsave) and a
     !             different wsave array must be used for each different
     !             value of n. this initialization does not have to be
     !             repeated so long as n remains unchanged thus subsequent
@@ -895,9 +898,9 @@ contains
     !
     !     output parameters
     !
-    !     c      for j=1,...,n
+    !     c      for j=1, ..., n
     !
-    !                c(j)=the sum from k=1,...,n of
+    !                c(j)=the sum from k=1, ..., n of
     !
     !                      c(k)*exp(i*(j-1)*(k-1)*2*pi/n)
     !
@@ -906,42 +909,44 @@ contains
     !     wsave   contains initialization calculations which must not be
     !             destroyed between calls of subroutine cfftf or cfftb
     ! **********************************************************************
+
+
     subroutine ezfftf(n, r, azero, a, b, wsave)
         !-----------------------------------------------
-        !   d u m m y   a r g u m e n t s
+        ! Dictionary: calling arguments
         !-----------------------------------------------
         integer  :: n
-        real , intent(out) :: azero
-        real , intent(in) :: r(*)
-        real , intent(out) :: a(*)
-        real , intent(out) :: b(*)
-        real  :: wsave(*)
+        real (wp), intent(out) :: azero
+        real (wp), intent(in) :: r(*)
+        real (wp), intent(out) :: a(*)
+        real (wp), intent(out) :: b(*)
+        real (wp) :: wsave(*)
         !-----------------------------------------------
-        !   l o c a l   v a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer :: i, ns2, ns2m
-        real :: cf, cfm
+        real (wp) :: cf, cfm
         !-----------------------------------------------
         !
         if (n - 2 <= 0) then
             if (n - 2 /= 0) then
                 azero = r(1)
                 return
-            endif
+            end if
             azero = 0.5*(r(1)+r(2))
             a(1) = 0.5*(r(1)-r(2))
             return
-        endif
+        end if
         wsave(:n) = r(:n)
         call rfftf (n, wsave, wsave(n+1))
-        cf = 2./float(n)
+        cf = 2./real(n)
         cfm = -cf
         azero = 0.5*cf*wsave(1)
         ns2 = (n + 1)/2
         ns2m = ns2 - 1
         a(:ns2m) = cf*wsave(2:ns2m*2:2)
         b(:ns2m) = cfm*wsave(3:ns2m*2+1:2)
-        if (mod(n,2) == 1) return
+        if (mod(n, 2) == 1) return
         a(ns2) = 0.5*cf*wsave(n)
         b(ns2) = 0.
         return
@@ -950,16 +955,16 @@ contains
 
     subroutine ezfftb(n, r, azero, a, b, wsave)
         !-----------------------------------------------
-        !   d u m m y   a r g u m e n t s
+        ! Dictionary: calling arguments
         !-----------------------------------------------
         integer  :: n
-        real , intent(in) :: azero
-        real  :: r(*)
-        real , intent(in) :: a(*)
-        real , intent(in) :: b(*)
-        real  :: wsave(*)
+        real (wp), intent(in) :: azero
+        real (wp) :: r(*)
+        real (wp), intent(in) :: a(*)
+        real (wp), intent(in) :: b(*)
+        real (wp) :: wsave(*)
         !-----------------------------------------------
-        !   l o c a l   v a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer :: ns2, i
         !-----------------------------------------------
@@ -968,16 +973,16 @@ contains
             if (n - 2 /= 0) then
                 r(1) = azero
                 return
-            endif
+            end if
             r(1) = azero + a(1)
             r(2) = azero - a(1)
             return
-        endif
+        end if
         ns2 = (n - 1)/2
         r(2:ns2*2:2) = 0.5*a(:ns2)
         r(3:ns2*2+1:2) = -0.5*b(:ns2)
         r(1) = azero
-        if (mod(n,2) == 0) r(n) = a(ns2+1)
+        if (mod(n, 2) == 0) r(n) = a(ns2+1)
         call rfftb (n, r, wsave(n+1))
         return
     end subroutine ezfftb
@@ -985,35 +990,35 @@ contains
 
     subroutine ezffti(n, wsave)
         !-----------------------------------------------
-        !   d u m m y   a r g u m e n t s
+        ! Dictionary: calling arguments
         !-----------------------------------------------
         integer  :: n
-        real  :: wsave(*)
+        real (wp) :: wsave(*)
         !-----------------------------------------------
         !
         if (n == 1) return
         call ezfft1 (n, wsave(2*n+1), wsave(3*n+1))
-        return
+
     end subroutine ezffti
 
 
     subroutine ezfft1(n, wa, ifac)
         !-----------------------------------------------
-        !   d u m m y   a r g u m e n t s
+        ! Dictionary: calling arguments
         !-----------------------------------------------
         integer , intent(in) :: n
         !integer , intent(inout) :: ifac(*)
-        real , intent(inout) :: ifac(*)
-        real , intent(inout) :: wa(*)
+        real (wp), intent(inout) :: ifac(*)
+        real (wp), intent(inout) :: wa(*)
         !-----------------------------------------------
-        !   l o c a l   v a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
-        integer , dimension(4) :: ntryh
-        integer::nl,nf,j,ntry,nq,nr,i,ib,is,nfm1,l1,k1,ip,l2,ido,ipm,ii
-        real :: tpi, dum, argh, arg1, ch1, sh1, dch1, dsh1, ch1h
+        integer , parameter :: ntryh(*) =[ 4, 2, 3, 5 ]
+        integer  :: nl, nf, j, ntry, nq, nr, i, ib, is, nfm1, l1, k1, ip, l2, ido, ipm, ii
+        real (wp) :: tpi, dum, argh, arg1, ch1, sh1, dch1, dsh1, ch1h
         !-----------------------------------------------
-        data ntryh(1), ntryh(2), ntryh(3), ntryh(4)/ 4, 2, 3, 5/
-        tpi = 8.0*atan(1.0)
+
+        tpi = 2.0_wp * acos( -1.0_wp )
         nl = n
         nf = 0
         j = 0
@@ -1023,7 +1028,7 @@ contains
         ntry = ntryh(j)
     else
         ntry = ntry + 2
-    endif
+    end if
 104 continue
     nq = nl/ntry
     nr = nl - ntry*nq
@@ -1035,12 +1040,12 @@ contains
         if (nf /= 1) then
             ifac(nf+2:4:(-1)) = ifac(nf+1:3:(-1))
             ifac(3) = 2
-        endif
-    endif
+        end if
+    end if
     if (nl /= 1) go to 104
     ifac(1) = n
     ifac(2) = nf
-    argh = tpi/float(n)
+    argh = tpi/real(n)
     is = 0
     nfm1 = nf - 1
     l1 = 1
@@ -1050,7 +1055,7 @@ contains
         l2 = l1*ip
         ido = n/l2
         ipm = ip - 1
-        arg1 = float(l1)*argh
+        arg1 = real(l1)*argh
         ch1 = 1.
         sh1 = 0.
         dch1 = cos(arg1)
@@ -1068,7 +1073,7 @@ contains
                     wa(i-1) = ch1*wa(i-3) - sh1*wa(i-2)
                     wa(i) = ch1*wa(i-2) + sh1*wa(i-3)
                 end do
-            endif
+            end if
             is = is + ido
         end do
         l1 = l2
@@ -1079,15 +1084,15 @@ end subroutine ezfft1
 
 subroutine costi(n, wsave)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent(in) :: n
-    real  :: wsave(*)
+    real (wp) :: wsave(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: nm1, np1, ns2, k, kc
-    real :: pi, dum, dt, fk
+    real (wp) :: pi, dum, dt, fk
     !-----------------------------------------------
     !
     pi = 4.0*atan(1.0)
@@ -1095,13 +1100,13 @@ subroutine costi(n, wsave)
     nm1 = n - 1
     np1 = n + 1
     ns2 = n/2
-    dt = pi/float(nm1)
+    dt = pi/real(nm1)
     fk = 0.
     do k = 2, ns2
         kc = np1 - k
         fk = fk + 1.
-        wsave(k) = 2.*sin(fk*dt)
-        wsave(kc) = 2.*cos(fk*dt)
+        wsave(k) = 2.0_wp * sin(fk*dt)
+        wsave(kc) = 2.0_wp * cos(fk*dt)
     end do
     call rffti (nm1, wsave(n+1))
     return
@@ -1110,16 +1115,16 @@ end subroutine costi
 
 subroutine cost(n, x, wsave)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent(in) :: n
-    real  :: x(*)
-    real  :: wsave(*)
+    real (wp) :: x(*)
+    real (wp) :: wsave(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: nm1, np1, ns2, k, kc, modn, i
-    real :: x1h, x1p3, tx2, c1, t1, t2, xim2, xi
+    real (wp) :: x1h, x1p3, tx2, c1, t1, t2, xim2, xi
     !-----------------------------------------------
     !
     nm1 = n - 1
@@ -1131,7 +1136,7 @@ subroutine cost(n, x, wsave)
             x(2) = x(1) - x(2)
             x(1) = x1h
             return
-        endif
+        end if
         if (n <= 3) then
             x1p3 = x(1) + x(3)
             tx2 = x(2) + x(2)
@@ -1139,7 +1144,7 @@ subroutine cost(n, x, wsave)
             x(1) = x1p3 + tx2
             x(3) = x1p3 - tx2
             return
-        endif
+        end if
         c1 = x(1) - x(n)
         x(1) = x(1) + x(n)
         do k = 2, ns2
@@ -1151,7 +1156,7 @@ subroutine cost(n, x, wsave)
             x(k) = t1 - t2
             x(kc) = t1 + t2
         end do
-        modn = mod(n,2)
+        modn = mod(n, 2)
         if (modn /= 0) x(ns2+1) = x(ns2+1) + x(ns2+1)
         call rfftf (nm1, x, wsave(n+1))
         xim2 = x(2)
@@ -1163,31 +1168,31 @@ subroutine cost(n, x, wsave)
             xim2 = xi
         end do
         if (modn /= 0) x(n) = xim2
-    endif
+    end if
     return
 end subroutine cost
 
 
 subroutine sinti(n, wsave)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent(in) :: n
-    real  :: wsave(*)
+    real (wp) :: wsave(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: ns2, np1, k
-    real :: pi, dum, dt
+    real (wp) :: pi, dum, dt
     !-----------------------------------------------
     !
     pi = 4.0*atan(1.0)
     if (n <= 1) return
     ns2 = n/2
     np1 = n + 1
-    dt = pi/float(np1)
+    dt = pi/real(np1)
     do k = 1, ns2
-        wsave(k) = 2.*sin(k*dt)
+        wsave(k) = 2.0_wp * sin(k*dt)
     end do
     call rffti (np1, wsave(ns2+1))
     return
@@ -1196,13 +1201,13 @@ end subroutine sinti
 
 subroutine sint(n, x, wsave)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer  :: n
-    real  :: x(*)
-    real  :: wsave(*)
+    real (wp) :: x(*)
+    real (wp) :: wsave(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: np1, iw1, iw2, iw3
     !-----------------------------------------------
@@ -1218,20 +1223,20 @@ end subroutine sint
 
 subroutine sint1(n, war, was, xh, x, ifac)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent(in) :: n
     !integer  :: ifac(*)
-    real  :: ifac(*)
-    real  :: war(*)
-    real , intent(in) :: was(*)
-    real  :: xh(*)
-    real  :: x(*)
+    real (wp) :: ifac(*)
+    real (wp) :: war(*)
+    real (wp), intent(in) :: was(*)
+    real (wp) :: xh(*)
+    real (wp) :: x(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: i, np1, ns2, k, kc, modn
-    real :: sqrt3, xhold, t1, t2
+    real (wp) :: sqrt3, xhold, t1, t2
     !-----------------------------------------------
     data sqrt3/ 1.73205080756888/
     xh(:n) = war(:n)
@@ -1240,12 +1245,12 @@ subroutine sint1(n, war, was, xh, x, ifac)
         if (n - 2 /= 0) then
             xh(1) = xh(1) + xh(1)
             go to 106
-        endif
+        end if
         xhold = sqrt3*(xh(1)+xh(2))
         xh(2) = sqrt3*(xh(1)-xh(2))
         xh(1) = xhold
         go to 106
-    endif
+    end if
     np1 = n + 1
     ns2 = n/2
     x(1) = 0.
@@ -1256,8 +1261,8 @@ subroutine sint1(n, war, was, xh, x, ifac)
         x(k+1) = t1 + t2
         x(kc+1) = t2 - t1
     end do
-    modn = mod(n,2)
-    if (modn /= 0) x(ns2+2) = 4.*xh(ns2+1)
+    modn = mod(n, 2)
+    if (modn /= 0) x(ns2+2) = 4.0_wp * xh(ns2+1)
     call rfftf1 (np1, x, xh, war, ifac)
     xh(1) = 0.5*x(1)
     do i = 3, n, 2
@@ -1274,19 +1279,19 @@ end subroutine sint1
 
 subroutine cosqi(n, wsave)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer  :: n
-    real  :: wsave(*)
+    real (wp) :: wsave(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: k
-    real :: pih, dum, dt, fk
+    real (wp) :: pih, dum, dt, fk
     !-----------------------------------------------
     !
     pih = 2.0*atan(1.0)
-    dt = pih/float(n)
+    dt = pih/real(n)
     fk = 0.
     do k = 1, n
         fk = fk + 1.
@@ -1299,45 +1304,47 @@ end subroutine cosqi
 
 subroutine cosqf(n, x, wsave)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer  :: n
-    real  :: x(*)
-    real  :: wsave(*)
+    real (wp) :: x(*)
+    real (wp) :: wsave(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
-    real :: sqrt2, tsqx
+    real (wp)            :: tsqx
+    real (wp), parameter :: sqrt2 = sqrt(2.0_wp) ! 1.4142135623731
     !-----------------------------------------------
-    data sqrt2/ 1.4142135623731/
-    !
+
+
     if (n - 2 >= 0) then
         if (n - 2 > 0) go to 103
         tsqx = sqrt2*x(2)
         x(2) = x(1) - tsqx
         x(1) = x(1) + tsqx
-    endif
+    end if
     return
 103 continue
     call cosqf1 (n, x, wsave, wsave(n+1))
-    return
+
 end subroutine cosqf
 
 
 subroutine cosqf1(n, x, w, xh)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer  :: n
-    real  :: x(*)
-    real , intent(in) :: w(*)
-    real  :: xh(*)
+    real (wp) :: x(*)
+    real (wp), intent(in) :: w(*)
+    real (wp) :: xh(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: ns2, np2, k, kc, modn, i
-    real :: xim1
+    real (wp) :: xim1
     !-----------------------------------------------
+
     ns2 = (n + 1)/2
     np2 = n + 2
     do k = 2, ns2
@@ -1345,7 +1352,7 @@ subroutine cosqf1(n, x, w, xh)
         xh(k) = x(k) + x(kc)
         xh(kc) = x(k) - x(kc)
     end do
-    modn = mod(n,2)
+    modn = mod(n, 2)
     if (modn == 0) xh(ns2+1) = x(ns2+1) + x(ns2+1)
     do k = 2, ns2
         kc = np2 - k
@@ -1359,52 +1366,52 @@ subroutine cosqf1(n, x, w, xh)
         x(i) = x(i-1) + x(i)
         x(i-1) = xim1
     end do
-    return
+
 end subroutine cosqf1
 
 
 subroutine cosqb(n, x, wsave)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer  :: n
-    real  :: x(*)
-    real  :: wsave(*)
+    real (wp) :: x(*)
+    real (wp) :: wsave(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
-    real :: tsqrt2, x1
+    real (wp) :: x1
+    real (wp), parameter :: tsqrt2 = 2.0_wp * sqrt(2.0_wp) ! 2.82842712474619
     !-----------------------------------------------
-    data tsqrt2/ 2.82842712474619/
-    !
+
     if (n - 2 <= 0) then
         if (n - 2 /= 0) then
-            x(1) = 4.*x(1)
+            x(1) = 4.0_wp * x(1)
             return
-        endif
-        x1 = 4.*(x(1)+x(2))
+        end if
+        x1 = 4.0_wp * (x(1)+x(2))
         x(2) = tsqrt2*(x(1)-x(2))
         x(1) = x1
         return
-    endif
+    end if
     call cosqb1 (n, x, wsave, wsave(n+1))
-    return
+
 end subroutine cosqb
 
 
 subroutine cosqb1(n, x, w, xh)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer  :: n
-    real  :: x(*)
-    real , intent(in) :: w(*)
-    real  :: xh(*)
+    real (wp) :: x(*)
+    real (wp), intent(in) :: w(*)
+    real (wp) :: xh(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: ns2, np2, i, modn, k, kc
-    real :: xim1
+    real (wp) :: xim1
     !-----------------------------------------------
     ns2 = (n + 1)/2
     np2 = n + 2
@@ -1414,7 +1421,7 @@ subroutine cosqb1(n, x, w, xh)
         x(i-1) = xim1
     end do
     x(1) = x(1) + x(1)
-    modn = mod(n,2)
+    modn = mod(n, 2)
     if (modn == 0) x(n) = x(n) + x(n)
     call rfftb (n, x, xh)
     do k = 2, ns2
@@ -1429,35 +1436,35 @@ subroutine cosqb1(n, x, w, xh)
         x(kc) = xh(k) - xh(kc)
     end do
     x(1) = x(1) + x(1)
-    return
+
 end subroutine cosqb1
 
 
 subroutine sinqi(n, wsave)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer  :: n
-    real  :: wsave(*)
+    real (wp) :: wsave(*)
     !-----------------------------------------------
     !
     call cosqi (n, wsave)
-    return
+
 end subroutine sinqi
 
 
 subroutine sinqf(n, x, wsave)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer  :: n
-    real  :: x(*)
-    real  :: wsave(*)
+    real (wp) :: x(*)
+    real (wp) :: wsave(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: ns2, k, kc
-    real :: xhold
+    real (wp) :: xhold
     !-----------------------------------------------
     !
     if (n == 1) return
@@ -1476,22 +1483,22 @@ end subroutine sinqf
 
 subroutine sinqb(n, x, wsave)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer  :: n
-    real  :: x(*)
-    real  :: wsave(*)
+    real (wp) :: x(*)
+    real (wp) :: wsave(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: ns2, k, kc
-    real :: xhold
+    real (wp) :: xhold
     !-----------------------------------------------
     !
     if (n <= 1) then
-        x(1) = 4.*x(1)
+        x(1) = 4.0_wp * x(1)
         return
-    endif
+    end if
     ns2 = n/2
     x(2:n:2) = -x(2:n:2)
     call cosqb (n, x, wsave)
@@ -1507,12 +1514,12 @@ end subroutine sinqb
 
 subroutine cffti(n, wsave)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer  :: n
-    real  :: wsave(*)
+    real (wp) :: wsave(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: iw1, iw2
     !-----------------------------------------------
@@ -1527,21 +1534,21 @@ end subroutine cffti
 
 subroutine cffti1(n, wa, ifac)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent(in) :: n
     !integer , intent(inout) :: ifac(*)
-    real , intent(inout) :: ifac(*)
-    real , intent(inout) :: wa(*)
+    real (wp), intent(inout) :: ifac(*)
+    real (wp), intent(inout) :: wa(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
-    integer , dimension(4) :: ntryh
-    integer :: nl, nf, j, ntry, nq, nr, i, ib, l1, k1, ip, ld, l2, ido &
-        , idot, ipm, i1, ii
-    real :: tpi, dum, argh, fi, argld, arg
+    integer , parameter :: ntryh(*) = [3, 4, 2, 5]
+    integer :: nl, nf, j, ntry, nq, nr, i, ib, l1, k1, ip, ld, l2, ido
+    integer :: idot, ipm, i1, ii
+    real (wp) :: tpi, dum, argh, fi, argld, arg
     !-----------------------------------------------
-    data ntryh(1), ntryh(2), ntryh(3), ntryh(4)/ 3, 4, 2, 5/
+
     nl = n
     nf = 0
     j = 0
@@ -1551,7 +1558,7 @@ subroutine cffti1(n, wa, ifac)
         ntry = ntryh(j)
     else
         ntry = ntry + 2
-    endif
+    end if
 104 continue
     nq = nl/ntry
     nr = nl - ntry*nq
@@ -1563,13 +1570,13 @@ subroutine cffti1(n, wa, ifac)
         if (nf /= 1) then
             ifac(nf+2:4:(-1)) = ifac(nf+1:3:(-1))
             ifac(3) = 2
-        endif
-    endif
+        end if
+    end if
     if (nl /= 1) go to 104
     ifac(1) = n
     ifac(2) = nf
     tpi = 8.0*atan(1.0)
-    argh = tpi/float(n)
+    argh = tpi/real(n)
     i = 2
     l1 = 1
     do k1 = 1, nf
@@ -1585,7 +1592,7 @@ subroutine cffti1(n, wa, ifac)
             wa(i) = 0.
             ld = ld + l1
             fi = 0.
-            argld = float(ld)*argh
+            argld = real(ld)*argh
             do ii = 4, idot, 2
                 i = i + 2
                 fi = fi + 1.
@@ -1605,13 +1612,13 @@ end subroutine cffti1
 
 subroutine cfftb(n, c, wsave)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer  :: n
-    real  :: c(*)
-    real  :: wsave(*)
+    real (wp) :: c(*)
+    real (wp) :: wsave(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: iw1, iw2
     !-----------------------------------------------
@@ -1626,18 +1633,18 @@ end subroutine cfftb
 
 subroutine cfftb1(n, c, ch, wa, ifac)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent(in) :: n
     !integer , intent(in) :: ifac(*)
-    real , intent(in) :: ifac(*)
-    real  :: c(*)
-    real  :: ch(*)
-    real  :: wa(*)
+    real (wp), intent(in) :: ifac(*)
+    real (wp) :: c(*)
+    real (wp) :: ch(*)
+    real (wp) :: wa(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
-    integer::nf,na,l1,iw,k1,ip,l2,ido,idot,idl1,ix2,ix3,ix4,nac,n2,i
+    integer::nf, na, l1, iw, k1, ip, l2, ido, idot, idl1, ix2, ix3, ix4, nac, n2, i
     !-----------------------------------------------
     nf = ifac(2)
     na = 0
@@ -1656,7 +1663,7 @@ subroutine cfftb1(n, c, ch, wa, ifac)
                 call passb4 (idot, l1, c, ch, wa(iw), wa(ix2), wa(ix3))
             else
                 call passb4 (idot, l1, ch, c, wa(iw), wa(ix2), wa(ix3))
-            endif
+            end if
             na = 1 - na
         else
             if (ip == 2) then
@@ -1664,7 +1671,7 @@ subroutine cfftb1(n, c, ch, wa, ifac)
                     call passb2 (idot, l1, c, ch, wa(iw))
                 else
                     call passb2 (idot, l1, ch, c, wa(iw))
-                endif
+                end if
                 na = 1 - na
             else
                 if (ip == 3) then
@@ -1673,7 +1680,7 @@ subroutine cfftb1(n, c, ch, wa, ifac)
                         call passb3 (idot, l1, c, ch, wa(iw), wa(ix2))
                     else
                         call passb3 (idot, l1, ch, c, wa(iw), wa(ix2))
-                    endif
+                    end if
                     na = 1 - na
                 else
                     if (ip == 5) then
@@ -1686,7 +1693,7 @@ subroutine cfftb1(n, c, ch, wa, ifac)
                         else
                             call passb5 (idot, l1, ch, c, wa(iw), wa(ix2), &
                                 wa(ix3), wa(ix4))
-                        endif
+                        end if
                         na = 1 - na
                     else
                         if (na == 0) then
@@ -1695,12 +1702,12 @@ subroutine cfftb1(n, c, ch, wa, ifac)
                         else
                             call passb (nac, idot, ip, l1, idl1, ch, ch, ch &
                                 , c, c, wa(iw))
-                        endif
+                        end if
                         if (nac /= 0) na = 1 - na
-                    endif
-                endif
-            endif
-        endif
+                    end if
+                end if
+            end if
+        end if
         l1 = l2
         iw = iw + (ip - 1)*idot
     end do
@@ -1713,34 +1720,34 @@ end subroutine cfftb1
 
 subroutine passb2(ido, l1, cc, ch, wa1)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent(in) :: ido
     integer , intent(in) :: l1
-    real , intent(in) :: cc(ido,2,l1)
-    real , intent(out) :: ch(ido,l1,2)
-    real , intent(in) :: wa1(1)
+    real (wp), intent(in) :: cc(ido, 2, l1)
+    real (wp), intent(out) :: ch(ido, l1, 2)
+    real (wp), intent(in) :: wa1(1)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: k, i
-    real :: tr2, ti2
+    real (wp) :: tr2, ti2
     !-----------------------------------------------
     if (ido <= 2) then
-        ch(1,:,1) = cc(1,1,:) + cc(1,2,:)
-        ch(1,:,2) = cc(1,1,:) - cc(1,2,:)
-        ch(2,:,1) = cc(2,1,:) + cc(2,2,:)
-        ch(2,:,2) = cc(2,1,:) - cc(2,2,:)
+        ch(1, :, 1) = cc(1, 1, :) + cc(1, 2, :)
+        ch(1, :, 2) = cc(1, 1, :) - cc(1, 2, :)
+        ch(2, :, 1) = cc(2, 1, :) + cc(2, 2, :)
+        ch(2, :, 2) = cc(2, 1, :) - cc(2, 2, :)
         return
-    endif
+    end if
     do k = 1, l1
         do i = 2, ido, 2
-            ch(i-1,k,1) = cc(i-1,1,k) + cc(i-1,2,k)
-            tr2 = cc(i-1,1,k) - cc(i-1,2,k)
-            ch(i,k,1) = cc(i,1,k) + cc(i,2,k)
-            ti2 = cc(i,1,k) - cc(i,2,k)
-            ch(i,k,2) = wa1(i-1)*ti2 + wa1(i)*tr2
-            ch(i-1,k,2) = wa1(i-1)*tr2 - wa1(i)*ti2
+            ch(i-1, k, 1) = cc(i-1, 1, k) + cc(i-1, 2, k)
+            tr2 = cc(i-1, 1, k) - cc(i-1, 2, k)
+            ch(i, k, 1) = cc(i, 1, k) + cc(i, 2, k)
+            ti2 = cc(i, 1, k) - cc(i, 2, k)
+            ch(i, k, 2) = wa1(i-1)*ti2 + wa1(i)*tr2
+            ch(i-1, k, 2) = wa1(i-1)*tr2 - wa1(i)*ti2
         end do
     end do
     return
@@ -1749,199 +1756,205 @@ end subroutine passb2
 
 subroutine passb3(ido, l1, cc, ch, wa1, wa2)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent(in) :: ido
     integer , intent(in) :: l1
-    real , intent(in) :: cc(ido,3,l1)
-    real , intent(out) :: ch(ido,l1,3)
-    real , intent(in) :: wa1(*)
-    real , intent(in) :: wa2(*)
+    real (wp), intent(in) :: cc(ido, 3, l1)
+    real (wp), intent(out) :: ch(ido, l1, 3)
+    real (wp), intent(in) :: wa1(*)
+    real (wp), intent(in) :: wa2(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: k, i
-    real::taur,taui,tr2,cr2,ti2,ci2,cr3,ci3,dr2,dr3,di2,di3
+    real (wp), parameter :: taur = -0.5_wp
+    real (wp), parameter :: taui = sqrt(3.0_wp)/2 ! 0.866025403784439
+    real (wp)            :: tr2, cr2, ti2, ci2, cr3, ci3, dr2, dr3, di2, di3
     !-----------------------------------------------
-    data taur, taui/ -.5, 0.866025403784439/
+
     if (ido == 2) then
         do k = 1, l1
-            tr2 = cc(1,2,k) + cc(1,3,k)
-            cr2 = cc(1,1,k) + taur*tr2
-            ch(1,k,1) = cc(1,1,k) + tr2
-            ti2 = cc(2,2,k) + cc(2,3,k)
-            ci2 = cc(2,1,k) + taur*ti2
-            ch(2,k,1) = cc(2,1,k) + ti2
-            cr3 = taui*(cc(1,2,k)-cc(1,3,k))
-            ci3 = taui*(cc(2,2,k)-cc(2,3,k))
-            ch(1,k,2) = cr2 - ci3
-            ch(1,k,3) = cr2 + ci3
-            ch(2,k,2) = ci2 + cr3
-            ch(2,k,3) = ci2 - cr3
+            tr2 = cc(1, 2, k) + cc(1, 3, k)
+            cr2 = cc(1, 1, k) + taur*tr2
+            ch(1, k, 1) = cc(1, 1, k) + tr2
+            ti2 = cc(2, 2, k) + cc(2, 3, k)
+            ci2 = cc(2, 1, k) + taur*ti2
+            ch(2, k, 1) = cc(2, 1, k) + ti2
+            cr3 = taui*(cc(1, 2, k)-cc(1, 3, k))
+            ci3 = taui*(cc(2, 2, k)-cc(2, 3, k))
+            ch(1, k, 2) = cr2 - ci3
+            ch(1, k, 3) = cr2 + ci3
+            ch(2, k, 2) = ci2 + cr3
+            ch(2, k, 3) = ci2 - cr3
         end do
         return
-    endif
+    end if
     do k = 1, l1
         do i = 2, ido, 2
-            tr2 = cc(i-1,2,k) + cc(i-1,3,k)
-            cr2 = cc(i-1,1,k) + taur*tr2
-            ch(i-1,k,1) = cc(i-1,1,k) + tr2
-            ti2 = cc(i,2,k) + cc(i,3,k)
-            ci2 = cc(i,1,k) + taur*ti2
-            ch(i,k,1) = cc(i,1,k) + ti2
-            cr3 = taui*(cc(i-1,2,k)-cc(i-1,3,k))
-            ci3 = taui*(cc(i,2,k)-cc(i,3,k))
+            tr2 = cc(i-1, 2, k) + cc(i-1, 3, k)
+            cr2 = cc(i-1, 1, k) + taur*tr2
+            ch(i-1, k, 1) = cc(i-1, 1, k) + tr2
+            ti2 = cc(i, 2, k) + cc(i, 3, k)
+            ci2 = cc(i, 1, k) + taur*ti2
+            ch(i, k, 1) = cc(i, 1, k) + ti2
+            cr3 = taui*(cc(i-1, 2, k)-cc(i-1, 3, k))
+            ci3 = taui*(cc(i, 2, k)-cc(i, 3, k))
             dr2 = cr2 - ci3
             dr3 = cr2 + ci3
             di2 = ci2 + cr3
             di3 = ci2 - cr3
-            ch(i,k,2) = wa1(i-1)*di2 + wa1(i)*dr2
-            ch(i-1,k,2) = wa1(i-1)*dr2 - wa1(i)*di2
-            ch(i,k,3) = wa2(i-1)*di3 + wa2(i)*dr3
-            ch(i-1,k,3) = wa2(i-1)*dr3 - wa2(i)*di3
+            ch(i, k, 2) = wa1(i-1)*di2 + wa1(i)*dr2
+            ch(i-1, k, 2) = wa1(i-1)*dr2 - wa1(i)*di2
+            ch(i, k, 3) = wa2(i-1)*di3 + wa2(i)*dr3
+            ch(i-1, k, 3) = wa2(i-1)*dr3 - wa2(i)*di3
         end do
     end do
-    return
+
 end subroutine passb3
 
 
 subroutine passb4(ido, l1, cc, ch, wa1, wa2, wa3)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent(in) :: ido
     integer , intent(in) :: l1
-    real , intent(in) :: cc(ido,4,l1)
-    real , intent(out) :: ch(ido,l1,4)
-    real , intent(in) :: wa1(*)
-    real , intent(in) :: wa2(*)
-    real , intent(in) :: wa3(*)
+    real (wp), intent(in) :: cc(ido, 4, l1)
+    real (wp), intent(out) :: ch(ido, l1, 4)
+    real (wp), intent(in) :: wa1(*)
+    real (wp), intent(in) :: wa2(*)
+    real (wp), intent(in) :: wa3(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: k, i
-    real::ti1,ti2,tr4,ti3,tr1,tr2,ti4,tr3,cr3,ci3,cr2,cr4,ci2,ci4
+    real (wp) ::ti1, ti2, tr4, ti3, tr1, tr2, ti4, tr3, cr3, ci3, cr2, cr4, ci2, ci4
     !-----------------------------------------------
     if (ido == 2) then
         do k = 1, l1
-            ti1 = cc(2,1,k) - cc(2,3,k)
-            ti2 = cc(2,1,k) + cc(2,3,k)
-            tr4 = cc(2,4,k) - cc(2,2,k)
-            ti3 = cc(2,2,k) + cc(2,4,k)
-            tr1 = cc(1,1,k) - cc(1,3,k)
-            tr2 = cc(1,1,k) + cc(1,3,k)
-            ti4 = cc(1,2,k) - cc(1,4,k)
-            tr3 = cc(1,2,k) + cc(1,4,k)
-            ch(1,k,1) = tr2 + tr3
-            ch(1,k,3) = tr2 - tr3
-            ch(2,k,1) = ti2 + ti3
-            ch(2,k,3) = ti2 - ti3
-            ch(1,k,2) = tr1 + tr4
-            ch(1,k,4) = tr1 - tr4
-            ch(2,k,2) = ti1 + ti4
-            ch(2,k,4) = ti1 - ti4
+            ti1 = cc(2, 1, k) - cc(2, 3, k)
+            ti2 = cc(2, 1, k) + cc(2, 3, k)
+            tr4 = cc(2, 4, k) - cc(2, 2, k)
+            ti3 = cc(2, 2, k) + cc(2, 4, k)
+            tr1 = cc(1, 1, k) - cc(1, 3, k)
+            tr2 = cc(1, 1, k) + cc(1, 3, k)
+            ti4 = cc(1, 2, k) - cc(1, 4, k)
+            tr3 = cc(1, 2, k) + cc(1, 4, k)
+            ch(1, k, 1) = tr2 + tr3
+            ch(1, k, 3) = tr2 - tr3
+            ch(2, k, 1) = ti2 + ti3
+            ch(2, k, 3) = ti2 - ti3
+            ch(1, k, 2) = tr1 + tr4
+            ch(1, k, 4) = tr1 - tr4
+            ch(2, k, 2) = ti1 + ti4
+            ch(2, k, 4) = ti1 - ti4
         end do
         return
-    endif
+    end if
     do k = 1, l1
         do i = 2, ido, 2
-            ti1 = cc(i,1,k) - cc(i,3,k)
-            ti2 = cc(i,1,k) + cc(i,3,k)
-            ti3 = cc(i,2,k) + cc(i,4,k)
-            tr4 = cc(i,4,k) - cc(i,2,k)
-            tr1 = cc(i-1,1,k) - cc(i-1,3,k)
-            tr2 = cc(i-1,1,k) + cc(i-1,3,k)
-            ti4 = cc(i-1,2,k) - cc(i-1,4,k)
-            tr3 = cc(i-1,2,k) + cc(i-1,4,k)
-            ch(i-1,k,1) = tr2 + tr3
+            ti1 = cc(i, 1, k) - cc(i, 3, k)
+            ti2 = cc(i, 1, k) + cc(i, 3, k)
+            ti3 = cc(i, 2, k) + cc(i, 4, k)
+            tr4 = cc(i, 4, k) - cc(i, 2, k)
+            tr1 = cc(i-1, 1, k) - cc(i-1, 3, k)
+            tr2 = cc(i-1, 1, k) + cc(i-1, 3, k)
+            ti4 = cc(i-1, 2, k) - cc(i-1, 4, k)
+            tr3 = cc(i-1, 2, k) + cc(i-1, 4, k)
+            ch(i-1, k, 1) = tr2 + tr3
             cr3 = tr2 - tr3
-            ch(i,k,1) = ti2 + ti3
+            ch(i, k, 1) = ti2 + ti3
             ci3 = ti2 - ti3
             cr2 = tr1 + tr4
             cr4 = tr1 - tr4
             ci2 = ti1 + ti4
             ci4 = ti1 - ti4
-            ch(i-1,k,2) = wa1(i-1)*cr2 - wa1(i)*ci2
-            ch(i,k,2) = wa1(i-1)*ci2 + wa1(i)*cr2
-            ch(i-1,k,3) = wa2(i-1)*cr3 - wa2(i)*ci3
-            ch(i,k,3) = wa2(i-1)*ci3 + wa2(i)*cr3
-            ch(i-1,k,4) = wa3(i-1)*cr4 - wa3(i)*ci4
-            ch(i,k,4) = wa3(i-1)*ci4 + wa3(i)*cr4
+            ch(i-1, k, 2) = wa1(i-1)*cr2 - wa1(i)*ci2
+            ch(i, k, 2) = wa1(i-1)*ci2 + wa1(i)*cr2
+            ch(i-1, k, 3) = wa2(i-1)*cr3 - wa2(i)*ci3
+            ch(i, k, 3) = wa2(i-1)*ci3 + wa2(i)*cr3
+            ch(i-1, k, 4) = wa3(i-1)*cr4 - wa3(i)*ci4
+            ch(i, k, 4) = wa3(i-1)*ci4 + wa3(i)*cr4
         end do
     end do
-    return
+
 end subroutine passb4
 
 
 subroutine passb5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent(in) :: ido
     integer , intent(in) :: l1
-    real , intent(in) :: cc(ido,5,l1)
-    real , intent(out) :: ch(ido,l1,5)
-    real , intent(in) :: wa1(*)
-    real , intent(in) :: wa2(*)
-    real , intent(in) :: wa3(*)
-    real , intent(in) :: wa4(*)
+    real (wp), intent(in) :: cc(ido, 5, l1)
+    real (wp), intent(out) :: ch(ido, l1, 5)
+    real (wp), intent(in) :: wa1(*)
+    real (wp), intent(in) :: wa2(*)
+    real (wp), intent(in) :: wa3(*)
+    real (wp), intent(in) :: wa4(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: k, i
-    real :: tr11, ti11, tr12, ti12, ti5, ti2, ti4, ti3, tr5, tr2, tr4 &
-        , tr3, cr2, ci2, cr3, ci3, cr5, ci5, cr4, ci4, dr3, dr4, di3, &
-        di4, dr5, dr2, di5, di2
+    real (wp), parameter :: sqrt_5 = sqrt( 5.0_wp)
+    real (wp), parameter :: tr11 = (sqrt_5 - 1.0_wp)/4 ! 0.309016994374947
+    real (wp), parameter :: ti11 = (sqrt(1.0_wp/(5.0_wp + sqrt_5)))/2 ! 0.951056516295154
+    real (wp), parameter :: tr12 = (-1.0_wp - sqrt_5)/4 ! -.809016994374947
+    real (wp), parameter :: ti12 = sqrt( 5.0_wp/(2.0_wp*(5.0_wp + sqrt_5 ))) ! 0.587785252292473
+    real (wp) ::  ti5, ti2, ti4, ti3, tr5, tr2, tr4
+    real (wp) :: tr3, cr2, ci2, cr3, ci3, cr5, ci5, cr4, ci4, dr3, dr4, di3
+    real (wp) :: di4, dr5, dr2, di5, di2
     !-----------------------------------------------
-    data tr11, ti11, tr12, ti12/ 0.309016994374947, 0.951056516295154 &
-        , -.809016994374947, 0.587785252292473/
+
     if (ido == 2) then
         do k = 1, l1
-            ti5 = cc(2,2,k) - cc(2,5,k)
-            ti2 = cc(2,2,k) + cc(2,5,k)
-            ti4 = cc(2,3,k) - cc(2,4,k)
-            ti3 = cc(2,3,k) + cc(2,4,k)
-            tr5 = cc(1,2,k) - cc(1,5,k)
-            tr2 = cc(1,2,k) + cc(1,5,k)
-            tr4 = cc(1,3,k) - cc(1,4,k)
-            tr3 = cc(1,3,k) + cc(1,4,k)
-            ch(1,k,1) = cc(1,1,k) + tr2 + tr3
-            ch(2,k,1) = cc(2,1,k) + ti2 + ti3
-            cr2 = cc(1,1,k) + tr11*tr2 + tr12*tr3
-            ci2 = cc(2,1,k) + tr11*ti2 + tr12*ti3
-            cr3 = cc(1,1,k) + tr12*tr2 + tr11*tr3
-            ci3 = cc(2,1,k) + tr12*ti2 + tr11*ti3
+            ti5 = cc(2, 2, k) - cc(2, 5, k)
+            ti2 = cc(2, 2, k) + cc(2, 5, k)
+            ti4 = cc(2, 3, k) - cc(2, 4, k)
+            ti3 = cc(2, 3, k) + cc(2, 4, k)
+            tr5 = cc(1, 2, k) - cc(1, 5, k)
+            tr2 = cc(1, 2, k) + cc(1, 5, k)
+            tr4 = cc(1, 3, k) - cc(1, 4, k)
+            tr3 = cc(1, 3, k) + cc(1, 4, k)
+            ch(1, k, 1) = cc(1, 1, k) + tr2 + tr3
+            ch(2, k, 1) = cc(2, 1, k) + ti2 + ti3
+            cr2 = cc(1, 1, k) + tr11*tr2 + tr12*tr3
+            ci2 = cc(2, 1, k) + tr11*ti2 + tr12*ti3
+            cr3 = cc(1, 1, k) + tr12*tr2 + tr11*tr3
+            ci3 = cc(2, 1, k) + tr12*ti2 + tr11*ti3
             cr5 = ti11*tr5 + ti12*tr4
             ci5 = ti11*ti5 + ti12*ti4
             cr4 = ti12*tr5 - ti11*tr4
             ci4 = ti12*ti5 - ti11*ti4
-            ch(1,k,2) = cr2 - ci5
-            ch(1,k,5) = cr2 + ci5
-            ch(2,k,2) = ci2 + cr5
-            ch(2,k,3) = ci3 + cr4
-            ch(1,k,3) = cr3 - ci4
-            ch(1,k,4) = cr3 + ci4
-            ch(2,k,4) = ci3 - cr4
-            ch(2,k,5) = ci2 - cr5
+            ch(1, k, 2) = cr2 - ci5
+            ch(1, k, 5) = cr2 + ci5
+            ch(2, k, 2) = ci2 + cr5
+            ch(2, k, 3) = ci3 + cr4
+            ch(1, k, 3) = cr3 - ci4
+            ch(1, k, 4) = cr3 + ci4
+            ch(2, k, 4) = ci3 - cr4
+            ch(2, k, 5) = ci2 - cr5
         end do
         return
-    endif
+    end if
     do k = 1, l1
         do i = 2, ido, 2
-            ti5 = cc(i,2,k) - cc(i,5,k)
-            ti2 = cc(i,2,k) + cc(i,5,k)
-            ti4 = cc(i,3,k) - cc(i,4,k)
-            ti3 = cc(i,3,k) + cc(i,4,k)
-            tr5 = cc(i-1,2,k) - cc(i-1,5,k)
-            tr2 = cc(i-1,2,k) + cc(i-1,5,k)
-            tr4 = cc(i-1,3,k) - cc(i-1,4,k)
-            tr3 = cc(i-1,3,k) + cc(i-1,4,k)
-            ch(i-1,k,1) = cc(i-1,1,k) + tr2 + tr3
-            ch(i,k,1) = cc(i,1,k) + ti2 + ti3
-            cr2 = cc(i-1,1,k) + tr11*tr2 + tr12*tr3
-            ci2 = cc(i,1,k) + tr11*ti2 + tr12*ti3
-            cr3 = cc(i-1,1,k) + tr12*tr2 + tr11*tr3
-            ci3 = cc(i,1,k) + tr12*ti2 + tr11*ti3
+            ti5 = cc(i, 2, k) - cc(i, 5, k)
+            ti2 = cc(i, 2, k) + cc(i, 5, k)
+            ti4 = cc(i, 3, k) - cc(i, 4, k)
+            ti3 = cc(i, 3, k) + cc(i, 4, k)
+            tr5 = cc(i-1, 2, k) - cc(i-1, 5, k)
+            tr2 = cc(i-1, 2, k) + cc(i-1, 5, k)
+            tr4 = cc(i-1, 3, k) - cc(i-1, 4, k)
+            tr3 = cc(i-1, 3, k) + cc(i-1, 4, k)
+            ch(i-1, k, 1) = cc(i-1, 1, k) + tr2 + tr3
+            ch(i, k, 1) = cc(i, 1, k) + ti2 + ti3
+            cr2 = cc(i-1, 1, k) + tr11*tr2 + tr12*tr3
+            ci2 = cc(i, 1, k) + tr11*ti2 + tr12*ti3
+            cr3 = cc(i-1, 1, k) + tr12*tr2 + tr11*tr3
+            ci3 = cc(i, 1, k) + tr12*ti2 + tr11*ti3
             cr5 = ti11*tr5 + ti12*tr4
             ci5 = ti11*ti5 + ti12*ti4
             cr4 = ti12*tr5 - ti11*tr4
@@ -1954,14 +1967,14 @@ subroutine passb5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
             dr2 = cr2 - ci5
             di5 = ci2 - cr5
             di2 = ci2 + cr5
-            ch(i-1,k,2) = wa1(i-1)*dr2 - wa1(i)*di2
-            ch(i,k,2) = wa1(i-1)*di2 + wa1(i)*dr2
-            ch(i-1,k,3) = wa2(i-1)*dr3 - wa2(i)*di3
-            ch(i,k,3) = wa2(i-1)*di3 + wa2(i)*dr3
-            ch(i-1,k,4) = wa3(i-1)*dr4 - wa3(i)*di4
-            ch(i,k,4) = wa3(i-1)*di4 + wa3(i)*dr4
-            ch(i-1,k,5) = wa4(i-1)*dr5 - wa4(i)*di5
-            ch(i,k,5) = wa4(i-1)*di5 + wa4(i)*dr5
+            ch(i-1, k, 2) = wa1(i-1)*dr2 - wa1(i)*di2
+            ch(i, k, 2) = wa1(i-1)*di2 + wa1(i)*dr2
+            ch(i-1, k, 3) = wa2(i-1)*dr3 - wa2(i)*di3
+            ch(i, k, 3) = wa2(i-1)*di3 + wa2(i)*dr3
+            ch(i-1, k, 4) = wa3(i-1)*dr4 - wa3(i)*di4
+            ch(i, k, 4) = wa3(i-1)*di4 + wa3(i)*dr4
+            ch(i-1, k, 5) = wa4(i-1)*dr5 - wa4(i)*di5
+            ch(i, k, 5) = wa4(i-1)*di5 + wa4(i)*dr5
         end do
     end do
     return
@@ -1970,25 +1983,25 @@ end subroutine passb5
 
 subroutine passb(nac, ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent(out) :: nac
     integer , intent(in) :: ido
     integer , intent(in) :: ip
     integer , intent(in) :: l1
     integer , intent(in) :: idl1
-    real , intent(in) :: cc(ido,ip,l1)
-    real , intent(out) :: c1(ido,l1,ip)
-    real , intent(inout) :: c2(idl1,ip)
-    real , intent(inout) :: ch(ido,l1,ip)
-    real , intent(inout) :: ch2(idl1,ip)
-    real , intent(in) :: wa(*)
+    real (wp), intent(in) :: cc(ido, ip, l1)
+    real (wp), intent(out) :: c1(ido, l1, ip)
+    real (wp), intent(inout) :: c2(idl1, ip)
+    real (wp), intent(inout) :: ch(ido, l1, ip)
+    real (wp), intent(inout) :: ch2(idl1, ip)
+    real (wp), intent(in) :: wa(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: idot, nt, ipp2, ipph, idp, j, jc, k, i, idl, inc, l, lc &
         , ik, idlj, idij, idj
-    real :: war, wai
+    real (wp) :: war, wai
     !-----------------------------------------------
     idot = ido/2
     nt = ip*idl1
@@ -1999,25 +2012,25 @@ subroutine passb(nac, ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
     if (ido >= l1) then
         do j = 2, ipph
             jc = ipp2 - j
-            ch(:,:,j) = cc(:,j,:) + cc(:,jc,:)
-            ch(:,:,jc) = cc(:,j,:) - cc(:,jc,:)
+            ch(:, :, j) = cc(:, j, :) + cc(:, jc, :)
+            ch(:, :, jc) = cc(:, j, :) - cc(:, jc, :)
         end do
-        ch(:,:,1) = cc(:,1,:)
+        ch(:, :, 1) = cc(:, 1, :)
     else
         do j = 2, ipph
             jc = ipp2 - j
-            ch(:,:,j) = cc(:,j,:) + cc(:,jc,:)
-            ch(:,:,jc) = cc(:,j,:) - cc(:,jc,:)
+            ch(:, :, j) = cc(:, j, :) + cc(:, jc, :)
+            ch(:, :, jc) = cc(:, j, :) - cc(:, jc, :)
         end do
-        ch(:,:,1) = cc(:,1,:)
-    endif
+        ch(:, :, 1) = cc(:, 1, :)
+    end if
     idl = 2 - ido
     inc = 0
     do l = 2, ipph
         lc = ipp2 - l
         idl = idl + ido
-        c2(:,l) = ch2(:,1) + wa(idl-1)*ch2(:,2)
-        c2(:,lc) = wa(idl)*ch2(:,ip)
+        c2(:, l) = ch2(:, 1) + wa(idl-1)*ch2(:, 2)
+        c2(:, lc) = wa(idl)*ch2(:, ip)
         idlj = idl
         inc = inc + ido
         do j = 3, ipph
@@ -2026,47 +2039,47 @@ subroutine passb(nac, ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
             if (idlj > idp) idlj = idlj - idp
             war = wa(idlj-1)
             wai = wa(idlj)
-            c2(:,l) = c2(:,l) + war*ch2(:,j)
-            c2(:,lc) = c2(:,lc) + wai*ch2(:,jc)
+            c2(:, l) = c2(:, l) + war*ch2(:, j)
+            c2(:, lc) = c2(:, lc) + wai*ch2(:, jc)
         end do
     end do
     do j = 2, ipph
-        ch2(:,1) = ch2(:,1) + ch2(:,j)
+        ch2(:, 1) = ch2(:, 1) + ch2(:, j)
     end do
     do j = 2, ipph
         jc = ipp2 - j
-        ch2(:idl1-1:2,j) = c2(:idl1-1:2,j) - c2(2:idl1:2,jc)
-        ch2(:idl1-1:2,jc) = c2(:idl1-1:2,j) + c2(2:idl1:2,jc)
-        ch2(2:idl1:2,j) = c2(2:idl1:2,j) + c2(:idl1-1:2,jc)
-        ch2(2:idl1:2,jc) = c2(2:idl1:2,j) - c2(:idl1-1:2,jc)
+        ch2(:idl1-1:2, j) = c2(:idl1-1:2, j) - c2(2:idl1:2, jc)
+        ch2(:idl1-1:2, jc) = c2(:idl1-1:2, j) + c2(2:idl1:2, jc)
+        ch2(2:idl1:2, j) = c2(2:idl1:2, j) + c2(:idl1-1:2, jc)
+        ch2(2:idl1:2, jc) = c2(2:idl1:2, j) - c2(:idl1-1:2, jc)
     end do
     nac = 1
     if (ido == 2) return
     nac = 0
-    c2(:,1) = ch2(:,1)
-    c1(1,:,2:ip) = ch(1,:,2:ip)
-    c1(2,:,2:ip) = ch(2,:,2:ip)
+    c2(:, 1) = ch2(:, 1)
+    c1(1, :, 2:ip) = ch(1, :, 2:ip)
+    c1(2, :, 2:ip) = ch(2, :, 2:ip)
     if (idot <= l1) then
         idij = 0
         do j = 2, ip
             idij = idij + 2
             do i = 4, ido, 2
                 idij = idij + 2
-                c1(i-1,:,j) = wa(idij-1)*ch(i-1,:,j) - wa(idij)*ch(i,:,j)
-                c1(i,:,j) = wa(idij-1)*ch(i,:,j) + wa(idij)*ch(i-1,:,j)
+                c1(i-1, :, j) = wa(idij-1)*ch(i-1, :, j) - wa(idij)*ch(i, :, j)
+                c1(i, :, j) = wa(idij-1)*ch(i, :, j) + wa(idij)*ch(i-1, :, j)
             end do
         end do
         return
-    endif
+    end if
     idj = 2 - ido
     do j = 2, ip
         idj = idj + ido
         do k = 1, l1
             idij = idj
-            c1(3:ido-1:2,k,j) = wa(idij+1:ido-3+idij:2)*ch(3:ido-1:2,k,j &
-                ) - wa(idij+2:ido-2+idij:2)*ch(4:ido:2,k,j)
-            c1(4:ido:2,k,j) = wa(idij+1:ido-3+idij:2)*ch(4:ido:2,k,j) + &
-                wa(idij+2:ido-2+idij:2)*ch(3:ido-1:2,k,j)
+            c1(3:ido-1:2, k, j) = wa(idij+1:ido-3+idij:2)*ch(3:ido-1:2, k, j &
+                ) - wa(idij+2:ido-2+idij:2)*ch(4:ido:2, k, j)
+            c1(4:ido:2, k, j) = wa(idij+1:ido-3+idij:2)*ch(4:ido:2, k, j) + &
+                wa(idij+2:ido-2+idij:2)*ch(3:ido-1:2, k, j)
         end do
     end do
     return
@@ -2075,13 +2088,13 @@ end subroutine passb
 
 subroutine cfftf(n, c, wsave)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer  :: n
-    real  :: c(*)
-    real  :: wsave(*)
+    real (wp) :: c(*)
+    real (wp) :: wsave(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: iw1, iw2
     !-----------------------------------------------
@@ -2096,18 +2109,18 @@ end subroutine cfftf
 
 subroutine cfftf1(n, c, ch, wa, ifac)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent(in) :: n
-    real , intent(in) :: ifac(*)
+    real (wp), intent(in) :: ifac(*)
     !integer , intent(in) :: ifac(*)
-    real  :: c(*)
-    real  :: ch(*)
-    real  :: wa(*)
+    real (wp) :: c(*)
+    real (wp) :: ch(*)
+    real (wp) :: wa(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
-    integer::nf,na,l1,iw,k1,ip,l2,ido,idot,idl1,ix2,ix3,ix4,nac,n2,i
+    integer::nf, na, l1, iw, k1, ip, l2, ido, idot, idl1, ix2, ix3, ix4, nac, n2, i
     !-----------------------------------------------
     nf = ifac(2)
     na = 0
@@ -2126,7 +2139,7 @@ subroutine cfftf1(n, c, ch, wa, ifac)
                 call passf4 (idot, l1, c, ch, wa(iw), wa(ix2), wa(ix3))
             else
                 call passf4 (idot, l1, ch, c, wa(iw), wa(ix2), wa(ix3))
-            endif
+            end if
             na = 1 - na
         else
             if (ip == 2) then
@@ -2134,7 +2147,7 @@ subroutine cfftf1(n, c, ch, wa, ifac)
                     call passf2 (idot, l1, c, ch, wa(iw))
                 else
                     call passf2 (idot, l1, ch, c, wa(iw))
-                endif
+                end if
                 na = 1 - na
             else
                 if (ip == 3) then
@@ -2143,7 +2156,7 @@ subroutine cfftf1(n, c, ch, wa, ifac)
                         call passf3 (idot, l1, c, ch, wa(iw), wa(ix2))
                     else
                         call passf3 (idot, l1, ch, c, wa(iw), wa(ix2))
-                    endif
+                    end if
                     na = 1 - na
                 else
                     if (ip == 5) then
@@ -2156,7 +2169,7 @@ subroutine cfftf1(n, c, ch, wa, ifac)
                         else
                             call passf5 (idot, l1, ch, c, wa(iw), wa(ix2), &
                                 wa(ix3), wa(ix4))
-                        endif
+                        end if
                         na = 1 - na
                     else
                         if (na == 0) then
@@ -2165,12 +2178,12 @@ subroutine cfftf1(n, c, ch, wa, ifac)
                         else
                             call passf (nac, idot, ip, l1, idl1, ch, ch, ch &
                                 , c, c, wa(iw))
-                        endif
+                        end if
                         if (nac /= 0) na = 1 - na
-                    endif
-                endif
-            endif
-        endif
+                    end if
+                end if
+            end if
+        end if
         l1 = l2
         iw = iw + (ip - 1)*idot
     end do
@@ -2183,34 +2196,34 @@ end subroutine cfftf1
 
 subroutine passf2(ido, l1, cc, ch, wa1)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent(in) :: ido
     integer , intent(in) :: l1
-    real , intent(in) :: cc(ido,2,l1)
-    real , intent(out) :: ch(ido,l1,2)
-    real , intent(in) :: wa1(*)
+    real (wp), intent(in) :: cc(ido, 2, l1)
+    real (wp), intent(out) :: ch(ido, l1, 2)
+    real (wp), intent(in) :: wa1(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: k, i
-    real :: tr2, ti2
+    real (wp) :: tr2, ti2
     !-----------------------------------------------
     if (ido <= 2) then
-        ch(1,:,1) = cc(1,1,:) + cc(1,2,:)
-        ch(1,:,2) = cc(1,1,:) - cc(1,2,:)
-        ch(2,:,1) = cc(2,1,:) + cc(2,2,:)
-        ch(2,:,2) = cc(2,1,:) - cc(2,2,:)
+        ch(1, :, 1) = cc(1, 1, :) + cc(1, 2, :)
+        ch(1, :, 2) = cc(1, 1, :) - cc(1, 2, :)
+        ch(2, :, 1) = cc(2, 1, :) + cc(2, 2, :)
+        ch(2, :, 2) = cc(2, 1, :) - cc(2, 2, :)
         return
-    endif
+    end if
     do k = 1, l1
         do i = 2, ido, 2
-            ch(i-1,k,1) = cc(i-1,1,k) + cc(i-1,2,k)
-            tr2 = cc(i-1,1,k) - cc(i-1,2,k)
-            ch(i,k,1) = cc(i,1,k) + cc(i,2,k)
-            ti2 = cc(i,1,k) - cc(i,2,k)
-            ch(i,k,2) = wa1(i-1)*ti2 - wa1(i)*tr2
-            ch(i-1,k,2) = wa1(i-1)*tr2 + wa1(i)*ti2
+            ch(i-1, k, 1) = cc(i-1, 1, k) + cc(i-1, 2, k)
+            tr2 = cc(i-1, 1, k) - cc(i-1, 2, k)
+            ch(i, k, 1) = cc(i, 1, k) + cc(i, 2, k)
+            ti2 = cc(i, 1, k) - cc(i, 2, k)
+            ch(i, k, 2) = wa1(i-1)*ti2 - wa1(i)*tr2
+            ch(i-1, k, 2) = wa1(i-1)*tr2 + wa1(i)*ti2
         end do
     end do
     return
@@ -2219,56 +2232,58 @@ end subroutine passf2
 
 subroutine passf3(ido, l1, cc, ch, wa1, wa2)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent(in) :: ido
     integer , intent(in) :: l1
-    real , intent(in) :: cc(ido,3,l1)
-    real , intent(out) :: ch(ido,l1,3)
-    real , intent(in) :: wa1(*)
-    real , intent(in) :: wa2(*)
+    real (wp), intent(in) :: cc(ido, 3, l1)
+    real (wp), intent(out) :: ch(ido, l1, 3)
+    real (wp), intent(in) :: wa1(*)
+    real (wp), intent(in) :: wa2(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: k, i
-    real::taur,taui,tr2,cr2,ti2,ci2,cr3,ci3,dr2,dr3,di2,di3
+    real (wp) :: taur = -0.5_wp
+    real (wp) :: taui = -sqrt(3.0_wp)/2 !  - 0.866025403784439
+    real (wp) :: tr2, cr2, ti2, ci2, cr3, ci3, dr2, dr3, di2, di3
     !-----------------------------------------------
-    data taur, taui/ -.5,  - 0.866025403784439/
+
     if (ido == 2) then
         do k = 1, l1
-            tr2 = cc(1,2,k) + cc(1,3,k)
-            cr2 = cc(1,1,k) + taur*tr2
-            ch(1,k,1) = cc(1,1,k) + tr2
-            ti2 = cc(2,2,k) + cc(2,3,k)
-            ci2 = cc(2,1,k) + taur*ti2
-            ch(2,k,1) = cc(2,1,k) + ti2
-            cr3 = taui*(cc(1,2,k)-cc(1,3,k))
-            ci3 = taui*(cc(2,2,k)-cc(2,3,k))
-            ch(1,k,2) = cr2 - ci3
-            ch(1,k,3) = cr2 + ci3
-            ch(2,k,2) = ci2 + cr3
-            ch(2,k,3) = ci2 - cr3
+            tr2 = cc(1, 2, k) + cc(1, 3, k)
+            cr2 = cc(1, 1, k) + taur*tr2
+            ch(1, k, 1) = cc(1, 1, k) + tr2
+            ti2 = cc(2, 2, k) + cc(2, 3, k)
+            ci2 = cc(2, 1, k) + taur*ti2
+            ch(2, k, 1) = cc(2, 1, k) + ti2
+            cr3 = taui*(cc(1, 2, k)-cc(1, 3, k))
+            ci3 = taui*(cc(2, 2, k)-cc(2, 3, k))
+            ch(1, k, 2) = cr2 - ci3
+            ch(1, k, 3) = cr2 + ci3
+            ch(2, k, 2) = ci2 + cr3
+            ch(2, k, 3) = ci2 - cr3
         end do
         return
-    endif
+    end if
     do k = 1, l1
         do i = 2, ido, 2
-            tr2 = cc(i-1,2,k) + cc(i-1,3,k)
-            cr2 = cc(i-1,1,k) + taur*tr2
-            ch(i-1,k,1) = cc(i-1,1,k) + tr2
-            ti2 = cc(i,2,k) + cc(i,3,k)
-            ci2 = cc(i,1,k) + taur*ti2
-            ch(i,k,1) = cc(i,1,k) + ti2
-            cr3 = taui*(cc(i-1,2,k)-cc(i-1,3,k))
-            ci3 = taui*(cc(i,2,k)-cc(i,3,k))
+            tr2 = cc(i-1, 2, k) + cc(i-1, 3, k)
+            cr2 = cc(i-1, 1, k) + taur*tr2
+            ch(i-1, k, 1) = cc(i-1, 1, k) + tr2
+            ti2 = cc(i, 2, k) + cc(i, 3, k)
+            ci2 = cc(i, 1, k) + taur*ti2
+            ch(i, k, 1) = cc(i, 1, k) + ti2
+            cr3 = taui*(cc(i-1, 2, k)-cc(i-1, 3, k))
+            ci3 = taui*(cc(i, 2, k)-cc(i, 3, k))
             dr2 = cr2 - ci3
             dr3 = cr2 + ci3
             di2 = ci2 + cr3
             di3 = ci2 - cr3
-            ch(i,k,2) = wa1(i-1)*di2 - wa1(i)*dr2
-            ch(i-1,k,2) = wa1(i-1)*dr2 + wa1(i)*di2
-            ch(i,k,3) = wa2(i-1)*di3 - wa2(i)*dr3
-            ch(i-1,k,3) = wa2(i-1)*dr3 + wa2(i)*di3
+            ch(i, k, 2) = wa1(i-1)*di2 - wa1(i)*dr2
+            ch(i-1, k, 2) = wa1(i-1)*dr2 + wa1(i)*di2
+            ch(i, k, 3) = wa2(i-1)*di3 - wa2(i)*dr3
+            ch(i-1, k, 3) = wa2(i-1)*dr3 + wa2(i)*di3
         end do
     end do
     return
@@ -2277,66 +2292,66 @@ end subroutine passf3
 
 subroutine passf4(ido, l1, cc, ch, wa1, wa2, wa3)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent(in) :: ido
     integer , intent(in) :: l1
-    real , intent(in) :: cc(ido,4,l1)
-    real , intent(out) :: ch(ido,l1,4)
-    real , intent(in) :: wa1(*)
-    real , intent(in) :: wa2(*)
-    real , intent(in) :: wa3(*)
+    real (wp), intent(in) :: cc(ido, 4, l1)
+    real (wp), intent(out) :: ch(ido, l1, 4)
+    real (wp), intent(in) :: wa1(*)
+    real (wp), intent(in) :: wa2(*)
+    real (wp), intent(in) :: wa3(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: k, i
-    real::ti1,ti2,tr4,ti3,tr1,tr2,ti4,tr3,cr3,ci3,cr2,cr4,ci2,ci4
+    real (wp) ::ti1, ti2, tr4, ti3, tr1, tr2, ti4, tr3, cr3, ci3, cr2, cr4, ci2, ci4
     !-----------------------------------------------
     if (ido == 2) then
         do k = 1, l1
-            ti1 = cc(2,1,k) - cc(2,3,k)
-            ti2 = cc(2,1,k) + cc(2,3,k)
-            tr4 = cc(2,2,k) - cc(2,4,k)
-            ti3 = cc(2,2,k) + cc(2,4,k)
-            tr1 = cc(1,1,k) - cc(1,3,k)
-            tr2 = cc(1,1,k) + cc(1,3,k)
-            ti4 = cc(1,4,k) - cc(1,2,k)
-            tr3 = cc(1,2,k) + cc(1,4,k)
-            ch(1,k,1) = tr2 + tr3
-            ch(1,k,3) = tr2 - tr3
-            ch(2,k,1) = ti2 + ti3
-            ch(2,k,3) = ti2 - ti3
-            ch(1,k,2) = tr1 + tr4
-            ch(1,k,4) = tr1 - tr4
-            ch(2,k,2) = ti1 + ti4
-            ch(2,k,4) = ti1 - ti4
+            ti1 = cc(2, 1, k) - cc(2, 3, k)
+            ti2 = cc(2, 1, k) + cc(2, 3, k)
+            tr4 = cc(2, 2, k) - cc(2, 4, k)
+            ti3 = cc(2, 2, k) + cc(2, 4, k)
+            tr1 = cc(1, 1, k) - cc(1, 3, k)
+            tr2 = cc(1, 1, k) + cc(1, 3, k)
+            ti4 = cc(1, 4, k) - cc(1, 2, k)
+            tr3 = cc(1, 2, k) + cc(1, 4, k)
+            ch(1, k, 1) = tr2 + tr3
+            ch(1, k, 3) = tr2 - tr3
+            ch(2, k, 1) = ti2 + ti3
+            ch(2, k, 3) = ti2 - ti3
+            ch(1, k, 2) = tr1 + tr4
+            ch(1, k, 4) = tr1 - tr4
+            ch(2, k, 2) = ti1 + ti4
+            ch(2, k, 4) = ti1 - ti4
         end do
         return
-    endif
+    end if
     do k = 1, l1
         do i = 2, ido, 2
-            ti1 = cc(i,1,k) - cc(i,3,k)
-            ti2 = cc(i,1,k) + cc(i,3,k)
-            ti3 = cc(i,2,k) + cc(i,4,k)
-            tr4 = cc(i,2,k) - cc(i,4,k)
-            tr1 = cc(i-1,1,k) - cc(i-1,3,k)
-            tr2 = cc(i-1,1,k) + cc(i-1,3,k)
-            ti4 = cc(i-1,4,k) - cc(i-1,2,k)
-            tr3 = cc(i-1,2,k) + cc(i-1,4,k)
-            ch(i-1,k,1) = tr2 + tr3
+            ti1 = cc(i, 1, k) - cc(i, 3, k)
+            ti2 = cc(i, 1, k) + cc(i, 3, k)
+            ti3 = cc(i, 2, k) + cc(i, 4, k)
+            tr4 = cc(i, 2, k) - cc(i, 4, k)
+            tr1 = cc(i-1, 1, k) - cc(i-1, 3, k)
+            tr2 = cc(i-1, 1, k) + cc(i-1, 3, k)
+            ti4 = cc(i-1, 4, k) - cc(i-1, 2, k)
+            tr3 = cc(i-1, 2, k) + cc(i-1, 4, k)
+            ch(i-1, k, 1) = tr2 + tr3
             cr3 = tr2 - tr3
-            ch(i,k,1) = ti2 + ti3
+            ch(i, k, 1) = ti2 + ti3
             ci3 = ti2 - ti3
             cr2 = tr1 + tr4
             cr4 = tr1 - tr4
             ci2 = ti1 + ti4
             ci4 = ti1 - ti4
-            ch(i-1,k,2) = wa1(i-1)*cr2 + wa1(i)*ci2
-            ch(i,k,2) = wa1(i-1)*ci2 - wa1(i)*cr2
-            ch(i-1,k,3) = wa2(i-1)*cr3 + wa2(i)*ci3
-            ch(i,k,3) = wa2(i-1)*ci3 - wa2(i)*cr3
-            ch(i-1,k,4) = wa3(i-1)*cr4 + wa3(i)*ci4
-            ch(i,k,4) = wa3(i-1)*ci4 - wa3(i)*cr4
+            ch(i-1, k, 2) = wa1(i-1)*cr2 + wa1(i)*ci2
+            ch(i, k, 2) = wa1(i-1)*ci2 - wa1(i)*cr2
+            ch(i-1, k, 3) = wa2(i-1)*cr3 + wa2(i)*ci3
+            ch(i, k, 3) = wa2(i-1)*ci3 - wa2(i)*cr3
+            ch(i-1, k, 4) = wa3(i-1)*cr4 + wa3(i)*ci4
+            ch(i, k, 4) = wa3(i-1)*ci4 - wa3(i)*cr4
         end do
     end do
     return
@@ -2345,73 +2360,77 @@ end subroutine passf4
 
 subroutine passf5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent(in) :: ido
     integer , intent(in) :: l1
-    real , intent(in) :: cc(ido,5,l1)
-    real , intent(out) :: ch(ido,l1,5)
-    real , intent(in) :: wa1(*)
-    real , intent(in) :: wa2(*)
-    real , intent(in) :: wa3(*)
-    real , intent(in) :: wa4(*)
+    real (wp), intent(in) :: cc(ido, 5, l1)
+    real (wp), intent(out) :: ch(ido, l1, 5)
+    real (wp), intent(in) :: wa1(*)
+    real (wp), intent(in) :: wa2(*)
+    real (wp), intent(in) :: wa3(*)
+    real (wp), intent(in) :: wa4(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: k, i
-    real :: tr11, ti11, tr12, ti12, ti5, ti2, ti4, ti3, tr5, tr2, tr4 &
-        , tr3, cr2, ci2, cr3, ci3, cr5, ci5, cr4, ci4, dr3, dr4, di3, &
-        di4, dr5, dr2, di5, di2
+    integer   :: k, i
+    real (wp) :: ti5, ti2, ti4, ti3, tr5, tr2, tr4
+    real (wp) :: tr3, cr2, ci2, cr3, ci3, cr5, ci5, cr4, ci4, dr3, dr4, di3
+    real (wp) :: di4, dr5, dr2, di5, di2
+    real (wp), parameter :: sqrt_5 = sqrt(5.0_wp)
+    real (wp), parameter :: tr11 = (sqrt_5 - 1.0_wp)/4 ! 0.309016994374947
+    real (wp), parameter :: ti11 = -sqrt((5.0_wp + sqrt_5)/2)/2 ! -.951056516295154
+    real (wp), parameter :: tr12 = (-1.0_wp - sqrt_5)/4 ! -.809016994374947
+    real (wp), parameter :: ti12 = -sqrt(5.0_wp/(2.0_wp * (5.0_wp + sqrt_5)) ) ! -0.587785252292473
     !-----------------------------------------------
-    data tr11, ti11, tr12, ti12/ 0.309016994374947, -.951056516295154 &
-        , -.809016994374947,  - 0.587785252292473/
+
     if (ido == 2) then
         do k = 1, l1
-            ti5 = cc(2,2,k) - cc(2,5,k)
-            ti2 = cc(2,2,k) + cc(2,5,k)
-            ti4 = cc(2,3,k) - cc(2,4,k)
-            ti3 = cc(2,3,k) + cc(2,4,k)
-            tr5 = cc(1,2,k) - cc(1,5,k)
-            tr2 = cc(1,2,k) + cc(1,5,k)
-            tr4 = cc(1,3,k) - cc(1,4,k)
-            tr3 = cc(1,3,k) + cc(1,4,k)
-            ch(1,k,1) = cc(1,1,k) + tr2 + tr3
-            ch(2,k,1) = cc(2,1,k) + ti2 + ti3
-            cr2 = cc(1,1,k) + tr11*tr2 + tr12*tr3
-            ci2 = cc(2,1,k) + tr11*ti2 + tr12*ti3
-            cr3 = cc(1,1,k) + tr12*tr2 + tr11*tr3
-            ci3 = cc(2,1,k) + tr12*ti2 + tr11*ti3
+            ti5 = cc(2, 2, k) - cc(2, 5, k)
+            ti2 = cc(2, 2, k) + cc(2, 5, k)
+            ti4 = cc(2, 3, k) - cc(2, 4, k)
+            ti3 = cc(2, 3, k) + cc(2, 4, k)
+            tr5 = cc(1, 2, k) - cc(1, 5, k)
+            tr2 = cc(1, 2, k) + cc(1, 5, k)
+            tr4 = cc(1, 3, k) - cc(1, 4, k)
+            tr3 = cc(1, 3, k) + cc(1, 4, k)
+            ch(1, k, 1) = cc(1, 1, k) + tr2 + tr3
+            ch(2, k, 1) = cc(2, 1, k) + ti2 + ti3
+            cr2 = cc(1, 1, k) + tr11*tr2 + tr12*tr3
+            ci2 = cc(2, 1, k) + tr11*ti2 + tr12*ti3
+            cr3 = cc(1, 1, k) + tr12*tr2 + tr11*tr3
+            ci3 = cc(2, 1, k) + tr12*ti2 + tr11*ti3
             cr5 = ti11*tr5 + ti12*tr4
             ci5 = ti11*ti5 + ti12*ti4
             cr4 = ti12*tr5 - ti11*tr4
             ci4 = ti12*ti5 - ti11*ti4
-            ch(1,k,2) = cr2 - ci5
-            ch(1,k,5) = cr2 + ci5
-            ch(2,k,2) = ci2 + cr5
-            ch(2,k,3) = ci3 + cr4
-            ch(1,k,3) = cr3 - ci4
-            ch(1,k,4) = cr3 + ci4
-            ch(2,k,4) = ci3 - cr4
-            ch(2,k,5) = ci2 - cr5
+            ch(1, k, 2) = cr2 - ci5
+            ch(1, k, 5) = cr2 + ci5
+            ch(2, k, 2) = ci2 + cr5
+            ch(2, k, 3) = ci3 + cr4
+            ch(1, k, 3) = cr3 - ci4
+            ch(1, k, 4) = cr3 + ci4
+            ch(2, k, 4) = ci3 - cr4
+            ch(2, k, 5) = ci2 - cr5
         end do
         return
-    endif
+    end if
     do k = 1, l1
         do i = 2, ido, 2
-            ti5 = cc(i,2,k) - cc(i,5,k)
-            ti2 = cc(i,2,k) + cc(i,5,k)
-            ti4 = cc(i,3,k) - cc(i,4,k)
-            ti3 = cc(i,3,k) + cc(i,4,k)
-            tr5 = cc(i-1,2,k) - cc(i-1,5,k)
-            tr2 = cc(i-1,2,k) + cc(i-1,5,k)
-            tr4 = cc(i-1,3,k) - cc(i-1,4,k)
-            tr3 = cc(i-1,3,k) + cc(i-1,4,k)
-            ch(i-1,k,1) = cc(i-1,1,k) + tr2 + tr3
-            ch(i,k,1) = cc(i,1,k) + ti2 + ti3
-            cr2 = cc(i-1,1,k) + tr11*tr2 + tr12*tr3
-            ci2 = cc(i,1,k) + tr11*ti2 + tr12*ti3
-            cr3 = cc(i-1,1,k) + tr12*tr2 + tr11*tr3
-            ci3 = cc(i,1,k) + tr12*ti2 + tr11*ti3
+            ti5 = cc(i, 2, k) - cc(i, 5, k)
+            ti2 = cc(i, 2, k) + cc(i, 5, k)
+            ti4 = cc(i, 3, k) - cc(i, 4, k)
+            ti3 = cc(i, 3, k) + cc(i, 4, k)
+            tr5 = cc(i-1, 2, k) - cc(i-1, 5, k)
+            tr2 = cc(i-1, 2, k) + cc(i-1, 5, k)
+            tr4 = cc(i-1, 3, k) - cc(i-1, 4, k)
+            tr3 = cc(i-1, 3, k) + cc(i-1, 4, k)
+            ch(i-1, k, 1) = cc(i-1, 1, k) + tr2 + tr3
+            ch(i, k, 1) = cc(i, 1, k) + ti2 + ti3
+            cr2 = cc(i-1, 1, k) + tr11*tr2 + tr12*tr3
+            ci2 = cc(i, 1, k) + tr11*ti2 + tr12*ti3
+            cr3 = cc(i-1, 1, k) + tr12*tr2 + tr11*tr3
+            ci3 = cc(i, 1, k) + tr12*ti2 + tr11*ti3
             cr5 = ti11*tr5 + ti12*tr4
             ci5 = ti11*ti5 + ti12*ti4
             cr4 = ti12*tr5 - ti11*tr4
@@ -2424,14 +2443,14 @@ subroutine passf5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
             dr2 = cr2 - ci5
             di5 = ci2 - cr5
             di2 = ci2 + cr5
-            ch(i-1,k,2) = wa1(i-1)*dr2 + wa1(i)*di2
-            ch(i,k,2) = wa1(i-1)*di2 - wa1(i)*dr2
-            ch(i-1,k,3) = wa2(i-1)*dr3 + wa2(i)*di3
-            ch(i,k,3) = wa2(i-1)*di3 - wa2(i)*dr3
-            ch(i-1,k,4) = wa3(i-1)*dr4 + wa3(i)*di4
-            ch(i,k,4) = wa3(i-1)*di4 - wa3(i)*dr4
-            ch(i-1,k,5) = wa4(i-1)*dr5 + wa4(i)*di5
-            ch(i,k,5) = wa4(i-1)*di5 - wa4(i)*dr5
+            ch(i-1, k, 2) = wa1(i-1)*dr2 + wa1(i)*di2
+            ch(i, k, 2) = wa1(i-1)*di2 - wa1(i)*dr2
+            ch(i-1, k, 3) = wa2(i-1)*dr3 + wa2(i)*di3
+            ch(i, k, 3) = wa2(i-1)*di3 - wa2(i)*dr3
+            ch(i-1, k, 4) = wa3(i-1)*dr4 + wa3(i)*di4
+            ch(i, k, 4) = wa3(i-1)*di4 - wa3(i)*dr4
+            ch(i-1, k, 5) = wa4(i-1)*dr5 + wa4(i)*di5
+            ch(i, k, 5) = wa4(i-1)*di5 - wa4(i)*dr5
         end do
     end do
     return
@@ -2440,25 +2459,25 @@ end subroutine passf5
 
 subroutine passf(nac, ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent(out) :: nac
     integer , intent(in) :: ido
     integer , intent(in) :: ip
     integer , intent(in) :: l1
     integer , intent(in) :: idl1
-    real , intent(in) :: cc(ido,ip,l1)
-    real , intent(out) :: c1(ido,l1,ip)
-    real , intent(inout) :: c2(idl1,ip)
-    real , intent(inout) :: ch(ido,l1,ip)
-    real , intent(inout) :: ch2(idl1,ip)
-    real , intent(in) :: wa(*)
+    real (wp), intent(in) :: cc(ido, ip, l1)
+    real (wp), intent(out) :: c1(ido, l1, ip)
+    real (wp), intent(inout) :: c2(idl1, ip)
+    real (wp), intent(inout) :: ch(ido, l1, ip)
+    real (wp), intent(inout) :: ch2(idl1, ip)
+    real (wp), intent(in) :: wa(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: idot, nt, ipp2, ipph, idp, j, jc, k, i, idl, inc, l, lc &
         , ik, idlj, idij, idj
-    real :: war, wai
+    real (wp) :: war, wai
     !-----------------------------------------------
     idot = ido/2
     nt = ip*idl1
@@ -2469,25 +2488,25 @@ subroutine passf(nac, ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
     if (ido >= l1) then
         do j = 2, ipph
             jc = ipp2 - j
-            ch(:,:,j) = cc(:,j,:) + cc(:,jc,:)
-            ch(:,:,jc) = cc(:,j,:) - cc(:,jc,:)
+            ch(:, :, j) = cc(:, j, :) + cc(:, jc, :)
+            ch(:, :, jc) = cc(:, j, :) - cc(:, jc, :)
         end do
-        ch(:,:,1) = cc(:,1,:)
+        ch(:, :, 1) = cc(:, 1, :)
     else
         do j = 2, ipph
             jc = ipp2 - j
-            ch(:,:,j) = cc(:,j,:) + cc(:,jc,:)
-            ch(:,:,jc) = cc(:,j,:) - cc(:,jc,:)
+            ch(:, :, j) = cc(:, j, :) + cc(:, jc, :)
+            ch(:, :, jc) = cc(:, j, :) - cc(:, jc, :)
         end do
-        ch(:,:,1) = cc(:,1,:)
-    endif
+        ch(:, :, 1) = cc(:, 1, :)
+    end if
     idl = 2 - ido
     inc = 0
     do l = 2, ipph
         lc = ipp2 - l
         idl = idl + ido
-        c2(:,l) = ch2(:,1) + wa(idl-1)*ch2(:,2)
-        c2(:,lc) = -wa(idl)*ch2(:,ip)
+        c2(:, l) = ch2(:, 1) + wa(idl-1)*ch2(:, 2)
+        c2(:, lc) = -wa(idl)*ch2(:, ip)
         idlj = idl
         inc = inc + ido
         do j = 3, ipph
@@ -2496,47 +2515,47 @@ subroutine passf(nac, ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
             if (idlj > idp) idlj = idlj - idp
             war = wa(idlj-1)
             wai = wa(idlj)
-            c2(:,l) = c2(:,l) + war*ch2(:,j)
-            c2(:,lc) = c2(:,lc) - wai*ch2(:,jc)
+            c2(:, l) = c2(:, l) + war*ch2(:, j)
+            c2(:, lc) = c2(:, lc) - wai*ch2(:, jc)
         end do
     end do
     do j = 2, ipph
-        ch2(:,1) = ch2(:,1) + ch2(:,j)
+        ch2(:, 1) = ch2(:, 1) + ch2(:, j)
     end do
     do j = 2, ipph
         jc = ipp2 - j
-        ch2(:idl1-1:2,j) = c2(:idl1-1:2,j) - c2(2:idl1:2,jc)
-        ch2(:idl1-1:2,jc) = c2(:idl1-1:2,j) + c2(2:idl1:2,jc)
-        ch2(2:idl1:2,j) = c2(2:idl1:2,j) + c2(:idl1-1:2,jc)
-        ch2(2:idl1:2,jc) = c2(2:idl1:2,j) - c2(:idl1-1:2,jc)
+        ch2(:idl1-1:2, j) = c2(:idl1-1:2, j) - c2(2:idl1:2, jc)
+        ch2(:idl1-1:2, jc) = c2(:idl1-1:2, j) + c2(2:idl1:2, jc)
+        ch2(2:idl1:2, j) = c2(2:idl1:2, j) + c2(:idl1-1:2, jc)
+        ch2(2:idl1:2, jc) = c2(2:idl1:2, j) - c2(:idl1-1:2, jc)
     end do
     nac = 1
     if (ido == 2) return
     nac = 0
-    c2(:,1) = ch2(:,1)
-    c1(1,:,2:ip) = ch(1,:,2:ip)
-    c1(2,:,2:ip) = ch(2,:,2:ip)
+    c2(:, 1) = ch2(:, 1)
+    c1(1, :, 2:ip) = ch(1, :, 2:ip)
+    c1(2, :, 2:ip) = ch(2, :, 2:ip)
     if (idot <= l1) then
         idij = 0
         do j = 2, ip
             idij = idij + 2
             do i = 4, ido, 2
                 idij = idij + 2
-                c1(i-1,:,j) = wa(idij-1)*ch(i-1,:,j) + wa(idij)*ch(i,:,j)
-                c1(i,:,j) = wa(idij-1)*ch(i,:,j) - wa(idij)*ch(i-1,:,j)
+                c1(i-1, :, j) = wa(idij-1)*ch(i-1, :, j) + wa(idij)*ch(i, :, j)
+                c1(i, :, j) = wa(idij-1)*ch(i, :, j) - wa(idij)*ch(i-1, :, j)
             end do
         end do
         return
-    endif
+    end if
     idj = 2 - ido
     do j = 2, ip
         idj = idj + ido
         do k = 1, l1
             idij = idj
-            c1(3:ido-1:2,k,j) = wa(idij+1:ido-3+idij:2)*ch(3:ido-1:2,k,j &
-                ) + wa(idij+2:ido-2+idij:2)*ch(4:ido:2,k,j)
-            c1(4:ido:2,k,j) = wa(idij+1:ido-3+idij:2)*ch(4:ido:2,k,j) - &
-                wa(idij+2:ido-2+idij:2)*ch(3:ido-1:2,k,j)
+            c1(3:ido-1:2, k, j) = wa(idij+1:ido-3+idij:2)*ch(3:ido-1:2, k, j &
+                ) + wa(idij+2:ido-2+idij:2)*ch(4:ido:2, k, j)
+            c1(4:ido:2, k, j) = wa(idij+1:ido-3+idij:2)*ch(4:ido:2, k, j) - &
+                wa(idij+2:ido-2+idij:2)*ch(3:ido-1:2, k, j)
         end do
     end do
     return
@@ -2545,10 +2564,10 @@ end subroutine passf
 
 subroutine rffti(n, wsave)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer  :: n
-    real  :: wsave(*)
+    real (wp) :: wsave(*)
     !-----------------------------------------------
     !
     if (n == 1) return
@@ -2559,21 +2578,21 @@ end subroutine rffti
 
 subroutine rffti1(n, wa, ifac)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent(in) :: n
-    real , intent(inout) :: ifac(*)
+    real (wp), intent(inout) :: ifac(*)
     !integer , intent(inout) :: ifac(*)
-    real , intent(out) :: wa(*)
+    real (wp), intent(out) :: wa(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
-    integer , dimension(4) :: ntryh
-    integer :: nl, nf, j, ntry, nq, nr, i, ib, is, nfm1, l1, k1, ip, &
-        ld, l2, ido, ipm, ii
-    real :: tpi, dum, argh, argld, fi, arg
+    integer, parameter :: ntryh(*) = [4, 2, 3, 5]
+    integer :: nl, nf, j, ntry, nq, nr, i, ib, is, nfm1, l1, k1, ip
+    integer :: ld, l2, ido, ipm, ii
+    real (wp) :: tpi, dum, argh, argld, fi, arg
     !-----------------------------------------------
-    data ntryh(1), ntryh(2), ntryh(3), ntryh(4)/ 4, 2, 3, 5/
+
     nl = n
     nf = 0
     j = 0
@@ -2583,7 +2602,7 @@ subroutine rffti1(n, wa, ifac)
         ntry = ntryh(j)
     else
         ntry = ntry + 2
-    endif
+    end if
 104 continue
     nq = nl/ntry
     nr = nl - ntry*nq
@@ -2595,13 +2614,13 @@ subroutine rffti1(n, wa, ifac)
         if (nf /= 1) then
             ifac(nf+2:4:(-1)) = ifac(nf+1:3:(-1))
             ifac(3) = 2
-        endif
-    endif
+        end if
+    end if
     if (nl /= 1) go to 104
     ifac(1) = n
     ifac(2) = nf
     tpi = 8.0*atan(1.0)
-    argh = tpi/float(n)
+    argh = tpi/real(n)
     is = 0
     nfm1 = nf - 1
     l1 = 1
@@ -2615,7 +2634,7 @@ subroutine rffti1(n, wa, ifac)
         do j = 1, ipm
             ld = ld + l1
             i = is
-            argld = float(ld)*argh
+            argld = real(ld)*argh
             fi = 0.
             do ii = 3, ido, 2
                 i = i + 2
@@ -2634,11 +2653,11 @@ end subroutine rffti1
 
 subroutine rfftb(n, r, wsave)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer  :: n
-    real  :: r(*)
-    real  :: wsave(*)
+    real (wp) :: r(*)
+    real (wp) :: wsave(*)
     !-----------------------------------------------
     !
     if (n == 1) return
@@ -2649,16 +2668,16 @@ end subroutine rfftb
 
 subroutine rfftb1(n, c, ch, wa, ifac)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent(in) :: n
-    real , intent(in) :: ifac(*)
+    real (wp), intent(in) :: ifac(*)
     !integer , intent(in) :: ifac(*)
-    real  :: c(*)
-    real  :: ch(*)
-    real  :: wa(*)
+    real (wp) :: c(*)
+    real (wp) :: ch(*)
+    real (wp) :: wa(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: nf, na, l1, iw, k1, ip, l2, ido, idl1, ix2, ix3, ix4, i
     !-----------------------------------------------
@@ -2678,7 +2697,7 @@ subroutine rfftb1(n, c, ch, wa, ifac)
                 call radb4 (ido, l1, c, ch, wa(iw), wa(ix2), wa(ix3))
             else
                 call radb4 (ido, l1, ch, c, wa(iw), wa(ix2), wa(ix3))
-            endif
+            end if
             na = 1 - na
         else
             if (ip == 2) then
@@ -2686,7 +2705,7 @@ subroutine rfftb1(n, c, ch, wa, ifac)
                     call radb2 (ido, l1, c, ch, wa(iw))
                 else
                     call radb2 (ido, l1, ch, c, wa(iw))
-                endif
+                end if
                 na = 1 - na
             else
                 if (ip == 3) then
@@ -2695,7 +2714,7 @@ subroutine rfftb1(n, c, ch, wa, ifac)
                         call radb3 (ido, l1, c, ch, wa(iw), wa(ix2))
                     else
                         call radb3 (ido, l1, ch, c, wa(iw), wa(ix2))
-                    endif
+                    end if
                     na = 1 - na
                 else
                     if (ip == 5) then
@@ -2708,19 +2727,19 @@ subroutine rfftb1(n, c, ch, wa, ifac)
                         else
                             call radb5 (ido, l1, ch, c, wa(iw), wa(ix2), wa( &
                                 ix3), wa(ix4))
-                        endif
+                        end if
                         na = 1 - na
                     else
                         if (na == 0) then
-                            call radbg(ido,ip,l1,idl1,c,c,c,ch,ch,wa(iw))
+                            call radbg(ido, ip, l1, idl1, c, c, c, ch, ch, wa(iw))
                         else
-                            call radbg(ido,ip,l1,idl1,ch,ch,ch,c,c,wa(iw))
-                        endif
+                            call radbg(ido, ip, l1, idl1, ch, ch, ch, c, c, wa(iw))
+                        end if
                         if (ido == 1) na = 1 - na
-                    endif
-                endif
-            endif
-        endif
+                    end if
+                end if
+            end if
+        end if
         l1 = l2
         iw = iw + (ip - 1)*ido
     end do
@@ -2732,90 +2751,92 @@ end subroutine rfftb1
 
 subroutine radb2(ido, l1, cc, ch, wa1)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent(in) :: ido
     integer , intent(in) :: l1
-    real , intent(in) :: cc(ido,2,l1)
-    real , intent(out) :: ch(ido,l1,2)
-    real , intent(in) :: wa1(*)
+    real (wp), intent(in) :: cc(ido, 2, l1)
+    real (wp), intent(out) :: ch(ido, l1, 2)
+    real (wp), intent(in) :: wa1(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: k, idp2, i, ic
-    real :: tr2, ti2
+    real (wp) :: tr2, ti2
     !-----------------------------------------------
-    ch(1,:,1) = cc(1,1,:) + cc(ido,2,:)
-    ch(1,:,2) = cc(1,1,:) - cc(ido,2,:)
+    ch(1, :, 1) = cc(1, 1, :) + cc(ido, 2, :)
+    ch(1, :, 2) = cc(1, 1, :) - cc(ido, 2, :)
     if (ido - 2 >= 0) then
         if (ido - 2 /= 0) then
             idp2 = ido + 2
             do k = 1, l1
                 do i = 3, ido, 2
                     ic = idp2 - i
-                    ch(i-1,k,1) = cc(i-1,1,k) + cc(ic-1,2,k)
-                    tr2 = cc(i-1,1,k) - cc(ic-1,2,k)
-                    ch(i,k,1) = cc(i,1,k) - cc(ic,2,k)
-                    ti2 = cc(i,1,k) + cc(ic,2,k)
-                    ch(i-1,k,2) = wa1(i-2)*tr2 - wa1(i-1)*ti2
-                    ch(i,k,2) = wa1(i-2)*ti2 + wa1(i-1)*tr2
+                    ch(i-1, k, 1) = cc(i-1, 1, k) + cc(ic-1, 2, k)
+                    tr2 = cc(i-1, 1, k) - cc(ic-1, 2, k)
+                    ch(i, k, 1) = cc(i, 1, k) - cc(ic, 2, k)
+                    ti2 = cc(i, 1, k) + cc(ic, 2, k)
+                    ch(i-1, k, 2) = wa1(i-2)*tr2 - wa1(i-1)*ti2
+                    ch(i, k, 2) = wa1(i-2)*ti2 + wa1(i-1)*tr2
                 end do
             end do
-            if (mod(ido,2) == 1) return
-        endif
-        ch(ido,:,1) = cc(ido,1,:) + cc(ido,1,:)
-        ch(ido,:,2) = -(cc(1,2,:)+cc(1,2,:))
-    endif
+            if (mod(ido, 2) == 1) return
+        end if
+        ch(ido, :, 1) = cc(ido, 1, :) + cc(ido, 1, :)
+        ch(ido, :, 2) = -(cc(1, 2, :)+cc(1, 2, :))
+    end if
     return
 end subroutine radb2
 
 
 subroutine radb3(ido, l1, cc, ch, wa1, wa2)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent(in) :: ido
     integer , intent(in) :: l1
-    real , intent(in) :: cc(ido,3,l1)
-    real , intent(out) :: ch(ido,l1,3)
-    real , intent(in) :: wa1(*)
-    real , intent(in) :: wa2(*)
+    real (wp), intent(in) :: cc(ido, 3, l1)
+    real (wp), intent(out) :: ch(ido, l1, 3)
+    real (wp), intent(in) :: wa1(*)
+    real (wp), intent(in) :: wa2(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: k, idp2, i, ic
-    real::taur,taui,tr2,cr2,ci3,ti2,ci2,cr3,dr2,dr3,di2,di3
+    real (wp), parameter :: taur = -0.5_wp
+    real (wp), parameter :: taui = sqrt(3.0_wp)/2.0_wp ! 0.866025403784439
+    real (wp)            :: tr2, cr2, ci3, ti2, ci2, cr3, dr2, dr3, di2, di3
     !-----------------------------------------------
-    data taur, taui/ -.5, 0.866025403784439/
+
     do k = 1, l1
-        tr2 = cc(ido,2,k) + cc(ido,2,k)
-        cr2 = cc(1,1,k) + taur*tr2
-        ch(1,k,1) = cc(1,1,k) + tr2
-        ci3 = taui*(cc(1,3,k)+cc(1,3,k))
-        ch(1,k,2) = cr2 - ci3
-        ch(1,k,3) = cr2 + ci3
+        tr2 = cc(ido, 2, k) + cc(ido, 2, k)
+        cr2 = cc(1, 1, k) + taur*tr2
+        ch(1, k, 1) = cc(1, 1, k) + tr2
+        ci3 = taui*(cc(1, 3, k)+cc(1, 3, k))
+        ch(1, k, 2) = cr2 - ci3
+        ch(1, k, 3) = cr2 + ci3
     end do
     if (ido == 1) return
     idp2 = ido + 2
     do k = 1, l1
         do i = 3, ido, 2
             ic = idp2 - i
-            tr2 = cc(i-1,3,k) + cc(ic-1,2,k)
-            cr2 = cc(i-1,1,k) + taur*tr2
-            ch(i-1,k,1) = cc(i-1,1,k) + tr2
-            ti2 = cc(i,3,k) - cc(ic,2,k)
-            ci2 = cc(i,1,k) + taur*ti2
-            ch(i,k,1) = cc(i,1,k) + ti2
-            cr3 = taui*(cc(i-1,3,k)-cc(ic-1,2,k))
-            ci3 = taui*(cc(i,3,k)+cc(ic,2,k))
+            tr2 = cc(i-1, 3, k) + cc(ic-1, 2, k)
+            cr2 = cc(i-1, 1, k) + taur*tr2
+            ch(i-1, k, 1) = cc(i-1, 1, k) + tr2
+            ti2 = cc(i, 3, k) - cc(ic, 2, k)
+            ci2 = cc(i, 1, k) + taur*ti2
+            ch(i, k, 1) = cc(i, 1, k) + ti2
+            cr3 = taui*(cc(i-1, 3, k)-cc(ic-1, 2, k))
+            ci3 = taui*(cc(i, 3, k)+cc(ic, 2, k))
             dr2 = cr2 - ci3
             dr3 = cr2 + ci3
             di2 = ci2 + cr3
             di3 = ci2 - cr3
-            ch(i-1,k,2) = wa1(i-2)*dr2 - wa1(i-1)*di2
-            ch(i,k,2) = wa1(i-2)*di2 + wa1(i-1)*dr2
-            ch(i-1,k,3) = wa2(i-2)*dr3 - wa2(i-1)*di3
-            ch(i,k,3) = wa2(i-2)*di3 + wa2(i-1)*dr3
+            ch(i-1, k, 2) = wa1(i-2)*dr2 - wa1(i-1)*di2
+            ch(i, k, 2) = wa1(i-2)*di2 + wa1(i-1)*dr2
+            ch(i-1, k, 3) = wa2(i-2)*dr3 - wa2(i-1)*di3
+            ch(i, k, 3) = wa2(i-2)*di3 + wa2(i-1)*dr3
         end do
     end do
     return
@@ -2824,32 +2845,33 @@ end subroutine radb3
 
 subroutine radb4(ido, l1, cc, ch, wa1, wa2, wa3)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent(in) :: ido
     integer , intent(in) :: l1
-    real , intent(in) :: cc(ido,4,l1)
-    real , intent(out) :: ch(ido,l1,4)
-    real , intent(in) :: wa1(*)
-    real , intent(in) :: wa2(*)
-    real , intent(in) :: wa3(*)
+    real (wp), intent(in) :: cc(ido, 4, l1)
+    real (wp), intent(out) :: ch(ido, l1, 4)
+    real (wp), intent(in) :: wa1(*)
+    real (wp), intent(in) :: wa2(*)
+    real (wp), intent(in) :: wa3(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: k, idp2, i, ic
-    real :: sqrt2, tr1, tr2, tr3, tr4, ti1, ti2, ti3, ti4, cr3, ci3, &
-        cr2, cr4, ci2, ci4
+    integer              :: k, idp2, i, ic
+    real (wp), parameter :: sqrt2 = sqrt( 2.0_wp ) ! 1.414213562373095
+    real (wp)            :: tr1, tr2, tr3, tr4, ti1, ti2, ti3, ti4, cr3, ci3
+    real (wp)            :: cr2, cr4, ci2, ci4
     !-----------------------------------------------
-    data sqrt2/ 1.414213562373095/
+
     do k = 1, l1
-        tr1 = cc(1,1,k) - cc(ido,4,k)
-        tr2 = cc(1,1,k) + cc(ido,4,k)
-        tr3 = cc(ido,2,k) + cc(ido,2,k)
-        tr4 = cc(1,3,k) + cc(1,3,k)
-        ch(1,k,1) = tr2 + tr3
-        ch(1,k,2) = tr1 - tr4
-        ch(1,k,3) = tr2 - tr3
-        ch(1,k,4) = tr1 + tr4
+        tr1 = cc(1, 1, k) - cc(ido, 4, k)
+        tr2 = cc(1, 1, k) + cc(ido, 4, k)
+        tr3 = cc(ido, 2, k) + cc(ido, 2, k)
+        tr4 = cc(1, 3, k) + cc(1, 3, k)
+        ch(1, k, 1) = tr2 + tr3
+        ch(1, k, 2) = tr1 - tr4
+        ch(1, k, 3) = tr2 - tr3
+        ch(1, k, 4) = tr1 + tr4
     end do
     if (ido - 2 >= 0) then
         if (ido - 2 /= 0) then
@@ -2857,103 +2879,108 @@ subroutine radb4(ido, l1, cc, ch, wa1, wa2, wa3)
             do k = 1, l1
                 do i = 3, ido, 2
                     ic = idp2 - i
-                    ti1 = cc(i,1,k) + cc(ic,4,k)
-                    ti2 = cc(i,1,k) - cc(ic,4,k)
-                    ti3 = cc(i,3,k) - cc(ic,2,k)
-                    tr4 = cc(i,3,k) + cc(ic,2,k)
-                    tr1 = cc(i-1,1,k) - cc(ic-1,4,k)
-                    tr2 = cc(i-1,1,k) + cc(ic-1,4,k)
-                    ti4 = cc(i-1,3,k) - cc(ic-1,2,k)
-                    tr3 = cc(i-1,3,k) + cc(ic-1,2,k)
-                    ch(i-1,k,1) = tr2 + tr3
+                    ti1 = cc(i, 1, k) + cc(ic, 4, k)
+                    ti2 = cc(i, 1, k) - cc(ic, 4, k)
+                    ti3 = cc(i, 3, k) - cc(ic, 2, k)
+                    tr4 = cc(i, 3, k) + cc(ic, 2, k)
+                    tr1 = cc(i-1, 1, k) - cc(ic-1, 4, k)
+                    tr2 = cc(i-1, 1, k) + cc(ic-1, 4, k)
+                    ti4 = cc(i-1, 3, k) - cc(ic-1, 2, k)
+                    tr3 = cc(i-1, 3, k) + cc(ic-1, 2, k)
+                    ch(i-1, k, 1) = tr2 + tr3
                     cr3 = tr2 - tr3
-                    ch(i,k,1) = ti2 + ti3
+                    ch(i, k, 1) = ti2 + ti3
                     ci3 = ti2 - ti3
                     cr2 = tr1 - tr4
                     cr4 = tr1 + tr4
                     ci2 = ti1 + ti4
                     ci4 = ti1 - ti4
-                    ch(i-1,k,2) = wa1(i-2)*cr2 - wa1(i-1)*ci2
-                    ch(i,k,2) = wa1(i-2)*ci2 + wa1(i-1)*cr2
-                    ch(i-1,k,3) = wa2(i-2)*cr3 - wa2(i-1)*ci3
-                    ch(i,k,3) = wa2(i-2)*ci3 + wa2(i-1)*cr3
-                    ch(i-1,k,4) = wa3(i-2)*cr4 - wa3(i-1)*ci4
-                    ch(i,k,4) = wa3(i-2)*ci4 + wa3(i-1)*cr4
+                    ch(i-1, k, 2) = wa1(i-2)*cr2 - wa1(i-1)*ci2
+                    ch(i, k, 2) = wa1(i-2)*ci2 + wa1(i-1)*cr2
+                    ch(i-1, k, 3) = wa2(i-2)*cr3 - wa2(i-1)*ci3
+                    ch(i, k, 3) = wa2(i-2)*ci3 + wa2(i-1)*cr3
+                    ch(i-1, k, 4) = wa3(i-2)*cr4 - wa3(i-1)*ci4
+                    ch(i, k, 4) = wa3(i-2)*ci4 + wa3(i-1)*cr4
                 end do
             end do
-            if (mod(ido,2) == 1) return
-        endif
+            if (mod(ido, 2) == 1) return
+        end if
         do k = 1, l1
-            ti1 = cc(1,2,k) + cc(1,4,k)
-            ti2 = cc(1,4,k) - cc(1,2,k)
-            tr1 = cc(ido,1,k) - cc(ido,3,k)
-            tr2 = cc(ido,1,k) + cc(ido,3,k)
-            ch(ido,k,1) = tr2 + tr2
-            ch(ido,k,2) = sqrt2*(tr1 - ti1)
-            ch(ido,k,3) = ti2 + ti2
-            ch(ido,k,4) = -sqrt2*(tr1 + ti1)
+            ti1 = cc(1, 2, k) + cc(1, 4, k)
+            ti2 = cc(1, 4, k) - cc(1, 2, k)
+            tr1 = cc(ido, 1, k) - cc(ido, 3, k)
+            tr2 = cc(ido, 1, k) + cc(ido, 3, k)
+            ch(ido, k, 1) = tr2 + tr2
+            ch(ido, k, 2) = sqrt2*(tr1 - ti1)
+            ch(ido, k, 3) = ti2 + ti2
+            ch(ido, k, 4) = -sqrt2*(tr1 + ti1)
         end do
-    endif
+    end if
     return
 end subroutine radb4
 
 
 subroutine radb5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent(in) :: ido
     integer , intent(in) :: l1
-    real , intent(in) :: cc(ido,5,l1)
-    real , intent(out) :: ch(ido,l1,5)
-    real , intent(in) :: wa1(*)
-    real , intent(in) :: wa2(*)
-    real , intent(in) :: wa3(*)
-    real , intent(in) :: wa4(*)
+    real (wp), intent(in) :: cc(ido, 5, l1)
+    real (wp), intent(out) :: ch(ido, l1, 5)
+    real (wp), intent(in) :: wa1(*)
+    real (wp), intent(in) :: wa2(*)
+    real (wp), intent(in) :: wa3(*)
+    real (wp), intent(in) :: wa4(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: k, idp2, i, ic
-    real :: tr11, ti11, tr12, ti12, ti5, ti4, tr2, tr3, cr2, cr3, ci5 &
-        , ci4, ti2, ti3, tr5, tr4, ci2, ci3, cr5, cr4, dr3, dr4, di3, &
-        di4, dr5, dr2, di5, di2
+    real (wp) :: ti5, ti4, tr2, tr3, cr2, cr3, ci5
+    real (wp) :: ci4, ti2, ti3, tr5, tr4, ci2, ci3, cr5, cr4, dr3, dr4, di3
+    real (wp) :: di4, dr5, dr2, di5, di2
+    real (wp), parameter :: sqrt_5 = sqrt(5.0_wp)
+    real (wp), parameter :: tr11 = (sqrt_5 - 1.0_wp)/4 ! 0.309016994374947
+    real (wp), parameter :: ti11 = sqrt((5.0_wp + sqrt_5)/2)/2 ! 0.951056516295154
+    real (wp), parameter :: tr12 = (-1.0_wp - sqrt_5)/4 ! -.809016994374947
+    real (wp), parameter :: ti12 = sqrt(5.0_wp/(2.0_wp * (5.0_wp + sqrt_5)) ) ! 0.587785252292473
     !-----------------------------------------------
-    data tr11, ti11, tr12, ti12/ 0.309016994374947, 0.951056516295154 &
-        , -.809016994374947, 0.587785252292473/
+
+
     do k = 1, l1
-        ti5 = cc(1,3,k) + cc(1,3,k)
-        ti4 = cc(1,5,k) + cc(1,5,k)
-        tr2 = cc(ido,2,k) + cc(ido,2,k)
-        tr3 = cc(ido,4,k) + cc(ido,4,k)
-        ch(1,k,1) = cc(1,1,k) + tr2 + tr3
-        cr2 = cc(1,1,k) + tr11*tr2 + tr12*tr3
-        cr3 = cc(1,1,k) + tr12*tr2 + tr11*tr3
+        ti5 = cc(1, 3, k) + cc(1, 3, k)
+        ti4 = cc(1, 5, k) + cc(1, 5, k)
+        tr2 = cc(ido, 2, k) + cc(ido, 2, k)
+        tr3 = cc(ido, 4, k) + cc(ido, 4, k)
+        ch(1, k, 1) = cc(1, 1, k) + tr2 + tr3
+        cr2 = cc(1, 1, k) + tr11*tr2 + tr12*tr3
+        cr3 = cc(1, 1, k) + tr12*tr2 + tr11*tr3
         ci5 = ti11*ti5 + ti12*ti4
         ci4 = ti12*ti5 - ti11*ti4
-        ch(1,k,2) = cr2 - ci5
-        ch(1,k,3) = cr3 - ci4
-        ch(1,k,4) = cr3 + ci4
-        ch(1,k,5) = cr2 + ci5
+        ch(1, k, 2) = cr2 - ci5
+        ch(1, k, 3) = cr3 - ci4
+        ch(1, k, 4) = cr3 + ci4
+        ch(1, k, 5) = cr2 + ci5
     end do
     if (ido == 1) return
     idp2 = ido + 2
     do k = 1, l1
         do i = 3, ido, 2
             ic = idp2 - i
-            ti5 = cc(i,3,k) + cc(ic,2,k)
-            ti2 = cc(i,3,k) - cc(ic,2,k)
-            ti4 = cc(i,5,k) + cc(ic,4,k)
-            ti3 = cc(i,5,k) - cc(ic,4,k)
-            tr5 = cc(i-1,3,k) - cc(ic-1,2,k)
-            tr2 = cc(i-1,3,k) + cc(ic-1,2,k)
-            tr4 = cc(i-1,5,k) - cc(ic-1,4,k)
-            tr3 = cc(i-1,5,k) + cc(ic-1,4,k)
-            ch(i-1,k,1) = cc(i-1,1,k) + tr2 + tr3
-            ch(i,k,1) = cc(i,1,k) + ti2 + ti3
-            cr2 = cc(i-1,1,k) + tr11*tr2 + tr12*tr3
-            ci2 = cc(i,1,k) + tr11*ti2 + tr12*ti3
-            cr3 = cc(i-1,1,k) + tr12*tr2 + tr11*tr3
-            ci3 = cc(i,1,k) + tr12*ti2 + tr11*ti3
+            ti5 = cc(i, 3, k) + cc(ic, 2, k)
+            ti2 = cc(i, 3, k) - cc(ic, 2, k)
+            ti4 = cc(i, 5, k) + cc(ic, 4, k)
+            ti3 = cc(i, 5, k) - cc(ic, 4, k)
+            tr5 = cc(i-1, 3, k) - cc(ic-1, 2, k)
+            tr2 = cc(i-1, 3, k) + cc(ic-1, 2, k)
+            tr4 = cc(i-1, 5, k) - cc(ic-1, 4, k)
+            tr3 = cc(i-1, 5, k) + cc(ic-1, 4, k)
+            ch(i-1, k, 1) = cc(i-1, 1, k) + tr2 + tr3
+            ch(i, k, 1) = cc(i, 1, k) + ti2 + ti3
+            cr2 = cc(i-1, 1, k) + tr11*tr2 + tr12*tr3
+            ci2 = cc(i, 1, k) + tr11*ti2 + tr12*ti3
+            cr3 = cc(i-1, 1, k) + tr12*tr2 + tr11*tr3
+            ci3 = cc(i, 1, k) + tr12*ti2 + tr11*ti3
             cr5 = ti11*tr5 + ti12*tr4
             ci5 = ti11*ti5 + ti12*ti4
             cr4 = ti12*tr5 - ti11*tr4
@@ -2966,14 +2993,14 @@ subroutine radb5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
             dr2 = cr2 - ci5
             di5 = ci2 - cr5
             di2 = ci2 + cr5
-            ch(i-1,k,2) = wa1(i-2)*dr2 - wa1(i-1)*di2
-            ch(i,k,2) = wa1(i-2)*di2 + wa1(i-1)*dr2
-            ch(i-1,k,3) = wa2(i-2)*dr3 - wa2(i-1)*di3
-            ch(i,k,3) = wa2(i-2)*di3 + wa2(i-1)*dr3
-            ch(i-1,k,4) = wa3(i-2)*dr4 - wa3(i-1)*di4
-            ch(i,k,4) = wa3(i-2)*di4 + wa3(i-1)*dr4
-            ch(i-1,k,5) = wa4(i-2)*dr5 - wa4(i-1)*di5
-            ch(i,k,5) = wa4(i-2)*di5 + wa4(i-1)*dr5
+            ch(i-1, k, 2) = wa1(i-2)*dr2 - wa1(i-1)*di2
+            ch(i, k, 2) = wa1(i-2)*di2 + wa1(i-1)*dr2
+            ch(i-1, k, 3) = wa2(i-2)*dr3 - wa2(i-1)*di3
+            ch(i, k, 3) = wa2(i-2)*di3 + wa2(i-1)*dr3
+            ch(i-1, k, 4) = wa3(i-2)*dr4 - wa3(i-1)*di4
+            ch(i, k, 4) = wa3(i-2)*di4 + wa3(i-1)*dr4
+            ch(i-1, k, 5) = wa4(i-2)*dr5 - wa4(i-1)*di5
+            ch(i, k, 5) = wa4(i-2)*di5 + wa4(i-1)*dr5
         end do
     end do
     return
@@ -2982,26 +3009,26 @@ end subroutine radb5
 
 subroutine radbg(ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent(in) :: ido
     integer , intent(in) :: ip
     integer , intent(in) :: l1
     integer , intent(in) :: idl1
-    real , intent(in) :: cc(ido,ip,l1)
-    real , intent(inout) :: c1(ido,l1,ip)
-    real , intent(inout) :: c2(idl1,ip)
-    real , intent(inout) :: ch(ido,l1,ip)
-    real , intent(inout) :: ch2(idl1,ip)
-    real , intent(in) :: wa(*)
+    real (wp), intent(in) :: cc(ido, ip, l1)
+    real (wp), intent(inout) :: c1(ido, l1, ip)
+    real (wp), intent(inout) :: c2(idl1, ip)
+    real (wp), intent(inout) :: ch(ido, l1, ip)
+    real (wp), intent(inout) :: ch2(idl1, ip)
+    real (wp), intent(in) :: wa(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
-    integer::idp2,nbd,ipp2,ipph,k,i,j,jc,j2,ic,l,lc,ik,is,idij
-    real::tpi,dum,arg,dcp,dsp,ar1,ai1,ar1h,dc2,ds2,ar2,ai2,ar2h
+    integer::idp2, nbd, ipp2, ipph, k, i, j, jc, j2, ic, l, lc, ik, is, idij
+    real (wp) ::tpi, dum, arg, dcp, dsp, ar1, ai1, ar1h, dc2, ds2, ar2, ai2, ar2h
     !-----------------------------------------------
     tpi = 8.0*atan(1.0)
-    arg = tpi/float(ip)
+    arg = tpi/real(ip)
     dcp = cos(arg)
     dsp = sin(arg)
     idp2 = ido + 2
@@ -3009,43 +3036,43 @@ subroutine radbg(ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
     ipp2 = ip + 2
     ipph = (ip + 1)/2
     if (ido >= l1) then
-        ch(:,:,1) = cc(:,1,:)
+        ch(:, :, 1) = cc(:, 1, :)
     else
-        ch(:,:,1) = cc(:,1,:)
-    endif
+        ch(:, :, 1) = cc(:, 1, :)
+    end if
     do j = 2, ipph
         jc = ipp2 - j
         j2 = j + j
-        ch(1,:,j) = cc(ido,j2-2,:) + cc(ido,j2-2,:)
-        ch(1,:,jc) = cc(1,j2-1,:) + cc(1,j2-1,:)
+        ch(1, :, j) = cc(ido, j2-2, :) + cc(ido, j2-2, :)
+        ch(1, :, jc) = cc(1, j2-1, :) + cc(1, j2-1, :)
     end do
     if (ido /= 1) then
         if (nbd >= l1) then
             do j = 2, ipph
                 jc = ipp2 - j
-                ch(2:ido-1:2,:,j) = cc(2:ido-1:2,2*j-1,:) + cc(idp2-4: &
-                    idp2-1-ido:(-2),2*j-2,:)
-                ch(2:ido-1:2,:,jc) = cc(2:ido-1:2,2*j-1,:) - cc(idp2-4: &
-                    idp2-1-ido:(-2),2*j-2,:)
-                ch(3:ido:2,:,j) = cc(3:ido:2,2*j-1,:) - cc(idp2-3:idp2- &
-                    ido:(-2),2*j-2,:)
-                ch(3:ido:2,:,jc) = cc(3:ido:2,2*j-1,:) + cc(idp2-3:idp2- &
-                    ido:(-2),2*j-2,:)
+                ch(2:ido-1:2, :, j) = cc(2:ido-1:2, 2*j-1, :) + cc(idp2-4: &
+                    idp2-1-ido:(-2), 2*j-2, :)
+                ch(2:ido-1:2, :, jc) = cc(2:ido-1:2, 2*j-1, :) - cc(idp2-4: &
+                    idp2-1-ido:(-2), 2*j-2, :)
+                ch(3:ido:2, :, j) = cc(3:ido:2, 2*j-1, :) - cc(idp2-3:idp2- &
+                    ido:(-2), 2*j-2, :)
+                ch(3:ido:2, :, jc) = cc(3:ido:2, 2*j-1, :) + cc(idp2-3:idp2- &
+                    ido:(-2), 2*j-2, :)
             end do
         else
             do j = 2, ipph
                 jc = ipp2 - j
-                ch(2:ido-1:2,:,j) = cc(2:ido-1:2,2*j-1,:) + cc(idp2-4: &
-                    idp2-1-ido:(-2),2*j-2,:)
-                ch(2:ido-1:2,:,jc) = cc(2:ido-1:2,2*j-1,:) - cc(idp2-4: &
-                    idp2-1-ido:(-2),2*j-2,:)
-                ch(3:ido:2,:,j) = cc(3:ido:2,2*j-1,:) - cc(idp2-3:idp2- &
-                    ido:(-2),2*j-2,:)
-                ch(3:ido:2,:,jc) = cc(3:ido:2,2*j-1,:) + cc(idp2-3:idp2- &
-                    ido:(-2),2*j-2,:)
+                ch(2:ido-1:2, :, j) = cc(2:ido-1:2, 2*j-1, :) + cc(idp2-4: &
+                    idp2-1-ido:(-2), 2*j-2, :)
+                ch(2:ido-1:2, :, jc) = cc(2:ido-1:2, 2*j-1, :) - cc(idp2-4: &
+                    idp2-1-ido:(-2), 2*j-2, :)
+                ch(3:ido:2, :, j) = cc(3:ido:2, 2*j-1, :) - cc(idp2-3:idp2- &
+                    ido:(-2), 2*j-2, :)
+                ch(3:ido:2, :, jc) = cc(3:ido:2, 2*j-1, :) + cc(idp2-3:idp2- &
+                    ido:(-2), 2*j-2, :)
             end do
-        endif
-    endif
+        end if
+    end if
     ar1 = 1.
     ai1 = 0.
     do l = 2, ipph
@@ -3053,8 +3080,8 @@ subroutine radbg(ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
         ar1h = dcp*ar1 - dsp*ai1
         ai1 = dcp*ai1 + dsp*ar1
         ar1 = ar1h
-        c2(:,l) = ch2(:,1) + ar1*ch2(:,2)
-        c2(:,lc) = ai1*ch2(:,ip)
+        c2(:, l) = ch2(:, 1) + ar1*ch2(:, 2)
+        c2(:, lc) = ai1*ch2(:, ip)
         dc2 = ar1
         ds2 = ai1
         ar2 = ar1
@@ -3064,40 +3091,40 @@ subroutine radbg(ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
             ar2h = dc2*ar2 - ds2*ai2
             ai2 = dc2*ai2 + ds2*ar2
             ar2 = ar2h
-            c2(:,l) = c2(:,l) + ar2*ch2(:,j)
-            c2(:,lc) = c2(:,lc) + ai2*ch2(:,jc)
+            c2(:, l) = c2(:, l) + ar2*ch2(:, j)
+            c2(:, lc) = c2(:, lc) + ai2*ch2(:, jc)
         end do
     end do
     do j = 2, ipph
-        ch2(:,1) = ch2(:,1) + ch2(:,j)
+        ch2(:, 1) = ch2(:, 1) + ch2(:, j)
     end do
     do j = 2, ipph
         jc = ipp2 - j
-        ch(1,:,j) = c1(1,:,j) - c1(1,:,jc)
-        ch(1,:,jc) = c1(1,:,j) + c1(1,:,jc)
+        ch(1, :, j) = c1(1, :, j) - c1(1, :, jc)
+        ch(1, :, jc) = c1(1, :, j) + c1(1, :, jc)
     end do
     if (ido /= 1) then
         if (nbd >= l1) then
             do j = 2, ipph
                 jc = ipp2 - j
-                ch(2:ido-1:2,:,j) = c1(2:ido-1:2,:,j) - c1(3:ido:2,:,jc)
-                ch(2:ido-1:2,:,jc) = c1(2:ido-1:2,:,j) + c1(3:ido:2,:,jc)
-                ch(3:ido:2,:,j) = c1(3:ido:2,:,j) + c1(2:ido-1:2,:,jc)
-                ch(3:ido:2,:,jc) = c1(3:ido:2,:,j) - c1(2:ido-1:2,:,jc)
+                ch(2:ido-1:2, :, j) = c1(2:ido-1:2, :, j) - c1(3:ido:2, :, jc)
+                ch(2:ido-1:2, :, jc) = c1(2:ido-1:2, :, j) + c1(3:ido:2, :, jc)
+                ch(3:ido:2, :, j) = c1(3:ido:2, :, j) + c1(2:ido-1:2, :, jc)
+                ch(3:ido:2, :, jc) = c1(3:ido:2, :, j) - c1(2:ido-1:2, :, jc)
             end do
         else
             do j = 2, ipph
                 jc = ipp2 - j
-                ch(2:ido-1:2,:,j) = c1(2:ido-1:2,:,j) - c1(3:ido:2,:,jc)
-                ch(2:ido-1:2,:,jc) = c1(2:ido-1:2,:,j) + c1(3:ido:2,:,jc)
-                ch(3:ido:2,:,j) = c1(3:ido:2,:,j) + c1(2:ido-1:2,:,jc)
-                ch(3:ido:2,:,jc) = c1(3:ido:2,:,j) - c1(2:ido-1:2,:,jc)
+                ch(2:ido-1:2, :, j) = c1(2:ido-1:2, :, j) - c1(3:ido:2, :, jc)
+                ch(2:ido-1:2, :, jc) = c1(2:ido-1:2, :, j) + c1(3:ido:2, :, jc)
+                ch(3:ido:2, :, j) = c1(3:ido:2, :, j) + c1(2:ido-1:2, :, jc)
+                ch(3:ido:2, :, jc) = c1(3:ido:2, :, j) - c1(2:ido-1:2, :, jc)
             end do
-        endif
-    endif
+        end if
+    end if
     if (ido == 1) return
-    c2(:,1) = ch2(:,1)
-    c1(1,:,2:ip) = ch(1,:,2:ip)
+    c2(:, 1) = ch2(:, 1)
+    c1(1, :, 2:ip) = ch(1, :, 2:ip)
     if (nbd <= l1) then
         is = -ido
         do j = 2, ip
@@ -3105,8 +3132,8 @@ subroutine radbg(ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
             idij = is
             do i = 3, ido, 2
                 idij = idij + 2
-                c1(i-1,:,j) = wa(idij-1)*ch(i-1,:,j) - wa(idij)*ch(i,:,j)
-                c1(i,:,j) = wa(idij-1)*ch(i,:,j) + wa(idij)*ch(i-1,:,j)
+                c1(i-1, :, j) = wa(idij-1)*ch(i-1, :, j) - wa(idij)*ch(i, :, j)
+                c1(i, :, j) = wa(idij-1)*ch(i, :, j) + wa(idij)*ch(i-1, :, j)
             end do
         end do
     else
@@ -3115,24 +3142,24 @@ subroutine radbg(ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
             is = is + ido
             do k = 1, l1
                 idij = is
-                c1(2:ido-1:2,k,j) = wa(idij+1:ido-2+idij:2)*ch(2:ido-1:2, &
-                    k,j) - wa(idij+2:ido-1+idij:2)*ch(3:ido:2,k,j)
-                c1(3:ido:2,k,j) = wa(idij+1:ido-2+idij:2)*ch(3:ido:2,k,j) &
-                    + wa(idij+2:ido-1+idij:2)*ch(2:ido-1:2,k,j)
+                c1(2:ido-1:2, k, j) = wa(idij+1:ido-2+idij:2)*ch(2:ido-1:2, &
+                    k, j) - wa(idij+2:ido-1+idij:2)*ch(3:ido:2, k, j)
+                c1(3:ido:2, k, j) = wa(idij+1:ido-2+idij:2)*ch(3:ido:2, k, j) &
+                    + wa(idij+2:ido-1+idij:2)*ch(2:ido-1:2, k, j)
             end do
         end do
-    endif
+    end if
     return
 end subroutine radbg
 
 
 subroutine rfftf(n, r, wsave)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer  :: n
-    real  :: r(*)
-    real  :: wsave(*)
+    real (wp) :: r(*)
+    real (wp) :: wsave(*)
     !-----------------------------------------------
     !
     if (n == 1) return
@@ -3144,19 +3171,20 @@ end subroutine rfftf
 
 subroutine rfftf1(n, c, ch, wa, ifac)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent(in) :: n
     !integer , intent(in) :: ifac(*)
-    real , intent(in) :: ifac(*)
-    real  :: c(*)
-    real  :: ch(*)
-    real  :: wa(*)
+    real (wp), intent(in) :: ifac(*)
+    real (wp) :: c(*)
+    real (wp) :: ch(*)
+    real (wp) :: wa(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
-    integer::nf,na,l2,iw,k1,kh,ip,l1,ido,idl1,ix2,ix3,ix4,i
+    integer :: nf, na, l2, iw, k1, kh, ip, l1, ido, idl1, ix2, ix3, ix4, i
     !-----------------------------------------------
+
     nf = ifac(2)
     na = 1
     l2 = n
@@ -3175,40 +3203,40 @@ subroutine rfftf1(n, c, ch, wa, ifac)
             if (na == 0) then
                 call radf4 (ido, l1, c, ch, wa(iw), wa(ix2), wa(ix3))
                 go to 110
-            endif
+            end if
             call radf4 (ido, l1, ch, c, wa(iw), wa(ix2), wa(ix3))
             go to 110
-        endif
+        end if
         if (ip == 2) then
             if (na == 0) then
                 call radf2 (ido, l1, c, ch, wa(iw))
                 go to 110
-            endif
+            end if
             call radf2 (ido, l1, ch, c, wa(iw))
             go to 110
-        endif
+        end if
 104 continue
     if (ip == 3) then
         ix2 = iw + ido
         if (na == 0) then
             call radf3 (ido, l1, c, ch, wa(iw), wa(ix2))
             go to 110
-        endif
+        end if
         call radf3 (ido, l1, ch, c, wa(iw), wa(ix2))
         go to 110
-    endif
+    end if
 106 continue
     if (ip == 5) then
         ix2 = iw + ido
         ix3 = ix2 + ido
         ix4 = ix3 + ido
         if (na == 0) then
-            call radf5(ido,l1,c,ch,wa(iw),wa(ix2),wa(ix3),wa(ix4))
+            call radf5(ido, l1, c, ch, wa(iw), wa(ix2), wa(ix3), wa(ix4))
             go to 110
-        endif
-        call radf5(ido,l1,ch,c,wa(iw),wa(ix2),wa(ix3),wa(ix4))
+        end if
+        call radf5(ido, l1, ch, c, wa(iw), wa(ix2), wa(ix3), wa(ix4))
         go to 110
-    endif
+    end if
 108 continue
     if (ido == 1) na = 1 - na
     if (na == 0) then
@@ -3217,7 +3245,7 @@ subroutine rfftf1(n, c, ch, wa, ifac)
     else
         call radfg (ido, ip, l1, idl1, ch, ch, ch, c, c, wa(iw))
         na = 0
-    endif
+    end if
 110 continue
     l2 = l1
 end do
@@ -3229,88 +3257,90 @@ end subroutine rfftf1
 
 subroutine radf2(ido, l1, cc, ch, wa1)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent(in) :: ido
     integer , intent(in) :: l1
-    real , intent(in) :: cc(ido,l1,2)
-    real , intent(out) :: ch(ido,2,l1)
-    real , intent(in) :: wa1(*)
+    real (wp), intent(in) :: cc(ido, l1, 2)
+    real (wp), intent(out) :: ch(ido, 2, l1)
+    real (wp), intent(in) :: wa1(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: k, idp2, i, ic
-    real :: tr2, ti2
+    real (wp) :: tr2, ti2
     !-----------------------------------------------
-    ch(1,1,:) = cc(1,:,1) + cc(1,:,2)
-    ch(ido,2,:) = cc(1,:,1) - cc(1,:,2)
+    ch(1, 1, :) = cc(1, :, 1) + cc(1, :, 2)
+    ch(ido, 2, :) = cc(1, :, 1) - cc(1, :, 2)
     if (ido - 2 >= 0) then
         if (ido - 2 /= 0) then
             idp2 = ido + 2
             do k = 1, l1
                 do i = 3, ido, 2
                     ic = idp2 - i
-                    tr2 = wa1(i-2)*cc(i-1,k,2) + wa1(i-1)*cc(i,k,2)
-                    ti2 = wa1(i-2)*cc(i,k,2) - wa1(i-1)*cc(i-1,k,2)
-                    ch(i,1,k) = cc(i,k,1) + ti2
-                    ch(ic,2,k) = ti2 - cc(i,k,1)
-                    ch(i-1,1,k) = cc(i-1,k,1) + tr2
-                    ch(ic-1,2,k) = cc(i-1,k,1) - tr2
+                    tr2 = wa1(i-2)*cc(i-1, k, 2) + wa1(i-1)*cc(i, k, 2)
+                    ti2 = wa1(i-2)*cc(i, k, 2) - wa1(i-1)*cc(i-1, k, 2)
+                    ch(i, 1, k) = cc(i, k, 1) + ti2
+                    ch(ic, 2, k) = ti2 - cc(i, k, 1)
+                    ch(i-1, 1, k) = cc(i-1, k, 1) + tr2
+                    ch(ic-1, 2, k) = cc(i-1, k, 1) - tr2
                 end do
             end do
-            if (mod(ido,2) == 1) return
-        endif
-        ch(1,2,:) = -cc(ido,:,2)
-        ch(ido,1,:) = cc(ido,:,1)
-    endif
+            if (mod(ido, 2) == 1) return
+        end if
+        ch(1, 2, :) = -cc(ido, :, 2)
+        ch(ido, 1, :) = cc(ido, :, 1)
+    end if
     return
 end subroutine radf2
 
 
 subroutine radf3(ido, l1, cc, ch, wa1, wa2)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent(in) :: ido
     integer , intent(in) :: l1
-    real , intent(in) :: cc(ido,l1,3)
-    real , intent(out) :: ch(ido,3,l1)
-    real , intent(in) :: wa1(*)
-    real , intent(in) :: wa2(*)
+    real (wp), intent(in) :: cc(ido, l1, 3)
+    real (wp), intent(out) :: ch(ido, 3, l1)
+    real (wp), intent(in) :: wa1(*)
+    real (wp), intent(in) :: wa2(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: k, idp2, i, ic
-    real::taur,taui,cr2,dr2,di2,dr3,di3,ci2,tr2,ti2,tr3,ti3
+    real (wp), parameter :: taur = -0.5_wp
+    real (wp), parameter :: taui = sqrt(3.0_wp)/2.0_wp ! 0.866025403784439
+    real (wp)            :: cr2, dr2, di2, dr3, di3, ci2, tr2, ti2, tr3, ti3
     !-----------------------------------------------
-    data taur, taui/ -.5, 0.866025403784439/
+
     do k = 1, l1
-        cr2 = cc(1,k,2) + cc(1,k,3)
-        ch(1,1,k) = cc(1,k,1) + cr2
-        ch(1,3,k) = taui*(cc(1,k,3)-cc(1,k,2))
-        ch(ido,2,k) = cc(1,k,1) + taur*cr2
+        cr2 = cc(1, k, 2) + cc(1, k, 3)
+        ch(1, 1, k) = cc(1, k, 1) + cr2
+        ch(1, 3, k) = taui*(cc(1, k, 3)-cc(1, k, 2))
+        ch(ido, 2, k) = cc(1, k, 1) + taur*cr2
     end do
     if (ido == 1) return
     idp2 = ido + 2
     do k = 1, l1
         do i = 3, ido, 2
             ic = idp2 - i
-            dr2 = wa1(i-2)*cc(i-1,k,2) + wa1(i-1)*cc(i,k,2)
-            di2 = wa1(i-2)*cc(i,k,2) - wa1(i-1)*cc(i-1,k,2)
-            dr3 = wa2(i-2)*cc(i-1,k,3) + wa2(i-1)*cc(i,k,3)
-            di3 = wa2(i-2)*cc(i,k,3) - wa2(i-1)*cc(i-1,k,3)
+            dr2 = wa1(i-2)*cc(i-1, k, 2) + wa1(i-1)*cc(i, k, 2)
+            di2 = wa1(i-2)*cc(i, k, 2) - wa1(i-1)*cc(i-1, k, 2)
+            dr3 = wa2(i-2)*cc(i-1, k, 3) + wa2(i-1)*cc(i, k, 3)
+            di3 = wa2(i-2)*cc(i, k, 3) - wa2(i-1)*cc(i-1, k, 3)
             cr2 = dr2 + dr3
             ci2 = di2 + di3
-            ch(i-1,1,k) = cc(i-1,k,1) + cr2
-            ch(i,1,k) = cc(i,k,1) + ci2
-            tr2 = cc(i-1,k,1) + taur*cr2
-            ti2 = cc(i,k,1) + taur*ci2
+            ch(i-1, 1, k) = cc(i-1, k, 1) + cr2
+            ch(i, 1, k) = cc(i, k, 1) + ci2
+            tr2 = cc(i-1, k, 1) + taur*cr2
+            ti2 = cc(i, k, 1) + taur*ci2
             tr3 = taui*(di2 - di3)
             ti3 = taui*(dr3 - dr2)
-            ch(i-1,3,k) = tr2 + tr3
-            ch(ic-1,2,k) = tr2 - tr3
-            ch(i,3,k) = ti2 + ti3
-            ch(ic,2,k) = ti3 - ti2
+            ch(i-1, 3, k) = tr2 + tr3
+            ch(ic-1, 2, k) = tr2 - tr3
+            ch(i, 3, k) = ti2 + ti3
+            ch(ic, 2, k) = ti3 - ti2
         end do
     end do
     return
@@ -3319,30 +3349,33 @@ end subroutine radf3
 
 subroutine radf4(ido, l1, cc, ch, wa1, wa2, wa3)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent(in) :: ido
     integer , intent(in) :: l1
-    real , intent(in) :: cc(ido,l1,4)
-    real , intent(out) :: ch(ido,4,l1)
-    real , intent(in) :: wa1(*)
-    real , intent(in) :: wa2(*)
-    real , intent(in) :: wa3(*)
+    real (wp), intent(in) :: cc(ido, l1, 4)
+    real (wp), intent(out) :: ch(ido, 4, l1)
+    real (wp), intent(in) :: wa1(*)
+    real (wp), intent(in) :: wa2(*)
+    real (wp), intent(in) :: wa3(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: k, idp2, i, ic
-    real :: hsqt2, tr1, tr2, cr2, ci2, cr3, ci3, cr4, ci4, tr4, ti1, &
-        ti4, ti2, ti3, tr3
+    integer   :: k, idp2, i, ic
+    real (wp) :: tr1, tr2, cr2, ci2, cr3, ci3
+    real (wp) :: cr4, ci4, tr4, ti1
+    real (wp) :: ti4, ti2, ti3, tr3
+    real (wp), parameter :: hsqt2 = 1.0_wp/sqrt(2.0_wp) ! 0.7071067811865475
     !-----------------------------------------------
-    data hsqt2/ 0.7071067811865475/
+
+
     do k = 1, l1
-        tr1 = cc(1,k,2) + cc(1,k,4)
-        tr2 = cc(1,k,1) + cc(1,k,3)
-        ch(1,1,k) = tr1 + tr2
-        ch(ido,4,k) = tr2 - tr1
-        ch(ido,2,k) = cc(1,k,1) - cc(1,k,3)
-        ch(1,3,k) = cc(1,k,4) - cc(1,k,2)
+        tr1 = cc(1, k, 2) + cc(1, k, 4)
+        tr2 = cc(1, k, 1) + cc(1, k, 3)
+        ch(1, 1, k) = tr1 + tr2
+        ch(ido, 4, k) = tr2 - tr1
+        ch(ido, 2, k) = cc(1, k, 1) - cc(1, k, 3)
+        ch(1, 3, k) = cc(1, k, 4) - cc(1, k, 2)
     end do
     if (ido - 2 >= 0) then
         if (ido - 2 /= 0) then
@@ -3350,91 +3383,95 @@ subroutine radf4(ido, l1, cc, ch, wa1, wa2, wa3)
             do k = 1, l1
                 do i = 3, ido, 2
                     ic = idp2 - i
-                    cr2 = wa1(i-2)*cc(i-1,k,2) + wa1(i-1)*cc(i,k,2)
-                    ci2 = wa1(i-2)*cc(i,k,2) - wa1(i-1)*cc(i-1,k,2)
-                    cr3 = wa2(i-2)*cc(i-1,k,3) + wa2(i-1)*cc(i,k,3)
-                    ci3 = wa2(i-2)*cc(i,k,3) - wa2(i-1)*cc(i-1,k,3)
-                    cr4 = wa3(i-2)*cc(i-1,k,4) + wa3(i-1)*cc(i,k,4)
-                    ci4 = wa3(i-2)*cc(i,k,4) - wa3(i-1)*cc(i-1,k,4)
+                    cr2 = wa1(i-2)*cc(i-1, k, 2) + wa1(i-1)*cc(i, k, 2)
+                    ci2 = wa1(i-2)*cc(i, k, 2) - wa1(i-1)*cc(i-1, k, 2)
+                    cr3 = wa2(i-2)*cc(i-1, k, 3) + wa2(i-1)*cc(i, k, 3)
+                    ci3 = wa2(i-2)*cc(i, k, 3) - wa2(i-1)*cc(i-1, k, 3)
+                    cr4 = wa3(i-2)*cc(i-1, k, 4) + wa3(i-1)*cc(i, k, 4)
+                    ci4 = wa3(i-2)*cc(i, k, 4) - wa3(i-1)*cc(i-1, k, 4)
                     tr1 = cr2 + cr4
                     tr4 = cr4 - cr2
                     ti1 = ci2 + ci4
                     ti4 = ci2 - ci4
-                    ti2 = cc(i,k,1) + ci3
-                    ti3 = cc(i,k,1) - ci3
-                    tr2 = cc(i-1,k,1) + cr3
-                    tr3 = cc(i-1,k,1) - cr3
-                    ch(i-1,1,k) = tr1 + tr2
-                    ch(ic-1,4,k) = tr2 - tr1
-                    ch(i,1,k) = ti1 + ti2
-                    ch(ic,4,k) = ti1 - ti2
-                    ch(i-1,3,k) = ti4 + tr3
-                    ch(ic-1,2,k) = tr3 - ti4
-                    ch(i,3,k) = tr4 + ti3
-                    ch(ic,2,k) = tr4 - ti3
+                    ti2 = cc(i, k, 1) + ci3
+                    ti3 = cc(i, k, 1) - ci3
+                    tr2 = cc(i-1, k, 1) + cr3
+                    tr3 = cc(i-1, k, 1) - cr3
+                    ch(i-1, 1, k) = tr1 + tr2
+                    ch(ic-1, 4, k) = tr2 - tr1
+                    ch(i, 1, k) = ti1 + ti2
+                    ch(ic, 4, k) = ti1 - ti2
+                    ch(i-1, 3, k) = ti4 + tr3
+                    ch(ic-1, 2, k) = tr3 - ti4
+                    ch(i, 3, k) = tr4 + ti3
+                    ch(ic, 2, k) = tr4 - ti3
                 end do
             end do
-            if (mod(ido,2) == 1) return
-        endif
+            if (mod(ido, 2) == 1) return
+        end if
         do k = 1, l1
-            ti1 = -hsqt2*(cc(ido,k,2)+cc(ido,k,4))
-            tr1 = hsqt2*(cc(ido,k,2)-cc(ido,k,4))
-            ch(ido,1,k) = tr1 + cc(ido,k,1)
-            ch(ido,3,k) = cc(ido,k,1) - tr1
-            ch(1,2,k) = ti1 - cc(ido,k,3)
-            ch(1,4,k) = ti1 + cc(ido,k,3)
+            ti1 = -hsqt2*(cc(ido, k, 2)+cc(ido, k, 4))
+            tr1 = hsqt2*(cc(ido, k, 2)-cc(ido, k, 4))
+            ch(ido, 1, k) = tr1 + cc(ido, k, 1)
+            ch(ido, 3, k) = cc(ido, k, 1) - tr1
+            ch(1, 2, k) = ti1 - cc(ido, k, 3)
+            ch(1, 4, k) = ti1 + cc(ido, k, 3)
         end do
-    endif
+    end if
     return
 end subroutine radf4
 
 
 subroutine radf5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent(in) :: ido
     integer , intent(in) :: l1
-    real , intent(in) :: cc(ido,l1,5)
-    real , intent(out) :: ch(ido,5,l1)
-    real , intent(in) :: wa1(*)
-    real , intent(in) :: wa2(*)
-    real , intent(in) :: wa3(*)
-    real , intent(in) :: wa4(*)
+    real (wp), intent(in) :: cc(ido, l1, 5)
+    real (wp), intent(out) :: ch(ido, 5, l1)
+    real (wp), intent(in) :: wa1(*)
+    real (wp), intent(in) :: wa2(*)
+    real (wp), intent(in) :: wa3(*)
+    real (wp), intent(in) :: wa4(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: k, idp2, i, ic
-    real :: tr11, ti11, tr12, ti12, cr2, ci5, cr3, ci4, dr2, di2, dr3 &
-        , di3, dr4, di4, dr5, di5, cr5, ci2, cr4, ci3, tr2, ti2, tr3, &
-        ti3, tr5, ti5, tr4, ti4
+    integer   :: k, idp2, i, ic
+    real (wp) :: cr2, ci5, cr3, ci4, dr2, di2, dr3
+    real (wp) :: di3, dr4, di4, dr5, di5, cr5, ci2, cr4, ci3, tr2, ti2, tr3
+    real (wp) :: ti3, tr5, ti5, tr4, ti4
+    real (wp), parameter :: sqrt_5 = sqrt(5.0_wp)
+    real (wp), parameter :: tr11 = (sqrt_5 - 1.0_wp)/4 ! 0.309016994374947
+    real (wp), parameter :: ti11 = sqrt((5.0_wp + sqrt_5)/2)/2 ! 0.951056516295154
+    real (wp), parameter :: tr12 = (-1.0_wp - sqrt_5)/4 ! -.809016994374947
+    real (wp), parameter :: ti12 = sqrt(5.0_wp/(2.0_wp * (5.0_wp + sqrt_5)) ) ! 0.587785252292473
     !-----------------------------------------------
-    data tr11, ti11, tr12, ti12/ 0.309016994374947, 0.951056516295154 &
-        , -.809016994374947, 0.587785252292473/
+
     do k = 1, l1
-        cr2 = cc(1,k,5) + cc(1,k,2)
-        ci5 = cc(1,k,5) - cc(1,k,2)
-        cr3 = cc(1,k,4) + cc(1,k,3)
-        ci4 = cc(1,k,4) - cc(1,k,3)
-        ch(1,1,k) = cc(1,k,1) + cr2 + cr3
-        ch(ido,2,k) = cc(1,k,1) + tr11*cr2 + tr12*cr3
-        ch(1,3,k) = ti11*ci5 + ti12*ci4
-        ch(ido,4,k) = cc(1,k,1) + tr12*cr2 + tr11*cr3
-        ch(1,5,k) = ti12*ci5 - ti11*ci4
+        cr2 = cc(1, k, 5) + cc(1, k, 2)
+        ci5 = cc(1, k, 5) - cc(1, k, 2)
+        cr3 = cc(1, k, 4) + cc(1, k, 3)
+        ci4 = cc(1, k, 4) - cc(1, k, 3)
+        ch(1, 1, k) = cc(1, k, 1) + cr2 + cr3
+        ch(ido, 2, k) = cc(1, k, 1) + tr11*cr2 + tr12*cr3
+        ch(1, 3, k) = ti11*ci5 + ti12*ci4
+        ch(ido, 4, k) = cc(1, k, 1) + tr12*cr2 + tr11*cr3
+        ch(1, 5, k) = ti12*ci5 - ti11*ci4
     end do
     if (ido == 1) return
     idp2 = ido + 2
     do k = 1, l1
         do i = 3, ido, 2
             ic = idp2 - i
-            dr2 = wa1(i-2)*cc(i-1,k,2) + wa1(i-1)*cc(i,k,2)
-            di2 = wa1(i-2)*cc(i,k,2) - wa1(i-1)*cc(i-1,k,2)
-            dr3 = wa2(i-2)*cc(i-1,k,3) + wa2(i-1)*cc(i,k,3)
-            di3 = wa2(i-2)*cc(i,k,3) - wa2(i-1)*cc(i-1,k,3)
-            dr4 = wa3(i-2)*cc(i-1,k,4) + wa3(i-1)*cc(i,k,4)
-            di4 = wa3(i-2)*cc(i,k,4) - wa3(i-1)*cc(i-1,k,4)
-            dr5 = wa4(i-2)*cc(i-1,k,5) + wa4(i-1)*cc(i,k,5)
-            di5 = wa4(i-2)*cc(i,k,5) - wa4(i-1)*cc(i-1,k,5)
+            dr2 = wa1(i-2)*cc(i-1, k, 2) + wa1(i-1)*cc(i, k, 2)
+            di2 = wa1(i-2)*cc(i, k, 2) - wa1(i-1)*cc(i-1, k, 2)
+            dr3 = wa2(i-2)*cc(i-1, k, 3) + wa2(i-1)*cc(i, k, 3)
+            di3 = wa2(i-2)*cc(i, k, 3) - wa2(i-1)*cc(i-1, k, 3)
+            dr4 = wa3(i-2)*cc(i-1, k, 4) + wa3(i-1)*cc(i, k, 4)
+            di4 = wa3(i-2)*cc(i, k, 4) - wa3(i-1)*cc(i-1, k, 4)
+            dr5 = wa4(i-2)*cc(i-1, k, 5) + wa4(i-1)*cc(i, k, 5)
+            di5 = wa4(i-2)*cc(i, k, 5) - wa4(i-1)*cc(i-1, k, 5)
             cr2 = dr2 + dr5
             ci5 = dr5 - dr2
             cr5 = di2 - di5
@@ -3443,24 +3480,24 @@ subroutine radf5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
             ci4 = dr4 - dr3
             cr4 = di3 - di4
             ci3 = di3 + di4
-            ch(i-1,1,k) = cc(i-1,k,1) + cr2 + cr3
-            ch(i,1,k) = cc(i,k,1) + ci2 + ci3
-            tr2 = cc(i-1,k,1) + tr11*cr2 + tr12*cr3
-            ti2 = cc(i,k,1) + tr11*ci2 + tr12*ci3
-            tr3 = cc(i-1,k,1) + tr12*cr2 + tr11*cr3
-            ti3 = cc(i,k,1) + tr12*ci2 + tr11*ci3
+            ch(i-1, 1, k) = cc(i-1, k, 1) + cr2 + cr3
+            ch(i, 1, k) = cc(i, k, 1) + ci2 + ci3
+            tr2 = cc(i-1, k, 1) + tr11*cr2 + tr12*cr3
+            ti2 = cc(i, k, 1) + tr11*ci2 + tr12*ci3
+            tr3 = cc(i-1, k, 1) + tr12*cr2 + tr11*cr3
+            ti3 = cc(i, k, 1) + tr12*ci2 + tr11*ci3
             tr5 = ti11*cr5 + ti12*cr4
             ti5 = ti11*ci5 + ti12*ci4
             tr4 = ti12*cr5 - ti11*cr4
             ti4 = ti12*ci5 - ti11*ci4
-            ch(i-1,3,k) = tr2 + tr5
-            ch(ic-1,2,k) = tr2 - tr5
-            ch(i,3,k) = ti2 + ti5
-            ch(ic,2,k) = ti5 - ti2
-            ch(i-1,5,k) = tr3 + tr4
-            ch(ic-1,4,k) = tr3 - tr4
-            ch(i,5,k) = ti3 + ti4
-            ch(ic,4,k) = ti4 - ti3
+            ch(i-1, 3, k) = tr2 + tr5
+            ch(ic-1, 2, k) = tr2 - tr5
+            ch(i, 3, k) = ti2 + ti5
+            ch(ic, 2, k) = ti5 - ti2
+            ch(i-1, 5, k) = tr3 + tr4
+            ch(ic-1, 4, k) = tr3 - tr4
+            ch(i, 5, k) = ti3 + ti4
+            ch(ic, 4, k) = ti4 - ti3
         end do
     end do
     return
@@ -3469,26 +3506,27 @@ end subroutine radf5
 
 subroutine radfg(ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent(in) :: ido
     integer , intent(in) :: ip
     integer , intent(in) :: l1
     integer , intent(in) :: idl1
-    real , intent(out) :: cc(ido,ip,l1)
-    real , intent(inout) :: c1(ido,l1,ip)
-    real , intent(inout) :: c2(idl1,ip)
-    real , intent(inout) :: ch(ido,l1,ip)
-    real , intent(inout) :: ch2(idl1,ip)
-    real , intent(in) :: wa(*)
+    real (wp), intent(out) :: cc(ido, ip, l1)
+    real (wp), intent(inout) :: c1(ido, l1, ip)
+    real (wp), intent(inout) :: c2(idl1, ip)
+    real (wp), intent(inout) :: ch(ido, l1, ip)
+    real (wp), intent(inout) :: ch2(idl1, ip)
+    real (wp), intent(in) :: wa(*)
     !-----------------------------------------------
-    !   l o c a l   v a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
-    integer::ipph,ipp2,idp2,nbd,ik,j,k,is,idij,i,jc,l,lc,j2,ic
-    real::tpi,dum,arg,dcp,dsp,ar1,ai1,ar1h,dc2,ds2,ar2,ai2,ar2h
+    integer::ipph, ipp2, idp2, nbd, ik, j, k, is, idij, i, jc, l, lc, j2, ic
+    real (wp) ::tpi, dum, arg, dcp, dsp, ar1, ai1, ar1h, dc2, ds2, ar2, ai2, ar2h
     !-----------------------------------------------
-    tpi = 8.0*atan(1.0)
-    arg = tpi/float(ip)
+
+    tpi = 2.0_wp * acos( -1.0_wp)
+    arg = tpi/real(ip)
     dcp = cos(arg)
     dsp = sin(arg)
     ipph = (ip + 1)/2
@@ -3496,8 +3534,8 @@ subroutine radfg(ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
     idp2 = ido + 2
     nbd = (ido - 1)/2
     if (ido /= 1) then
-        ch2(:,1) = c2(:,1)
-        ch(1,:,2:ip) = c1(1,:,2:ip)
+        ch2(:, 1) = c2(:, 1)
+        ch(1, :, 2:ip) = c1(1, :, 2:ip)
         if (nbd <= l1) then
             is = -ido
             do j = 2, ip
@@ -3505,8 +3543,8 @@ subroutine radfg(ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
                 idij = is
                 do i = 3, ido, 2
                     idij = idij + 2
-                    ch(i-1,:,j)=wa(idij-1)*c1(i-1,:,j)+wa(idij)*c1(i,:,j)
-                    ch(i,:,j)=wa(idij-1)*c1(i,:,j)-wa(idij)*c1(i-1,:,j)
+                    ch(i-1, :, j)=wa(idij-1)*c1(i-1, :, j)+wa(idij)*c1(i, :, j)
+                    ch(i, :, j)=wa(idij-1)*c1(i, :, j)-wa(idij)*c1(i-1, :, j)
                 end do
             end do
         else
@@ -3515,38 +3553,38 @@ subroutine radfg(ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
                 is = is + ido
                 do k = 1, l1
                     idij = is
-                    ch(2:ido-1:2,k,j) = wa(idij+1:ido-2+idij:2)*c1(2:ido-1 &
-                        :2,k,j) + wa(idij+2:ido-1+idij:2)*c1(3:ido:2,k,j)
-                    ch(3:ido:2,k,j) = wa(idij+1:ido-2+idij:2)*c1(3:ido:2,k &
-                        ,j) - wa(idij+2:ido-1+idij:2)*c1(2:ido-1:2,k,j)
+                    ch(2:ido-1:2, k, j) = wa(idij+1:ido-2+idij:2)*c1(2:ido-1 &
+                        :2, k, j) + wa(idij+2:ido-1+idij:2)*c1(3:ido:2, k, j)
+                    ch(3:ido:2, k, j) = wa(idij+1:ido-2+idij:2)*c1(3:ido:2, k &
+                        , j) - wa(idij+2:ido-1+idij:2)*c1(2:ido-1:2, k, j)
                 end do
             end do
-        endif
+        end if
         if (nbd >= l1) then
             do j = 2, ipph
                 jc = ipp2 - j
-                c1(2:ido-1:2,:,j)=ch(2:ido-1:2,:,j)+ch(2:ido-1:2,:,jc)
-                c1(2:ido-1:2,:,jc) = ch(3:ido:2,:,j) - ch(3:ido:2,:,jc)
-                c1(3:ido:2,:,j) = ch(3:ido:2,:,j) + ch(3:ido:2,:,jc)
-                c1(3:ido:2,:,jc) = ch(2:ido-1:2,:,jc) - ch(2:ido-1:2,:,j)
+                c1(2:ido-1:2, :, j)=ch(2:ido-1:2, :, j)+ch(2:ido-1:2, :, jc)
+                c1(2:ido-1:2, :, jc) = ch(3:ido:2, :, j) - ch(3:ido:2, :, jc)
+                c1(3:ido:2, :, j) = ch(3:ido:2, :, j) + ch(3:ido:2, :, jc)
+                c1(3:ido:2, :, jc) = ch(2:ido-1:2, :, jc) - ch(2:ido-1:2, :, j)
             end do
             go to 121
-        endif
+        end if
         do j = 2, ipph
             jc = ipp2 - j
-            c1(2:ido-1:2,:,j) = ch(2:ido-1:2,:,j) + ch(2:ido-1:2,:,jc)
-            c1(2:ido-1:2,:,jc) = ch(3:ido:2,:,j) - ch(3:ido:2,:,jc)
-            c1(3:ido:2,:,j) = ch(3:ido:2,:,j) + ch(3:ido:2,:,jc)
-            c1(3:ido:2,:,jc) = ch(2:ido-1:2,:,jc) - ch(2:ido-1:2,:,j)
+            c1(2:ido-1:2, :, j) = ch(2:ido-1:2, :, j) + ch(2:ido-1:2, :, jc)
+            c1(2:ido-1:2, :, jc) = ch(3:ido:2, :, j) - ch(3:ido:2, :, jc)
+            c1(3:ido:2, :, j) = ch(3:ido:2, :, j) + ch(3:ido:2, :, jc)
+            c1(3:ido:2, :, jc) = ch(2:ido-1:2, :, jc) - ch(2:ido-1:2, :, j)
         end do
         go to 121
-    endif
-    c2(:,1) = ch2(:,1)
+    end if
+    c2(:, 1) = ch2(:, 1)
 121 continue
     do j = 2, ipph
         jc = ipp2 - j
-        c1(1,:,j) = ch(1,:,j) + ch(1,:,jc)
-        c1(1,:,jc) = ch(1,:,jc) - ch(1,:,j)
+        c1(1, :, j) = ch(1, :, j) + ch(1, :, jc)
+        c1(1, :, jc) = ch(1, :, jc) - ch(1, :, j)
     end do
     !
     ar1 = 1.
@@ -3556,8 +3594,8 @@ subroutine radfg(ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
         ar1h = dcp*ar1 - dsp*ai1
         ai1 = dcp*ai1 + dsp*ar1
         ar1 = ar1h
-        ch2(:,l) = c2(:,1) + ar1*c2(:,2)
-        ch2(:,lc) = ai1*c2(:,ip)
+        ch2(:, l) = c2(:, 1) + ar1*c2(:, 2)
+        ch2(:, lc) = ai1*c2(:, ip)
         dc2 = ar1
         ds2 = ai1
         ar2 = ar1
@@ -3567,52 +3605,53 @@ subroutine radfg(ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
             ar2h = dc2*ar2 - ds2*ai2
             ai2 = dc2*ai2 + ds2*ar2
             ar2 = ar2h
-            ch2(:,l) = ch2(:,l) + ar2*c2(:,j)
-            ch2(:,lc) = ch2(:,lc) + ai2*c2(:,jc)
+            ch2(:, l) = ch2(:, l) + ar2*c2(:, j)
+            ch2(:, lc) = ch2(:, lc) + ai2*c2(:, jc)
         end do
     end do
     do j = 2, ipph
-        ch2(:,1) = ch2(:,1) + c2(:,j)
+        ch2(:, 1) = ch2(:, 1) + c2(:, j)
     end do
     !
     if (ido >= l1) then
-        cc(:,1,:) = ch(:,:,1)
+        cc(:, 1, :) = ch(:, :, 1)
     else
-        cc(:,1,:) = ch(:,:,1)
-    endif
-    cc(ido,2:(ipph-1)*2:2,:) = transpose(ch(1,:,2:ipph))
-    cc(1,3:ipph*2-1:2,:) = transpose(ch(1,:,ipp2-2:ipp2-ipph:(-1)))
+        cc(:, 1, :) = ch(:, :, 1)
+    end if
+    cc(ido, 2:(ipph-1)*2:2, :) = transpose(ch(1, :, 2:ipph))
+    cc(1, 3:ipph*2-1:2, :) = transpose(ch(1, :, ipp2-2:ipp2-ipph:(-1)))
     if (ido == 1) return
     if (nbd >= l1) then
-        cc(2:ido-1:2,3:ipph*2-1:2,:) = reshape(source = ch(2:ido-1:2,:, &
-            2:ipph)+ch(2:ido-1:2,:,ipp2-2:ipp2-ipph:(-1)),shape = (/(ido &
-            -1)/2,ipph-1,l1/),order = (/1,3,2/))
-        cc(idp2-4:idp2-1-ido:(-2),2:(ipph-1)*2:2,:) = reshape(source = &
-            ch(2:ido-1:2,:,2:ipph)-ch(2:ido-1:2,:,ipp2-2:ipp2-ipph:(-1)) &
-            ,shape = (/(ido-1)/2,ipph-1,l1/),order = (/1,3,2/))
-        cc(3:ido:2,3:ipph*2-1:2,:) = reshape(source = ch(3:ido:2,:,2: &
-            ipph)+ch(3:ido:2,:,ipp2-2:ipp2-ipph:(-1)),shape = (/(ido-1)/ &
-            2,ipph-1,l1/),order = (/1,3,2/))
-        cc(idp2-3:idp2-ido:(-2),2:(ipph-1)*2:2,:) = reshape(source = ch &
-            (3:ido:2,:,ipp2-2:ipp2-ipph:(-1))-ch(3:ido:2,:,2:ipph),shape &
-            = (/(ido-1)/2,ipph-1,l1/),order = (/1,3,2/))
+        cc(2:ido-1:2, 3:ipph*2-1:2, :) = reshape(source = ch(2:ido-1:2, :, &
+            2:ipph)+ch(2:ido-1:2, :, ipp2-2:ipp2-ipph:(-1)), shape = [(ido &
+            -1)/2, ipph-1, l1], order = [1, 3, 2])
+        cc(idp2-4:idp2-1-ido:(-2), 2:(ipph-1)*2:2, :) = reshape(source = &
+            ch(2:ido-1:2, :, 2:ipph)-ch(2:ido-1:2, :, ipp2-2:ipp2-ipph:(-1)) &
+            , shape = [(ido-1)/2, ipph-1, l1], order = [1, 3, 2])
+        cc(3:ido:2, 3:ipph*2-1:2, :) = reshape(source = ch(3:ido:2, :, 2: &
+            ipph)+ch(3:ido:2, :, ipp2-2:ipp2-ipph:(-1)), shape = [(ido-1)/ &
+            2, ipph-1, l1], order = [1, 3, 2])
+        cc(idp2-3:idp2-ido:(-2), 2:(ipph-1)*2:2, :) = reshape(source = ch &
+            (3:ido:2, :, ipp2-2:ipp2-ipph:(-1))-ch(3:ido:2, :, 2:ipph), shape &
+            = [(ido-1)/2, ipph-1, l1], order = [1, 3, 2])
         return
-    endif
-    cc(2:ido-1:2,3:ipph*2-1:2,:) = reshape(source = ch(2:ido-1:2,:,2: &
-        ipph)+ch(2:ido-1:2,:,ipp2-2:ipp2-ipph:(-1)),shape = (/(ido-1)/2 &
-        ,ipph-1,l1/),order = (/1,3,2/))
-    cc(idp2-4:idp2-1-ido:(-2),2:(ipph-1)*2:2,:) = reshape(source = ch( &
-        2:ido-1:2,:,2:ipph)-ch(2:ido-1:2,:,ipp2-2:ipp2-ipph:(-1)),shape &
-        = (/(ido-1)/2,ipph-1,l1/),order = (/1,3,2/))
-    cc(3:ido:2,3:ipph*2-1:2,:) = reshape(source = ch(3:ido:2,:,2:ipph) &
-        +ch(3:ido:2,:,ipp2-2:ipp2-ipph:(-1)),shape = (/(ido-1)/2,ipph-1 &
-        ,l1/),order = (/1,3,2/))
-    cc(idp2-3:idp2-ido:(-2),2:(ipph-1)*2:2,:) = reshape(source = ch(3: &
-        ido:2,:,ipp2-2:ipp2-ipph:(-1))-ch(3:ido:2,:,2:ipph),shape = (/( &
-        ido-1)/2,ipph-1,l1/),order = (/1,3,2/))
-    return
-end subroutine radfg
+    end if
+    cc(2:ido-1:2, 3:ipph*2-1:2, :) = reshape(source = ch(2:ido-1:2, :, 2: &
+        ipph)+ch(2:ido-1:2, :, ipp2-2:ipp2-ipph:(-1)), shape = [(ido-1)/2 &
+        , ipph-1, l1], order = [1, 3, 2])
+    cc(idp2-4:idp2-1-ido:(-2), 2:(ipph-1)*2:2, :) = reshape(source = ch( &
+        2:ido-1:2, :, 2:ipph)-ch(2:ido-1:2, :, ipp2-2:ipp2-ipph:(-1)), shape &
+        = [(ido-1)/2, ipph-1, l1], order = [1, 3, 2])
+    cc(3:ido:2, 3:ipph*2-1:2, :) = reshape(source = ch(3:ido:2, :, 2:ipph) &
+        +ch(3:ido:2, :, ipp2-2:ipp2-ipph:(-1)), shape = [(ido-1)/2, ipph-1 &
+        , l1], order = [1, 3, 2])
+    cc(idp2-3:idp2-ido:(-2), 2:(ipph-1)*2:2, :) = reshape(source = ch(3: &
+        ido:2, :, ipp2-2:ipp2-ipph:(-1))-ch(3:ido:2, :, 2:ipph), shape = [( &
+        ido-1)/2, ipph-1, l1], order = [1, 3, 2])
+
 !     this function is define in the file comf.f
+end subroutine radfg
+
 
 end module module_fftpack
 ! september 1973    version 1

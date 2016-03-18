@@ -95,7 +95,7 @@ contains
         call hwscyl_unit_test()
         call hwsplr_unit_test()
         call hwsssp_unit_test()
-        call pois3d_unit_test() ! test fails
+        call pois3d_unit_test()
         call poistg_unit_test()
         call sepeli_unit_test()
         call sepx4_unit_test()
