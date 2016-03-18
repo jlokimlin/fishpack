@@ -17,11 +17,11 @@ module module_hw3crt
     ! Everything is private unless stated otherwise
     private
     public :: hw3crt
-    public :: hw3crt_unit_test
+    public :: test_hw3crt
 
 contains
 
-    subroutine hw3crt_unit_test()
+    subroutine test_hw3crt()
         !
         !     file thw3crt.f
         !
@@ -177,7 +177,7 @@ contains
         write( stdout, '(A,I3,A,1pe15.6)') &
             '     ierror =', ierror, ' discretization error = ', discretization_error
 
-    end subroutine hw3crt_unit_test
+    end subroutine test_hw3crt
 
 
 

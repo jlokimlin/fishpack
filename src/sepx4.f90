@@ -26,11 +26,11 @@ module module_sepx4
     ! Everything is private unless stated otherwise
     private
     public :: sepx4
-    public :: sepx4_unit_test
+    public :: test_sepx4
 
 contains
 
-    subroutine sepx4_unit_test()
+    subroutine test_sepx4()
         !
         !     file tsepx4.f
         !
@@ -277,7 +277,7 @@ contains
         end subroutine get_coefficients_in_x_direction
 
 
-    end subroutine sepx4_unit_test
+    end subroutine test_sepx4
 
 
     subroutine sepx4( iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta, c, &

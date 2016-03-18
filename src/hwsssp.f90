@@ -17,11 +17,11 @@ module module_hwsssp
     ! Everything is private unless stated otherwise
     private
     public :: hwsssp
-    public :: hwsssp_unit_test
+    public :: test_hwsssp
 
 contains
 
-    subroutine hwsssp_unit_test()
+    subroutine test_hwsssp()
         !
         !     file thwsssp.f
         !
@@ -127,7 +127,7 @@ contains
         write( *, *) '    ierror =', ierror, ' discretization error = ', &
             err
 
-    end subroutine hwsssp_unit_test
+    end subroutine test_hwsssp
 
     subroutine hwsssp(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
         bdps, bdpf, elmbda, f, idimf, pertrb, ierror)

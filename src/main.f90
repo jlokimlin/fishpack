@@ -1,7 +1,6 @@
 program main
 
-    use type_FishpackWorkspace, only: &
-        FishpackWorkspace
+    use modern_fishpack_library
 
     print '(A)', 'Successful build!'
 

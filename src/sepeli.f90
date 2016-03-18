@@ -26,13 +26,13 @@ module module_sepeli
     ! Everything is private unless stated otherwise
     private
     public :: sepeli
-    public :: sepeli_unit_test
+    public :: test_sepeli
 
 
 contains
 
 
-    subroutine sepeli_unit_test()
+    subroutine test_sepeli()
         !
         !     file tsepeli.f
         !
@@ -310,7 +310,7 @@ contains
 
         end subroutine get_coefficients_in_y_direction
 
-    end subroutine sepeli_unit_test
+    end subroutine test_sepeli
 
 
     subroutine sepeli(intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, &

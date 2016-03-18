@@ -9,11 +9,11 @@ module module_cmgnbn
     ! Everything is private unless stated otherwise
     private
     public :: cmgnbn
-    public :: cmgnbn_unit_test
+    public :: test_cmgnbn
 
 contains
 
-    subroutine cmgnbn_unit_test()
+    subroutine test_cmgnbn()
         !
         !     file tcmgnbn.f
         !
@@ -236,7 +236,7 @@ contains
         write( *, *) '    ierror =', ierror, ' discretization error = ', &
             err
 
-    end subroutine cmgnbn_unit_test
+    end subroutine test_cmgnbn
 
     subroutine cmgnbn(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
         !

@@ -14,11 +14,11 @@ module module_cblktri
     ! Everything is private unless stated otherwise
     private
     public :: cblktri
-    public :: cblktri_unit_test
+    public :: test_cblktri
 
 contains
 
-    subroutine cblktri_unit_test()
+    subroutine test_cblktri()
         !     file tcblktri.f
         !
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -156,7 +156,7 @@ contains
         !     release dynamically allocated work space
         call workspace%destroy()
 
-    end subroutine cblktri_unit_test
+    end subroutine test_cblktri
 
     subroutine cblktri(IFLG, NP, N, AN, BN, CN, MP, M, AM, BM, CM, &
         IDIMY, Y, ierror, W)

@@ -17,11 +17,11 @@ module module_hwscsp
     ! Everything is private unless stated otherwise
     private
     public :: hwscsp
-    public :: hwscsp_unit_test
+    public :: test_hwscsp
 
 contains
 
-    subroutine hwscsp_unit_test()
+    subroutine test_hwscsp()
         !
         !     file thwscsp.f
         !
@@ -185,7 +185,7 @@ contains
         !     release real and complex allocated work space
         call workspace%destroy()
 
-    end subroutine hwscsp_unit_test
+    end subroutine test_hwscsp
 
 
 

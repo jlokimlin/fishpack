@@ -20,13 +20,13 @@ module module_hstcrt
     ! Everything is private unless stated otherwise
     private
     public :: hstcrt
-    public :: hstcrt_unit_test
+    public :: test_hstcrt
 
 contains
     !
     !*****************************************************************************************
     !
-    subroutine hstcrt_unit_test()
+    subroutine test_hstcrt()
         !     file thstcrt.f
         !
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -144,7 +144,7 @@ contains
         write( stdout, '(A,I3,A,1pe15.6)') &
             '     ierror =', ierror, ' discretization error = ', discretization_error
 
-    end subroutine hstcrt_unit_test
+    end subroutine test_hstcrt
     !
     !*****************************************************************************************
     !

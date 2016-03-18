@@ -368,13 +368,13 @@ module module_hstplr
     ! Everything is private unless stated otherwise
     private
     public :: hstplr
-    public :: hstplr_unit_test
+    public :: test_hstplr
 
 contains
     !
     !*****************************************************************************************
     !
-    subroutine hstplr_unit_test()
+    subroutine test_hstplr()
         !     file thstplr.f
         !
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -487,7 +487,7 @@ contains
         write( stdout, '(A,I3,A,1pe15.6)') &
             '     ierror =', ierror, ' discretization error = ', discretization_error
 
-    end subroutine hstplr_unit_test
+    end subroutine test_hstplr
 
 
 

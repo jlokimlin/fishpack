@@ -12,11 +12,11 @@ module module_hwscyl
     ! Everything is private unless stated otherwise
     private
     public :: hwscyl
-    public :: hwscyl_unit_test
+    public :: test_hwscyl
 
 contains
 
-    subroutine hwscyl_unit_test()
+    subroutine test_hwscyl()
         !
         !     file thwscyl.f
         !
@@ -141,7 +141,7 @@ contains
         write( *, *) '    ierror =', ierror, ' PERTRB = ', pertrb
         write( *, *) '    discretization error = ', err
 
-    end subroutine hwscyl_unit_test
+    end subroutine test_hwscyl
 
     subroutine hwscyl(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror)

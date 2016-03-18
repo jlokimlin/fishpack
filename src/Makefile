@@ -231,8 +231,39 @@ type_TridiagonalSolver.f90
 	$(FC) $(FFLAGS) -c type_TridiagonalSolver.f90 $(LINKS)\
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
+modern_fishpack_library.o: \
+blktri.o\
+cblktri.o\
+cmgnbn.o\
+genbun.o\
+hstcrt.o\
+hstcsp.o\
+hstcyl.o\
+hstplr.o\
+hstssp.o\
+hw3crt.o\
+hwscrt.o\
+hwscsp.o\
+hwscyl.o\
+hwsplr.o\
+hwsssp.o\
+pois3d.o\
+poistg.o\
+sepeli.o\
+sepx4.o\
+type_HelmholtzData.o\
+type_HelmholtzSolver.o\
+type_TridiagonalData.o\
+type_TridiagonalSolver.o\
+type_CenteredGrid.o\
+type_StaggeredGrid.o\
+type_MacGrid.o\
+modern_fishpack_library.f90
+	$(FC) $(FFLAGS) -c modern_fishpack_library.f90 $(LINKS)\
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
 main.o: \
-type_FishpackWorkspace.o \
+modern_fishpack_library.o \
 main.f90
 	$(FC) $(FFLAGS) -c main.f90 $(LINKS) \
 	-o $(OBJ_DIRECTORY)/$@

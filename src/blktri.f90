@@ -21,7 +21,7 @@ module module_blktri
     private
     public :: blktri
     public :: blktrii
-    public :: blktri_unit_test
+    public :: test_blktri
 
     !---------------------------------------------------------------------------------
     ! Dictionary: global variables confined to the module
@@ -33,7 +33,7 @@ module module_blktri
 contains
 
 
-    subroutine blktri_unit_test()
+    subroutine test_blktri()
         !     file tblktri.f
         !
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -246,7 +246,7 @@ contains
         !! release dynamically allocated work space
         call workspace%destroy()
 
-    end subroutine blktri_unit_test
+    end subroutine test_blktri
 
 
     subroutine blktri( iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &

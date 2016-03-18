@@ -1,70 +1,35 @@
 program test
 
-    use module_blktri, only: &
-        blktri_unit_test
-
-    use module_cblktri, only: &
-        cblktri_unit_test
-
-    use module_cmgnbn, only: &
-        cmgnbn_unit_test
-
-    use module_genbun, only: &
-        genbun_unit_test
-
-    use module_hstcrt, only: &
-        hstcrt_unit_test
-
-    use module_hstcsp, only: &
-        hstcsp_unit_test
-
-    use module_hstcyl, only: &
-        hstcyl_unit_test
-
-    use module_hstplr, only: &
-        hstplr_unit_test
-
-    use module_hstssp, only: &
-        hstssp_unit_test
-
-    use module_hw3crt, only: &
-        hw3crt_unit_test
-
-    use module_hwscrt, only: &
-        hwscrt_unit_test
-
-    use module_hwscsp, only: &
-        hwscsp_unit_test
-
-    use module_hwscyl, only: &
-        hwscyl_unit_test
-
-    use module_hwsplr, only: &
-        hwsplr_unit_test
-
-    use module_hwsssp, only: &
-        hwsssp_unit_test
-
-    use module_pois3d, only: &
-        pois3d_unit_test
-
-    use module_poistg, only: &
-        poistg_unit_test
-
-    use module_sepeli, only: &
-        sepeli_unit_test
-
-    use module_sepx4, only: &
-        sepx4_unit_test
-
-    use type_HelmholtzSolver, only: &
-        HelmholtzSolver
-
-    use type_TridiagonalSolver, only: &
+    use modern_fishpack_library, only: &
+        test_blktri, &
+        test_cblktri, &
+        test_cmgnbn, &
+        test_genbun, &
+        test_hstcrt, &
+        test_hstcsp, &
+        test_hstcyl, &
+        test_hstplr, &
+        test_hstssp, &
+        test_hw3crt, &
+        test_hwscrt, &
+        test_hwscsp, &
+        test_hwscyl, &
+        test_hwsplr, &
+        test_hwsssp, &
+        test_pois3d, &
+        test_poistg, &
+        test_sepeli, &
+        test_sepx4, &
+        HelmholtzSolver, &
         TridiagonalSolver
+
+    ! Explicit typing only
+    implicit none
+
 
     call test_procedural_library()
     call test_object_oriented_library()
+
 
 contains
 
@@ -85,25 +50,25 @@ contains
 
     subroutine test_procedural_library()
 
-        call blktri_unit_test()
-        call cblktri_unit_test()
-        call cmgnbn_unit_test()
-        call genbun_unit_test()
-        call hstcrt_unit_test()
-        call hstcsp_unit_test()
-        call hstcyl_unit_test()
-        call hstplr_unit_test()
+        call test_blktri()
+        call test_cblktri()
+        call test_cmgnbn()
+        call test_genbun()
+        call test_hstcrt()
+        call test_hstcsp()
+        call test_hstcyl()
+        call test_hstplr()
         !call hstssp_unit_test()
-        call hw3crt_unit_test()
-        call hwscrt_unit_test()
-        call hwscsp_unit_test()
-        call hwscyl_unit_test()
-        call hwsplr_unit_test()
-        call hwsssp_unit_test()
-        call pois3d_unit_test()
-        call poistg_unit_test()
-        call sepeli_unit_test()
-        call sepx4_unit_test()
+        call test_hw3crt()
+        call test_hwscrt()
+        call test_hwscsp()
+        call test_hwscyl()
+        call test_hwsplr()
+        call test_hwsssp()
+        call test_pois3d()
+        call test_poistg()
+        call test_sepeli()
+        call test_sepx4()
 
     end subroutine test_procedural_library
 

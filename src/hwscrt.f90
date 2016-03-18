@@ -17,13 +17,13 @@ module module_hwscrt
     ! Everything is private unless stated otherwise
     private
     public :: hwscrt
-    public :: hwscrt_unit_test
+    public :: test_hwscrt
 
 contains
     !
     !*****************************************************************************************
     !
-    subroutine hwscrt_unit_test()
+    subroutine test_hwscrt()
         !     file thwscrt.f
         !
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -139,7 +139,7 @@ contains
         write( stdout, '(A,I3,A,1pe15.6)') &
             '     ierror =', ierror, ' discretization error = ', discretization_error
 
-    end subroutine hwscrt_unit_test
+    end subroutine test_hwscrt
     !
     !*****************************************************************************************
     !

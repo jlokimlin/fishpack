@@ -19,7 +19,7 @@ module module_genbun
 
     ! Everything is private unless stated otherwise
     private
-    public :: genbun_unit_test
+    public :: test_genbun
     public :: genbun
     public :: genbunn
 
@@ -27,7 +27,7 @@ contains
     !
     !*****************************************************************************************
     !
-    subroutine genbun_unit_test()
+    subroutine test_genbun()
         !     file tgenbun.f
         !
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -149,7 +149,7 @@ contains
         write( stdout, '(A,I3,A,1pe15.6)') &
             '     ierror =', ierror, ' discretization error = ', discretization_error
 
-    end subroutine genbun_unit_test
+    end subroutine test_genbun
     !
     !*****************************************************************************************
     !

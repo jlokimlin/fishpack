@@ -350,13 +350,13 @@ module module_hstcyl
     ! Everything is private unless stated otherwise
     private
     public :: hstcyl
-    public :: hstcyl_unit_test
+    public :: test_hstcyl
 
 contains
      !
      !*****************************************************************************************
      !
-    subroutine hstcyl_unit_test()
+    subroutine test_hstcyl()
         !     file thstcyl.f
         !
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -498,7 +498,7 @@ contains
         write( stdout, '(A,I3,A,1pe15.6)') '     ierror =', ierror, ' PERTRB = ', pertrb
         write( stdout, '(A,1pe15.6)') '     discretization error = ', discretization_error
 
-    end subroutine hstcyl_unit_test
+    end subroutine test_hstcyl
     !
     !*****************************************************************************************
     !

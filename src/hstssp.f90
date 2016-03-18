@@ -20,13 +20,13 @@ module module_hstssp
     ! Everything is private unless stated otherwise
     private
     public :: hstssp
-    public :: hstssp_unit_test
+    public :: test_hstssp
 
 contains
     !
     !*****************************************************************************************
     !
-    subroutine hstssp_unit_test()
+    subroutine test_hstssp()
         !
         !     file thstssp.f
         !
@@ -134,7 +134,7 @@ contains
         write( stdout, '(A,I3,A,1pe15.6)') '     ierror =', ierror, ' PERTRB = ', pertrb
         write( stdout, '(A,1pe15.6)') '     discretization error = ', err
 
-    end subroutine hstssp_unit_test
+    end subroutine test_hstssp
     !
     !*****************************************************************************************
     !

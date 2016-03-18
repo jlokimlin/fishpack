@@ -19,13 +19,13 @@ module module_poistg
 
     ! Everything is private unless stated otherwise
     private
-    public :: poistg_unit_test
+    public :: test_poistg
     public :: poistg
     public :: poistgg
 
 contains
 
-    subroutine poistg_unit_test()
+    subroutine test_poistg()
         !     file tpoistg.f
         !
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -254,7 +254,7 @@ contains
         write( stdout, '(A,I3,A,1pe15.6)')&
             '     ierror =', ierror, ' discretization error = ', discretization_error
 
-    end subroutine poistg_unit_test
+    end subroutine test_poistg
 
 
 

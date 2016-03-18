@@ -12,11 +12,11 @@ module module_hwsplr
     ! Everything is private unless stated otherwise
     private
     public :: hwsplr
-    public :: hwsplr_unit_test
+    public :: test_hwsplr
 
 contains
 
-    subroutine hwsplr_unit_test()
+    subroutine test_hwsplr()
         !
         !     file thwsplr.f
         !
@@ -151,7 +151,7 @@ contains
         write( *, *) '    ierror =', ierror, ' discretization error = ', &
             err
 
-    end subroutine hwsplr_unit_test
+    end subroutine test_hwsplr
 
     subroutine hwsplr(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror)

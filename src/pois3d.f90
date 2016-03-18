@@ -35,11 +35,11 @@ module module_pois3d
     private
     public :: pois3d
     public :: pois3dd
-    public :: pois3d_unit_test
+    public :: test_pois3d
 
 contains
 
-    subroutine pois3d_unit_test()
+    subroutine test_pois3d()
         !
         !     file tpois3d.f
         !
@@ -174,7 +174,7 @@ contains
         write( *, *) '    ierror =', ierror, ' discretization error = ', &
             err
 
-    end subroutine pois3d_unit_test
+    end subroutine test_pois3d
 
 
     subroutine pois3d( lperod, l, c1, mperod, m, c2, nperod, n, a, b, c, &

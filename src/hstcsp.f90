@@ -17,13 +17,13 @@ module module_hstcsp
     ! Everything is private unless stated otherwise
     private
     public :: hstcsp
-    public :: hstcsp_unit_test
+    public :: test_hstcsp
 
 contains
     !
     !*****************************************************************************************
     !
-    subroutine hstcsp_unit_test()
+    subroutine test_hstcsp()
         !
         !     file thstcsp.f
         !
@@ -142,7 +142,7 @@ contains
         !     release work space allocated by hstcsp (intl=0 call)
         call workspace%destroy()
 
-    end subroutine hstcsp_unit_test
+    end subroutine test_hstcsp
 
 
 
