@@ -33,8 +33,8 @@
 !     *                                                               *
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-!     SUBROUTINE HSTCYL (A, B, M, MBDCND, BDA, BDB, C, D, N, NBDCND, BDC, BDD, 
-!    +                   ELMBDA, F, IDIMF, PERTRB, IERROR)
+!     SUBROUTINE hstcyl (A, B, M, MBDCND, BDA, BDB, C, D, N, NBDCND, BDC, BDD, 
+!    +                   ELMBDA, F, IDIMF, PERTRB, ierror)
 !
 ! DIMENSION OF           BDA(N), BDB(N), BDC(M), BDD(M), F(IDIMF, N)
 ! ARGUMENTS
@@ -54,9 +54,9 @@
 !                        EQUATION RESULTING FROM THE FOURIER TRANSFORM
 !                        OF A THREE-DIMENSIONAL POISSON EQUATION.
 !
-! USAGE                  CALL HSTCYL (A, B, M, MBDCND, BDA, BDB, C, D, N, 
+! USAGE                  CALL hstcyl (A, B, M, MBDCND, BDA, BDB, C, D, N, 
 !                                     NBDCND, BDC, BDD, ELMBDA, F, IDIMF, 
-!                                     PERTRB, IERROR)
+!                                     PERTRB, ierror)
 !
 ! ARGUMENTS
 ! ON INPUT               A, B
@@ -201,7 +201,7 @@
 !                          THE CONSTANT LAMBDA IN THE MODIFIED
 !                          HELMHOLTZ EQUATION.  IF LAMBDA IS GREATER
 !                          THAN 0, A SOLUTION MAY NOT EXIST.
-!                          HOWEVER, HSTCYL WILL ATTEMPT TO FIND A
+!                          HOWEVER, hstcyl WILL ATTEMPT TO FIND A
 !                          SOLUTION.  LAMBDA MUST BE ZERO WHEN
 !                          MBDCND = 5 OR 6.
 !
@@ -216,7 +216,7 @@
 !                        IDIMF
 !                          THE ROW (OR FIRST) DIMENSION OF THE ARRAY
 !                          F AS IT APPEARS IN THE PROGRAM CALLING
-!                          HSTCYL.  THIS PARAMETER IS USED TO SPECIFY
+!                          hstcyl.  THIS PARAMETER IS USED TO SPECIFY
 !                          THE VARIABLE DIMENSION OF F.  IDIMF MUST
 !                          BE AT LEAST M.
 !
@@ -234,7 +234,7 @@
 !                          (LAMBDA = 0), A SOLUTION MAY NOT EXIST.
 !                          PERTRB IS A CONSTANT, CALCULATED AND
 !                          SUBTRACTED FROM F, WHICH ENSURES THAT A
-!                          SOLUTION EXISTS.  HSTCYL THEN COMPUTES
+!                          SOLUTION EXISTS.  hstcyl THEN COMPUTES
 !                          THIS SOLUTION, WHICH IS A LEAST SQUARES
 !                          SOLUTION TO THE ORIGINAL APPROXIMATION.
 !                          THIS SOLUTION PLUS ANY CONSTANT IS ALSO
@@ -247,7 +247,7 @@
 !                          INSURE THAT A MEANINGFUL SOLUTION HAS BEEN
 !                          OBTAINED.
 !
-!                        IERROR
+!                        ierror
 !                          AN ERROR FLAG THAT INDICATES INVALID INPUT
 !                          PARAMETERS. EXCEPT TO NUMBERS 0 AND 11, 
 !                          A SOLUTION IS NOT ATTEMPTED.
@@ -279,8 +279,8 @@
 !                          = 12  A=0, MBDCND .GE. 5, ELMBDA .NE. 0
 !
 !                          SINCE THIS IS THE ONLY MEANS OF INDICATING
-!                          A POSSIBLY INCORRECT CALL TO HSTCYL, THE
-!                          USER SHOULD TEST IERROR AFTER THE CALL.
+!                          A POSSIBLY INCORRECT CALL TO hstcyl, THE
+!                          USER SHOULD TEST ierror AFTER THE CALL.
 !
 !                          = 20 If the dynamic allocation of real and
 !                               complex work space required for solution
@@ -306,7 +306,7 @@
 ! ALGORITHM              THIS SUBROUTINE DEFINES THE FINITE-DIFFERENCE
 !                        EQUATIONS, INCORPORATES BOUNDARY DATA, ADJUSTS
 !                        THE RIGHT SIDE WHEN THE SYSTEM IS SINGULAR AND
-!                        CALLS EITHER POISTG OR GENBUN WHICH SOLVES THE
+!                        CALLS EITHER POISTG OR genbun WHICH SOLVES THE
 !                        LINEAR SYSTEM OF EQUATIONS.
 !
 ! TIMING                 FOR LARGE M AND N, THE OPERATION COUNT
@@ -392,7 +392,7 @@ contains
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
         !
-        !     PROGRAM TO ILLUSTRATE THE USE OF HSTCYL TO SOLVE THE EQUATION
+        !     PROGRAM TO ILLUSTRATE THE USE OF hstcyl TO SOLVE THE EQUATION
         !
         !    (1/R)(D/DR)(R*DU/DR) + (D/DZ)(DU/DZ) = (2*R*Z)**2*(4*Z**2 + 3*R**2)
         !
@@ -490,14 +490,13 @@ contains
         !     Print earlier output from platforms with 32 and 64 bit floating point
         !     arithemtic followed by the output from this computer
         write( stdout, '(A)') ''
-        write( stdout, '(A)') '    HSTCYL UNIT TEST *** '
-        write( stdout, '(A)') '    Previous 64 bit floating point arithmetic result '
-        write( stdout, '(A)') '    IERROR = 0,  PERTRB =-4.4311E-4'
-        write( stdout, '(A)') '    Discretization Error = 7.5280E-5 '
-        write( stdout, '(A)') ''
-        write( stdout, '(A)') '    The output from your computer is: '
-        write( stdout, *) '    IERROR =', ierror, ' PERTRB = ', pertrb
-        write( stdout, *) '    Discretization Error = ', discretization_error
+        write( stdout, '(A)') '     hstcyl *** TEST RUN *** '
+        write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(A)') '     ierror = 0,  PERTRB =-4.4311E-4'
+        write( stdout, '(A)') '     discretization error = 7.5280E-5 '
+        write( stdout, '(A)') '     The output from your computer is: '
+        write( stdout, '(A,I3,A,1pe15.6)') '     ierror =', ierror, ' PERTRB = ', pertrb
+        write( stdout, '(A,1pe15.6)') '     discretization error = ', discretization_error
 
     end subroutine hstcyl_unit_test
     !

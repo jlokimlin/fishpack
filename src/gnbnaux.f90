@@ -39,12 +39,12 @@
 ! LATEST REVISION        June 2004
 !
 ! PURPOSE                TO PROVIDE AUXILIARY ROUTINES FOR FISHPACK
-!                        ENTRIES GENBUN AND POISTG.
+!                        ENTRIES genbun AND POISTG.
 !
 ! USAGE                  THERE ARE NO USER ENTRIES IN THIS PACKAGE.
 !                        THE ROUTINES IN THIS PACKAGE ARE NOT INTENDED
 !                        TO BE CALLED BY USERS, BUT RATHER BY ROUTINES
-!                        IN PACKAGES GENBUN AND POISTG.
+!                        IN PACKAGES genbun AND POISTG.
 !
 ! SPECIAL CONDITIONS     NONE
 !

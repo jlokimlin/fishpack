@@ -916,10 +916,10 @@ contains
         ! Dictionary: calling arguments
         !-----------------------------------------------
         integer  :: n
-        real (wp), intent(out) :: azero
-        real (wp), intent(in) :: r(*)
-        real (wp), intent(out) :: a(*)
-        real (wp), intent(out) :: b(*)
+        real (wp), intent (out) :: azero
+        real (wp), intent (in) :: r(*)
+        real (wp), intent (out) :: a(*)
+        real (wp), intent (out) :: b(*)
         real (wp) :: wsave(*)
         !-----------------------------------------------
         ! Dictionary: local variables
@@ -949,7 +949,7 @@ contains
         if (mod(n, 2) == 1) return
         a(ns2) = 0.5*cf*wsave(n)
         b(ns2) = 0.
-        return
+
     end subroutine ezfftf
 
 
@@ -958,10 +958,10 @@ contains
         ! Dictionary: calling arguments
         !-----------------------------------------------
         integer  :: n
-        real (wp), intent(in) :: azero
+        real (wp), intent (in) :: azero
         real (wp) :: r(*)
-        real (wp), intent(in) :: a(*)
-        real (wp), intent(in) :: b(*)
+        real (wp), intent (in) :: a(*)
+        real (wp), intent (in) :: b(*)
         real (wp) :: wsave(*)
         !-----------------------------------------------
         ! Dictionary: local variables
@@ -1006,10 +1006,10 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer , intent(in) :: n
-        !integer , intent(inout) :: ifac(*)
-        real (wp), intent(inout) :: ifac(*)
-        real (wp), intent(inout) :: wa(*)
+        integer , intent (in) :: n
+        !integer , intent (in out) :: ifac(*)
+        real (wp), intent (in out) :: ifac(*)
+        real (wp), intent (in out) :: wa(*)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
@@ -1078,7 +1078,7 @@ contains
         end do
         l1 = l2
     end do
-    return
+
 end subroutine ezfft1
 
 
@@ -1086,7 +1086,7 @@ subroutine costi(n, wsave)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent(in) :: n
+    integer , intent (in) :: n
     real (wp) :: wsave(*)
     !-----------------------------------------------
     ! Dictionary: local variables
@@ -1109,7 +1109,7 @@ subroutine costi(n, wsave)
         wsave(kc) = 2.0_wp * cos(fk*dt)
     end do
     call rffti (nm1, wsave(n+1))
-    return
+
 end subroutine costi
 
 
@@ -1117,7 +1117,7 @@ subroutine cost(n, x, wsave)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent(in) :: n
+    integer , intent (in) :: n
     real (wp) :: x(*)
     real (wp) :: wsave(*)
     !-----------------------------------------------
@@ -1177,7 +1177,7 @@ subroutine sinti(n, wsave)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent(in) :: n
+    integer , intent (in) :: n
     real (wp) :: wsave(*)
     !-----------------------------------------------
     ! Dictionary: local variables
@@ -1195,7 +1195,7 @@ subroutine sinti(n, wsave)
         wsave(k) = 2.0_wp * sin(k*dt)
     end do
     call rffti (np1, wsave(ns2+1))
-    return
+
 end subroutine sinti
 
 
@@ -1217,7 +1217,7 @@ subroutine sint(n, x, wsave)
     iw2 = iw1 + np1
     iw3 = iw2 + np1
     call sint1 (n, x, wsave, wsave(iw1), wsave(iw2), wsave(iw3))
-    return
+
 end subroutine sint
 
 
@@ -1225,20 +1225,21 @@ subroutine sint1(n, war, was, xh, x, ifac)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent(in) :: n
+    integer , intent (in) :: n
     !integer  :: ifac(*)
     real (wp) :: ifac(*)
     real (wp) :: war(*)
-    real (wp), intent(in) :: was(*)
+    real (wp), intent (in) :: was(*)
     real (wp) :: xh(*)
     real (wp) :: x(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
     integer :: i, np1, ns2, k, kc, modn
-    real (wp) :: sqrt3, xhold, t1, t2
+    real (wp) :: sqrt3 = sqrt( 3.0_wp) ! 1.73205080756888
+    real (wp) ::  xhold, t1, t2
     !-----------------------------------------------
-    data sqrt3/ 1.73205080756888/
+
     xh(:n) = war(:n)
     war(:n) = x(:n)
     if (n - 2 <= 0) then
@@ -1273,7 +1274,7 @@ subroutine sint1(n, war, was, xh, x, ifac)
 106 continue
     x(:n) = war(:n)
     war(:n) = xh(:n)
-    return
+
 end subroutine sint1
 
 
@@ -1298,7 +1299,7 @@ subroutine cosqi(n, wsave)
         wsave(k) = cos(fk*dt)
     end do
     call rffti (n, wsave(n+1))
-    return
+
 end subroutine cosqi
 
 
@@ -1336,7 +1337,7 @@ subroutine cosqf1(n, x, w, xh)
     !-----------------------------------------------
     integer  :: n
     real (wp) :: x(*)
-    real (wp), intent(in) :: w(*)
+    real (wp), intent (in) :: w(*)
     real (wp) :: xh(*)
     !-----------------------------------------------
     ! Dictionary: local variables
@@ -1405,7 +1406,7 @@ subroutine cosqb1(n, x, w, xh)
     !-----------------------------------------------
     integer  :: n
     real (wp) :: x(*)
-    real (wp), intent(in) :: w(*)
+    real (wp), intent (in) :: w(*)
     real (wp) :: xh(*)
     !-----------------------------------------------
     ! Dictionary: local variables
@@ -1477,7 +1478,7 @@ subroutine sinqf(n, x, wsave)
     end do
     call cosqf (n, x, wsave)
     x(2:n:2) = -x(2:n:2)
-    return
+
 end subroutine sinqf
 
 
@@ -1508,7 +1509,7 @@ subroutine sinqb(n, x, wsave)
         x(k) = x(kc+1)
         x(kc+1) = xhold
     end do
-    return
+
 end subroutine sinqb
 
 
@@ -1528,7 +1529,7 @@ subroutine cffti(n, wsave)
     iw1 = n + n + 1
     iw2 = iw1 + n + n
     call cffti1 (n, wsave(iw1), wsave(iw2))
-    return
+
 end subroutine cffti
 
 
@@ -1536,10 +1537,10 @@ subroutine cffti1(n, wa, ifac)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent(in) :: n
-    !integer , intent(inout) :: ifac(*)
-    real (wp), intent(inout) :: ifac(*)
-    real (wp), intent(inout) :: wa(*)
+    integer , intent (in) :: n
+    !integer , intent (in out) :: ifac(*)
+    real (wp), intent (in out) :: ifac(*)
+    real (wp), intent (in out) :: wa(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -1606,7 +1607,7 @@ subroutine cffti1(n, wa, ifac)
         end do
         l1 = l2
     end do
-    return
+
 end subroutine cffti1
 
 
@@ -1627,7 +1628,7 @@ subroutine cfftb(n, c, wsave)
     iw1 = n + n + 1
     iw2 = iw1 + n + n
     call cfftb1 (n, c, wsave, wsave(iw1), wsave(iw2))
-    return
+
 end subroutine cfftb
 
 
@@ -1635,17 +1636,18 @@ subroutine cfftb1(n, c, ch, wa, ifac)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent(in) :: n
-    !integer , intent(in) :: ifac(*)
-    real (wp), intent(in) :: ifac(*)
+    integer , intent (in) :: n
+    !integer , intent (in) :: ifac(*)
+    real (wp), intent (in) :: ifac(*)
     real (wp) :: c(*)
     real (wp) :: ch(*)
     real (wp) :: wa(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer::nf, na, l1, iw, k1, ip, l2, ido, idot, idl1, ix2, ix3, ix4, nac, n2, i
+    integer :: nf, na, l1, iw, k1, ip, l2, ido, idot, idl1, ix2, ix3, ix4, nac, n2, i
     !-----------------------------------------------
+
     nf = ifac(2)
     na = 0
     l1 = 1
@@ -1714,7 +1716,7 @@ subroutine cfftb1(n, c, ch, wa, ifac)
     if (na == 0) return
     n2 = n + n
     c(:n2) = ch(:n2)
-    return
+
 end subroutine cfftb1
 
 
@@ -1722,11 +1724,11 @@ subroutine passb2(ido, l1, cc, ch, wa1)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent(in) :: ido
-    integer , intent(in) :: l1
-    real (wp), intent(in) :: cc(ido, 2, l1)
-    real (wp), intent(out) :: ch(ido, l1, 2)
-    real (wp), intent(in) :: wa1(1)
+    integer , intent (in) :: ido
+    integer , intent (in) :: l1
+    real (wp), intent (in) :: cc(ido, 2, l1)
+    real (wp), intent (out) :: ch(ido, l1, 2)
+    real (wp), intent (in) :: wa1(1)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -1750,7 +1752,7 @@ subroutine passb2(ido, l1, cc, ch, wa1)
             ch(i-1, k, 2) = wa1(i-1)*tr2 - wa1(i)*ti2
         end do
     end do
-    return
+
 end subroutine passb2
 
 
@@ -1758,12 +1760,12 @@ subroutine passb3(ido, l1, cc, ch, wa1, wa2)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent(in) :: ido
-    integer , intent(in) :: l1
-    real (wp), intent(in) :: cc(ido, 3, l1)
-    real (wp), intent(out) :: ch(ido, l1, 3)
-    real (wp), intent(in) :: wa1(*)
-    real (wp), intent(in) :: wa2(*)
+    integer , intent (in) :: ido
+    integer , intent (in) :: l1
+    real (wp), intent (in) :: cc(ido, 3, l1)
+    real (wp), intent (out) :: ch(ido, l1, 3)
+    real (wp), intent (in) :: wa1(*)
+    real (wp), intent (in) :: wa2(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -1818,13 +1820,13 @@ subroutine passb4(ido, l1, cc, ch, wa1, wa2, wa3)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent(in) :: ido
-    integer , intent(in) :: l1
-    real (wp), intent(in) :: cc(ido, 4, l1)
-    real (wp), intent(out) :: ch(ido, l1, 4)
-    real (wp), intent(in) :: wa1(*)
-    real (wp), intent(in) :: wa2(*)
-    real (wp), intent(in) :: wa3(*)
+    integer , intent (in) :: ido
+    integer , intent (in) :: l1
+    real (wp), intent (in) :: cc(ido, 4, l1)
+    real (wp), intent (out) :: ch(ido, l1, 4)
+    real (wp), intent (in) :: wa1(*)
+    real (wp), intent (in) :: wa2(*)
+    real (wp), intent (in) :: wa3(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -1886,14 +1888,14 @@ subroutine passb5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent(in) :: ido
-    integer , intent(in) :: l1
-    real (wp), intent(in) :: cc(ido, 5, l1)
-    real (wp), intent(out) :: ch(ido, l1, 5)
-    real (wp), intent(in) :: wa1(*)
-    real (wp), intent(in) :: wa2(*)
-    real (wp), intent(in) :: wa3(*)
-    real (wp), intent(in) :: wa4(*)
+    integer , intent (in) :: ido
+    integer , intent (in) :: l1
+    real (wp), intent (in) :: cc(ido, 5, l1)
+    real (wp), intent (out) :: ch(ido, l1, 5)
+    real (wp), intent (in) :: wa1(*)
+    real (wp), intent (in) :: wa2(*)
+    real (wp), intent (in) :: wa3(*)
+    real (wp), intent (in) :: wa4(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -1977,7 +1979,7 @@ subroutine passb5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
             ch(i, k, 5) = wa4(i-1)*di5 + wa4(i)*dr5
         end do
     end do
-    return
+
 end subroutine passb5
 
 
@@ -1985,17 +1987,17 @@ subroutine passb(nac, ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent(out) :: nac
-    integer , intent(in) :: ido
-    integer , intent(in) :: ip
-    integer , intent(in) :: l1
-    integer , intent(in) :: idl1
-    real (wp), intent(in) :: cc(ido, ip, l1)
-    real (wp), intent(out) :: c1(ido, l1, ip)
-    real (wp), intent(inout) :: c2(idl1, ip)
-    real (wp), intent(inout) :: ch(ido, l1, ip)
-    real (wp), intent(inout) :: ch2(idl1, ip)
-    real (wp), intent(in) :: wa(*)
+    integer , intent (out) :: nac
+    integer , intent (in) :: ido
+    integer , intent (in) :: ip
+    integer , intent (in) :: l1
+    integer , intent (in) :: idl1
+    real (wp), intent (in) :: cc(ido, ip, l1)
+    real (wp), intent (out) :: c1(ido, l1, ip)
+    real (wp), intent (in out) :: c2(idl1, ip)
+    real (wp), intent (in out) :: ch(ido, l1, ip)
+    real (wp), intent (in out) :: ch2(idl1, ip)
+    real (wp), intent (in) :: wa(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -2082,7 +2084,7 @@ subroutine passb(nac, ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
                 wa(idij+2:ido-2+idij:2)*ch(3:ido-1:2, k, j)
         end do
     end do
-    return
+
 end subroutine passb
 
 
@@ -2111,9 +2113,9 @@ subroutine cfftf1(n, c, ch, wa, ifac)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent(in) :: n
-    real (wp), intent(in) :: ifac(*)
-    !integer , intent(in) :: ifac(*)
+    integer , intent (in) :: n
+    real (wp), intent (in) :: ifac(*)
+    !integer , intent (in) :: ifac(*)
     real (wp) :: c(*)
     real (wp) :: ch(*)
     real (wp) :: wa(*)
@@ -2190,7 +2192,7 @@ subroutine cfftf1(n, c, ch, wa, ifac)
     if (na == 0) return
     n2 = n + n
     c(:n2) = ch(:n2)
-    return
+
 end subroutine cfftf1
 
 
@@ -2198,11 +2200,11 @@ subroutine passf2(ido, l1, cc, ch, wa1)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent(in) :: ido
-    integer , intent(in) :: l1
-    real (wp), intent(in) :: cc(ido, 2, l1)
-    real (wp), intent(out) :: ch(ido, l1, 2)
-    real (wp), intent(in) :: wa1(*)
+    integer , intent (in) :: ido
+    integer , intent (in) :: l1
+    real (wp), intent (in) :: cc(ido, 2, l1)
+    real (wp), intent (out) :: ch(ido, l1, 2)
+    real (wp), intent (in) :: wa1(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -2234,12 +2236,12 @@ subroutine passf3(ido, l1, cc, ch, wa1, wa2)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent(in) :: ido
-    integer , intent(in) :: l1
-    real (wp), intent(in) :: cc(ido, 3, l1)
-    real (wp), intent(out) :: ch(ido, l1, 3)
-    real (wp), intent(in) :: wa1(*)
-    real (wp), intent(in) :: wa2(*)
+    integer , intent (in) :: ido
+    integer , intent (in) :: l1
+    real (wp), intent (in) :: cc(ido, 3, l1)
+    real (wp), intent (out) :: ch(ido, l1, 3)
+    real (wp), intent (in) :: wa1(*)
+    real (wp), intent (in) :: wa2(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -2294,13 +2296,13 @@ subroutine passf4(ido, l1, cc, ch, wa1, wa2, wa3)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent(in) :: ido
-    integer , intent(in) :: l1
-    real (wp), intent(in) :: cc(ido, 4, l1)
-    real (wp), intent(out) :: ch(ido, l1, 4)
-    real (wp), intent(in) :: wa1(*)
-    real (wp), intent(in) :: wa2(*)
-    real (wp), intent(in) :: wa3(*)
+    integer , intent (in) :: ido
+    integer , intent (in) :: l1
+    real (wp), intent (in) :: cc(ido, 4, l1)
+    real (wp), intent (out) :: ch(ido, l1, 4)
+    real (wp), intent (in) :: wa1(*)
+    real (wp), intent (in) :: wa2(*)
+    real (wp), intent (in) :: wa3(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -2362,14 +2364,14 @@ subroutine passf5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent(in) :: ido
-    integer , intent(in) :: l1
-    real (wp), intent(in) :: cc(ido, 5, l1)
-    real (wp), intent(out) :: ch(ido, l1, 5)
-    real (wp), intent(in) :: wa1(*)
-    real (wp), intent(in) :: wa2(*)
-    real (wp), intent(in) :: wa3(*)
-    real (wp), intent(in) :: wa4(*)
+    integer , intent (in) :: ido
+    integer , intent (in) :: l1
+    real (wp), intent (in) :: cc(ido, 5, l1)
+    real (wp), intent (out) :: ch(ido, l1, 5)
+    real (wp), intent (in) :: wa1(*)
+    real (wp), intent (in) :: wa2(*)
+    real (wp), intent (in) :: wa3(*)
+    real (wp), intent (in) :: wa4(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -2461,17 +2463,17 @@ subroutine passf(nac, ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent(out) :: nac
-    integer , intent(in) :: ido
-    integer , intent(in) :: ip
-    integer , intent(in) :: l1
-    integer , intent(in) :: idl1
-    real (wp), intent(in) :: cc(ido, ip, l1)
-    real (wp), intent(out) :: c1(ido, l1, ip)
-    real (wp), intent(inout) :: c2(idl1, ip)
-    real (wp), intent(inout) :: ch(ido, l1, ip)
-    real (wp), intent(inout) :: ch2(idl1, ip)
-    real (wp), intent(in) :: wa(*)
+    integer , intent (out) :: nac
+    integer , intent (in) :: ido
+    integer , intent (in) :: ip
+    integer , intent (in) :: l1
+    integer , intent (in) :: idl1
+    real (wp), intent (in) :: cc(ido, ip, l1)
+    real (wp), intent (out) :: c1(ido, l1, ip)
+    real (wp), intent (in out) :: c2(idl1, ip)
+    real (wp), intent (in out) :: ch(ido, l1, ip)
+    real (wp), intent (in out) :: ch2(idl1, ip)
+    real (wp), intent (in) :: wa(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -2580,10 +2582,10 @@ subroutine rffti1(n, wa, ifac)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent(in) :: n
-    real (wp), intent(inout) :: ifac(*)
-    !integer , intent(inout) :: ifac(*)
-    real (wp), intent(out) :: wa(*)
+    integer , intent (in) :: n
+    real (wp), intent (in out) :: ifac(*)
+    !integer , intent (in out) :: ifac(*)
+    real (wp), intent (out) :: wa(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -2670,9 +2672,9 @@ subroutine rfftb1(n, c, ch, wa, ifac)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent(in) :: n
-    real (wp), intent(in) :: ifac(*)
-    !integer , intent(in) :: ifac(*)
+    integer , intent (in) :: n
+    real (wp), intent (in) :: ifac(*)
+    !integer , intent (in) :: ifac(*)
     real (wp) :: c(*)
     real (wp) :: ch(*)
     real (wp) :: wa(*)
@@ -2753,11 +2755,11 @@ subroutine radb2(ido, l1, cc, ch, wa1)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent(in) :: ido
-    integer , intent(in) :: l1
-    real (wp), intent(in) :: cc(ido, 2, l1)
-    real (wp), intent(out) :: ch(ido, l1, 2)
-    real (wp), intent(in) :: wa1(*)
+    integer , intent (in) :: ido
+    integer , intent (in) :: l1
+    real (wp), intent (in) :: cc(ido, 2, l1)
+    real (wp), intent (out) :: ch(ido, l1, 2)
+    real (wp), intent (in) :: wa1(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -2793,12 +2795,12 @@ subroutine radb3(ido, l1, cc, ch, wa1, wa2)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent(in) :: ido
-    integer , intent(in) :: l1
-    real (wp), intent(in) :: cc(ido, 3, l1)
-    real (wp), intent(out) :: ch(ido, l1, 3)
-    real (wp), intent(in) :: wa1(*)
-    real (wp), intent(in) :: wa2(*)
+    integer , intent (in) :: ido
+    integer , intent (in) :: l1
+    real (wp), intent (in) :: cc(ido, 3, l1)
+    real (wp), intent (out) :: ch(ido, l1, 3)
+    real (wp), intent (in) :: wa1(*)
+    real (wp), intent (in) :: wa2(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -2847,13 +2849,13 @@ subroutine radb4(ido, l1, cc, ch, wa1, wa2, wa3)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent(in) :: ido
-    integer , intent(in) :: l1
-    real (wp), intent(in) :: cc(ido, 4, l1)
-    real (wp), intent(out) :: ch(ido, l1, 4)
-    real (wp), intent(in) :: wa1(*)
-    real (wp), intent(in) :: wa2(*)
-    real (wp), intent(in) :: wa3(*)
+    integer , intent (in) :: ido
+    integer , intent (in) :: l1
+    real (wp), intent (in) :: cc(ido, 4, l1)
+    real (wp), intent (out) :: ch(ido, l1, 4)
+    real (wp), intent (in) :: wa1(*)
+    real (wp), intent (in) :: wa2(*)
+    real (wp), intent (in) :: wa3(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -2924,14 +2926,14 @@ subroutine radb5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent(in) :: ido
-    integer , intent(in) :: l1
-    real (wp), intent(in) :: cc(ido, 5, l1)
-    real (wp), intent(out) :: ch(ido, l1, 5)
-    real (wp), intent(in) :: wa1(*)
-    real (wp), intent(in) :: wa2(*)
-    real (wp), intent(in) :: wa3(*)
-    real (wp), intent(in) :: wa4(*)
+    integer , intent (in) :: ido
+    integer , intent (in) :: l1
+    real (wp), intent (in) :: cc(ido, 5, l1)
+    real (wp), intent (out) :: ch(ido, l1, 5)
+    real (wp), intent (in) :: wa1(*)
+    real (wp), intent (in) :: wa2(*)
+    real (wp), intent (in) :: wa3(*)
+    real (wp), intent (in) :: wa4(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -3011,16 +3013,16 @@ subroutine radbg(ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent(in) :: ido
-    integer , intent(in) :: ip
-    integer , intent(in) :: l1
-    integer , intent(in) :: idl1
-    real (wp), intent(in) :: cc(ido, ip, l1)
-    real (wp), intent(inout) :: c1(ido, l1, ip)
-    real (wp), intent(inout) :: c2(idl1, ip)
-    real (wp), intent(inout) :: ch(ido, l1, ip)
-    real (wp), intent(inout) :: ch2(idl1, ip)
-    real (wp), intent(in) :: wa(*)
+    integer , intent (in) :: ido
+    integer , intent (in) :: ip
+    integer , intent (in) :: l1
+    integer , intent (in) :: idl1
+    real (wp), intent (in) :: cc(ido, ip, l1)
+    real (wp), intent (in out) :: c1(ido, l1, ip)
+    real (wp), intent (in out) :: c2(idl1, ip)
+    real (wp), intent (in out) :: ch(ido, l1, ip)
+    real (wp), intent (in out) :: ch2(idl1, ip)
+    real (wp), intent (in) :: wa(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -3173,9 +3175,9 @@ subroutine rfftf1(n, c, ch, wa, ifac)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent(in) :: n
-    !integer , intent(in) :: ifac(*)
-    real (wp), intent(in) :: ifac(*)
+    integer , intent (in) :: n
+    !integer , intent (in) :: ifac(*)
+    real (wp), intent (in) :: ifac(*)
     real (wp) :: c(*)
     real (wp) :: ch(*)
     real (wp) :: wa(*)
@@ -3251,7 +3253,7 @@ subroutine rfftf1(n, c, ch, wa, ifac)
 end do
 if (na == 1) return
 c(:n) = ch(:n)
-return
+
 end subroutine rfftf1
 
 
@@ -3259,17 +3261,18 @@ subroutine radf2(ido, l1, cc, ch, wa1)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent(in) :: ido
-    integer , intent(in) :: l1
-    real (wp), intent(in) :: cc(ido, l1, 2)
-    real (wp), intent(out) :: ch(ido, 2, l1)
-    real (wp), intent(in) :: wa1(*)
+    integer , intent (in) :: ido
+    integer , intent (in) :: l1
+    real (wp), intent (in) :: cc(ido, l1, 2)
+    real (wp), intent (out) :: ch(ido, 2, l1)
+    real (wp), intent (in) :: wa1(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
     integer :: k, idp2, i, ic
     real (wp) :: tr2, ti2
     !-----------------------------------------------
+
     ch(1, 1, :) = cc(1, :, 1) + cc(1, :, 2)
     ch(ido, 2, :) = cc(1, :, 1) - cc(1, :, 2)
     if (ido - 2 >= 0) then
@@ -3299,12 +3302,12 @@ subroutine radf3(ido, l1, cc, ch, wa1, wa2)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent(in) :: ido
-    integer , intent(in) :: l1
-    real (wp), intent(in) :: cc(ido, l1, 3)
-    real (wp), intent(out) :: ch(ido, 3, l1)
-    real (wp), intent(in) :: wa1(*)
-    real (wp), intent(in) :: wa2(*)
+    integer , intent (in) :: ido
+    integer , intent (in) :: l1
+    real (wp), intent (in) :: cc(ido, l1, 3)
+    real (wp), intent (out) :: ch(ido, 3, l1)
+    real (wp), intent (in) :: wa1(*)
+    real (wp), intent (in) :: wa2(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -3351,13 +3354,13 @@ subroutine radf4(ido, l1, cc, ch, wa1, wa2, wa3)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent(in) :: ido
-    integer , intent(in) :: l1
-    real (wp), intent(in) :: cc(ido, l1, 4)
-    real (wp), intent(out) :: ch(ido, 4, l1)
-    real (wp), intent(in) :: wa1(*)
-    real (wp), intent(in) :: wa2(*)
-    real (wp), intent(in) :: wa3(*)
+    integer , intent (in) :: ido
+    integer , intent (in) :: l1
+    real (wp), intent (in) :: cc(ido, l1, 4)
+    real (wp), intent (out) :: ch(ido, 4, l1)
+    real (wp), intent (in) :: wa1(*)
+    real (wp), intent (in) :: wa2(*)
+    real (wp), intent (in) :: wa3(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -3426,14 +3429,14 @@ subroutine radf5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent(in) :: ido
-    integer , intent(in) :: l1
-    real (wp), intent(in) :: cc(ido, l1, 5)
-    real (wp), intent(out) :: ch(ido, 5, l1)
-    real (wp), intent(in) :: wa1(*)
-    real (wp), intent(in) :: wa2(*)
-    real (wp), intent(in) :: wa3(*)
-    real (wp), intent(in) :: wa4(*)
+    integer , intent (in) :: ido
+    integer , intent (in) :: l1
+    real (wp), intent (in) :: cc(ido, l1, 5)
+    real (wp), intent (out) :: ch(ido, 5, l1)
+    real (wp), intent (in) :: wa1(*)
+    real (wp), intent (in) :: wa2(*)
+    real (wp), intent (in) :: wa3(*)
+    real (wp), intent (in) :: wa4(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -3508,16 +3511,16 @@ subroutine radfg(ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent(in) :: ido
-    integer , intent(in) :: ip
-    integer , intent(in) :: l1
-    integer , intent(in) :: idl1
-    real (wp), intent(out) :: cc(ido, ip, l1)
-    real (wp), intent(inout) :: c1(ido, l1, ip)
-    real (wp), intent(inout) :: c2(idl1, ip)
-    real (wp), intent(inout) :: ch(ido, l1, ip)
-    real (wp), intent(inout) :: ch2(idl1, ip)
-    real (wp), intent(in) :: wa(*)
+    integer , intent (in) :: ido
+    integer , intent (in) :: ip
+    integer , intent (in) :: l1
+    integer , intent (in) :: idl1
+    real (wp), intent (out) :: cc(ido, ip, l1)
+    real (wp), intent (in out) :: c1(ido, l1, ip)
+    real (wp), intent (in out) :: c2(idl1, ip)
+    real (wp), intent (in out) :: ch(ido, l1, ip)
+    real (wp), intent (in out) :: ch2(idl1, ip)
+    real (wp), intent (in) :: wa(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------

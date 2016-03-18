@@ -31,9 +31,8 @@ module module_blktri
     !---------------------------------------------------------------------------------
 
 contains
-    !
-    !*****************************************************************************************
-    !
+
+
     subroutine blktri_unit_test()
         !     file tblktri.f
         !
@@ -237,21 +236,19 @@ contains
         !     Print earlier output from platform with 64 bit floating point
         !     arithemtic followed by the output from this computer
         write( stdout, '(A)') ''
-        write( stdout, '(A)') '     BLKTRI UNIT TEST ******* '
+        write( stdout, '(A)') '     blktri *** TEST RUN *** '
         write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
-        write( stdout, '(A)') '     IERROR = 0,  Discretization Error = 1.6478E-05'
-        write( stdout, '(A)') ''
-        write( stdout, '(A)') '    The output from your computer is: '
-        write( stdout, *) '    IERROR =', IERROR, ' Discretization Error = ', &
+        write( stdout, '(A)') '     ierror = 0,  discretization error = 1.6478E-05'
+        write( stdout, '(A)') '     The output from your computer is: '
+        write( stdout, '(A,I3,A,1pe15.6)') '     ierror =', ierror, ' discretization error = ', &
             discretization_error
 
         !! release dynamically allocated work space
         call workspace%destroy()
 
     end subroutine blktri_unit_test
-    !
-    !*****************************************************************************************
-    !
+
+
     subroutine blktri( iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
         idimy, y, ierror, w )
         !
@@ -290,8 +287,8 @@ contains
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
         !
-        !     SUBROUTINE BLKTRI (IFLG, NP, N, AN, BN, CN, MP, M, AM, BM, CM, IDIMY, Y,
-        !    +                   IERROR, W)
+        !     SUBROUTINE blktri (IFLG, NP, N, AN, BN, CN, MP, M, AM, BM, CM, IDIMY, Y,
+        !    +                   ierror, W)
         !
         !
         !
@@ -300,10 +297,10 @@ contains
         !
         ! LATEST REVISION        JUNE 2004
         !
-        ! USAGE                  CALL BLKTRI (IFLG, NP, N, AN, BN, CN, MP, M, AM, BM,
-        !                                     CM, IDIMY, Y, IERROR, W)
+        ! USAGE                  CALL blktri (IFLG, NP, N, AN, BN, CN, MP, M, AM, BM,
+        !                                     CM, IDIMY, Y, ierror, W)
         !
-        ! PURPOSE                BLKTRI SOLVES A SYSTEM OF LINEAR EQUATIONS
+        ! PURPOSE                blktri SOLVES A SYSTEM OF LINEAR EQUATIONS
         !                        OF THE FORM
         !
         !                        AN(J)*X(I, J-1) + AM(I)*X(I-1, J) +
@@ -383,7 +380,7 @@ contains
         !                        IDIMY
         !                          THE ROW (OR FIRST) DIMENSION OF THE
         !                          TWO-DIMENSIONAL ARRAY Y AS IT APPEARS
-        !                          IN THE PROGRAM CALLING BLKTRI.
+        !                          IN THE PROGRAM CALLING blktri.
         !                          THIS PARAMETER IS USED TO SPECIFY THE
         !                          VARIABLE DIMENSION OF Y.
         !                          IDIMY MUST BE AT LEAST M.
@@ -398,32 +395,32 @@ contains
         !                          A fortran 90 derived TYPE (FishpackWorkspace) variable
         !                          that must be declared by the user.  The first
         !                          two declarative statements in the user program
-        !                          calling BLKTRI must be:
+        !                          calling blktri must be:
         !
         !                               use type_FishpackWorkspace
         !                               TYPE (FishpackWorkspace) :: W
         !
         !                          The first statement makes the fishpack module
         !                          defined in the file "fish.f" available to the
-        !                          user program calling BLKTRI.  The second statement
+        !                          user program calling blktri.  The second statement
         !                          declares a derived type variable (defined in
         !                          the module "fish.f") which is used internally
-        !                          in BLKTRI to dynamically allocate real and complex
+        !                          in blktri to dynamically allocate real and complex
         !                          work space used in solution.  An error flag
-        !                          (IERROR = 20) is set if the required work space
+        !                          (ierror = 20) is set if the required work space
         !                          allocation fails (for example if N, M are too large)
         !                          Real and complex values are set in the components
-        !                          of W on a initial (IFLG=0) call to BLKTRI.  These
+        !                          of W on a initial (IFLG=0) call to blktri.  These
         !                          must be preserved on non-initial calls (IFLG=1)
-        !                          to BLKTRI.  This eliminates redundant calculations
+        !                          to blktri.  This eliminates redundant calculations
         !                          and saves compute time.
-        !               ****       IMPORTANT!  The user program calling BLKTRI should
+        !               ****       IMPORTANT!  The user program calling blktri should
         !                          include the statement:
         !
         !                               CALL FISHFIN(W)
         !
         !                          after the final approximation is generated by
-        !                          BLKTRI.  The will deallocate the real and complex
+        !                          blktri.  The will deallocate the real and complex
         !                          work space of W.  Failure to include this statement
         !                          could result in serious memory leakage.
         !
@@ -433,7 +430,7 @@ contains
         ! ON OUTPUT              Y
         !                          CONTAINS THE SOLUTION X.
         !
-        !                        IERROR
+        !                        ierror
         !                          AN ERROR FLAG THAT INDICATES INVALID
         !                          INPUT PARAMETERS.  EXCEPT FOR NUMBER ZER0,
         !                          A SOLUTION IS NOT ATTEMPTED.
@@ -442,7 +439,7 @@ contains
         !                        = 1  M IS LESS THAN 5
         !                        = 2  N IS LESS THAN 5
         !                        = 3  IDIMY IS LESS THAN M.
-        !                        = 4  BLKTRI FAILED WHILE COMPUTING RESULTS
+        !                        = 4  blktri FAILED WHILE COMPUTING RESULTS
         !                             THAT DEPEND ON THE COEFFICIENT ARRAYS
         !                             AN, BN, CN.  CHECK THESE ARRAYS.
         !                        = 5  AN(J)*CN(J-1) IS LESS THAN 0 FOR SOME J.
@@ -465,7 +462,7 @@ contains
         !                        W
         !                             The derived type (FishpackWorkspace) variable W
         !                             contains real and complex values that must not
-        !                             be destroyed if BLKTRI is called again with
+        !                             be destroyed if blktri is called again with
         !                             IFLG=1.
         !
         !
@@ -476,7 +473,7 @@ contains
         !                        FAIL IF AN(J)*CN(J-1) IS LESS THAN ZERO FOR
         !                        SOME J.
         !                        SEE THE DESCRIPTION OF THE OUTPUT PARAMETER
-        !                        IERROR.
+        !                        ierror.
         !
         ! I/O                    NONE
         !
@@ -560,13 +557,12 @@ contains
             ierror, w%rew, w%cxw )
 
     end subroutine blktri
-    !
-    !*****************************************************************************************
-    !
+
+
     subroutine blktrii( iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
         idimy, y, ierror, w, wc)
         !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
+        ! Dictionary: calling arguments
         !-----------------------------------------------
         integer (ip), intent (in) :: iflg
         integer (ip), intent (in) :: np
@@ -585,7 +581,7 @@ contains
         real (wp) :: w(*)
         complex (wp) :: wc(*)
         !-----------------------------------------------
-        !   l o c a l   v a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer (ip)       ::  nh, iwah, iwbh
         integer (ip), save :: iw1, iw2, iw3, iww, iwu, iwd, nl
@@ -658,9 +654,8 @@ contains
         end if
 
     end subroutine blktrii
-    !
-    !*****************************************************************************************
-    !
+
+
     subroutine blktr1(n, an, bn, cn, m, am, bm, cm, idimy, y, b, bc, &
         w1, w2, w3, wd, ww, wu, cw1, cw2, cw3, prdct, cprdct)
         !
@@ -678,7 +673,7 @@ contains
         !
         !
         !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
+        ! Dictionary: calling arguments
         !-----------------------------------------------
         integer (ip)              :: n
         integer (ip)              :: m
@@ -702,7 +697,7 @@ contains
         complex (wp)              :: cw2(*)
         complex (wp)              :: cw3(*)
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer (ip) :: kdo, l, ir, i2, i1, i3, i4, irm1, im2, nm2, im3, nm3
         integer (ip) :: im1, nm1, i0, if_rename, i, ipi1, ipi2, ipi3, idxc, nc, idxa, na, ip2
@@ -908,12 +903,12 @@ contains
     end do
 
 end subroutine blktr1
-    !
-    !*****************************************************************************************
-    !
+
+
+
 function bsrh(xll, xrr, iz, c, a, bh, f, sgn) result(return_value)
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     real (wp), intent (in) :: xll
     real (wp), intent (in) :: xrr
@@ -925,7 +920,7 @@ function bsrh(xll, xrr, iz, c, a, bh, f, sgn) result(return_value)
     real (wp), intent (in) :: sgn
     real (wp)              :: return_value
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     real (wp) :: r1, xl, xr, dx, x
     !-----------------------------------------------
@@ -963,7 +958,7 @@ end function bsrh
     !
 subroutine compb(n, ierror, an, bn, cn, b, bc, ah, bh)
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer (ip)           :: n
     integer (ip)           :: ierror
@@ -975,7 +970,7 @@ subroutine compb(n, ierror, an, bn, cn, b, bc, ah, bh)
     real (wp)              :: bh(*)
     complex (wp)           :: bc(*)
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer (ip) :: j, if, kdo, l, ir, i2, i4, ipl, ifd, i, ib, nb, js, jf
     integer (ip) ::  ls, lh, nmp, l1, l2, j2, j1, n2m2
@@ -1067,9 +1062,8 @@ return
     ierror = 5
 
 end subroutine compb
-    !
-    !*****************************************************************************************
-    !
+
+
 subroutine cprod(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, b, c, d, w, y)
     !
     ! Purpose:
@@ -1096,7 +1090,7 @@ subroutine cprod(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, b, c, d, w, y)
     ! isgn  determines whether or not a change in sign is made
     !
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer (ip), intent (in) :: nd
     integer (ip), intent (in) :: nm1
@@ -1116,7 +1110,7 @@ subroutine cprod(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, b, c, d, w, y)
     complex (wp), intent (in out) :: w(*)
     complex (wp), intent (in out) :: y(*)
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer (ip) :: j, mm, id, m1, m2, ia, iflg, k
     real (wp)    :: rt
@@ -1226,7 +1220,7 @@ subroutine cprodp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, &
     ! isgn  determines whether or not a change in sign is made
     !
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer (ip), intent (in) :: nd
     integer (ip), intent (in) :: nm1
@@ -1246,7 +1240,7 @@ subroutine cprodp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, &
     complex (wp), intent (in out) :: u(*)
     complex (wp), intent (in out) :: y(*)
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer (ip) :: j, mm, mm2, id, m1, m2, ia, iflg, k
     real (wp)    :: rt
@@ -1363,7 +1357,7 @@ end subroutine cprodp
     !
 subroutine indxa(i, ir, idxa, na)
     !-----------------------------------------------
-    !   d u m m y   a r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer (ip), intent (in)  :: i
     integer (ip), intent (in)  :: ir
@@ -1383,14 +1377,14 @@ end subroutine indxa
     !
 subroutine indxb(i, ir, idx, idp)
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer (ip), intent (in)  :: i
     integer (ip), intent (in)  :: ir
     integer (ip), intent (out) :: idx
     integer (ip), intent (out) :: idp
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer (ip) :: izh, id, ipl
     !-----------------------------------------------
@@ -1426,7 +1420,7 @@ end subroutine indxb
 pure subroutine indxc(i, ir, idxc, nc)
 
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer (ip), intent (in) :: i
     integer (ip), intent (in) :: ir
@@ -1457,7 +1451,7 @@ subroutine ppadd(n, ierror, a, c, cbp, bp, bh)
     ! which enters through bp
     !
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer (ip), intent (in) :: n
     integer (ip), intent (out) :: ierror
@@ -1467,7 +1461,7 @@ subroutine ppadd(n, ierror, a, c, cbp, bp, bh)
     real (wp) :: bh(*)
     complex (wp), intent (in out) :: cbp(*)
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer (ip) :: iz, izm, izm2, j, nt, modiz, is, if, ig, it, icv, i3, i2, nhalf
     real (wp)    :: r4, r5, r6, scnv, xl, db, sgn, xr, xm, psg
@@ -1634,115 +1628,115 @@ go to 143
 end subroutine ppadd
 
 
-subroutine prod(ND, BD, NM1, BM1, NM2, BM2, NA, AA, X, Y, M, A, B, C, D, W, U)
+subroutine prod(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, w, u)
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer (ip), intent (in) :: ND
-    integer (ip), intent (in) :: NM1
-    integer (ip), intent (in) :: NM2
-    integer (ip), intent (in) :: NA
-    integer (ip), intent (in) :: M
-    real (wp), intent (in) :: BD(*)
-    real (wp), intent (in) :: BM1(*)
-    real (wp), intent (in) :: BM2(*)
-    real (wp), intent (in) :: AA(*)
-    real (wp), intent (in) :: X(*)
-    real (wp), intent (in out) :: Y(*)
-    real (wp), intent (in) :: A(*)
-    real (wp), intent (in) :: B(*)
-    real (wp), intent (in) :: C(*)
-    real (wp), intent (in out) :: D(*)
-    real (wp), intent (in out) :: W(*)
-    real (wp) :: U(*)
+    integer (ip), intent (in)     :: nd
+    integer (ip), intent (in)     :: nm1
+    integer (ip), intent (in)     :: nm2
+    integer (ip), intent (in)     :: na
+    integer (ip), intent (in)     :: m
+    real (wp),    intent (in)     :: bd(*)
+    real (wp),    intent (in)     :: bm1(*)
+    real (wp),    intent (in)     :: bm2(*)
+    real (wp),    intent (in)     :: aa(*)
+    real (wp),    intent (in)     :: x(*)
+    real (wp),    intent (in out) :: y(*)
+    real (wp),    intent (in)     :: a(*)
+    real (wp),    intent (in)     :: b(*)
+    real (wp),    intent (in)     :: c(*)
+    real (wp),    intent (in out) :: d(*)
+    real (wp),    intent (in out) :: w(*)
+    real (wp),    intent (in out) :: u(*)
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
-    integer (ip) :: J, MM, ID, IBR, M1, M2, IA, K
-    real (wp) :: RT, DEN
+    integer (ip) :: j, mm, id, ibr, m1, m2, ia, k
+    real (wp)    :: rt, den
     !-----------------------------------------------
     !
-    ! prod APPLIES A SEQUENCE OF MATRIX OPERATIONS TO THE VECTOR X AND
-    ! STORES THE RESULT IN Y
-    ! BD, BM1, BM2 ARE ARRAYS CONTAINING ROOTS OF CERTIAN B POLYNOMIALS
-    ! ND, NM1, NM2 ARE THE LENGTHS OF THE ARRAYS BD, BM1, BM2 RESPECTIVELY
-    ! AA   ARRAY CONTAINING SCALAR MULTIPLIERS OF THE VECTOR X
-    ! NA IS THE LENGTH OF THE ARRAY AA
-    ! X, Y  THE MATRIX OPERATIONS ARE APPLIED TO X AND THE RESULT IS Y
-    ! A, B, C  ARE ARRAYS WHICH CONTAIN THE TRIDIAGONAL MATRIX
-    ! M  IS THE ORDER OF THE MATRIX
-    ! D, W, U ARE WORKING ARRAYS
-    ! IS  DETERMINES WHETHER OR NOT A CHANGE IN SIGN IS MADE
+    ! prod applies a sequence of matrix operations to the vector x and
+    ! stores the result in y
+    ! bd, bm1, bm2 are arrays containing roots of certian b polynomials
+    ! nd, nm1, nm2 are the lengths of the arrays bd, bm1, bm2 respectively
+    ! aa   array containing scalar multipliers of the vector x
+    ! na is the length of the array aa
+    ! x, y  the matrix operations are applied to x and the result is y
+    ! a, b, c  are arrays which contain the tridiagonal matrix
+    ! m  is the order of the matrix
+    ! d, w, u are working arrays
+    ! is  determines whether or not a change in sign is made
     !
-    W(:M) = X(:M)
-    Y(:M) = W(:M)
-    MM = M - 1
-    ID = ND
-    IBR = 0
-    M1 = NM1
-    M2 = NM2
-    IA = NA
+    w(:m) = x(:m)
+    y(:m) = w(:m)
+    mm = m - 1
+    id = nd
+    ibr = 0
+    m1 = nm1
+    m2 = nm2
+    ia = na
 102 continue
-    if (IA > 0) then
-        RT = AA(IA)
-        if (ND == 0) RT = -RT
-        IA = IA - 1
+    if (ia > 0) then
+        rt = aa(ia)
+        if (nd == 0) rt = -rt
+        ia = ia - 1
         !
-        ! SCALAR MULTIPLICATION
+        ! scalar multiplication
         !
-        Y(:M) = RT*W(:M)
+        y(:m) = rt*w(:m)
     end if
-    if (ID <= 0) go to 125
-    RT = BD(ID)
-    ID = ID - 1
-    if (ID == 0) IBR = 1
+    if (id <= 0) go to 125
+    rt = bd(id)
+    id = id - 1
+    if (id == 0) ibr = 1
     !
-    ! BEGIN SOLUTION TO SYSTEM
+    ! begin solution to system
     !
-    D(M) = A(M)/(B(M)-RT)
-    W(M) = Y(M)/(B(M)-RT)
-    do J = 2, MM
-        K = M - J
-        DEN = B(K+1) - RT - C(K+1)*D(K+2)
-        D(K+1) = A(K+1)/DEN
-        W(K+1) = (Y(K+1)-C(K+1)*W(K+2))/DEN
+    d(m) = a(m)/(b(m)-rt)
+    w(m) = y(m)/(b(m)-rt)
+    do j = 2, mm
+        k = m - j
+        den = b(k+1) - rt - c(k+1)*d(k+2)
+        d(k+1) = a(k+1)/den
+        w(k+1) = (y(k+1)-c(k+1)*w(k+2))/den
     end do
-    DEN = B(1) - RT - C(1)*D(2)
-    W(1) = 1.
-    if (DEN /= 0.) then
-        W(1) = (Y(1)-C(1)*W(2))/DEN
+    den = b(1) - rt - c(1)*d(2)
+    w(1) = 1.
+    if (den /= 0.) then
+        w(1) = (y(1)-c(1)*w(2))/den
     end if
-    do J = 2, M
-        W(J) = W(J) - D(J)*W(J-1)
+    do j = 2, m
+        w(j) = w(j) - d(j)*w(j-1)
     end do
-    if (NA > 0) go to 102
+    if (na > 0) go to 102
     go to 113
 111 continue
-    Y(:M) = W(:M)
-    IBR = 1
+    y(:m) = w(:m)
+    ibr = 1
     go to 102
 113 continue
-    if (M1 <= 0) then
-        if (M2 <= 0) go to 111
+    if (m1 <= 0) then
+        if (m2 <= 0) go to 111
     else
-        if (M2 > 0) then
-            if (abs(BM1(M1)) - abs(BM2(M2)) <= 0.) go to 120
+        if (m2 > 0) then
+            if (abs(bm1(m1)) - abs(bm2(m2)) <= 0.) go to 120
         end if
-        if (IBR <= 0) then
-            if (abs(BM1(M1)-BD(ID)) - abs(BM1(M1)-RT) < 0.) go to 111
+        if (ibr <= 0) then
+            if (abs(bm1(m1)-bd(id)) - abs(bm1(m1)-rt) < 0.) go to 111
         end if
-        RT = RT - BM1(M1)
-        M1 = M1 - 1
+        rt = rt - bm1(m1)
+        m1 = m1 - 1
         go to 123
     end if
 120 continue
-    if (IBR <= 0) then
-        if (abs(BM2(M2)-BD(ID)) - abs(BM2(M2)-RT) < 0.) go to 111
+    if (ibr <= 0) then
+        if (abs(bm2(m2)-bd(id)) - abs(bm2(m2)-rt) < 0.) go to 111
     end if
-    RT = RT - BM2(M2)
-    M2 = M2 - 1
+    rt = rt - bm2(m2)
+    m2 = m2 - 1
 123 continue
-    Y(:M) = Y(:M) + RT*W(:M)
+    y(:m) = y(:m) + rt*w(:m)
     go to 102
 125 continue
 
@@ -1775,118 +1769,118 @@ subroutine prodp( nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, u, w)
     ! is  determines whether or not a change in sign is made
     !
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer (ip), intent (in) :: ND
-    integer (ip), intent (in) :: NM1
-    integer (ip), intent (in) :: NM2
-    integer (ip), intent (in) :: NA
-    integer (ip), intent (in) :: M
-    real (wp), intent (in) :: BD(*)
-    real (wp), intent (in) :: BM1(*)
-    real (wp), intent (in) :: BM2(*)
-    real (wp), intent (in) :: AA(*)
-    real (wp), intent (in) :: X(*)
-    real (wp), intent (in out) :: Y(*)
-    real (wp), intent (in) :: A(*)
-    real (wp), intent (in) :: B(*)
-    real (wp), intent (in) :: C(*)
-    real (wp), intent (in out) :: D(*)
-    real (wp), intent (in out) :: U(*)
-    real (wp), intent (in out) :: W(*)
+    integer (ip), intent (in)     :: nd
+    integer (ip), intent (in)     :: nm1
+    integer (ip), intent (in)     :: nm2
+    integer (ip), intent (in)     :: na
+    integer (ip), intent (in)     :: m
+    real (wp),    intent (in)     :: bd(*)
+    real (wp),    intent (in)     :: bm1(*)
+    real (wp),    intent (in)     :: bm2(*)
+    real (wp),    intent (in)     :: aa(*)
+    real (wp),    intent (in)     :: x(*)
+    real (wp),    intent (in out) :: y(*)
+    real (wp),    intent (in)     :: a(*)
+    real (wp),    intent (in)     :: b(*)
+    real (wp),    intent (in)     :: c(*)
+    real (wp),    intent (in out) :: d(*)
+    real (wp),    intent (in out) :: u(*)
+    real (wp),    intent (in out) :: w(*)
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
-    integer (ip) :: J, MM, MM2, ID, IBR, M1, M2, IA, K
-    real (wp) :: RT, BH, YM, DEN, V, AM
+    integer (ip) :: j, mm, mm2, id, ibr, m1, m2, ia, k
+    real (wp)    :: rt, bh, ym, den, v, am
     !-----------------------------------------------
 
-    Y(:M) = X(:M)
-    W(:M) = Y(:M)
-    MM = M - 1
-    MM2 = M - 2
-    ID = ND
-    IBR = 0
-    M1 = NM1
-    M2 = NM2
-    IA = NA
+    y(:m) = x(:m)
+    w(:m) = y(:m)
+    mm = m - 1
+    mm2 = m - 2
+    id = nd
+    ibr = 0
+    m1 = nm1
+    m2 = nm2
+    ia = na
 102 continue
-    if (IA > 0) then
-        RT = AA(IA)
-        if (ND == 0) RT = -RT
-        IA = IA - 1
-        Y(:M) = RT*W(:M)
+    if (ia > 0) then
+        rt = aa(ia)
+        if (nd == 0) rt = -rt
+        ia = ia - 1
+        y(:m) = rt*w(:m)
     end if
-    if (ID <= 0) go to 128
-    RT = BD(ID)
-    ID = ID - 1
-    if (ID == 0) IBR = 1
+    if (id <= 0) go to 128
+    rt = bd(id)
+    id = id - 1
+    if (id == 0) ibr = 1
     !
-    ! BEGIN SOLUTION TO SYSTEM
+    ! begin solution to system
     !
-    BH = B(M) - RT
-    YM = Y(M)
-    DEN = B(1) - RT
-    D(1) = C(1)/DEN
-    U(1) = A(1)/DEN
-    W(1) = Y(1)/DEN
-    V = C(M)
-    if (MM2 - 2 >= 0) then
-        do J = 2, MM2
-            DEN = B(J) - RT - A(J)*D(J-1)
-            D(J) = C(J)/DEN
-            U(J) = -A(J)*U(J-1)/DEN
-            W(J) = (Y(J)-A(J)*W(J-1))/DEN
-            BH = BH - V*U(J-1)
-            YM = YM - V*W(J-1)
-            V = -V*D(J-1)
+    bh = b(m) - rt
+    ym = y(m)
+    den = b(1) - rt
+    d(1) = c(1)/den
+    u(1) = a(1)/den
+    w(1) = y(1)/den
+    v = c(m)
+    if (mm2 - 2 >= 0) then
+        do j = 2, mm2
+            den = b(j) - rt - a(j)*d(j-1)
+            d(j) = c(j)/den
+            u(j) = -a(j)*u(j-1)/den
+            w(j) = (y(j)-a(j)*w(j-1))/den
+            bh = bh - v*u(j-1)
+            ym = ym - v*w(j-1)
+            v = -v*d(j-1)
         end do
     end if
-    DEN = B(M-1) - RT - A(M-1)*D(M-2)
-    D(M-1) = (C(M-1)-A(M-1)*U(M-2))/DEN
-    W(M-1) = (Y(M-1)-A(M-1)*W(M-2))/DEN
-    AM = A(M) - V*D(M-2)
-    BH = BH - V*U(M-2)
-    YM = YM - V*W(M-2)
-    DEN = BH - AM*D(M-1)
-    if (DEN /= 0.) then
-        W(M) = (YM - AM*W(M-1))/DEN
+    den = b(m-1) - rt - a(m-1)*d(m-2)
+    d(m-1) = (c(m-1)-a(m-1)*u(m-2))/den
+    w(m-1) = (y(m-1)-a(m-1)*w(m-2))/den
+    am = a(m) - v*d(m-2)
+    bh = bh - v*u(m-2)
+    ym = ym - v*w(m-2)
+    den = bh - am*d(m-1)
+    if (den /= 0.) then
+        w(m) = (ym - am*w(m-1))/den
     else
-        W(M) = 1.
+        w(m) = 1.
     end if
-    W(M-1) = W(M-1) - D(M-1)*W(M)
-    do J = 2, MM
-        K = M - J
-        W(K) = W(K) - D(K)*W(K+1) - U(K)*W(M)
+    w(m-1) = w(m-1) - d(m-1)*w(m)
+    do j = 2, mm
+        k = m - j
+        w(k) = w(k) - d(k)*w(k+1) - u(k)*w(m)
     end do
-    if (NA > 0) go to 102
+    if (na > 0) go to 102
     go to 116
 114 continue
-    Y(:M) = W(:M)
-    IBR = 1
+    y(:m) = w(:m)
+    ibr = 1
     go to 102
 116 continue
-    if (M1 <= 0) then
-        if (M2 <= 0) go to 114
+    if (m1 <= 0) then
+        if (m2 <= 0) go to 114
     else
-        if (M2 > 0) then
-            if (abs(BM1(M1)) - abs(BM2(M2)) <= 0.) go to 123
+        if (m2 > 0) then
+            if (abs(bm1(m1)) - abs(bm2(m2)) <= 0.) go to 123
         end if
-        if (IBR <= 0) then
-            if (abs(BM1(M1)-BD(ID)) - abs(BM1(M1)-RT) < 0.) go to 114
+        if (ibr <= 0) then
+            if (abs(bm1(m1)-bd(id)) - abs(bm1(m1)-rt) < 0.) go to 114
         end if
-        RT = RT - BM1(M1)
-        M1 = M1 - 1
+        rt = rt - bm1(m1)
+        m1 = m1 - 1
         go to 126
     end if
 123 continue
-    if (IBR <= 0) then
-        if (abs(BM2(M2)-BD(ID)) - abs(BM2(M2)-RT) < 0.) go to 114
+    if (ibr <= 0) then
+        if (abs(bm2(m2)-bd(id)) - abs(bm2(m2)-rt) < 0.) go to 114
     end if
-    RT = RT - BM2(M2)
-    M2 = M2 - 1
+    rt = rt - bm2(m2)
+    m2 = m2 - 1
 126 continue
-    Y(:M) = Y(:M) + RT*W(:M)
+    y(:m) = y(:m) + rt*w(:m)
     go to 102
 128 continue
 
@@ -1896,183 +1890,184 @@ end subroutine prodp
 subroutine tevls(N, D, E2, IERR)
     !
     !
-    !     REAL SQRT, ABS, SIGN
+    !     real sqrt, abs, sign
     !
     !
-    !     THIS SUBROUTINE IS A MODIFICATION OF THE EISPACK SUBROUTINE TQLRAT
-    !     ALGORITHM 464, COMM. ACM 16, 689(1973) BY REINSCH.
+    !     this subroutine is a modification of the eispack subroutine tqlrat
+    !     algorithm 464, comm. acm 16, 689(1973) by reinsch.
     !
-    !     THIS SUBROUTINE FINDS THE EIGENVALUES OF A SYMMETRIC
-    !     TRIDIAGONAL MATRIX BY THE RATIONAL QL METHOD.
+    !     this subroutine finds the eigenvalues of a symmetric
+    !     tridiagonal matrix by the rational ql method.
     !
-    !     ON INPUT-
+    !     on input-
     !
-    !        N IS THE ORDER OF THE MATRIX, 
+    !        n is the order of the matrix,
     !
-    !        D CONTAINS THE DIAGONAL ELEMENTS OF THE INPUT MATRIX, 
+    !        d contains the diagonal elements of the input matrix,
     !
-    !        E2 CONTAINS THE                SUBDIAGONAL ELEMENTS OF THE
-    !          INPUT MATRIX IN ITS LAST N-1 POSITIONS.  E2(1) IS ARBITRARY.
+    !        e2 contains the                subdiagonal elements of the
+    !          input matrix in its last n-1 positions.  e2(1) is arbitrary.
     !
-    !      ON OUTPUT-
+    !      on output-
     !
-    !        D CONTAINS THE EIGENVALUES IN ASCENDING ORDER.  IF AN
-    !          ERROR EXIT IS MADE, THE EIGENVALUES ARE CORRECT AND
-    !          ORDERED FOR INDICES 1, 2, ...IERR-1, BUT MAY NOT BE
-    !          THE SMALLEST EIGENVALUES, 
+    !        d contains the eigenvalues in ascending order.  if an
+    !          error exit is made, the eigenvalues are correct and
+    !          ordered for indices 1, 2, ...ierr-1, but may not be
+    !          the smallest eigenvalues,
     !
-    !        E2 HAS BEEN DESTROYED, 
+    !        e2 has been destroyed,
     !
-    !        IERR IS SET TO
-    !          ZERO       FOR NORMAL RETURN, 
-    !          J          IF THE J-TH EIGENVALUE HAS NOT BEEN
-    !                     DETERMINED AFTER 30 ITERATIONS.
+    !        ierr is set to
+    !          zero       for normal return,
+    !          j          if the j-th eigenvalue has not been
+    !                     determined after 30 iterations.
     !
-    !     QUESTIONS AND COMMENTS SHOULD BE DIRECTED TO B. S. GARBOW, 
-    !     APPLIED MATHEMATICS DIVISION, ARGONNE NATIONAL LABORATORY
+    !     questions and comments should be directed to b. s. garbow,
+    !     applied mathematics division, argonne national laboratory
     !
     !
-    !     ********** EPS IS A MACHINE DEPENDENT PARAMETER SPECIFYING
-    !                THE RELATIVE PRECISION OF FLOATING POINT ARITHMETIC.
+    !     ********** eps is a machine dependent parameter specifying
+    !                the relative precision of floating point arithmetic.
     !
     !                **********
     !
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer (ip), intent (in) :: N
-    integer (ip), intent (out) :: IERR
-    real (wp), intent (in out) :: D(N)
-    real (wp), intent (in out) :: E2(N)
+    integer (ip), intent (in)     :: n
+    integer (ip), intent (out)    :: ierr
+    real (wp),    intent (in out) :: d(n)
+    real (wp),    intent (in out) :: e2(n)
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
-    integer (ip) :: I, J, L, M, II, L1, MML, NHALF, NTOP
-    real (wp) :: B, C, F, G, H, P, R, S, DHOLD
+    integer (ip) :: i, j, l, m, ii, l1, mml, nhalf, ntop
+    real (wp) :: b, c, f, g, h, p, r, s, dhold
     !-----------------------------------------------
 
-    IERR = 0
-    if (N /= 1) then
+    ierr = 0
+    if (n /= 1) then
         !
-        E2(:N-1) = E2(2:N)*E2(2:N)
+        e2(:n-1) = e2(2:n)*e2(2:n)
         !
-        F = 0.0
-        B = 0.0
-        E2(N) = 0.0
+        f = 0.0
+        b = 0.0
+        e2(n) = 0.0
         !
-        do L = 1, N
-            J = 0
-            H = EPS*(abs(D(L))+SQRT(E2(L)))
-            if (B <= H) then
-                B = H
-                C = B*B
+        do l = 1, n
+            j = 0
+            h = eps*(abs(d(l))+sqrt(e2(l)))
+            if (b <= h) then
+                b = h
+                c = b*b
             end if
             !
-            !     ********** LOOK FOR SMALL SQUARED SUB-DIAGONAL ELEMENT **********
+            !     ********** look for small squared sub-diagonal element **********
             !
-            do M = L, N
-                if (E2(M) > C) cycle
+            do m = l, n
+                if (e2(m) > c) cycle
                 exit
             !
-            !     ********** E2(N) IS ALWAYS ZERO, SO THERE IS NO EXIT
-            !                THROUGH THE BOTTOM OF THE LOOP **********
+            !     ********** e2(n) is always zero, so there is no exit
+            !                through the bottom of the loop **********
             !
             end do
             !
-            if (M /= L) then
+            if (m /= l) then
 105         continue
-            if (J == 30) go to 114
-            J = J + 1
+            if (j == 30) go to 114
+            j = j + 1
             !
-            !     ********** FORM SHIFT **********
+            !     ********** form shift **********
             !
-            L1 = L + 1
-            S = SQRT(E2(L))
-            G = D(L)
-            P = (D(L1)-G)/(2.0*S)
-            R = SQRT(P*P + 1.0)
-            D(L) = S/(P + SIGN(R, P))
-            H = G - D(L)
+            l1 = l + 1
+            s = sqrt(e2(l))
+            g = d(l)
+            p = (d(l1)-g)/(2.0*s)
+            r = sqrt(p*p + 1.0)
+            d(l) = s/(p + sign(r, p))
+            h = g - d(l)
             !
-            D(L1:N) = D(L1:N) - H
+            d(l1:n) = d(l1:n) - h
             !
-            F = F + H
+            f = f + h
             !
-            !     ********** RATIONAL QL TRANSFORMATION **********
+            !     ********** rational ql transformation **********
             !
-            G = D(M)
-            if (G == 0.0) G = B
-            H = G
-            S = 0.0
-            MML = M - L
+            g = d(m)
+            if (g == 0.0) g = b
+            h = g
+            s = 0.0
+            mml = m - l
             !
-            !     ********** FOR I=M-1 STEP -1 UNTIL L DO -- **********
+            !     ********** for i=m-1 step -1 until l do -- **********
             !
-            do II = 1, MML
-                I = M - II
-                P = G*H
-                R = P + E2(I)
-                E2(I+1) = S*R
-                S = E2(I)/R
-                D(I+1) = H + S*(H + D(I))
-                G = D(I) - E2(I)/G
-                if (G == 0.0) G = B
-                H = G*P/R
+            do ii = 1, mml
+                i = m - ii
+                p = g*h
+                r = p + e2(i)
+                e2(i+1) = s*r
+                s = e2(i)/r
+                d(i+1) = h + s*(h + d(i))
+                g = d(i) - e2(i)/g
+                if (g == 0.0) g = b
+                h = g*p/r
             end do
             !
-            E2(L) = S*G
-            D(L) = H
+            e2(l) = s*g
+            d(l) = h
             !
-            !     ********** GUARD AGAINST UNDERFLOWED H **********
+            !     ********** guard against underflowed h **********
             !
-            if (H == 0.0) go to 108
-            if (abs(E2(L)) <= abs(C/H)) go to 108
-            E2(L) = H*E2(L)
-            if (E2(L) /= 0.0) go to 105
+            if (h == 0.0) go to 108
+            if (abs(e2(l)) <= abs(c/h)) go to 108
+            e2(l) = h*e2(l)
+            if (e2(l) /= 0.0) go to 105
         end if
 108 continue
-    P = D(L) + F
+    p = d(l) + f
     !
-    !     ********** ORDER EIGENVALUES **********
+    !     ********** order eigenvalues **********
     !
-    if (L /= 1) then
+    if (l /= 1) then
         !
-        !     ********** FOR I=L STEP -1 UNTIL 2 DO -- **********
+        !     ********** for i=l step -1 until 2 do -- **********
         !
-        do II = 2, L
-            I = L + 2 - II
-            if (P >= D(I-1)) go to 111
-            D(I) = D(I-1)
+        do ii = 2, l
+            i = l + 2 - ii
+            if (p >= d(i-1)) go to 111
+            d(i) = d(i-1)
         end do
     end if
     !
-    I = 1
+    i = 1
 111 continue
-    D(I) = P
+    d(i) = p
 end do
 !
-if (abs(D(N)) >= abs(D(1))) go to 115
-NHALF = N/2
-do I = 1, NHALF
-    NTOP = N - I
-    DHOLD = D(I)
-    D(I) = D(NTOP+1)
-    D(NTOP+1) = DHOLD
+if (abs(d(n)) >= abs(d(1))) go to 115
+nhalf = n/2
+do i = 1, nhalf
+    ntop = n - i
+    dhold = d(i)
+    d(i) = d(ntop+1)
+    d(ntop+1) = dhold
 end do
 go to 115
 !
-!     ********** SET ERROR -- NO CONVERGENCE TO AN
-!                EIGENVALUE AFTER 30 ITERATIONS **********
+!     ********** set error -- no convergence to an
+!                eigenvalue after 30 iterations **********
 !
 114 continue
-    IERR = L
+    ierr = l
 end if
 115 continue
     return
 !
-!     ********** LAST CARD OF TQLRAT **********
+!     ********** last card of tqlrat **********
 !
 end subroutine tevls
+
 
 end module module_blktri
 !

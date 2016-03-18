@@ -63,7 +63,7 @@ contains
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer :: m, mbdcnd, n, nbdcnd, idimf, i, j, ierror
         real (wp), dimension(18, 72) :: f
@@ -110,7 +110,7 @@ contains
         !
         !     BDA, BDC, AND BDD ARE DUMMY VARIABLES.
         !
-        call HSTSSP (a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd &
+        call hstssp (a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd &
             , elmbda, f, idimf, pertrb, ierror)
         !
         !     COMPUTE DISCRETIZATION ERROR. SINCE PROBLEM IS SINGULAR, THE
@@ -126,14 +126,13 @@ contains
         !     Print earlier output from platforms with 32 and 64 bit floating point
         !     arithemtic followed by the output from this computer
         write( stdout, '(A)') ''
-        write( stdout, '(A)') '    HSTSSP UNIT TEST *** '
-        write( stdout, '(A)') '    Previous 64 bit floating point arithmetic result '
-        write( stdout, '(A)') '    IERROR = 0,  PERTRB = 6.35830E-4'
-        write( stdout, '(A)') '    discretization error = 3.37523E-3'
-        write( stdout, '(A)') ''
-        write( stdout, '(A)') '    The output from your computer is: '
-        write( stdout, *) '    IERROR =', ierror, ' PERTRB = ', pertrb
-        write( stdout, *) '    discretization error = ', err
+        write( stdout, '(A)') '     hstssp *** TEST RUN *** '
+        write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(A)') '     ierror = 0,  PERTRB = 6.35830E-4'
+        write( stdout, '(A)') '     discretization error = 3.37523E-3'
+        write( stdout, '(A)') '     The output from your computer is: '
+        write( stdout, '(A,I3,A,1pe15.6)') '     ierror =', ierror, ' PERTRB = ', pertrb
+        write( stdout, '(A,1pe15.6)') '     discretization error = ', err
 
     end subroutine hstssp_unit_test
     !
@@ -176,8 +175,8 @@ contains
         !     *                                                               *
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
-        !     SUBROUTINE HSTSSP (A, B, M, MBDCND, BDA, BDB, C, D, N, NBDCND, BDC, BDD,
-        !    +                   ELMBDA, F, IDIMF, PERTRB, IERROR)
+        !     SUBROUTINE hstssp (A, B, M, MBDCND, BDA, BDB, C, D, N, NBDCND, BDC, BDD,
+        !    +                   ELMBDA, F, IDIMF, PERTRB, ierror)
         !
         !
         ! DIMENSION OF           BDA(N), BDB(N), BDC(M), BDD(M), F(IDIMF, N)
@@ -198,9 +197,9 @@ contains
         !                        WHERE THETA IS COLATITUDE AND PHI IS
         !                        LONGITUDE.
         !
-        ! USAGE                  CALL HSTSSP (A, B, M, MBDCND, BDA, BDB, C, D, N,
+        ! USAGE                  CALL hstssp (A, B, M, MBDCND, BDA, BDB, C, D, N,
         !                                     NBDCND, BDC, BDD, ELMBDA, F, IDIMF,
-        !                                     PERTRB, IERROR)
+        !                                     PERTRB, ierror)
         !
         !
         ! ARGUMENTS
@@ -418,7 +417,7 @@ contains
         !                          THE CONSTANT LAMBDA IN THE HELMHOLTZ
         !                          EQUATION.  IF LAMBDA IS GREATER THAN 0,
         !                          A SOLUTION MAY NOT EXIST.  HOWEVER,
-        !                          HSTSSP WILL ATTEMPT TO FIND A SOLUTION.
+        !                          hstssp WILL ATTEMPT TO FIND A SOLUTION.
         !
         !                        F
         !                          A TWO-DIMENSIONAL ARRAY THAT SPECIFIES
@@ -433,7 +432,7 @@ contains
         !                        IDIMF
         !                          THE ROW (OR FIRST) DIMENSION OF THE ARRAY
         !                          F AS IT APPEARS IN THE PROGRAM CALLING
-        !                          HSTSSP.  THIS PARAMETER IS USED TO SPECIFY
+        !                          hstssp.  THIS PARAMETER IS USED TO SPECIFY
         !                          THE VARIABLE DIMENSION OF F.
         !                          IDIMF MUST BE AT LEAST M.
         !
@@ -451,7 +450,7 @@ contains
         !                          (LAMBDA = 0), A SOLUTION MAY NOT EXIST.
         !                          PERTRB IS A CONSTANT, CALCULATED AND
         !                          SUBTRACTED FROM F, WHICH ENSURES THAT A
-        !                          SOLUTION EXISTS.  HSTSSP THEN COMPUTES
+        !                          SOLUTION EXISTS.  hstssp THEN COMPUTES
         !                          THIS SOLUTION, WHICH IS A LEAST SQUARES
         !                          SOLUTION TO THE ORIGINAL APPROXIMATION.
         !                          THIS SOLUTION PLUS ANY CONSTANT IS ALSO
@@ -464,7 +463,7 @@ contains
         !                          INSURE THAT A MEANINGFUL SOLUTION HAS BEEN
         !                          OBTAINED.
         !
-        !                        IERROR
+        !                        ierror
         !                          AN ERROR FLAG THAT INDICATES INVALID INPUT
         !                          PARAMETERS. EXCEPT TO NUMBERS 0 AND 14,
         !                          A SOLUTION IS NOT ATTEMPTED.
@@ -505,8 +504,8 @@ contains
         !                               for your computer)
         !
         !                          SINCE THIS IS THE ONLY MEANS OF INDICATING
-        !                          A POSSIBLY INCORRECT CALL TO HSTSSP, THE
-        !                          USER SHOULD TEST IERROR AFTER THE CALL.
+        !                          A POSSIBLY INCORRECT CALL TO hstssp, THE
+        !                          USER SHOULD TEST ierror AFTER THE CALL.
         !
         ! I/O                    NONE
         !
@@ -527,7 +526,7 @@ contains
         ! ALGORITHM              THIS SUBROUTINE DEFINES THE FINITE-
         !                        DIFFERENCE EQUATIONS, INCORPORATES BOUNDARY
         !                        DATA, ADJUSTS THE RIGHT SIDE WHEN THE SYSTEM
-        !                        IS SINGULAR AND CALLS EITHER POISTG OR GENBUN
+        !                        IS SINGULAR AND CALLS EITHER POISTG OR genbun
         !                        WHICH SOLVES THE LINEAR SYSTEM OF EQUATIONS.
         !
         ! TIMING                 FOR LARGE M AND N, THE OPERATION COUNT
@@ -550,7 +549,7 @@ contains
         !***********************************************************************
         !
         !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
+        ! Dictionary: calling arguments
         !-----------------------------------------------
         integer (ip) :: m
         integer (ip) :: mbdcnd
@@ -570,7 +569,7 @@ contains
         real (wp) :: bdd(*)
         real (wp) :: f(idimf, *)
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer (ip)             :: irwk, icwk
         real (wp)                :: pi
@@ -620,7 +619,7 @@ contains
     subroutine hstsspp( a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror, w )
         !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
+        ! Dictionary: calling arguments
         !-----------------------------------------------
         integer (ip) :: m
         integer , intent (in) :: mbdcnd
@@ -641,7 +640,7 @@ contains
         real (wp) :: f(idimf, 1)
         real (wp) :: w(*)
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer::np, isw, jsw, mb, iwb, iwc, iwr, iws, i, j, mm1, k, lp, ierr1, i1
         real :: deltar, dlrsq, deltht, dlthsq, pi, a1, a2, a3
@@ -778,7 +777,7 @@ end if
     w(1) = 0.
     w(iwr) = 0.
     !
-    !     CALL POISTG OR GENBUN TO SOLVE THE SYSTEM OF EQUATIONS.
+    !     CALL POISTG OR genbun TO SOLVE THE SYSTEM OF EQUATIONS.
     !
     ierr1 = 0
     i1 = 1
@@ -786,7 +785,7 @@ end if
         call POISTGG(lp, n, i1, m, w, W(iwb+1), W(iwc+1), idimf, f, &
             ierr1, W(iwr+1))
     else
-        call GENBUNN (lp, n, i1, m, w, W(iwb+1), W(iwc+1), idimf, f, &
+        call genbunn (lp, n, i1, m, w, W(iwb+1), W(iwc+1), idimf, f, &
             ierr1, W(iwr+1))
     end if
     if (isw==2 .and. jsw==2) then
@@ -804,7 +803,7 @@ end if
         f(:m, :n) = F(:m, :n) + a1
     end if
 
-end subroutine HSTSSPP
+end subroutine hstsspP
     !
     !*****************************************************************************************
     !

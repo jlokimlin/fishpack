@@ -55,9 +55,9 @@ contains
         !
         type (FishpackWorkspace) :: workspace
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
-        integer :: IFLG, NP, N, MP, M, IDIMY, I, J, IERROR
+        integer :: IFLG, NP, N, MP, M, IDIMY, I, J, ierror
         real , dimension(105) :: AN, BN, CN
         real , dimension(75) :: S
         real , dimension(105) :: T
@@ -128,11 +128,11 @@ contains
         !
         Y(M, :N) = Y(M, :N) - CM(M)*T(:N)**5
         Y(:M, N) = Y(:M, N) - CN(N)*S(:M)**5
-        call CBLKTRI(IFLG, NP, N, AN, BN, CN, MP, M, AM, BM, CM, IDIMY, Y, IERROR, workspace)
+        call cblktri(IFLG, NP, N, AN, BN, CN, MP, M, AM, BM, CM, IDIMY, Y, ierror, workspace)
         IFLG = IFLG + 1
         do while(IFLG - 1 <= 0)
-            call CBLKTRI (IFLG, NP, N, AN, BN, CN, MP, M, AM, BM, CM, IDIMY &
-                , Y, IERROR, workspace)
+            call cblktri (IFLG, NP, N, AN, BN, CN, MP, M, AM, BM, CM, IDIMY &
+                , Y, ierror, workspace)
             IFLG = IFLG + 1
         end do
         ERR = 0.
@@ -145,21 +145,21 @@ contains
         !     Print earlier output from platforms with 32 and 64 bit floating point
         !     arithemtic followed by the output from this computer
         write( *, *) ''
-        write( *, *) '    CBLKTRI TEST RUN *** '
+        write( *, *) '    cblktri *** TEST RUN *** '
         write( *, *) &
             '    Previous 64 bit floating point arithmetic result '
-        write( *, *) '    IERROR = 0,  Discretization Error = 1.6457E-05'
+        write( *, *) '    ierror = 0,  discretization error = 1.6457E-05'
 
         write( *, *) '    The output from your computer is: '
-        write( *, *) '    IERROR =', IERROR, ' Discretization Error = ', &
+        write( *, *) '    ierror =', ierror, ' discretization error = ', &
             ERR
         !     release dynamically allocated work space
         call workspace%destroy()
 
     end subroutine cblktri_unit_test
 
-    subroutine CBLKTRI(IFLG, NP, N, AN, BN, CN, MP, M, AM, BM, CM, &
-        IDIMY, Y, IERROR, W)
+    subroutine cblktri(IFLG, NP, N, AN, BN, CN, MP, M, AM, BM, CM, &
+        IDIMY, Y, ierror, W)
         !
         !     file cblktri.f
         !
@@ -196,7 +196,7 @@ contains
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
         !     SUBROUTINE CBLKTR (IFLG, NP, N, AN, BN, CN, MP, M, AM, BM, CM, IDIMY, Y,
-        !    +                   IERROR)
+        !    +                   ierror)
         !
         !
         ! DIMENSION OF           AN(N), BN(N), CN(N), AM(M), BM(M), CM(M), Y(IDIMY, N)
@@ -224,11 +224,11 @@ contains
         !                        EQUATIONS.  BOUNDARY CONDITIONS MAY BE
         !                        DIRICHLET, NEUMANN, OR PERIODIC.
         !
-        !                        CBLKTRI IS A COMPLEX VERSION OF PACKAGE
-        !                        BLKTRI ON ULIB.
+        !                        cblktri IS A COMPLEX VERSION OF PACKAGE
+        !                        blktri ON ULIB.
         !
         ! USAGE                  CALL CBLKTR (IFLG, NP, N, AN, BN, CN, MP, M, AM, BM,
-        !                                     CM, IDIMY, Y, IERROR, W)
+        !                                     CM, IDIMY, Y, ierror, W)
         !
         ! ARGUMENTS
         !
@@ -305,32 +305,32 @@ contains
         !                          A fortran 90 derived TYPE (FishpackWorkspace) variable
         !                          that must be declared by the user.  The first
         !                          two declarative statements in the user program
-        !                          calling CBLKTRI must be:
+        !                          calling cblktri must be:
         !
         !                               use type_FishpackWorkspace
         !                               TYPE (FishpackWorkspace) :: W
         !
         !                          The first statement makes the fishpack module
         !                          defined in the file "fish.f" available to the
-        !                          user program calling CBLKTRI.  The second statement
+        !                          user program calling cblktri.  The second statement
         !                          declares a derived type variable (defined in
         !                          the module "fish.f") which is used internally
-        !                          in CBLKTRI to dynamically allocate real and complex
+        !                          in cblktri to dynamically allocate real and complex
         !                          work space used in solution.  An error flag
-        !                          (IERROR = 20) is set if the required work space
+        !                          (ierror = 20) is set if the required work space
         !                          allocation fails (for example if N, M are too large)
         !                          Real and complex values are set in the components
-        !                          of W on a initial (IFLG=0) call to CBLKTRI.  These
+        !                          of W on a initial (IFLG=0) call to cblktri.  These
         !                          must be preserved on non-initial calls (IFLG=1)
-        !                          to CBLKTRI.  This eliminates redundant calculations
+        !                          to cblktri.  This eliminates redundant calculations
         !                          and saves compute time.
-        !               ****       IMPORTANT!  The user program calling CBLKTRI should
+        !               ****       IMPORTANT!  The user program calling cblktri should
         !                          include the statement:
         !
         !                               CALL FISHFIN(W)
         !
         !                          after the final approximation is generated by
-        !                          CBLKTRI.  The will deallocate the real and complex
+        !                          cblktri.  The will deallocate the real and complex
         !                          work space of W.  Failure to include this statement
         !                          could result in serious memory leakage.
         !
@@ -340,7 +340,7 @@ contains
         ! ON OUTPUT              Y
         !                          CONTAINS THE SOLUTION X.
         !
-        !                        IERROR
+        !                        ierror
         !                          AN ERROR FLAG THAT INDICATES INVALID
         !                          INPUT PARAMETERS.  EXCEPT FOR NUMBER ZER0,
         !                          A SOLUTION IS NOT ATTEMPTED.
@@ -377,7 +377,7 @@ contains
         !                        FAIL IF AN(J)*CN(J-1) IS LESS THAN ZERO FOR
         !                        SOME J.
         !                        SEE THE DESCRIPTION OF THE OUTPUT PARAMETER
-        !                        IERROR.
+        !                        ierror.
         !
         !
         ! I/O                    NONE
@@ -417,7 +417,7 @@ contains
         !***********************************************************************
         type (FishpackWorkspace) :: w
         !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
+        ! Dictionary: calling arguments
         !-----------------------------------------------
         integer , intent (in) :: IFLG
         integer , intent (in) :: NP
@@ -425,7 +425,7 @@ contains
         integer , intent (in) :: MP
         integer  :: M
         integer  :: IDIMY
-        integer  :: IERROR
+        integer  :: ierror
         real  :: AN(*)
         real  :: BN(*)
         real  :: CN(*)
@@ -441,7 +441,7 @@ contains
         integer   NPP, K, NM, NCMPLX, IK
         real   EPS, CNV
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer::M2, NH, NL, IWAH, IW1, IWBH, IW2, IW3, IWD, IWW, IWU, IRWK, ICWK
         !-----------------------------------------------
@@ -450,15 +450,15 @@ contains
         !
         NM = N
         M2 = M + M
-        IERROR = 0
+        ierror = 0
         if (M - 5 < 0) then
-            IERROR = 1
+            ierror = 1
         else
             if (NM - 3 < 0) then
-                IERROR = 2
+                ierror = 2
             else
                 if (IDIMY - M < 0) then
-                    IERROR = 3
+                    ierror = 3
                 else
                     NH = N
                     NPP = NP
@@ -488,7 +488,7 @@ contains
                     !
                     ! SUBROUTINE COMP B COMPUTES THE ROOTS OF THE B POLYNOMIALS
                     !
-                    if (IERROR == 0) then
+                    if (ierror == 0) then
                         IW2 = IW1 + M
                         IW3 = IW2 + M
                         IWD = IW3 + M
@@ -498,7 +498,7 @@ contains
                             IRWK = IW1 + 2*N
                             ICWK = IW1 + 6*M
                             call w%create( irwk, icwk, ierror )
-                            if (IERROR /= 0) return
+                            if (ierror /= 0) return
                             !     COMPUTE b poly roots (real and complex)
                             call ccompb(NL, ierror, an, bn, cn, w%rew, w%cxw, w%rew(iwah), &
                                 w%rew(iwbh))
@@ -518,13 +518,13 @@ contains
             end if
         end if
         return
-    end subroutine CBLKTRI
+    end subroutine cblktri
 
     subroutine CBLKT1(N, AN, BN, CN, M, AM, BM, CM, IDIMY, Y, B, BC, &
         W1, W2, W3, WD, WW, WU, PRDCT, CPRDCT)
 
         !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
+        ! Dictionary: calling arguments
         !-----------------------------------------------
         integer  :: N
         integer  :: M
@@ -552,7 +552,7 @@ contains
         integer   NPP, K, NM, NCMPLX, IK
         real   EPS, CNV
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer :: KDO, L, IR, I2, I1, I3, I4, IRM1, IM2, NM2, IM3, NM3, &
             IM1, NM1, IF, I, IPI1, IPI2, IPI3, IDXC, NC, IDXA, NA, IP2, NP2 &
@@ -774,7 +774,7 @@ end subroutine CBLKT1
 real function CBSRH (XLL, XRR, IZ, C, A, BH, F, SGN)
 
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer  :: IZ
     real , intent (in) :: XLL
@@ -792,7 +792,7 @@ real function CBSRH (XLL, XRR, IZ, C, A, BH, F, SGN)
     integer   NPP, K, NM, NCMPLX, IK
     real   EPS, CNV
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     real :: R1, XL, XR, DX, X
     !-----------------------------------------------
@@ -828,14 +828,14 @@ real function CBSRH (XLL, XRR, IZ, C, A, BH, F, SGN)
 end function CBSRH
 
 
-subroutine CCOMPB(N, IERROR, AN, BN, CN, B, BC, AH, BH)
+subroutine CCOMPB(N, ierror, AN, BN, CN, B, BC, AH, BH)
 
     real epmach
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer  :: N
-    integer  :: IERROR
+    integer  :: ierror
     real  :: AN(*)
     real , intent (in) :: BN(*)
     real  :: CN(*)
@@ -851,7 +851,7 @@ subroutine CCOMPB(N, IERROR, AN, BN, CN, B, BC, AH, BH)
     integer   NPP, K, NM, NCMPLX, IK
     real   EPS, CNV
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: J, IF, KDO, L, IR, I2, I4, IPL, IFD, I, IB, NB, JS, JF &
         , LS, LH, NMP, L1, L2, J2, J1, N2M2
@@ -860,7 +860,7 @@ subroutine CCOMPB(N, IERROR, AN, BN, CN, B, BC, AH, BH)
     !
     !     CCOMPB COMPUTES THE ROOTS OF THE B POLYNOMIALS USING SUBROUTINE
     !     CTEVLS WHICH IS A MODIFICATION THE EISPACK PROGRAM TQLRAT.
-    !     IERROR IS SET TO 4 IF EITHER CTEVLS FAILS OR IF A(J+1)*C(J) IS
+    !     ierror IS SET TO 4 IF EITHER CTEVLS FAILS OR IF A(J+1)*C(J) IS
     !     LESS THAN ZERO FOR SOME J.  AH, BH ARE TEMPORARY WORK ARRAYS.
     !
 
@@ -889,8 +889,8 @@ subroutine CCOMPB(N, IERROR, AN, BN, CN, B, BC, AH, BH)
             LS = 0
             BH(:JF-JS+1) = BN(JS:JF)
             AH(:JF-JS+1) = B(JS:JF)
-            call CTEVLS (NB, BH, AH, IERROR)
-            if (IERROR /= 0) go to 118
+            call CTEVLS (NB, BH, AH, ierror)
+            if (ierror /= 0) go to 118
             LH = IB - 1
             if (NB > 0) then
                 B(LH+1:NB+LH) = -BH(:NB)
@@ -910,8 +910,8 @@ subroutine CCOMPB(N, IERROR, AN, BN, CN, B, BC, AH, BH)
             BH(J) = SIGN(SQRT(ARG), (-AN(L1)))
             AH(J) = -BN(L1)
         end do
-        call CTEVLS (NB, AH, BH, IERROR)
-        if (IERROR /= 0) go to 118
+        call CTEVLS (NB, AH, BH, ierror)
+        if (ierror /= 0) go to 118
         call CINDXB (IF, K - 1, J2, LH)
         call CINDXB (IF/2, K - 1, J1, LH)
         J2 = J2 + 1
@@ -934,17 +934,17 @@ subroutine CCOMPB(N, IERROR, AN, BN, CN, B, BC, AH, BH)
     B(LH) = B(N2M2+1)
     call CINDXB (IF, K - 1, J1, J2)
     J2 = J1 + NMP + NMP
-    !call CPPADD (NM + 1, IERROR, AN, CN, B(J1), BC(J1), B(J2))
-    call CPPADD (NM + 1, IERROR, AN, CN, cmplx(B(J1:J1)), real(BC(J1:J1)), B(J2))
+    !call CPPADD (NM + 1, ierror, AN, CN, B(J1), BC(J1), B(J2))
+    call CPPADD (NM + 1, ierror, AN, CN, cmplx(B(J1:J1)), real(BC(J1:J1)), B(J2))
 
 
 end if
 return
 118 continue
-    IERROR = 4
+    ierror = 4
     return
 119 continue
-    IERROR = 5
+    ierror = 5
     return
 end subroutine CCOMPB
 
@@ -952,7 +952,7 @@ end subroutine CCOMPB
 subroutine CPROC(ND, BD, NM1, BM1, NM2, BM2, NA, AA, X, Y, M, A, B, C, D, W, YY)
 
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent (in) :: ND
     integer , intent (in) :: NM1
@@ -972,7 +972,7 @@ subroutine CPROC(ND, BD, NM1, BM1, NM2, BM2, NA, AA, X, Y, M, A, B, C, D, W, YY)
     complex , intent (in out) :: W(*)
     complex  :: YY(*)
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: J, MM, ID, M1, M2, IA, IFLG, K
     real :: RT
@@ -1071,7 +1071,7 @@ end subroutine CPROC
 subroutine CPROCP(ND, BD, NM1, BM1, NM2, BM2, NA, AA, X, Y, M, A, B, C, D, U, YY)
 
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent (in) :: ND
     integer , intent (in) :: NM1
@@ -1091,7 +1091,7 @@ subroutine CPROCP(ND, BD, NM1, BM1, NM2, BM2, NA, AA, X, Y, M, A, B, C, D, U, YY
     complex , intent (in out) :: D(*)
     complex , intent (in out) :: U(*)
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: J, MM, MM2, ID, M1, M2, IA, IFLG, K
     real :: RT
@@ -1214,7 +1214,7 @@ end subroutine CPROCP
 subroutine CINDXA(I, IR, IDXA, NA)
 
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent (in) :: I
     integer , intent (in) :: IR
@@ -1228,7 +1228,7 @@ subroutine CINDXA(I, IR, IDXA, NA)
     integer   NPP, K, NM, NCMPLX, IK
     real   EPS, CNV
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     !-----------------------------------------------
     NA = 2**IR
@@ -1243,7 +1243,7 @@ end subroutine CINDXA
 subroutine CINDXB(I, IR, IDX, IDP)
 
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent (in) :: I
     integer , intent (in) :: IR
@@ -1257,7 +1257,7 @@ subroutine CINDXB(I, IR, IDX, IDP)
     integer   NPP, K, NM, NCMPLX, IK
     real   EPS, CNV
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: IZH, ID, IPL
     !-----------------------------------------------
@@ -1293,7 +1293,7 @@ end subroutine CINDXB
 subroutine CINDXC(I, IR, IDXC, NC)
 
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent (in) :: I
     integer , intent (in) :: IR
@@ -1307,7 +1307,7 @@ subroutine CINDXC(I, IR, IDXC, NC)
     integer   NPP, K, NM, NCMPLX, IK
     real   EPS, CNV
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     !-----------------------------------------------
     NC = 2**IR
@@ -1319,13 +1319,13 @@ subroutine CINDXC(I, IR, IDXC, NC)
 end subroutine CINDXC
 
 
-subroutine CPPADD(N, IERROR, A, C, CBP, BP, BH)
+subroutine CPPADD(N, ierror, A, C, CBP, BP, BH)
 
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent (in) :: N
-    integer , intent (out) :: IERROR
+    integer , intent (out) :: ierror
     real  :: A(*)
     real  :: C(*)
     !real , intent (in out) :: BP(*)
@@ -1341,7 +1341,7 @@ subroutine CPPADD(N, IERROR, A, C, CBP, BP, BH)
     integer   NPP, K, NM, NCMPLX, IK
     real   EPS, CNV
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer::IZ, IZM, IZM2, J, NT, MODIZ, IS, IF, IG, IT, ICV, I3, I2, NHALF
     real :: R4, R5, R6, SCNV, XL, DB, SGN, XR, XM, PSG
@@ -1504,7 +1504,7 @@ do J = 2, IZ
 end do
 go to 143
 142 continue
-    IERROR = 4
+    ierror = 4
 143 continue
     return
 end subroutine CPPADD
@@ -1513,7 +1513,7 @@ end subroutine CPPADD
 subroutine PROC(ND, BD, NM1, BM1, NM2, BM2, NA, AA, X, Y, M, A, B, C, D, W, U)
 
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent (in) :: ND
     integer , intent (in) :: NM1
@@ -1533,7 +1533,7 @@ subroutine PROC(ND, BD, NM1, BM1, NM2, BM2, NA, AA, X, Y, M, A, B, C, D, W, U)
     complex , intent (in out) :: W(*)
     complex  :: U(*)
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: J, MM, ID, IBR, M1, M2, IA, K
     real :: RT
@@ -1630,7 +1630,7 @@ end subroutine PROC
 subroutine PROCP(ND, BD, NM1, BM1, NM2, BM2, NA, AA, X, Y, M, A, B, C, D, U, W)
 
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent (in) :: ND
     integer , intent (in) :: NM1
@@ -1650,7 +1650,7 @@ subroutine PROCP(ND, BD, NM1, BM1, NM2, BM2, NA, AA, X, Y, M, A, B, C, D, U, W)
     complex , intent (in out) :: U(*)
     complex , intent (in out) :: W(*)
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: J, MM, MM2, ID, IBR, M1, M2, IA, K
     real :: RT
@@ -1765,7 +1765,7 @@ end subroutine PROCP
 subroutine CTEVLS(N, D, E2, IERR)
 
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent (in) :: N
     integer , intent (out) :: IERR
@@ -1779,7 +1779,7 @@ subroutine CTEVLS(N, D, E2, IERR)
     integer   NPP, K, NM, NCMPLX, IK
     real   MACHEP, CNV
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: I, J, L, M, II, L1, MML, NHALF, NTOP
     real :: B, C, F, G, H, P, R, S, DHOLD

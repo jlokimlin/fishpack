@@ -76,7 +76,7 @@ contains
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer::ldimf, mdimf, lperod, l, mperod, m, nperod, n, i, j, k, ierror
         real (wp), dimension(32, 33, 10) :: f
@@ -165,13 +165,13 @@ contains
         !     Print earlier output from platforms with 32 and 64 bit floating point
         !     arithemtic followed by the output from this computer
         write( *, *) ''
-        write( *, *) '    pois3d TEST RUN *** '
+        write( *, *) '    pois3d *** TEST RUN *** '
         write( *, *) &
             '    Previous 64 bit floating point arithmetic result '
-        write( *, *) '    IERROR = 0,  Discretization Error = 2.93277E-2'
+        write( *, *) '    ierror = 0,  discretization error = 2.93277E-2'
 
         write( *, *) '    The output from your computer is: '
-        write( *, *) '    IERROR =', ierror, ' Discretization Error = ', &
+        write( *, *) '    ierror =', ierror, ' discretization error = ', &
             err
 
     end subroutine pois3d_unit_test
@@ -215,7 +215,7 @@ contains
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
         !     SUBROUTINE pois3d (LPEROD, L, C1, MPEROD, M, C2, NPEROD, N, A, B, C, LDIMF,
-        !    +                   MDIMF, F, IERROR)
+        !    +                   MDIMF, F, ierror)
         !
         !
         ! DIMENSION OF           A(N), B(N), C(N), F(LDIMF, MDIMF, N)
@@ -240,7 +240,7 @@ contains
         !                        VALUES DESCRIBED BELOW.
         !
         ! USAGE                  CALL pois3d (LPEROD, L, C1, MPEROD, M, C2, NPEROD,
-        !                        N, A, B, C, LDIMF, MDIMF, F, IERROR)
+        !                        N, A, B, C, LDIMF, MDIMF, F, ierror)
         !
         ! ARGUMENTS
         !
@@ -326,7 +326,7 @@ contains
         !                        F
         !                          CONTAINS THE SOLUTION X.
         !
-        !                        IERROR
+        !                        ierror
         !                          AN ERROR FLAG THAT INDICATES INVALID INPUT
         !                          PARAMETERS.  EXCEPT FOR NUMBER ZERO, A
         !                          SOLUTION IS NOT ATTEMPTED.
@@ -350,7 +350,7 @@ contains
         !
         !                          SINCE THIS IS THE ONLY MEANS OF INDICATING A
         !                          POSSIBLY INCORRECT CALL TO pois3d, THE USER
-        !                          SHOULD TEST IERROR AFTER THE CALL.
+        !                          SHOULD TEST ierror AFTER THE CALL.
         !
         ! SPECIAL CONDITIONS     NONE
         !
@@ -419,7 +419,7 @@ contains
 
         type (FishpackWorkspace) :: workspace
         !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
+        ! Dictionary: calling arguments
         !-----------------------------------------------
         integer (ip) :: lperod
         integer (ip) :: l
@@ -437,7 +437,7 @@ contains
         real (wp) :: c(*)
         real (wp) :: f(ldimf, mdimf, *)
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer (ip) :: lp, mp, np, k
         !-----------------------------------------------
@@ -468,7 +468,7 @@ contains
         ierror = 9
     end if
     if (nperod==1 .and. (A(1)/=0. .or. C(n)/=0.)) ierror = 10
-! 104 IF (IERROR .NE. 0) GO TO 122
+! 104 IF (ierror .NE. 0) GO TO 122
 104 continue
     if (ierror /= 0) return
 
@@ -497,7 +497,7 @@ subroutine pois3dd(lperod, l, c1, mperod, m, c2, nperod, n, a, b, &
     c, ldimf, mdimf, f, ierror, w)
 
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer (ip), intent (in) :: lperod
     integer (ip) :: l
@@ -516,7 +516,7 @@ subroutine pois3dd(lperod, l, c1, mperod, m, c2, nperod, n, a, b, &
     real (wp) :: f(ldimf, mdimf, *)
     real (wp) :: w(*)
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer (ip) :: lp, mp, np, iwyrt, iwt, iwd, iwbb
     integer (ip) :: iwx, iwy, nh, nhm1, nodd, i, j, k
@@ -624,7 +624,7 @@ subroutine pos3d1(lp, l, mp, m, n, a, b, c, ldimf, mdimf, f, xrt, &
     real (wp),    intent (in out) ::wy(*)
     real (wp),    intent (in out) :: bb(*)
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer (ip)         :: lr, mr, nr, lrdel, i, mrdel, j, ifwrd, is, k
     real (wp), parameter :: PI = acos( -1.0_wp )
@@ -809,7 +809,7 @@ end subroutine pos3d1
 subroutine trid(mr, a, b, c, y, d)
 
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer (ip), intent (in)  :: mr
     real (wp), intent (in)     :: a(*)
@@ -818,7 +818,7 @@ subroutine trid(mr, a, b, c, y, d)
     real (wp), intent (in out) :: y(*)
     real (wp), intent (in out) :: d(*)
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer (ip) :: m, mm1, i, ip_rename
     real (wp)    :: z

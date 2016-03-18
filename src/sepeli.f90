@@ -70,7 +70,7 @@ contains
         !
         type (FishpackWorkspace) :: workspace
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer (ip)            :: m, n, nx, ny, i, j, mbdcnd, nbdcnd, idmn, intl, iorder, ierror
         real (wp), allocatable  :: usol(:,:), grhs(:,:)
@@ -184,17 +184,17 @@ contains
         !     Print earlier output from platforms with 32 and 64 bit floating point
         !     arithemtic followed by the output from this computer
         write( *, *) ''
-        write( *, *) '    sepeli TEST RUN *** '
+        write( *, *) '    sepeli *** TEST RUN *** '
         write( *, *) &
             '    Previous 64 bit floating point arithmetic result '
-        write( *, *) '    IERROR = 0'
-        write( *, *) '    Second Order Discretization Error = 9.7891E-5'
-        write( *, *) '    Fourth Order Discretization Error = 1.4735E-6'
+        write( *, *) '    ierror = 0'
+        write( *, *) '    Second Order discretization error = 9.7891E-5'
+        write( *, *) '    Fourth Order discretization error = 1.4735E-6'
 
         write( *, *) '    The output from your computer is: '
-        write( *, *) '    IERROR =', ierror
-        write( *, *) '    Second Order Discretization Error =', err2
-        write( *, *) '    Fourth Order Discretization Error =', err4
+        write( *, *) '    ierror =', ierror
+        write( *, *) '    Second Order discretization error =', err2
+        write( *, *) '    Fourth Order discretization error =', err4
 
         ! release dynamically allocated real and complex work space
         call workspace%destroy()
@@ -353,7 +353,7 @@ contains
         !
         !     SUBROUTINE sepeli (INTL, IORDER, A, B, M, MBDCND, BDA, ALPHA, BDB, BETA, C,
         !    +                   D, N, NBDCND, BDC, GAMA, BDD, XNU, COFX, COFY, GRHS,
-        !    +                   USOL, IDMN, W, PERTRB, IERROR)
+        !    +                   USOL, IDMN, W, PERTRB, ierror)
         !
         ! DIMENSION OF           BDA(N+1), BDB(N+1), BDC(M+1), BDD(M+1),
         ! ARGUMENTS              USOL(IDMN, N+1), GRHS(IDMN, N+1),
@@ -403,7 +403,7 @@ contains
         ! USAGE                  CALL sepeli (INTL, IORDER, A, B, M, MBDCND, BDA,
         !                                     ALPHA, BDB, BETA, C, D, N, NBDCND, BDC,
         !                                     GAMA, BDD, XNU, COFX, COFY, GRHS, USOL,
-        !                                     IDMN, W, PERTRB, IERROR)
+        !                                     IDMN, W, PERTRB, ierror)
         !
         ! ARGUMENTS
         ! ON INPUT               INTL
@@ -579,11 +579,11 @@ contains
         !                          THE VALueS RETURNED IN AFUN AND DFUN
         !                          MUST SATISFY AFUN*DFUN GREATER THAN 0
         !                          FOR A LESS THAN X LESS THAN B, C LESS
-        !                          THAN Y LESS THAN D (SEE IERROR=10).
+        !                          THAN Y LESS THAN D (SEE ierror=10).
         !                          THE COEFFICIENTS PROVIDED MAY LEAD TO A
         !                          MATRIX EQUATION WHICH IS NOT DIAGONALLY
         !                          DOMINANT IN WHICH CASE SOLUTION MAY FAIL
-        !                          (SEE IERROR=4).
+        !                          (SEE ierror=4).
         !
         !                        GRHS
         !                          A TWO-DIMENSIONAL ARRAY THAT SPECIFIES THE
@@ -679,7 +679,7 @@ contains
         !                          the module "fish.f") which is used internally
         !                          in sepeli to dynamically allocate real and complex
         !                          work space used in solution.  An error flag
-        !                          (IERROR = 20) is set if the required work space
+        !                          (ierror = 20) is set if the required work space
         !                          allocation fails (for example if N, M are too large)
         !                          Real and complex values are set in the components
         !                          of W on a initial (INTL=0) call to sepeli.  These
@@ -731,7 +731,7 @@ contains
         !                          SOLUTION WHICH IS A WEIGHTED MINIMAL LEAST
         !                          SQUARES SOLUTION TO THE ORIGINAL PROBLEM.
         !
-        !                        IERROR
+        !                        ierror
         !                          AN ERROR FLAG THAT INDICATES INVALID INPUT
         !                          PARAMETERS OR FAILURE TO FIND A SOLUTION
         !                          = 0 NO ERROR
@@ -757,7 +757,7 @@ contains
         !                               (FishpackWorkspace) variable W fails (e.g.,
         !                               if N, M are too large for the platform used)
         !
-        !                          NOTE (CONCERNING IERROR=4):  FOR THE
+        !                          NOTE (CONCERNING ierror=4):  FOR THE
         !                          COEFFICIENTS INPUT THROUGH COFX, COFY,
         !                          THE DISCRETIZATION MAY LEAD TO A BLOCK
         !                          TRIDIAGONAL LINEAR SYSTEM WHICH IS NOT
@@ -793,7 +793,7 @@ contains
         ! ALGORITHM              sepeli AUTOMATICALLY DISCRETIZES THE
         !                        SEPARABLE ELLIPTIC EQUATION WHICH IS THEN
         !                        SOLVED BY A GENERALIZED CYCLIC REDUCTION
-        !                        ALGORITHM IN THE SUBROUTINE, BLKTRI.  THE
+        !                        ALGORITHM IN THE SUBROUTINE, blktri.  THE
         !                        FOURTH-ORDER SOLUTION IS OBTAINED USING
         !                        'deferRED CORRECTIONS' WHICH IS DESCRIBED
         !                        AND REFERENCED IN SECTIONS, REFERENCES AND

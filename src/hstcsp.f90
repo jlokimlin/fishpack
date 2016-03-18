@@ -60,7 +60,7 @@ contains
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer :: idimf, m, mbdcnd, i, n, nbdcnd, j, intl, ierror
         real (wp), dimension(47, 16) :: f
@@ -113,7 +113,7 @@ contains
             f(i, :n) = 12.*(R(:n)*COST(i))**2
         end do
         intl = 0
-        call HSTCSP (intl, a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc &
+        call hstcsp (intl, a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc &
             , bdd, elmbda, f, idimf, pertrb, ierror, workspace)
         !
         !     COMPUTE DISCRETIZATION ERROR.  THE EXACT SOLUTION IS
@@ -132,20 +132,20 @@ contains
         !     in this example (contrast with blktri and sepeli) the extra precision
         !     does not reduce the discretization error
         write( stdout, '(A)') ''
-        write( stdout, '(A)') '    HSTCSP TEST RUN *** '
-        write( stdout, '(A)') '    Previous 64 bit floating point arithmetic result '
-        write( stdout, '(A)') '    IERROR = 0,  Discretization Error = 5.5843E-3'
-        write( stdout, '(A)') ''
-        write( stdout, *)     '    The output from your computer is: '
-        write( stdout, *)     '    IERROR =', ierror, ' Discretization Error = ', &
-            discretization_error
+        write( stdout, '(A)') '     hstcsp *** TEST RUN *** '
+        write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(A)') '     ierror = 0,  discretization error = 5.5843E-3'
+        write( stdout, '(A)') '     The output from your computer is: '
+        write( stdout, '(A,I3,A,1pe15.6)') &
+            '     ierror =', ierror, ' discretization error = ', discretization_error
+
         !     release work space allocated by hstcsp (intl=0 call)
         call workspace%destroy()
 
     end subroutine hstcsp_unit_test
-    !
-    !*****************************************************************************************
-    !
+
+
+
     subroutine hstcsp( intl, a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, &
         bdc, bdd, elmbda, f, idimf, pertrb, ierror, w )
 
@@ -183,8 +183,8 @@ contains
         !     *                                                               *
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
-        !     SUBROUTINE HSTCSP (INTL, A, B, M, MBDCND, BDA, BDB, C, D, N, NBDCND, BDC,
-        !    +                   BDD, ELMBDA, F, IDIMF, PERTRB, IERROR, W)
+        !     SUBROUTINE hstcsp (INTL, A, B, M, MBDCND, BDA, BDB, C, D, N, NBDCND, BDC,
+        !    +                   BDD, ELMBDA, F, IDIMF, PERTRB, ierror, W)
         !
         !
         ! DIMENSION OF           BDA(N), BDB(N), BDC(M), BDD(M), F(IDIMF, N)
@@ -212,19 +212,19 @@ contains
         !                        DIMENSIONAL POISSON EQUATION.
         !
         !
-        ! USAGE                  CALL HSTCSP (INTL, A, B, M, MBDCND, BDA, BDB, C, D, N,
+        ! USAGE                  CALL hstcsp (INTL, A, B, M, MBDCND, BDA, BDB, C, D, N,
         !                                     NBDCND, BDC, BDD, ELMBDA, F, IDIMF,
-        !                                     PERTRB, IERROR, W)
+        !                                     PERTRB, ierror, W)
         !
         ! ARGUMENTS
         !  ON INPUT              INTL
         !
-        !                          = 0  ON INITIAL ENTRY TO HSTCSP OR IF ANY
+        !                          = 0  ON INITIAL ENTRY TO hstcsp OR IF ANY
         !                               OF THE ARGUMENTS C, D, N, OR NBDCND
         !                               ARE CHANGED FROM A PREVIOUS CALL
         !
         !                          = 1  IF C, D, N, AND NBDCND ARE ALL
-        !                               UNCHANGED FROM PREVIOUS CALL TO HSTCSP
+        !                               UNCHANGED FROM PREVIOUS CALL TO hstcsp
         !
         !                          NOTE:
         !                          A CALL WITH INTL = 0 TAKES APPROXIMATELY
@@ -445,7 +445,7 @@ contains
         !                          THE CONSTANT LAMBDA IN THE MODIFIED
         !                          HELMHOLTZ EQUATION.  IF LAMBDA IS GREATER
         !                          THAN 0, A SOLUTION MAY NOT EXIST.
-        !                          HOWEVER, HSTCSP WILL ATTEMPT TO FIND A
+        !                          HOWEVER, hstcsp WILL ATTEMPT TO FIND A
         !                          SOLUTION.
         !
         !                        F
@@ -461,7 +461,7 @@ contains
         !                        IDIMF
         !                          THE ROW (OR FIRST) DIMENSION OF THE ARRAY
         !                          F AS IT APPEARS IN THE PROGRAM CALLING
-        !                          HSTCSP.  THIS PARAMETER IS USED TO SPECIFY
+        !                          hstcsp.  THIS PARAMETER IS USED TO SPECIFY
         !                          THE VARIABLE DIMENSION OF F.
         !                          IDIMF MUST BE AT LEAST M.
         !
@@ -469,32 +469,32 @@ contains
         !                          A fortran 90 derived TYPE (FishpackWorkspace) variable
         !                          that must be declared by the user.  The first
         !                          two declarative statements in the user program
-        !                          calling HSTCSP must be:
+        !                          calling hstcsp must be:
         !
         !                               use type_FishpackWorkspace
         !                               TYPE (FishpackWorkspace) :: W
         !
         !                          The first statement makes the fishpack module
         !                          defined in the file "fish.f" available to the
-        !                          user program calling HSTCSP.  The second statement
+        !                          user program calling hstcsp.  The second statement
         !                          declares a derived type variable (defined in
         !                          the module "fish.f") which is used internally
-        !                          in BLKTRI to dynamically allocate real and complex
+        !                          in blktri to dynamically allocate real and complex
         !                          work space used in solution.  An error flag
-        !                          (IERROR = 20) is set if the required work space
+        !                          (ierror = 20) is set if the required work space
         !                          allocation fails (for example if N, M are too large)
         !                          Real and complex values are set in the components
-        !                          of W on a initial (IFLG=0) call to HSTCSP.  These
+        !                          of W on a initial (IFLG=0) call to hstcsp.  These
         !                          must be preserved on non-initial calls (INTL=1)
-        !                          to HSTCSP.  This eliminates redundant calculations
+        !                          to hstcsp.  This eliminates redundant calculations
         !                          and saves compute time.
-        !               ****       IMPORTANT!  The user program calling HSTCSP should
+        !               ****       IMPORTANT!  The user program calling hstcsp should
         !                          include the statement:
         !
         !                               CALL FISHFIN(W)
         !
         !                          after the final approximation is generated by
-        !                          HSTCSP.  The will deallocate the real and complex
+        !                          hstcsp.  The will deallocate the real and complex
         !                          work space of W.  Failure to include this statement
         !                          could result in serious memory leakage.
         !
@@ -512,7 +512,7 @@ contains
         !                          (LAMBDA = 0), A SOLUTION MAY NOT EXIST.
         !                          PERTRB IS A CONSTANT, CALCULATED AND
         !                          SUBTRACTED FROM F, WHICH ENSURES THAT A
-        !                          SOLUTION EXISTS.  HSTCSP THEN COMPUTES THIS
+        !                          SOLUTION EXISTS.  hstcsp THEN COMPUTES THIS
         !                          SOLUTION, WHICH IS A LEAST SQUARES SOLUTION
         !                          TO THE ORIGINAL APPROXIMATION.
         !                          THIS SOLUTION PLUS ANY CONSTANT IS ALSO
@@ -525,7 +525,7 @@ contains
         !                          INSURE THAT A MEANINGFUL SOLUTION HAS BEEN
         !                          OBTAINED.
         !
-        !                        IERROR
+        !                        ierror
         !                          AN ERROR FLAG THAT INDICATES INVALID INPUT
         !                          PARAMETERS. EXCEPT FOR NUMBERS 0 AND 10,
         !                          A SOLUTION IS NOT ATTEMPTED.
@@ -568,8 +568,8 @@ contains
         !                          = 17  LAMBDA .NE. 0 AND NBDCND .GE. 5
         !
         !                          SINCE THIS IS THE ONLY MEANS OF INDICATING
-        !                          A POSSIBLY INCORRECT CALL TO HSTCSP,
-        !                          THE USER SHOULD TEST IERROR AFTER THE CALL.
+        !                          A POSSIBLY INCORRECT CALL TO hstcsp,
+        !                          THE USER SHOULD TEST ierror AFTER THE CALL.
         !
         !                        = 20 If the dynamic allocation of real and
         !                             complex work space in the derived type
@@ -579,7 +579,7 @@ contains
         !                        W
         !                             The derived type (FishpackWorkspace) variable W
         !                             contains real and complex values that must not
-        !                             be destroyed if HSTCSP is called again with
+        !                             be destroyed if hstcsp is called again with
         !                             IFLG=1.
         !
         !
@@ -604,7 +604,7 @@ contains
         ! ALGORITHM              THIS SUBROUTINE DEFINES THE FINITE-DIFFERENCE
         !                        EQUATIONS, INCORPORATES BOUNDARY DATA, ADJUSTS
         !                        THE RIGHT SIDE WHEN THE SYSTEM IS SINGULAR
-        !                        AND CALLS BLKTRI WHICH SOLVES THE LINEAR
+        !                        AND CALLS blktri WHICH SOLVES THE LINEAR
         !                        SYSTEM OF EQUATIONS.
         !
         !
@@ -617,7 +617,7 @@ contains
         !                        DIGITS FOR N AND M AS LARGE AS 64.
         !                        MORE DETAILED INFORMATION ABOUT ACCURACY
         !                        CAN BE FOUND IN THE DOCUMENTATION FOR
-        !                        SUBROUTINE BLKTRI WHICH IS THE ROUTINE
+        !                        SUBROUTINE blktri WHICH IS THE ROUTINE
         !                        SOLVES THE FINITE DIFFERENCE EQUATIONS.
         !
         ! REFERENCES             P.N. SWARZTRAUBER, "A DIRECT METHOD FOR
@@ -633,7 +633,7 @@ contains
         !***********************************************************************
         !
         !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
+        ! Dictionary: calling arguments
         !-----------------------------------------------
         integer (ip) :: intl
         integer (ip) :: m
@@ -654,7 +654,7 @@ contains
         real (wp) :: bdd(*)
         real (wp) :: f(idimf, *)
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer (ip)             :: k, l, np, irwk, icwk, ierr1
         real (wp)                :: pi
@@ -723,7 +723,7 @@ contains
         bdc, bdd, elmbda, f, idimf, pertrb, ierr1, am, bm, cm, an, bn, &
         cn, snth, rsq, w, wc)
         !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
+        ! Dictionary: calling arguments
         !-----------------------------------------------
         integer , intent (in) :: intl
         integer (ip) :: m
@@ -754,7 +754,7 @@ contains
         real (wp) :: w(*)
         complex  :: wc(*)
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer :: i, j, isw, nb
         real :: dth, dthsq, dr, x, y, a2, a1, a3
@@ -877,12 +877,12 @@ contains
     a2 = SUM(F(:m, 1))
     a2 = a2/RSQ(1)
     !
-    !     INITIALIZE BLKTRI
+    !     INITIALIZE blktri
     !
     ierr1 = 0
-    if (intl == 0) call BLKTRII (0, 1, n, an, bn, cn, 1, m, am, bm, cm &
+    if (intl == 0) call blktriI (0, 1, n, an, bn, cn, 1, m, am, bm, cm &
         , idimf, f, ierr1, w, wc)
-    call BLKTRII(1, 1, n, an, bn, cn, 1, m, am, bm, cm, idimf, f, ierr1, w, wc)
+    call blktriI(1, 1, n, an, bn, cn, 1, m, am, bm, cm, idimf, f, ierr1, w, wc)
     if (.not.(isw/=2 .or. c/=0. .or. nbdcnd/=2)) then
         a3 = 0.
         a1 = DOT_PRODUCT(SNTH(:m), F(:m, 1))

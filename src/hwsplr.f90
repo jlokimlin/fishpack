@@ -53,7 +53,7 @@ contains
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer :: idimf, m, mbdcnd, n, nbdcnd, mp1, np1, i, j, ierror
         real , dimension(100, 50) :: f
@@ -62,7 +62,7 @@ contains
         real :: a, b, c, pi, dum, d, elmbda, pertrb, err, z
         !-----------------------------------------------
         !
-        !          PROGRAM TO ILLUSTRATE THE USE OF SUBROUTINE HWSPLR TO SOLVE
+        !          PROGRAM TO ILLUSTRATE THE USE OF SUBROUTINE hwsplr TO SOLVE
         !     THE EQUATION
         !
         !     (1/R)(D/DR)(R*(DU/DR)) + (1/R**2)(D/DTHETA)(DU/DTHETA) = 16*R**2
@@ -127,7 +127,7 @@ contains
             f(i, :np1) = 16.*R(i)**2
         end do
 
-        call HWSPLR(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
+        call hwsplr(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
             elmbda, f, idimf, pertrb, ierror)
         !
         !     COMPUTE DISCRETIZATION ERROR.  THE EXACT SOLUTION IS
@@ -142,18 +142,18 @@ contains
         end do
 
         write( *, *) ''
-        write( *, *) '    HWSPLR TEST RUN *** '
+        write( *, *) '    hwsplr *** TEST RUN *** '
         write( *, *) &
             '    Previous 64 bit floating point arithmetic result '
-        write( *, *) '    IERROR = 0,  Discretization Error = 6.19134E-4'
+        write( *, *) '    ierror = 0,  discretization error = 6.19134E-4'
 
         write( *, *) '    The output from your computer is: '
-        write( *, *) '    IERROR =', ierror, ' Discretization Error = ', &
+        write( *, *) '    ierror =', ierror, ' discretization error = ', &
             err
 
     end subroutine hwsplr_unit_test
 
-    subroutine HWSPLR(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
+    subroutine hwsplr(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror)
         !     file hwsplr.f
         !
@@ -189,8 +189,8 @@ contains
         !     *                                                               *
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
-        !     SUBROUTINE HWSPLR (A, B, M, MBDCND, BDA, BDB, C, D, N, NBDCND, BDC, BDD,
-        !    +                   ELMBDA, F, IDIMF, PERTRB, IERROR)
+        !     SUBROUTINE hwsplr (A, B, M, MBDCND, BDA, BDB, C, D, N, NBDCND, BDC, BDD,
+        !    +                   ELMBDA, F, IDIMF, PERTRB, ierror)
         !
         !
         ! DIMENSION OF           BDA(N), BDB(N), BDC(M), BDD(M), F(IDIMF, N+1)
@@ -206,9 +206,9 @@ contains
         !                            (1/R**2)(D/DTHETA)(DU/DTHETA) +
         !                            LAMBDA*U = F(R, THETA).
         !
-        ! USAGE                  CALL HWSPLR (A, B, M, MBDCND, BDA, BDB, C, D, N,
+        ! USAGE                  CALL hwsplr (A, B, M, MBDCND, BDA, BDB, C, D, N,
         !                                     NBDCND, BDC, BDD, ELMBDA, F, IDIMF,
-        !                                     PERTRB, IERROR, W)
+        !                                     PERTRB, ierror, W)
         !
         ! ARGUMENTS
         ! ON INPUT               A, B
@@ -347,7 +347,7 @@ contains
         !                        ELMBDA
         !                          THE CONSTANT LAMBDA IN THE HELMHOLTZ
         !                          EQUATION.  IF LAMBDA .LT. 0, A SOLUTION
-        !                          MAY NOT EXIST.  HOWEVER, HWSPLR WILL
+        !                          MAY NOT EXIST.  HOWEVER, hwsplr WILL
         !                          ATTEMPT TO FIND A SOLUTION.
         !
         !                        F
@@ -390,7 +390,7 @@ contains
         !                        IDIMF
         !                          THE ROW (OR FIRST) DIMENSION OF THE ARRAY
         !                          F AS IT APPEARS IN THE PROGRAM CALLING
-        !                          HWSPLR.  THIS PARAMETER IS USED TO SPECIFY
+        !                          hwsplr.  THIS PARAMETER IS USED TO SPECIFY
         !                          THE VARIABLE DIMENSION OF F.  IDIMF MUST
         !                          BE AT LEAST M+1.
         !
@@ -407,7 +407,7 @@ contains
         !                          (LAMBDA = 0), A SOLUTION MAY NOT EXIST.
         !                          PERTRB IS A CONSTANT, CALCULATED AND
         !                          SUBTRACTED FROM F, WHICH ENSURES THAT A
-        !                          SOLUTION EXISTS.  HWSPLR THEN COMPUTES
+        !                          SOLUTION EXISTS.  hwsplr THEN COMPUTES
         !                          THIS SOLUTION, WHICH IS A LEAST SQUARES
         !                          SOLUTION TO THE ORIGINAL APPROXIMATION.
         !                          THIS SOLUTION PLUS ANY CONSTANT IS ALSO
@@ -419,7 +419,7 @@ contains
         !                          BE MADE TO INSURE THAT A MEANINGFUL
         !                          SOLUTION HAS BEEN OBTAINED.
         !
-        !                        IERROR
+        !                        ierror
         !                          AN ERROR FLAG THAT INDICATES INVALID INPUT
         !                          PARAMETERS.  EXCEPT FOR NUMBERS 0 AND 11,
         !                          A SOLUTION IS NOT ATTEMPTED.
@@ -444,8 +444,8 @@ contains
         !                               for your computer)
         !
         !                          SINCE THIS IS THE ONLY MEANS OF INDICATING
-        !                          A POSSIBLY INCORRECT CALL TO HWSPLR, THE
-        !                          USER SHOULD TEST IERROR AFTER THE CALL.
+        !                          A POSSIBLY INCORRECT CALL TO hwsplr, THE
+        !                          USER SHOULD TEST ierror AFTER THE CALL.
         !
         ! SPECIAL CONDITIONS     NONE
         !
@@ -468,7 +468,7 @@ contains
         ! ALGORITHM              THE ROUTINE DEFINES THE FINITE DIFFERENCE
         !                        EQUATIONS, INCORPORATES BOUNDARY DATA, AND
         !                        ADJUSTS THE RIGHT SIDE OF SINGULAR SYSTEMS
-        !                        AND THEN CALLS GENBUN TO SOLVE THE SYSTEM.
+        !                        AND THEN CALLS genbun TO SOLVE THE SYSTEM.
         !
         ! TIMING                 FOR LARGE  M AND N, THE OPERATION COUNT
         !                        IS ROUGHLY PROPORTIONAL TO
@@ -480,7 +480,7 @@ contains
         !                        OF NO MORE THAN THREE SIGNIFICANT DIGITS FOR N
         !                        AND M AS LARGE AS 64.  MORE DETAILS ABOUT
         !                        ACCURACY CAN BE FOUND IN THE DOCUMENTATION FOR
-        !                        SUBROUTINE GENBUN WHICH IS THE ROUTINE THAT
+        !                        SUBROUTINE genbun WHICH IS THE ROUTINE THAT
         !                        SOLVES THE FINITE DIFFERENCE EQUATIONS.
         !
         ! REFERENCES             SWARZTRAUBER, P. AND R. SWEET, "EFFICIENT
@@ -490,7 +490,7 @@ contains
         !***********************************************************************
         type (FishpackWorkspace) :: w
         !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
+        ! Dictionary: calling arguments
         !-----------------------------------------------
         integer  :: m
         integer  :: mbdcnd
@@ -510,7 +510,7 @@ contains
         real  :: bdd(*)
         real  :: f(idimf, *)
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer :: irwk, icwk
         !-----------------------------------------------
@@ -541,12 +541,12 @@ contains
         !     release allocated work space
         call w%destroy()
 
-    end subroutine HWSPLR
+    end subroutine hwsplr
 
-    subroutine HWSPLRR(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc &
+    subroutine hwsplrR(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc &
         , bdd, elmbda, f, idimf, pertrb, ierror, w)
         !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
+        ! Dictionary: calling arguments
         !-----------------------------------------------
         integer , intent (in) :: m
         integer , intent (in) :: mbdcnd
@@ -567,7 +567,7 @@ contains
         real  :: f(idimf, *)
         real  :: w(*)
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer :: mp1, np1, np, mstart, mstop, munk, nstart, nstop, nunk &
             , id2, id3, id4, id5, id6, ij, i, j, l, lp, k, i1, ierr1, ip
@@ -754,7 +754,7 @@ end if
     !
     i1 = 1
     ierr1 = 0
-    call GENBUNN (nbdcnd, nunk, i1, munk, W(1), W(id2+1), W(id3+1), &
+    call genbunn (nbdcnd, nunk, i1, munk, W(1), W(id2+1), W(id3+1), &
         idimf, F(mstart, nstart), ierr1, W(id4+1))
     go to (157, 157, 157, 157, 148, 147) mbdcnd
 !
@@ -798,7 +798,7 @@ end if
         f(mstart:mstop, np1) = F(mstart:mstop, 1)
     end if
 
-end subroutine HWSPLRR
+end subroutine hwsplrR
 
 end module module_hwsplr
 !

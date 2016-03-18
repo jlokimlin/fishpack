@@ -2,7 +2,8 @@ module module_hwsssp
 
     use, intrinsic :: iso_fortran_env, only: &
         ip => INT32, &
-        wp => REAL64
+        wp => REAL64, &
+        stdout => OUTPUT_UNIT
 
     use type_FishpackWorkspace, only: &
         FishpackWorkspace
@@ -59,7 +60,7 @@ contains
         !     PROGRAM TO ILLUSTRATE THE USE OF hwsssp
         !
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer :: m, mbdcnd, n, nbdcnd, idimf, mp1, i, np1, j, ierror
         real , dimension(19, 73) :: f
@@ -119,12 +120,11 @@ contains
         end do
 
         write( *, *) ''
-        write( *, *) '    HWSSSP TEST RUN *** '
+        write( *, *) '    hwsssp *** TEST RUN *** '
         write( *, *) '    Previous 64 bit floating point arithmetic result '
-        write( *, *) '    IERROR = 0,  Discretization Error = 3.38107E-3'
-        write( *, *) ''
+        write( *, *) '    ierror = 0,  discretization error = 3.38107E-3'
         write( *, *) '    The output from your computer is: '
-        write( *, *) '    IERROR =', ierror, ' Discretization Error = ', &
+        write( *, *) '    ierror =', ierror, ' discretization error = ', &
             err
 
     end subroutine hwsssp_unit_test
@@ -167,7 +167,7 @@ contains
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
         !     SUBROUTINE hwsssp (TS, TF, M, MBDCND, BDTS, BDTF, PS, PF, N, NBDCND, BDPS,
-        !    +                   BDPF, ELMBDA, F, IDIMF, PERTRB, IERROR)
+        !    +                   BDPF, ELMBDA, F, IDIMF, PERTRB, ierror)
         !
         ! DIMENSION OF           BDTS(N+1),    BDTF(N+1), BDPS(M+1), BDPF(M+1),
         ! ARGUMENTS              F(IDIMF, N+1)
@@ -188,7 +188,7 @@ contains
         !
         ! USAGE                  CALL hwsssp (TS, TF, M, MBDCND, BDTS, BDTF, PS, PF,
         !                                     N, NBDCND, BDPS, BDPF, ELMBDA, F,
-        !                                     IDIMF, PERTRB, IERROR, W)
+        !                                     IDIMF, PERTRB, ierror, W)
         !
         ! ARGUMENTS
         ! ON INPUT               TS, TF
@@ -450,7 +450,7 @@ contains
         !                          THAT A MEANINGFUL SOLUTION HAS BEEN
         !                          OBTAINED
         !
-        !                        IERROR
+        !                        ierror
         !                          AN ERROR FLAG THAT INDICATES INVALID INPUT
         !                          PARAMETERS.  EXCEPT FOR NUMBERS 0 AND 8,
         !                          A SOLUTION IS NOT ATTEMPTED.
@@ -498,7 +498,7 @@ contains
         ! ALGORITHM              THE ROUTINE DEFINES THE FINITE DIFFERENCE
         !                        EQUATIONS, INCORPORATES BOUNDARY DATA, AND
         !                        ADJUSTS THE RIGHT SIDE OF SINGULAR SYSTEMS
-        !                        AND THEN CALLS GENBUN TO SOLVE THE SYSTEM.
+        !                        AND THEN CALLS genbun TO SOLVE THE SYSTEM.
         !
         ! TIMING                 FOR LARGE  M AND N, THE OPERATION COUNT
         !                        IS ROUGHLY PROPORTIONAL TO
@@ -510,7 +510,7 @@ contains
         !                        OF NO MORE THAN THREE SIGNIFICANT DIGITS FOR N
         !                        AND M AS LARGE AS 64.  MORE DETAILS ABOUT
         !                        ACCURACY CAN BE FOUND IN THE DOCUMENTATION FOR
-        !                        SUBROUTINE GENBUN WHICH IS THE ROUTINE THAT
+        !                        SUBROUTINE genbun WHICH IS THE ROUTINE THAT
         !                        SOLVES THE FINITE DIFFERENCE EQUATIONS.
         !
         ! REFERENCES             P. N. SWARZTRAUBER, "THE DIRECT SOLUTION OF
@@ -525,7 +525,7 @@ contains
         !***********************************************************************
         !
         !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
+        ! Dictionary: calling arguments
         !-----------------------------------------------
         integer  :: m
         integer  :: mbdcnd
@@ -545,7 +545,7 @@ contains
         real  :: bdpf(*)
         real  :: f(idimf, 1)
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         type (FishpackWorkspace) :: workspace
         integer                  :: nbr
@@ -595,7 +595,7 @@ contains
     subroutine hwssspp(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, &
         nbdcnd, bdps, bdpf, elmbda, f, idimf, pertrb, ierror, w)
         !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
+        ! Dictionary: calling arguments
         !-----------------------------------------------
         integer  :: m
         integer  :: mbdcnd
@@ -627,7 +627,7 @@ contains
         bdps, bdpf, elmbda, f, idimf, pertrb, am, bm, cm, sn, ss, &
         sint, d)
         !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
+        ! Dictionary: calling arguments
         !-----------------------------------------------
         integer , intent (in) :: m
         integer , intent (in) :: mbdcnd
@@ -648,12 +648,12 @@ contains
         real  :: am(*)
         real  :: bm(*)
         real  :: cm(*)
-        real , intent (inout) :: sn(*)
-        real , intent (inout) :: ss(*)
-        real , intent (inout) :: sint(*)
+        real , intent (in out) :: sn(*)
+        real , intent (in out) :: ss(*)
+        real , intent (in out) :: sint(*)
         real  :: d(*)
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer :: mp1, np1, i, inp, isp, mbr, its, itf, itsp, itfm, munk &
             , iid, ii, nbr, jps, jpf, jpsp, jpfm, nunk, ising, j, ierror
@@ -804,7 +804,7 @@ contains
     nunk = jpf - jps + 1
     fjj = jpfm - jpsp + 1
     !
-    ! SCALE COEFFICIENTS FOR SUBROUTINE GENBUN
+    ! SCALE COEFFICIENTS FOR SUBROUTINE genbun
     !
     do i = its, itf
         cf = dphi2*SINT(i)*SINT(i)
@@ -912,7 +912,7 @@ contains
         f(:mp1,:np1) = F(:mp1,:np1) - pertrb
     end if
     !
-    ! SCALE RIGHT SIDE FOR SUBROUTINE GENBUN
+    ! SCALE RIGHT SIDE FOR SUBROUTINE genbun
     !
     do i = its, itf
         cf = dphi2*SINT(i)*SINT(i)

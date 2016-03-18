@@ -1,5 +1,10 @@
 module module_hw3crt
 
+    use, intrinsic :: iso_fortran_env, only: &
+        wp => REAL64, &
+        ip => INT32, &
+        stdout => OUTPUT_UNIT
+
     use type_FishpackWorkspace, only: &
         FishpackWorkspace
 
@@ -53,7 +58,7 @@ contains
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer :: lbdcnd, mbdcnd, nbdcnd, l, m, n, ldimf, mdimf, lp1, i, &
             mp1, j, np1, k, ierror
@@ -62,7 +67,7 @@ contains
         real , dimension(11) :: x
         real , dimension(41) :: y
         real , dimension(16) :: z
-        real :: elmbda, xs, xf, ys, pi, yf, zs, zf, dx, dy, dz, pertrb, err, t
+        real :: elmbda, xs, xf, ys, pi, yf, zs, zf, dx, dy, dz, pertrb, discretization_error, t
         !-----------------------------------------------
 
         !
@@ -142,9 +147,9 @@ contains
             end do
         end do
         !
-        !     CALL HW3CRT TO GENERATE AND SOLVE THE FINITE DIFFERENCE EQUATION.
+        !     CALL hw3crt TO GENERATE AND SOLVE THE FINITE DIFFERENCE EQUATION.
         !
-        call HW3CRT (xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m, mbdcnd, &
+        call hw3crt (xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m, mbdcnd, &
             bdys, bdyf, zs, zf, n, nbdcnd, bdzs, bdzf, elmbda, ldimf, mdimf, &
             f, pertrb, ierror)
         !
@@ -153,30 +158,30 @@ contains
         !
         !        U(X, Y, Z) = X**4*SIN(Y)*COS(Z)
         !
-        err = 0.
+        discretization_error = 0.
         do i = 1, lp1
             do j = 1, mp1
                 do k = 1, np1
                     t = abs(F(i, j, k)-X(i)**4*SIN(Y(j))*COS(Z(k)))
-                    err = max(t, err)
+                    discretization_error = max(t, discretization_error)
                 end do
             end do
         end do
         !     Print earlier output from platforms with 32 and 64 bit floating point
         !     arithemtic followed by the output from this computer
-        write( *, *) ''
-        write( *, *) '    HW3CRT TEST RUN *** '
-        write( *, *) &
-            '    Previous 64 bit floating point arithmetic result '
-        write( *, *) '    IERROR = 0,  Discretization Error = 9.6480E-3'
-
-        write( *, *) '    The output from your computer is: '
-        write( *, *) '    IERROR =', ierror, ' Discretization Error = ', &
-            err
+        write( stdout, '(A)') ''
+        write( stdout, '(A)') '     hw3crt *** TEST RUN *** '
+        write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(A)') '     ierror = 0,  discretization error = 9.6480E-3'
+        write( stdout, '(A)') '     The output from your computer is: '
+        write( stdout, '(A,I3,A,1pe15.6)') &
+            '     ierror =', ierror, ' discretization error = ', discretization_error
 
     end subroutine hw3crt_unit_test
 
-    subroutine HW3CRT(xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m, mbdcnd, &
+
+
+    subroutine hw3crt(xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m, mbdcnd, &
         bdys, bdyf, zs, zf, n, nbdcnd, bdzs, bdzf, elmbda, ldimf, &
         mdimf, f, pertrb, ierror)
         !
@@ -214,9 +219,9 @@ contains
         !     *                                                               *
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
-        !     SUBROUTINE HW3CRT (XS, XF, L, LBDCND, BDXS, BDXF, YS, YF, M, MBDCND, BDYS,
+        !     SUBROUTINE hw3crt (XS, XF, L, LBDCND, BDXS, BDXF, YS, YF, M, MBDCND, BDYS,
         !    +                   BDYF, ZS, ZF, N, NBDCND, BDZS, BDZF, ELMBDA, LDIMF,
-        !    +                   MDIMF, F, PERTRB, IERROR)
+        !    +                   MDIMF, F, PERTRB, ierror)
         !
         !
         ! DIMENSION OF           BDXS(MDIMF, N+1),    BDXF(MDIMF, N+1),
@@ -234,10 +239,10 @@ contains
         !                          (D/DX)(DU/DX) + (D/DY)(DU/DY) +
         !                          (D/DZ)(DU/DZ) + LAMBDA*U = F(X, Y, Z) .
         !
-        ! USAGE                  CALL HW3CRT (XS, XF, L, LBDCND, BDXS, BDXF, YS, YF, M,
+        ! USAGE                  CALL hw3crt (XS, XF, L, LBDCND, BDXS, BDXF, YS, YF, M,
         !                                     MBDCND, BDYS, BDYF, ZS, ZF, N, NBDCND,
         !                                     BDZS, BDZF, ELMBDA, LDIMF, MDIMF, F,
-        !                                     PERTRB, IERROR)
+        !                                     PERTRB, ierror)
         !
         ! ARGUMENTS
         !
@@ -428,13 +433,13 @@ contains
         !                        ELMBDA
         !                          THE CONSTANT LAMBDA IN THE HELMHOLTZ
         !                          EQUATION. IF LAMBDA .GT. 0, A SOLUTION
-        !                          MAY NOT EXIST.  HOWEVER, HW3CRT WILL
+        !                          MAY NOT EXIST.  HOWEVER, hw3crt WILL
         !                          ATTEMPT TO FIND A SOLUTION.
         !
         !                        LDIMF
         !                          THE ROW (OR FIRST) DIMENSION OF THE
         !                          ARRAYS F, BDYS, BDYF, BDZS, AND BDZF AS IT
-        !                          APPEARS IN THE PROGRAM CALLING HW3CRT.
+        !                          APPEARS IN THE PROGRAM CALLING hw3crt.
         !                          THIS PARAMETER IS USED TO SPECIFY THE
         !                          VARIABLE DIMENSION OF THESE ARRAYS.
         !                          LDIMF MUST BE AT LEAST L+1.
@@ -443,7 +448,7 @@ contains
         !                          THE COLUMN (OR SECOND) DIMENSION OF THE
         !                          ARRAY F AND THE ROW (OR FIRST) DIMENSION
         !                          OF THE ARRAYS BDXS AND BDXF AS IT APPEARS
-        !                          IN THE PROGRAM CALLING HW3CRT.  THIS
+        !                          IN THE PROGRAM CALLING hw3crt.  THIS
         !                          PARAMETER IS USED TO SPECIFY THE VARIABLE
         !                          DIMENSION OF THESE ARRAYS.
         !                          MDIMF MUST BE AT LEAST M+1.
@@ -521,7 +526,7 @@ contains
         !                          BE MADE TO INSURE THAT A MEANINGFUL
         !                          SOLUTION HAS BEEN OBTAINED.
         !
-        !                        IERROR
+        !                        ierror
         !                          AN ERROR FLAG THAT INDICATES INVALID INPUT
         !                          PARAMETERS.  EXCEPT FOR NUMBERS 0 AND 12,
         !                          A SOLUTION IS NOT ATTEMPTED.
@@ -545,8 +550,8 @@ contains
         !                               for your computer)
         !
         !                          SINCE THIS IS THE ONLY MEANS OF INDICATING
-        !                          A POSSIBLY INCORRECT CALL TO HW3CRT, THE
-        !                          USER SHOULD TEST IERROR AFTER THE CALL.
+        !                          A POSSIBLY INCORRECT CALL TO hw3crt, THE
+        !                          USER SHOULD TEST ierror AFTER THE CALL.
         !
         ! SPECIAL CONDITIONS     NONE
         !
@@ -590,7 +595,7 @@ contains
         !***********************************************************************
         type (FishpackWorkspace) :: workspace
         !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
+        ! Dictionary: calling arguments
         !-----------------------------------------------
         integer  :: l
         integer  :: lbdcnd
@@ -617,7 +622,7 @@ contains
         real  :: bdzf(ldimf, *)
         real  :: f(ldimf, mdimf, *)
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer :: irwk, icwk
         !-----------------------------------------------
@@ -636,7 +641,7 @@ contains
         if (nbdcnd<0 .or. nbdcnd>4) ierror = 9
         if (ldimf < l + 1) ierror = 10
         if (mdimf < m + 1) ierror = 11
-        !     IF (IERROR .NE. 0) GO TO 188
+        !     IF (ierror .NE. 0) GO TO 188
         if (ierror /= 0) return
 
         ! allocate required work space length (generous estimate)
@@ -654,13 +659,13 @@ contains
         !     release allocated work space
         call workspace%destroy()
 
-    end subroutine HW3CRT
+    end subroutine hw3crt
 
-    subroutine HW3CRTT(xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m, &
+    subroutine hw3crtT(xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m, &
         mbdcnd, bdys, bdyf, zs, zf, n, nbdcnd, bdzs, bdzf, elmbda, &
         ldimf, mdimf, f, pertrb, ierror, w)
         !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
+        ! Dictionary: calling arguments
         !-----------------------------------------------
         integer , intent (in) :: l
         integer  :: lbdcnd
@@ -688,7 +693,7 @@ contains
         real  :: f(ldimf, mdimf, *)
         real  :: w(*)
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer :: mstart, mstop, mp1, mp, munk, np, np1, nstart, nstop, &
             nunk, lp1, lp, lstart, lstop, j, k, lunk, i, iwb, iwc, iww, &
@@ -900,7 +905,7 @@ contains
         f(lstart:lstop, mstart:mstop, np1) = F(lstart:lstop, mstart:mstop,1)
     end if
 
-end subroutine HW3CRTT
+end subroutine hw3crtT
 
 end module module_hw3crt
 !

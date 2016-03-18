@@ -53,7 +53,7 @@ contains
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer :: idimf, m, mbdcnd, n, nbdcnd, mp1, np1, i, j, ierror
         real , dimension(75, 105) :: f
@@ -108,7 +108,7 @@ contains
         do i = 1, mp1
             f(i, :np1) = 4.*R(i)**2*Z(:np1)**2*(4.*Z(:np1)**2+3.*R(i)**2)
         end do
-        call HWSCYL (a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd &
+        call hwscyl (a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd &
             , elmbda, f, idimf, pertrb, ierror)
         !
         !     COMPUTE DISCRETIZATION ERROR BY MINIMIZING OVER ALL A THE FUNCTION
@@ -131,19 +131,19 @@ contains
         !     Print earlier output from platforms with 32 and 64 bit floating point
         !     arithemtic followed by the output from this computer
         write( *, *) ''
-        write( *, *) '    HWSCYL TEST RUN *** '
+        write( *, *) '    hwscyl *** TEST RUN *** '
         write( *, *) &
             '    Previous 64 bit floating point arithmetic result '
-        write( *, *) '    IERROR = 0,  PERTRB = 2.2674E-4'
-        write( *, *) '    Discretization Error = 3.7367E-4 '
+        write( *, *) '    ierror = 0,  PERTRB = 2.2674E-4'
+        write( *, *) '    discretization error = 3.7367E-4 '
 
         write( *, *) '    The output from your computer is: '
-        write( *, *) '    IERROR =', ierror, ' PERTRB = ', pertrb
-        write( *, *) '    Discretization Error = ', err
+        write( *, *) '    ierror =', ierror, ' PERTRB = ', pertrb
+        write( *, *) '    discretization error = ', err
 
     end subroutine hwscyl_unit_test
 
-    subroutine HWSCYL(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
+    subroutine hwscyl(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror)
         !
         !     file hwscyl.f
@@ -180,8 +180,8 @@ contains
         !     *                                                               *
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
-        !     SUBROUTINE HWSCYL (A, B, M, MBDCND, BDA, BDB, C, D, N, NBDCND, BDC, BDD,
-        !    +                   ELMBDA, F, IDIMF, PERTRB, IERROR)
+        !     SUBROUTINE hwscyl (A, B, M, MBDCND, BDA, BDB, C, D, N, NBDCND, BDC, BDD,
+        !    +                   ELMBDA, F, IDIMF, PERTRB, ierror)
         !
         !
         ! DIMENSION OF           BDA(N), BDB(N), BDC(M), BDD(M), F(IDIMF, N+1)
@@ -200,9 +200,9 @@ contains
         !                        RESULTS FROM THE FOURIER TRANSFORM OF THE
         !                        THREE-DIMENSIONAL POISSON EQUATION.
         !
-        ! USAGE                  CALL HWSCYL (A, B, M, MBDCND, BDA, BDB, C, D, N,
+        ! USAGE                  CALL hwscyl (A, B, M, MBDCND, BDA, BDB, C, D, N,
         !                                     NBDCND, BDC, BDD, ELMBDA, F, IDIMF,
-        !                                     PERTRB, IERROR, W)
+        !                                     PERTRB, ierror, W)
         !
         ! ARGUMENTS
         ! ON INPUT               A, B
@@ -327,7 +327,7 @@ contains
         !                        ELMBDA
         !                          THE CONSTANT LAMBDA IN THE HELMHOLTZ
         !                          EQUATION.  IF LAMBDA .GT. 0, A SOLUTION
-        !                          MAY NOT EXIST.  HOWEVER, HWSCYL WILL
+        !                          MAY NOT EXIST.  HOWEVER, hwscyl WILL
         !                          ATTEMPT TO FIND A SOLUTION.  LAMBDA MUST
         !                          BE ZERO WHEN MBDCND = 5 OR 6  .
         !
@@ -371,7 +371,7 @@ contains
         !                        IDIMF
         !                          THE ROW (OR FIRST) DIMENSION OF THE ARRAY
         !                          F AS IT APPEARS IN THE PROGRAM CALLING
-        !                          HWSCYL.  THIS PARAMETER IS USED TO SPECIFY
+        !                          hwscyl.  THIS PARAMETER IS USED TO SPECIFY
         !                          THE VARIABLE DIMENSION OF F.  IDIMF MUST
         !                          BE AT LEAST M+1  .
         !
@@ -388,7 +388,7 @@ contains
         !                          (LAMBDA = 0), A SOLUTION MAY NOT EXIST.
         !                          PERTRB IS A CONSTANT, CALCULATED AND
         !                          SUBTRACTED FROM F, WHICH ENSURES THAT A
-        !                          SOLUTION EXISTS.  HWSCYL THEN COMPUTES
+        !                          SOLUTION EXISTS.  hwscyl THEN COMPUTES
         !                          THIS SOLUTION, WHICH IS A LEAST SQUARES
         !                          SOLUTION TO THE ORIGINAL APPROXIMATION.
         !                          THIS SOLUTION PLUS ANY CONSTANT IS ALSO
@@ -400,7 +400,7 @@ contains
         !                          COMPARISON SHOULD ALWAYS BE MADE TO INSURE
         !                          THAT A MEANINGFUL SOLUTION HAS BEEN OBTAINED.
         !
-        !                        IERROR
+        !                        ierror
         !                          AN ERROR FLAG WHICH INDICATES INVALID INPUT
         !                          PARAMETERS.  EXCEPT FOR NUMBERS 0 AND 11,
         !                          A SOLUTION IS NOT ATTEMPTED.
@@ -424,8 +424,8 @@ contains
         !                               for your computer)
         !
         !                          SINCE THIS IS THE ONLY MEANS OF INDICATING
-        !                          A POSSIBLY INCORRECT CALL TO HWSCYL, THE
-        !                          USER SHOULD TEST IERROR AFTER THE CALL.
+        !                          A POSSIBLY INCORRECT CALL TO hwscyl, THE
+        !                          USER SHOULD TEST ierror AFTER THE CALL.
         !
         !
         ! SPECIAL CONDITIONS     NONE
@@ -450,7 +450,7 @@ contains
         ! ALGORITHM              THE ROUTINE DEFINES THE FINITE DIFFERENCE
         !                        EQUATIONS, INCORPORATES BOUNDARY DATA, AND
         !                        ADJUSTS THE RIGHT SIDE OF SINGULAR SYSTEMS
-        !                        AND THEN CALLS GENBUN TO SOLVE THE SYSTEM.
+        !                        AND THEN CALLS genbun TO SOLVE THE SYSTEM.
         !
         ! TIMING                 FOR LARGE  M AND N, THE OPERATION COUNT
         !                        IS ROUGHLY PROPORTIONAL TO
@@ -462,7 +462,7 @@ contains
         !                        OF NO MORE THAN THREE SIGNIFICANT DIGITS FOR N
         !                        AND M AS LARGE AS 64.  MORE DETAILS ABOUT
         !                        ACCURACY CAN BE FOUND IN THE DOCUMENTATION FOR
-        !                        SUBROUTINE GENBUN WHICH IS THE ROUTINE THAT
+        !                        SUBROUTINE genbun WHICH IS THE ROUTINE THAT
         !                        SOLVES THE FINITE DIFFERENCE EQUATIONS.
         !
         ! REFERENCES             SWARZTRAUBER, P. AND R. SWEET, "EFFICIENT
@@ -472,7 +472,7 @@ contains
         !***********************************************************************
         type (FishpackWorkspace) :: workspace
         !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
+        ! Dictionary: calling arguments
         !-----------------------------------------------
         integer  :: m
         integer  :: mbdcnd
@@ -492,7 +492,7 @@ contains
         real  :: bdd(*)
         real  :: f(idimf, *)
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer :: irwk, icwk
         !-----------------------------------------------
@@ -528,12 +528,12 @@ contains
         !     release allocated work space
         call workspace%destroy()
 
-    end subroutine HWSCYL
+    end subroutine hwscyl
 
-    subroutine HWSCYLL(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
+    subroutine hwscylL(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror, w)
         !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
+        ! Dictionary: calling arguments
         !-----------------------------------------------
         integer , intent (in) :: m
         integer , intent (in) :: mbdcnd
@@ -554,7 +554,7 @@ contains
         real  :: f(idimf, *)
         real  :: w(*)
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer :: mp1, np1, np, mstart, mstop, munk, nstart, nstop, nunk &
             , id2, id3, id4, id5, id6, istart, ij, i, j, k, l, nsp1, nstm1 &
@@ -725,13 +725,13 @@ end if
     !
     ierr1 = 0
     i1 = 1
-    call GENBUNN (nbdcnd, nunk, i1, munk, W(1), W(id2+1), W(id3+1), &
+    call genbunn (nbdcnd, nunk, i1, munk, W(1), W(id2+1), W(id3+1), &
         idimf, F(mstart, nstart), ierr1, W(id4+1))
     if (nbdcnd == 0) then
         f(mstart:mstop, np1) = F(mstart:mstop, 1)
     end if
 
-end subroutine HWSCYLL
+end subroutine hwscylL
 
 end module module_hwscyl
 !

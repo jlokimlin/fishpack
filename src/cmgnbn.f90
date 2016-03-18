@@ -50,7 +50,7 @@ contains
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer :: idimf, m, mp1, mperod, n, nperod, i, j, ierror
         real , dimension(21) :: x
@@ -60,7 +60,7 @@ contains
         complex, dimension(20) :: a, b, c
         !-----------------------------------------------
         !
-        !     PROGRAM TO ILLUSTRATE THE USE OF SUBROUTINE CMGNBN TO SOLVE
+        !     PROGRAM TO ILLUSTRATE THE USE OF SUBROUTINE cmgnbn TO SOLVE
         !     THE EQUATION
         !
         !     (1+X)**2*(D/DX)(DU/DX) - 2(1+X)(DU/DX) + (D/DY)(DU/DY)
@@ -211,7 +211,7 @@ contains
             f(1, j) = ((11., -1.) + 8./dx)*dy**2*SIN(Y(j))
             f(20, j)=((3., -1.)*t4*dy**2-16.*tsq*s+16.*t*s*dx)*SIN(Y(j))
         end do
-        call CMGNBN (nperod, n, mperod, m, a, b, c, idimf, f, ierror)
+        call cmgnbn (nperod, n, mperod, m, a, b, c, idimf, f, ierror)
         !
         !     COMPUTE DISCRETIAZATION ERROR.  THE EXACT SOLUTION IS
         !
@@ -227,18 +227,18 @@ contains
         !     Print earlier output from platforms with 32 and 64 bit floating point
         !     arithemtic followed by the output from this computer
         write( *, *) ''
-        write( *, *) '    CMGNBN TEST RUN *** '
+        write( *, *) '    cmgnbn *** TEST RUN *** '
         write( *, *) &
             '    Previous 64 bit floating point arithmetic result '
-        write( *, *) '    IERROR = 0,  Discretization Error = 9.1620E-3'
+        write( *, *) '    ierror = 0,  discretization error = 9.1620E-3'
 
         write( *, *) '    The output from your computer is: '
-        write( *, *) '    IERROR =', ierror, ' Discretization Error = ', &
+        write( *, *) '    ierror =', ierror, ' discretization error = ', &
             err
 
     end subroutine cmgnbn_unit_test
 
-    subroutine CMGNBN(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
+    subroutine cmgnbn(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
         !
         !     file cmgnbn.f
         !
@@ -274,7 +274,7 @@ contains
         !     *                                                               *
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
-        !     SUBROUTINE CMGNBN (NPEROD, N, MPEROD, M, A, B, C, IDIMY, Y, IERROR)
+        !     SUBROUTINE cmgnbn (NPEROD, N, MPEROD, M, A, B, C, IDIMY, Y, ierror)
         !
         !
         ! DIMENSION OF           A(M), B(M), C(M), Y(IDIMY, N)
@@ -297,8 +297,8 @@ contains
         !                        AND X(I, N+1) MAY EQUAL 0, X(I, N-1), OR X(I, 1)
         !                        DEPENDING ON AN INPUT PARAMETER.
         !
-        ! USAGE                  CALL CMGNBN (NPEROD, N, MPEROD, M, A, B, C, IDIMY, Y,
-        !                                     IERROR)
+        ! USAGE                  CALL cmgnbn (NPEROD, N, MPEROD, M, A, B, C, IDIMY, Y,
+        !                                     ierror)
         !
         ! ARGUMENTS
         !
@@ -345,7 +345,7 @@ contains
         !                        IDIMY
         !                          THE ROW (OR FIRST) DIMENSION OF THE
         !                          TWO-DIMENSIONAL ARRAY Y AS IT APPEARS
-        !                          IN THE PROGRAM CALLING CMGNBN.
+        !                          IN THE PROGRAM CALLING cmgnbn.
         !                          THIS PARAMETER IS USED TO SPECIFY THE
         !                          VARIABLE DIMENSION OF Y.
         !                          IDIMY MUST BE AT LEAST M.
@@ -362,7 +362,7 @@ contains
         !
         !                          CONTAINS THE SOLUTION X.
         !
-        !                        IERROR
+        !                        ierror
         !                          AN ERROR FLAG WHICH INDICATES INVALID
         !                          INPUT PARAMETERS  EXCEPT FOR NUMBER
         !                          ZERO, A SOLUTION IS NOT ATTEMPTED.
@@ -428,7 +428,7 @@ contains
         !                        THE SOLUTION X WAS SUBSTITUTED INTO THE
         !                        GIVEN SYSTEM  AND A RIGHT SIDE Y WAS
         !                        COMPUTED.  USING THIS ARRAY Y, SUBROUTINE
-        !                        CMGNBN WAS CALLED TO PRODUCE APPROXIMATE
+        !                        cmgnbn WAS CALLED TO PRODUCE APPROXIMATE
         !                        SOLUTION Z.  THEN RELATIVE ERROR
         !                          E = MAX(abs(Z(I, J)-X(I, J)))/
         !                              MAX(abs(X(I, J)))
@@ -463,7 +463,7 @@ contains
         !***********************************************************************
         type(FishpackWorkspace) :: w
         !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
+        ! Dictionary: calling arguments
         !-----------------------------------------------
         integer  :: nperod
         integer  :: n
@@ -476,7 +476,7 @@ contains
         complex  :: c(*)
         complex  :: y(idimy, *)
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer :: i, icwk, irwk
         complex :: a1
@@ -513,12 +513,12 @@ contains
     !     release dynamically allocated work space
     call w%destroy()
 
-end subroutine CMGNBN
+end subroutine cmgnbn
 
-subroutine CMGNBNN(nperod, n, mperod, m, a, b, c, idimy, y, w)
+subroutine cmgnbnN(nperod, n, mperod, m, a, b, c, idimy, y, w)
 
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent (in) :: nperod
     integer  :: n
@@ -531,7 +531,7 @@ subroutine CMGNBNN(nperod, n, mperod, m, a, b, c, idimy, y, w)
     complex  :: y(idimy, *)
     complex  :: w(*)
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: iwba, iwbb, iwbc, iwb2, iwb3, iww1, iww2, iww3, iwd, &
         iwtcos, iwp, i, k, j, mp, np, ipstor, irev, mh, mhm1, modd, &
@@ -649,13 +649,13 @@ end do
 133 continue
     w(1) = CMPLX(real(ipstor + iwp - 1), 0.)
     return
-end subroutine CMGNBNN
+end subroutine cmgnbnN
 
 
 subroutine CMPOSD(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
 
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent (in) :: mr
     integer , intent (in) :: nr
@@ -671,7 +671,7 @@ subroutine CMPOSD(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
     complex  :: tcos(*)
     complex , intent (in out) :: p(*)
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: m, n, ip, ipstor, jsh, kr, irreg, jstsav, i, lr, nun, &
         jst, jsp, l, nodd, j, jm1, jp1, jm2, jp2, jm3, jp3, noddpr, ip1 &
@@ -962,7 +962,7 @@ subroutine CMPOSN(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
     b3, w, w2, w3, d, tcos, p)
 
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent (in) :: m
     integer , intent (in) :: n
@@ -983,7 +983,7 @@ subroutine CMPOSN(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
     complex  :: tcos(*)
     complex , intent (in out) :: p(*)
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer , dimension(4) :: k
     integer :: k1, k2, k3, k4, mr, ip, ipstor, i2r, jr, nr, nlast, kr &
@@ -1406,7 +1406,7 @@ end subroutine CMPOSN
 subroutine CMPOSP(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
 
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent (in) :: m
     integer , intent (in) :: n
@@ -1425,7 +1425,7 @@ subroutine CMPOSP(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
     complex  :: tcos(*)
     complex  :: p(*)
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: mr, nr, nrm1, j, nrmj, nrpj, i, ipstor, lh
     complex :: s, t
@@ -1523,7 +1523,7 @@ subroutine CMPCSG(n, ijump, fnum, fden, a)
 
     real pi_mach
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent (in) :: n
     integer , intent (in) :: ijump
@@ -1531,7 +1531,7 @@ subroutine CMPCSG(n, ijump, fnum, fden, a)
     real , intent (in) :: fden
     complex , intent (out) :: a(*)
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: k3, k4, k, k1, k5, i, k2, np1
     real :: pi, dum, pibyn, x, y
@@ -1589,7 +1589,7 @@ end subroutine CMPCSG
 subroutine CMPMRG(tcos, i1, m1, i2, m2, i3)
 
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent (in) :: i1
     integer , intent (in) :: m1
@@ -1598,7 +1598,7 @@ subroutine CMPMRG(tcos, i1, m1, i2, m2, i3)
     integer , intent (in) :: i3
     complex , intent (in out) :: tcos(*)
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: j11, j3, j1, j2, j, l, k, m
     complex :: x, y
@@ -1659,7 +1659,7 @@ end subroutine CMPMRG
 subroutine CMPTRX(idegbr, idegcr, m, a, b, c, y, tcos, d, w)
 
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent (in) :: idegbr
     integer , intent (in) :: idegcr
@@ -1672,7 +1672,7 @@ subroutine CMPTRX(idegbr, idegcr, m, a, b, c, y, tcos, d, w)
     complex , intent (in out) :: d(*)
     complex , intent (in out) :: w(*)
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: mm1, ifb, ifc, l, lint, k, i, ip
     complex :: x, xx, z
@@ -1724,7 +1724,7 @@ end subroutine CMPTRX
 subroutine CMPTR3(m, a, b, c, k, y1, y2, y3, tcos, d, w1, w2, w3)
 
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent (in) :: m
     integer , intent (in) :: k(4)
@@ -1740,7 +1740,7 @@ subroutine CMPTR3(m, a, b, c, k, y1, y2, y3, tcos, d, w1, w2, w3)
     complex , intent (in out) :: w2(*)
     complex , intent (in out) :: w3(*)
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: mm1, k1, k2, k3, k4, if1, if2, if3, if4, k2k3k4, l1, l2 &
         , l3, lint1, lint2, lint3, kint1, kint2, kint3, n, i, ip

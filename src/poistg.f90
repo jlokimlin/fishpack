@@ -247,18 +247,17 @@ contains
         end do
 
         write( stdout, '(A)') ''
-        write( stdout, '(A)') '    poistg UNIT TEST *** '
-        write( stdout, '(A)') '    Previous 64 bit floating point arithmetic result '
-        write( stdout, '(A)') '    IERROR = 0,  Discretization Error = 5.6417E-4'
-        write( stdout, '(A)') ''
-        write( stdout, '(A)') '    The output from your computer is: '
-        write( stdout, *)&
-            '    IERROR =', ierror, ' Discretization Error = ', discretization_error
+        write( stdout, '(A)') '     poistg *** TEST RUN *** '
+        write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(A)') '     ierror = 0,  discretization error = 5.6417E-4'
+        write( stdout, '(A)') '     The output from your computer is: '
+        write( stdout, '(A,I3,A,1pe15.6)')&
+            '     ierror =', ierror, ' discretization error = ', discretization_error
 
     end subroutine poistg_unit_test
-    !
-    !*****************************************************************************************
-    !
+
+
+
     subroutine poistg( nperod, n, mperod, m, a, b, c, idimy, y, ierror )
         !
         !     file poistg.f
@@ -295,7 +294,7 @@ contains
         !     *                                                               *
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
-        !     SUBROUTINE poistg (NPEROD, N, MPEROD, M, A, B, C, IDIMY, Y, IERROR)
+        !     SUBROUTINE poistg (NPEROD, N, MPEROD, M, A, B, C, IDIMY, Y, ierror)
         !
         !
         ! DIMENSION OF           A(M),  B(M),  C(M),  Y(IDIMY, N)
@@ -318,7 +317,7 @@ contains
         !                        DEPENDING ON AN INPUT PARAMETER.
         !
         ! USAGE                  CALL poistg (NPEROD, N, MPEROD, M, A, B, C, IDIMY, Y,
-        !                                     IERROR)
+        !                                     ierror)
         !
         ! ARGUMENTS
         !
@@ -374,7 +373,7 @@ contains
         !                        Y
         !                          CONTAINS THE SOLUTION X.
         !
-        !                        IERROR
+        !                        ierror
         !                          AN ERROR FLAG THAT INDICATES INVALID INPUT
         !                          PARAMETERS.  EXCEPT FOR NUMBER ZERO, A
         !                          SOLUTION IS NOT ATTEMPTED.
@@ -396,7 +395,7 @@ contains
         !
         !                          SINCE THIS IS THE ONLY MEANS OF INDICATING A
         !                          POSSIBLY INCORRECT CALL TO POIS3D, THE USER
-        !                          SHOULD TEST IERROR AFTER THE CALL.
+        !                          SHOULD TEST ierror AFTER THE CALL.
         !
         !
         !
@@ -590,7 +589,7 @@ contains
         real (wp),    intent (in out) :: y(idimy, *)
         real (wp),    intent (in out) :: w(*)
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer (ip) :: iwba, iwbb, iwbc, iwb2, iwb3, iww1, iww2, iww3, iwd
         integer (ip) :: iwtcos, iwp, i, k, j, np, mp, ipstor, irev, mh, mhm1, modd
@@ -698,7 +697,7 @@ subroutine postg2(nperod, n, m, a, bb, c, idimq, q, b, b2, b3, w, &
     w2, w3, d, tcos, p)
     implicit none
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer (ip), intent (in) :: nperod
     integer (ip), intent (in) :: n
@@ -718,7 +717,7 @@ subroutine postg2(nperod, n, m, a, bb, c, idimq, q, b, b2, b3, w, &
     real (wp) :: tcos(*)
     real (wp), intent (in out) :: p(*)
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer (ip) :: k(4)
     integer (ip) :: k1, k2, k3, k4, np, mr, ipp, ipstor, i2r, jr, nr, nlast
@@ -764,7 +763,7 @@ subroutine postg2(nperod, n, m, a, bb, c, idimq, q, b, b2, b3, w, &
             jm2 = j - i2r
             jm3 = jm2 - i2rby2
             if (j == 1) then
-                call COSGEN (i2r, 1, fnum, 0.5, tcos)
+                call cosgen(i2r, 1, fnum, 0.5, tcos)
                 if (i2r == 1) then
                     b(:mr) = Q(:mr, 1)
                     q(:mr, 1) = Q(:mr, 2)
@@ -778,7 +777,7 @@ subroutine postg2(nperod, n, m, a, bb, c, idimq, q, b, b2, b3, w, &
             go to (107, 108) ijump
 107     continue
         ijump = 2
-        call COSGEN (i2r, 1, 0.5, 0.0, tcos)
+        call cosgen(i2r, 1, 0.5, 0.0, tcos)
 108 continue
     if (i2r == 1) then
         b(:mr) = 2.*Q(:mr, j)
@@ -821,9 +820,9 @@ if (nrod /= 0) then
         else
             q(:mr, j) = Q(:mr, j) - Q(:mr, jm1) + Q(:mr, jm2)
         end if
-        if (lr /= 0) call COSGEN (lr, 1, fnum2, 0.5, TCOS(kr+1))
+        if (lr /= 0) call cosgen(lr, 1, fnum2, 0.5, TCOS(kr+1))
     end if
-    call COSGEN (kr, 1, fnum2, 0.5, tcos)
+    call cosgen(kr, 1, fnum2, 0.5, tcos)
     call TRIX (kr, lr, mr, a, bb, c, b, tcos, d, w)
     q(:mr, j) = Q(:mr, j) + B(:mr)
     kr = kr + i2r
@@ -849,7 +848,7 @@ else
         else
             b(:mr) = B(:mr) + Q(:mr, jp2) - Q(:mr, jp1)
         end if
-        call COSGEN (i2r, 1, 0.5, 0.0, tcos)
+        call cosgen(i2r, 1, 0.5, 0.0, tcos)
         call TRIX (i2r, 0, mr, a, bb, c, b, tcos, d, w)
         ipp = ipp + mr
         ipstor = max(ipstor, ipp + mr)
@@ -857,7 +856,7 @@ else
             jp1))
         b(:mr) = P(ipp+1:mr+ipp) + Q(:mr, jp2)
         if (lr /= 0) then
-            call COSGEN (lr, 1, fnum2, 0.5, TCOS(i2r+1))
+            call cosgen(lr, 1, fnum2, 0.5, TCOS(i2r+1))
             call merge_rename(tcos, 0, i2r, i2r, lr, kr)
         else
             do i = 1, i2r
@@ -865,7 +864,7 @@ else
                 tcos(ii) = TCOS(i)
             end do
         end if
-        call COSGEN (kr, 1, fnum2, 0.5, tcos)
+        call cosgen(kr, 1, fnum2, 0.5, tcos)
         call TRIX (kr, kr, mr, a, bb, c, b, tcos, d, w)
         q(:mr, j) = Q(:mr, jm2) + P(ipp+1:mr+ipp) + B(:mr)
     end if
@@ -914,7 +913,7 @@ end if
     b(:mr) = Q(:mr, 2)
     b2(:mr) = Q(:mr, 3)
     b3(:mr) = Q(:mr, 1)
-    call COSGEN (3, 1, 0.5, 0.0, tcos)
+    call cosgen(3, 1, 0.5, 0.0, tcos)
     tcos(4) = -1.
     tcos(5) = 1.
     tcos(6) = -1.
@@ -951,13 +950,13 @@ go to (158, 160, 158) np
     b3(:mr) = 0.
     k1 = nlast - 1
     k2 = nlast + jr - 1
-    call COSGEN (jr - 1, 1, 0.0, 1.0, TCOS(nlast))
+    call cosgen(jr - 1, 1, 0.0, 1.0, TCOS(nlast))
     tcos(k2) = 2.*real(np - 2)
-    call COSGEN (jr, 1, 0.5 - fnum, 0.5, TCOS(k2+1))
+    call cosgen(jr, 1, 0.5 - fnum, 0.5, TCOS(k2+1))
     k3 = (3 - np)/2
     call merge_rename(tcos, k1, jr - k3, k2 - k3, jr + k3, 0)
     k1 = k1 - 1 + k3
-    call COSGEN (jr, 1, fnum, 0.5, TCOS(k1+1))
+    call cosgen(jr, 1, fnum, 0.5, TCOS(k1+1))
     k2 = jr
     k3 = 0
     k4 = 0
@@ -970,13 +969,13 @@ go to (158, 160, 158) np
     end do
     k1 = nlast + jr - 1
     k2 = k1 + jr - 1
-    call COSGEN (jr - 1, 1, 0.0, 1.0, TCOS(k1+1))
-    call COSGEN (nlast, 1, 0.5, 0.0, TCOS(k2+1))
+    call cosgen(jr - 1, 1, 0.0, 1.0, TCOS(k1+1))
+    call cosgen(nlast, 1, 0.5, 0.0, TCOS(k2+1))
     call merge_rename(tcos, k1, jr - 1, k2, nlast, 0)
     k3 = k1 + nlast - 1
     k4 = k3 + jr
-    call COSGEN (jr, 1, 0.5, 0.5, TCOS(k3+1))
-    call COSGEN (jr, 1, 0.0, 0.5, TCOS(k4+1))
+    call cosgen(jr, 1, 0.5, 0.5, TCOS(k3+1))
+    call cosgen(jr, 1, 0.0, 0.5, TCOS(k4+1))
     call merge_rename(tcos, k3, jr, k4, jr, k1)
     k2 = nlast - 1
     k3 = jr
@@ -990,7 +989,7 @@ go to (158, 160, 158) np
     end if
     q(:mr, j) = B(:mr) + 0.5*(Q(:mr, j)-Q(:mr, jm1)-Q(:mr, jp1))
     b(:mr) = Q(:mr, j) + Q(:mr, 1)
-    call COSGEN (jr, 1, fnum, 0.5, tcos)
+    call cosgen(jr, 1, fnum, 0.5, tcos)
     call TRIX (jr, 0, mr, a, bb, c, b, tcos, d, w)
     q(:mr, 1) = Q(:mr, 1) - Q(:mr, jm1) + B(:mr)
     go to 188
@@ -1011,7 +1010,7 @@ do i = 1, mr
     b3(i) = Q(i, 1) + t
 end do
 k1 = kr + 2*jr
-call COSGEN (jr - 1, 1, 0.0, 1.0, TCOS(k1+1))
+call cosgen(jr - 1, 1, 0.0, 1.0, TCOS(k1+1))
 k2 = k1 + jr
 tcos(k2) = 2.*real(np - 2)
 k4 = (np - 1)*(3 - np)
@@ -1022,14 +1021,14 @@ call merge_rename(tcos, k1, jr - k4, k2 - k4, kr + jr + k4, 0)
 if (np == 3) k1 = k1 - 1
 k2 = kr + jr
 k4 = k1 + k2
-call COSGEN (kr, 1, fnum2, 0.5, TCOS(k4+1))
+call cosgen(kr, 1, fnum2, 0.5, TCOS(k4+1))
 k3 = k4 + kr
-call COSGEN (jr, 1, fnum, 0.5, TCOS(k3+1))
+call cosgen(jr, 1, fnum, 0.5, TCOS(k3+1))
 call merge_rename(tcos, k4, kr, k3, jr, k1)
 k4 = k3 + jr
-call COSGEN (lr, 1, fnum2, 0.5, TCOS(k4+1))
+call cosgen(lr, 1, fnum2, 0.5, TCOS(k4+1))
 call merge_rename(tcos, k3, jr, k4, lr, k1 + k2)
-call COSGEN (kr, 1, fnum2, 0.5, TCOS(k3+1))
+call cosgen(kr, 1, fnum2, 0.5, TCOS(k3+1))
 k3 = kr
 k4 = kr
 call TRI3 (mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
@@ -1040,7 +1039,7 @@ if (np == 3) then
 end if
 q(:mr, j) = Q(:mr, j) + B(:mr)
 b(:mr) = Q(:mr, 1) + Q(:mr, j)
-call COSGEN (jr, 1, fnum, 0.5, tcos)
+call cosgen(jr, 1, fnum, 0.5, tcos)
 call TRIX (jr, 0, mr, a, bb, c, b, tcos, d, w)
 if (jr == 1) then
     q(:mr, 1) = B(:mr)
@@ -1055,22 +1054,22 @@ q(:mr, 1) = Q(:mr, 1) - Q(:mr, jm1)
 b2(:mr) = Q(:mr, 1) + Q(:mr, nlast)
 k1 = kr + jr
 k2 = k1 + jr
-call COSGEN (jr - 1, 1, 0.0, 1.0, TCOS(k1+1))
+call cosgen(jr - 1, 1, 0.0, 1.0, TCOS(k1+1))
 go to (182, 183, 182) np
 182 continue
     tcos(k2) = 2.*real(np - 2)
-    call COSGEN (kr, 1, 0.0, 1.0, TCOS(k2+1))
+    call cosgen(kr, 1, 0.0, 1.0, TCOS(k2+1))
     go to 184
 183 continue
-    call COSGEN (kr + 1, 1, 0.5, 0.0, TCOS(k2))
+    call cosgen(kr + 1, 1, 0.5, 0.0, TCOS(k2))
 184 continue
     k4 = 1 - np/3
     call merge_rename(tcos, k1, jr - k4, k2 - k4, kr + k4, 0)
     if (np == 3) k1 = k1 - 1
     k2 = kr
-    call COSGEN (kr, 1, fnum2, 0.5, TCOS(k1+1))
+    call cosgen(kr, 1, fnum2, 0.5, TCOS(k1+1))
     k4 = k1 + kr
-    call COSGEN (lr, 1, fnum2, 0.5, TCOS(k4+1))
+    call cosgen(lr, 1, fnum2, 0.5, TCOS(k4+1))
     k3 = lr
     k4 = 0
     call TRI3 (mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
@@ -1094,8 +1093,8 @@ go to (182, 183, 182) np
             q(:mr, nlast) = Q(:mr, nlast) - Q(:mr, jm2)
         end if
     end if
-    call COSGEN (kr, 1, fnum2, 0.5, tcos)
-    call COSGEN (lr, 1, fnum2, 0.5, TCOS(kr+1))
+    call cosgen(kr, 1, fnum2, 0.5, tcos)
+    call cosgen(lr, 1, fnum2, 0.5, TCOS(kr+1))
     call TRIX (kr, lr, mr, a, bb, c, b, tcos, d, w)
     q(:mr, nlast) = Q(:mr, nlast) + B(:mr)
     nlastp = nlast
@@ -1114,7 +1113,7 @@ go to (182, 183, 182) np
         jstop = nlast - jr
     end if
     lr = kr - jr
-    call COSGEN (jr, 1, 0.5, 0.0, tcos)
+    call cosgen(jr, 1, 0.5, 0.0, tcos)
     do j = jstart, jstop, jstep
         jm2 = j - jr
         jp2 = j + jr

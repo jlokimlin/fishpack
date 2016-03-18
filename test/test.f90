@@ -88,8 +88,8 @@ contains
         call hstcsp_unit_test()
         call hstcyl_unit_test()
         call hstplr_unit_test()
-        call hstssp_unit_test() ! test fails
-        call hw3crt_unit_test() ! test fails
+        call hstssp_unit_test()
+        call hw3crt_unit_test()
         call hwscrt_unit_test()
         call hwscsp_unit_test()
         call hwscyl_unit_test()

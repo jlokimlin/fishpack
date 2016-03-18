@@ -51,7 +51,7 @@ module type_HelmholtzSolver
 contains
 
 
-    subroutine solve_2d_helmholtz_centered( &  ! HWSCRT
+    subroutine solve_2d_helmholtz_centered( &  ! hwscrt
         this, helmholtz_constant, source_term, solution, perturbation, error_flag )
         !
         ! Purpose:
@@ -108,7 +108,7 @@ contains
 
         ! Address the error flag
         if ( local_error_flag /= 0 ) then
-            write( stderr, '(A)') 'ERROR: SOLVE_2D_HELMHOLTZ_CENTERED (HWSCRT)'
+            write( stderr, '(A)') 'ERROR: SOLVE_2D_HELMHOLTZ_CENTERED (hwscrt)'
             select case (local_error_flag)
                 case(1)
                     write( stderr, '(A)') 'Invalid X_INTERVAL'
@@ -166,7 +166,7 @@ contains
     end subroutine solve_2d_helmholtz_centered
 
 
-    subroutine solve_2d_helmholtz_staggered( & ! HSTCRT
+    subroutine solve_2d_helmholtz_staggered( & ! hstcrt
         this, helmholtz_constant, source_term, solution, perturbation, error_flag )
         !
         ! Purpose:
@@ -223,7 +223,7 @@ contains
 
         ! Address the error flag
         if ( local_error_flag /= 0 ) then
-            write( stderr, '(A)') 'ERROR: SOLVE_2D_HELMHOLTZ_STAGGERED (HSTCRT)'
+            write( stderr, '(A)') 'ERROR: SOLVE_2D_HELMHOLTZ_STAGGERED (hstcrt)'
             select case (local_error_flag)
                 case(1)
                     write( stderr, '(A)') 'Invalid X_INTERVAL'
@@ -297,7 +297,7 @@ contains
     end subroutine finalize_helmholtz_solver
 
 
-    subroutine test_solve_2d_helmholtz_centered() ! THWSCRT
+    subroutine test_solve_2d_helmholtz_centered() ! Thwscrt
         !
         !< Purpose:
         !
@@ -438,7 +438,7 @@ contains
         !     arithmetic followed by the output from this computer
 
         write( stdout, '(A)' ) ''
-        write( stdout, '(A)' ) '    TEST_SOLVE_2D_HELMHOLTZ_CENTERED (THWSCRT)    '
+        write( stdout, '(A)' ) '    TEST_SOLVE_2D_HELMHOLTZ_CENTERED (Thwscrt)    '
         write( stdout, '(A)' ) ''
         write( stdout, '(A)' ) '    Previous 64 bit floating point arithmetic result '
         write( stdout, '(A)' ) '    ierror = 0,  discretization error = 5.3650e-4'
@@ -453,7 +453,7 @@ contains
     end subroutine test_solve_2d_helmholtz_centered
 
 
-    subroutine test_solve_2d_helmholtz_staggered() ! THSTCRT
+    subroutine test_solve_2d_helmholtz_staggered() ! Thstcrt
         !
         !< Purpose:
         !
@@ -580,7 +580,7 @@ contains
         write( stdout, '(A)' ) ''
         write( stdout, '(A)' ) '************************************************************************'
         write( stdout, '(A)' ) ''
-        write( stdout, '(A)' ) '    TEST_SOLVE_2D_HELMHOLTZ_STAGGERED (THSTCRT)    '
+        write( stdout, '(A)' ) '    TEST_SOLVE_2D_HELMHOLTZ_STAGGERED (Thstcrt)    '
         write( stdout, '(A)' ) ''
         write( stdout, '(A)' ) '    Previous 64 bit floating point arithmetic result '
         write( stdout, '(A)' ) '    ierror = 0,  discretization error = 1.2600e-3'
@@ -597,18 +597,18 @@ contains
         !
         ! Purpose:
         !
-        ! Unit test for HelmholtzSolver
+        ! *** TEST RUN ***
         !
         !--------------------------------------------------------------------------------
 
         write( stdout, '(A)' ) ''
         write( stdout, '(A)' ) '************************************************************************'
         write( stdout, '(A)' ) ''
-        write( stdout, '(A)' ) '     Unit test for TYPE( HelmholtzSolver ) '
+        write( stdout, '(A)' ) '     *** TEST RUN *** '
         write( stdout, '(A)' ) ''
 
-        call test_solve_2d_helmholtz_centered() ! THWSCRT
-        call test_solve_2d_helmholtz_staggered() ! HSTCRT
+        call test_solve_2d_helmholtz_centered() ! Thwscrt
+        call test_solve_2d_helmholtz_staggered() ! hstcrt
 
     end subroutine unit_test_helmholtz_solver
 

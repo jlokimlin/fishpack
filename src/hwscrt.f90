@@ -132,13 +132,12 @@ contains
         !     Print earlier output from platforms with 32 and 64 bit floating point
         !     arithemtic followed by the output from this computer
         write( stdout, '(A)') ''
-        write( stdout, '(A)') '    HWSCRT UNIT TEST '
-        write( stdout, '(A)') '    Previous 64 bit floating point arithmetic result '
-        write( stdout, '(A)') '    IERROR = 0,  Discretization Error = 5.36508-4'
-        write( stdout, '(A)') ''
-        write( stdout, '(A)') '    The output from your computer is: '
-        write( stdout, *) &
-            '    IERROR =', ierror, ' Discretization Error = ', discretization_error
+        write( stdout, '(A)') '     hwscrt *** TEST RUN *** '
+        write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(A)') '     ierror = 0,  discretization error = 5.36508-4'
+        write( stdout, '(A)') '     The output from your computer is: '
+        write( stdout, '(A,I3,A,1pe15.6)') &
+            '     ierror =', ierror, ' discretization error = ', discretization_error
 
     end subroutine hwscrt_unit_test
     !
@@ -181,8 +180,8 @@ contains
         !     *                                                               *
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
-        !     SUBROUTINE HWSCRT (A, B, M, MBDCND, BDA, BDB, C, D, N, NBDCND, BDC, BDD,
-        !    +                   ELMBDA, F, IDIMF, PERTRB, IERROR)
+        !     SUBROUTINE hwscrt (A, B, M, MBDCND, BDA, BDB, C, D, N, NBDCND, BDC, BDD,
+        !    +                   ELMBDA, F, IDIMF, PERTRB, ierror)
         !
         ! DIMENSION OF           BDA(N),      BDB(N),   BDC(M), BDD(M),
         ! ARGUMENTS              F(IDIMF, N)
@@ -197,9 +196,9 @@ contains
         !                          (D/DX)(DU/DX) + (D/DY)(DU/DY)
         !                          + LAMBDA*U = F(X, Y).
         !
-        ! USAGE                  CALL HWSCRT (A, B, M, MBDCND, BDA, BDB, C, D, N,
+        ! USAGE                  CALL hwscrt (A, B, M, MBDCND, BDA, BDB, C, D, N,
         !                                     NBDCND, BDC, BDD, ELMBDA, F, IDIMF,
-        !                                     PERTRB, IERROR)
+        !                                     PERTRB, ierror)
         !
         ! ARGUMENTS
         ! ON INPUT               A, B
@@ -320,7 +319,7 @@ contains
         !                        ELMBDA
         !                          THE CONSTANT LAMBDA IN THE HELMHOLTZ
         !                          EQUATION.  IF LAMBDA .GT. 0, A SOLUTION
-        !                          MAY NOT EXIST.  HOWEVER, HWSCRT WILL
+        !                          MAY NOT EXIST.  HOWEVER, hwscrt WILL
         !                          ATTEMPT TO FIND A SOLUTION.
         !
         !                        F
@@ -363,7 +362,7 @@ contains
         !                        IDIMF
         !                          THE ROW (OR FIRST) DIMENSION OF THE ARRAY
         !                          F AS IT APPEARS IN THE PROGRAM CALLING
-        !                          HWSCRT.  THIS PARAMETER IS USED TO SPECIFY
+        !                          hwscrt.  THIS PARAMETER IS USED TO SPECIFY
         !                          THE VARIABLE DIMENSION OF F.  IDIMF MUST
         !                          BE AT LEAST M+1  .
         !
@@ -380,7 +379,7 @@ contains
         !                          POISSON EQUATION (LAMBDA = 0), A SOLUTION
         !                          MAY NOT EXIST.  PERTRB IS A CONSTANT,
         !                          CALCULATED AND SUBTRACTED FROM F, WHICH
-        !                          ENSURES THAT A SOLUTION EXISTS.  HWSCRT
+        !                          ENSURES THAT A SOLUTION EXISTS.  hwscrt
         !                          THEN COMPUTES THIS SOLUTION, WHICH IS A
         !                          LEAST SQUARES SOLUTION TO THE ORIGINAL
         !                          APPROXIMATION.  THIS SOLUTION PLUS ANY
@@ -393,7 +392,7 @@ contains
         !                          BE MADE TO INSURE THAT A MEANINGFUL
         !                          SOLUTION HAS BEEN OBTAINED.
         !
-        !                        IERROR
+        !                        ierror
         !                          AN ERROR FLAG THAT INDICATES INVALID INPUT
         !                          PARAMETERS.  EXCEPT FOR NUMBERS 0 AND 6,
         !                          A SOLUTION IS NOT ATTEMPTED.
@@ -413,8 +412,8 @@ contains
         !                               for your computer)
         !
         !                          SINCE THIS IS THE ONLY MEANS OF INDICATING
-        !                          A POSSIBLY INCORRECT CALL TO HWSCRT, THE
-        !                          USER SHOULD TEST IERROR AFTER THE CALL.
+        !                          A POSSIBLY INCORRECT CALL TO hwscrt, THE
+        !                          USER SHOULD TEST ierror AFTER THE CALL.
         !
         !
         ! SPECIAL CONDITIONS     NONE
@@ -438,7 +437,7 @@ contains
         ! ALGORITHM              THE ROUTINE DEFINES THE FINITE DIFFERENCE
         !                        EQUATIONS, INCORPORATES BOUNDARY DATA, AND
         !                        ADJUSTS THE RIGHT SIDE OF SINGULAR SYSTEMS
-        !                        AND THEN CALLS GENBUN TO SOLVE THE SYSTEM.
+        !                        AND THEN CALLS genbun TO SOLVE THE SYSTEM.
         !
         ! TIMING                 FOR LARGE  M AND N, THE OPERATION COUNT
         !                        IS ROUGHLY PROPORTIONAL TO
@@ -450,7 +449,7 @@ contains
         !                        OF NO MORE THAN THREE SIGNIFICANT DIGITS FOR N
         !                        AND M AS LARGE AS 64.  MORE DETAILS ABOUT
         !                        ACCURACY CAN BE FOUND IN THE DOCUMENTATION FOR
-        !                        SUBROUTINE GENBUN WHICH IS THE ROUTINE THAT
+        !                        SUBROUTINE genbun WHICH IS THE ROUTINE THAT
         !                        SOLVES THE FINITE DIFFERENCE EQUATIONS.
         !
         ! REFERENCES             SWARZTRAUBER, P. AND R. SWEET, "EFFICIENT

@@ -177,17 +177,16 @@ contains
         err4 = err
 
         write( *, *) ''
-        write( *, *) '    SEPEX4 TEST RUN *** '
-        write( *, *) &
-            '    Previous 64 bit floating point arithmetic result '
-        write( *, *) '    IERROR = 0'
-        write( *, *) '    Second Order Discretization Error = 1.5985E-4'
-        write( *, *) '    Fourth Order Discretization Error = 1.8575E-6'
-
+        write( *, *) '    sepx4 *** TEST RUN *** '
+        write( *, *) '    Previous 64 bit floating point arithmetic result '
+        write( *, *) '    ierror = 0'
+        write( *, *) '    Second Order discretization error = 1.5985E-4'
+        write( *, *) '    Fourth Order discretization error = 1.8575E-6'
         write( *, *) '    The output from your computer is: '
-        write( *, *) '    IERROR =', ierror
-        write( *, *) '    Second Order Discretization Error =', err2
-        write( *, *) '    Fourth Order Discretization Error =', err4
+        write( *, *) '    ierror =', ierror
+        write( *, *) '    Second Order discretization error =', err2
+        write( *, *) '    Fourth Order discretization error =', err4
+
 
     contains
 
@@ -321,7 +320,7 @@ contains
         !
         !     SUBROUTINE sepx4(IORDER, A, B, M, MBDCND, BDA, ALPHA, BDB, BETA, C, D, N,
         !    +                  NBDCND, BDC, BDD, COFX, GRHS, USOL, IDMN, PERTRB,
-        !    +                  IERROR)
+        !    +                  ierror)
         !
         !
         !
@@ -375,7 +374,7 @@ contains
         !
         ! USAGE                  CALL sepx4(IORDER, A, B, M, MBDCND, BDA, ALPHA, BDB,
         !                                   BETA, C, D, N, NBDCND, BDC, BDD, COFX,
-        !                                   GRHS, USOL, IDMN, W, PERTRB, IERROR)
+        !                                   GRHS, USOL, IDMN, W, PERTRB, ierror)
         !
         ! ARGUMENTS
         ! ON INPUT               IORDER
@@ -640,7 +639,7 @@ contains
         !                          SINGULARITY IS NOT DETECTED PERTRB=0.0 IS
         !                          RETURNED BY sepx4.
         !
-        !                        IERROR
+        !                        ierror
         !                          AN ERROR FLAG THAT INDICATES INVALID INPUT
         !                          PARAMETERS OR FAILURE TO FIND A SOLUTION
         !

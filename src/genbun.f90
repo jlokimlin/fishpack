@@ -142,13 +142,12 @@ contains
         !     Print earlier output from platforms with 32 and 64 bit floating point
         !     arithemtic followed by the output from this computer
         write( stdout, '(A)') ''
-        write( stdout, '(A)') '    GENBUN UNIT TEST *** '
-        write( stdout, '(A)') '    Previous 64 bit floating point arithmetic result '
-        write( stdout, '(A)') '    IERROR = 0,  Discretization Error = 9.6406E-3'
-        write( stdout, '(A)') ''
-        write( stdout, '(A)') '    The output from your computer is: '
-        write( stdout, *)&
-            '    IERROR =', ierror, ' Discretization Error = ', discretization_error
+        write( stdout, '(A)') '     genbun *** TEST RUN *** '
+        write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(A)') '     ierror = 0,  discretization error = 9.6406E-3'
+        write( stdout, '(A)') '     The output from your computer is: '
+        write( stdout, '(A,I3,A,1pe15.6)') &
+            '     ierror =', ierror, ' discretization error = ', discretization_error
 
     end subroutine genbun_unit_test
     !
@@ -190,7 +189,7 @@ contains
         !     *                                                               *
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
-        !     SUBROUTINE GENBUN (NPEROD, N, MPEROD, M, A, B, C, IDIMY, Y, IERROR)
+        !     SUBROUTINE genbun (NPEROD, N, MPEROD, M, A, B, C, IDIMY, Y, ierror)
         !
         !
         ! DIMENSION OF           A(M), B(M), C(M), Y(IDIMY, N)
@@ -214,8 +213,8 @@ contains
         !                        AND X(I, N+1) MAY EQUAL 0, X(I, N-1), OR X(I, 1)
         !                        DEPENDING ON AN INPUT PARAMETER.
         !
-        ! USAGE                  CALL GENBUN (NPEROD, N, MPEROD, M, A, B, C, IDIMY, Y,
-        !                                     IERROR)
+        ! USAGE                  CALL genbun (NPEROD, N, MPEROD, M, A, B, C, IDIMY, Y,
+        !                                     ierror)
         !
         ! ARGUMENTS
         !
@@ -262,7 +261,7 @@ contains
         !                        IDIMY
         !                          THE ROW (OR FIRST) DIMENSION OF THE
         !                          TWO-DIMENSIONAL ARRAY Y AS IT APPEARS
-        !                          IN THE PROGRAM CALLING GENBUN.
+        !                          IN THE PROGRAM CALLING genbun.
         !                          THIS PARAMETER IS USED TO SPECIFY THE
         !                          VARIABLE DIMENSION OF Y.
         !                          IDIMY MUST BE AT LEAST M.
@@ -279,7 +278,7 @@ contains
         !
         !                          CONTAINS THE SOLUTION X.
         !
-        !                        IERROR
+        !                        ierror
         !                          AN ERROR FLAG WHICH INDICATES INVALID
         !                          INPUT PARAMETERS  EXCEPT FOR NUMBER
         !                          ZERO, A SOLUTION IS NOT ATTEMPTED.
@@ -347,7 +346,7 @@ contains
         !                        THE SOLUTION X WAS SUBSTITUTED INTO THE
         !                        GIVEN SYSTEM  AND, USING DOUBLE PRECISION
         !                        A RIGHT SIDE Y WAS COMPUTED.
-        !                        USING THIS ARRAY Y, SUBROUTINE GENBUN
+        !                        USING THIS ARRAY Y, SUBROUTINE genbun
         !                        WAS CALLED TO PRODUCE APPROXIMATE
         !                        SOLUTION Z.  THEN RELATIVE ERROR
         !                          E = MAX(abs(Z(I, J)-X(I, J)))/
@@ -444,11 +443,11 @@ contains
         ! Release allocated work space
         call workspace%destroy()
 
-    end subroutine GENBUN
+    end subroutine genbun
     !
     !*****************************************************************************************
     !
-    subroutine GENBUNN(nperod, n, mperod, m, a, b, c, idimy, y, ierror, w)
+    subroutine genbunn(nperod, n, mperod, m, a, b, c, idimy, y, ierror, w)
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
@@ -591,10 +590,10 @@ end do
 133 continue
     w(1) = ipstor + iwp - 1
 
-end subroutine GENBUNN
-    !
-    !*****************************************************************************************
-    !
+end subroutine genbunn
+
+
+
 subroutine POISD2(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
     !--------------------------------------------------------------------------------
     ! Dictionary: calling arguments
@@ -674,7 +673,7 @@ subroutine POISD2(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
             if (irreg /= 1) jsp = jsp - l
     end select
 111 continue
-    call COSGEN (jst, 1, 0.5, 0.0, tcos)
+    call cosgen(jst, 1, 0.5, 0.0, tcos)
     if (l <= jsp) then
         do j = l, jsp, l
             jm1 = j - jsh
@@ -743,10 +742,10 @@ subroutine POISD2(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
             tcos(krpi) = TCOS(i)
         end do
     else
-        call COSGEN (lr, jstsav, 0., fi, TCOS(jst+1))
+        call cosgen(lr, jstsav, 0., fi, TCOS(jst+1))
         call merge_rename(tcos, 0, jst, jst, lr, kr)
     end if
-    call COSGEN (kr, jstsav, 0.0, fi, tcos)
+    call cosgen(kr, jstsav, 0.0, fi, tcos)
     call TRIX (kr, kr, m, ba, bb, bc, b, tcos, d, w)
     q(:m, j) = Q(:m, jm2) + B(:m) + P(ipp+1:m+ipp)
     lr = kr
@@ -768,8 +767,8 @@ case (2)
             ideg = jst
             kr = l
         case (2)
-            call COSGEN (kr, jstsav, 0.0, fi, tcos)
-            call COSGEN (lr, jstsav, 0.0, fi, TCOS(kr+1))
+            call cosgen(kr, jstsav, 0.0, fi, tcos)
+            call cosgen(lr, jstsav, 0.0, fi, TCOS(kr+1))
             ideg = kr
             kr = kr + jst
     end select
@@ -811,12 +810,12 @@ end select
     b(:m) = Q(:m, j)
     select case (irreg)
         case default
-            call COSGEN (jst, 1, 0.5, 0.0, tcos)
+            call cosgen(jst, 1, 0.5, 0.0, tcos)
             ideg = jst
         case (2)
             kr = lr + jst
-            call COSGEN (kr, jstsav, 0.0, fi, tcos)
-            call COSGEN (lr, jstsav, 0.0, fi, TCOS(kr+1))
+            call cosgen(kr, jstsav, 0.0, fi, tcos)
+            call cosgen(lr, jstsav, 0.0, fi, TCOS(kr+1))
             ideg = kr
     end select
 156 continue
@@ -856,15 +855,15 @@ end select
         b(:m) = Q(:m, j) + Q(:m, jm2) + Q(:m, jp2)
     end if
 170 continue
-    call COSGEN (jst, 1, 0.5, 0.0, tcos)
+    call cosgen(jst, 1, 0.5, 0.0, tcos)
     ideg = jst
     jdeg = 0
     go to 172
 171 continue
     if (j + l > n) lr = lr - jst
     kr = jst + lr
-    call COSGEN (kr, jstsav, 0.0, fi, tcos)
-    call COSGEN (lr, jstsav, 0.0, fi, TCOS(kr+1))
+    call cosgen(kr, jstsav, 0.0, fi, tcos)
+    call cosgen(lr, jstsav, 0.0, fi, TCOS(kr+1))
     ideg = kr
     jdeg = lr
 172 continue
@@ -893,9 +892,8 @@ go to 164
     w(1) = ipstor
     return
 end subroutine POISD2
-    !
-    !*****************************************************************************************
-    !
+
+
 subroutine POISN2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
     b3, w, w2, w3, d, tcos, p)
     !-----------------------------------------------
@@ -971,7 +969,7 @@ subroutine POISN2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
 107 continue
     jstop = nlast - jr
     if (nrod == 0) jstop = jstop - i2r
-    call COSGEN (i2r, 1, 0.5, 0.0, tcos)
+    call cosgen(i2r, 1, 0.5, 0.0, tcos)
     i2rby2 = i2r/2
     if (jstop < jstart) then
         j = jr
@@ -1030,12 +1028,12 @@ subroutine POISN2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
                 q(:mr, j) = Q(:mr, j) - Q(:mr, jm1) + Q(:mr, jm2)
             end if
             if (lr /= 0) then
-                call COSGEN (lr, 1, 0.5, fden, TCOS(kr+1))
+                call cosgen(lr, 1, 0.5, fden, TCOS(kr+1))
             else
                 b(:mr) = fistag*B(:mr)
             end if
         end if
-        call COSGEN (kr, 1, 0.5, fden, tcos)
+        call cosgen(kr, 1, 0.5, fden, tcos)
         call TRIX (kr, lr, mr, a, bb, c, b, tcos, d, w)
         q(:mr, j) = Q(:mr, j) + B(:mr)
         kr = kr + i2r
@@ -1074,7 +1072,7 @@ subroutine POISN2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
         p(ipp+1:mr+ipp) = B(:mr) + 0.5*(Q(:mr, j)-Q(:mr, jm1)-Q(:mr, jp1))
         b(:mr) = P(ipp+1:mr+ipp) + Q(:mr, jp2)
         if (lr /= 0) then
-            call COSGEN (lr, 1, 0.5, fden, TCOS(i2r+1))
+            call cosgen(lr, 1, 0.5, fden, TCOS(i2r+1))
             call merge_rename(tcos, 0, i2r, i2r, lr, kr)
         else
             do i = 1, i2r
@@ -1082,7 +1080,7 @@ subroutine POISN2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
                 tcos(ii) = TCOS(i)
             end do
         end if
-        call COSGEN (kr, 1, 0.5, fden, tcos)
+        call cosgen(kr, 1, 0.5, fden, tcos)
         if (lr == 0) then
             go to (146, 145) istag
         end if
@@ -1148,17 +1146,17 @@ end select
 162 continue
     b(:mr) = Q(:mr, j) + 0.5*Q(:mr, 1) - Q(:mr, jm1) + Q(:mr, nlast) - &
         Q(:mr, jm2)
-    call COSGEN (jr, 1, 0.5, 0.0, tcos)
+    call cosgen(jr, 1, 0.5, 0.0, tcos)
     call TRIX (jr, 0, mr, a, bb, c, b, tcos, d, w)
     q(:mr, j) = 0.5*(Q(:mr, j)-Q(:mr, jm1)-Q(:mr, jp1)) + B(:mr)
     b(:mr) = Q(:mr, 1) + 2.*Q(:mr, nlast) + 4.*Q(:mr, j)
     jr2 = 2*jr
-    call COSGEN (jr, 1, 0.0, 0.0, tcos)
+    call cosgen(jr, 1, 0.0, 0.0, tcos)
     tcos(jr+1:jr*2) = -TCOS(jr:1:(-1))
     call TRIX (jr2, 0, mr, a, bb, c, b, tcos, d, w)
     q(:mr, j) = Q(:mr, j) + B(:mr)
     b(:mr) = Q(:mr, 1) + 2.*Q(:mr, j)
-    call COSGEN (jr, 1, 0.5, 0.0, tcos)
+    call cosgen(jr, 1, 0.5, 0.0, tcos)
     call TRIX (jr, 0, mr, a, bb, c, b, tcos, d, w)
     q(:mr, 1) = 0.5*Q(:mr, 1) - Q(:mr, jm1) + B(:mr)
     go to 194
@@ -1192,19 +1190,19 @@ end select
     k2 = kr + jr
     tcos(k1+1) = -2.
     k4 = k1 + 3 - istag
-    call COSGEN (k2 + istag - 2, 1, 0.0, fnum, TCOS(k4))
+    call cosgen(k2 + istag - 2, 1, 0.0, fnum, TCOS(k4))
     k4 = k1 + k2 + 1
-    call COSGEN (jr - 1, 1, 0.0, 1.0, TCOS(k4))
+    call cosgen(jr - 1, 1, 0.0, 1.0, TCOS(k4))
     call merge_rename(tcos, k1, k2, k1 + k2, jr - 1, 0)
     k3 = k1 + k2 + lr
-    call COSGEN (jr, 1, 0.5, 0.0, TCOS(k3+1))
+    call cosgen(jr, 1, 0.5, 0.0, TCOS(k3+1))
     k4 = k3 + jr + 1
-    call COSGEN (kr, 1, 0.5, fden, TCOS(k4))
+    call cosgen(kr, 1, 0.5, fden, TCOS(k4))
     call merge_rename(tcos, k3, jr, k3 + jr, kr, k1)
     if (lr /= 0) then
-        call COSGEN (lr, 1, 0.5, fden, TCOS(k4))
+        call cosgen(lr, 1, 0.5, fden, TCOS(k4))
         call merge_rename(tcos, k3, jr, k3 + jr, lr, k3 - lr)
-        call COSGEN (kr, 1, 0.5, fden, TCOS(k4))
+        call cosgen(kr, 1, 0.5, fden, TCOS(k4))
     end if
     k3 = kr
     k4 = kr
@@ -1214,7 +1212,7 @@ end select
     call TRIX (1, 0, mr, a, bb, c, b, tcos, d, w)
     q(:mr, j) = Q(:mr, j) + B(:mr)
     b(:mr) = Q(:mr, 1) + 2.*Q(:mr, j)
-    call COSGEN (jr, 1, 0.5, 0.0, tcos)
+    call cosgen(jr, 1, 0.5, 0.0, tcos)
     call TRIX (jr, 0, mr, a, bb, c, b, tcos, d, w)
     if (jr == 1) then
         q(:mr, 1) = B(:mr)
@@ -1247,14 +1245,14 @@ b2(:mr) = 2.*(Q(:mr, 1)+Q(:mr, nlast))
 k1 = kr + jr - 1
 tcos(k1+1) = -2.
 k4 = k1 + 3 - istag
-call COSGEN (kr + istag - 2, 1, 0.0, fnum, TCOS(k4))
+call cosgen(kr + istag - 2, 1, 0.0, fnum, TCOS(k4))
 k4 = k1 + kr + 1
-call COSGEN (jr - 1, 1, 0.0, 1.0, TCOS(k4))
+call cosgen(jr - 1, 1, 0.0, 1.0, TCOS(k4))
 call merge_rename(tcos, k1, kr, k1 + kr, jr - 1, 0)
-call COSGEN (kr, 1, 0.5, fden, TCOS(k1+1))
+call cosgen(kr, 1, 0.5, fden, TCOS(k1+1))
 k2 = kr
 k4 = k1 + k2 + 1
-call COSGEN (lr, 1, 0.5, fden, TCOS(k4))
+call cosgen(lr, 1, 0.5, fden, TCOS(k4))
 k3 = lr
 k4 = 0
 call TRI3 (mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
@@ -1281,8 +1279,8 @@ go to 194
             q(:mr, nlast) = Q(:mr, nlast) - Q(:mr, jm2)
         end if
     end if
-    call COSGEN (kr, 1, 0.5, fden, tcos)
-    call COSGEN (lr, 1, 0.5, fden, TCOS(kr+1))
+    call cosgen(kr, 1, 0.5, fden, tcos)
+    call cosgen(lr, 1, 0.5, fden, TCOS(kr+1))
     if (lr == 0) then
         b(:mr) = fistag*B(:mr)
     end if
@@ -1310,7 +1308,7 @@ go to 194
         jstop = nlast - jr
     end if
     lr = kr - jr
-    call COSGEN (jr, 1, 0.5, 0.0, tcos)
+    call cosgen(jr, 1, 0.5, 0.0, tcos)
     do j = jstart, jstop, jstep
         jm2 = j - jr
         jp2 = j + jr
@@ -1342,7 +1340,7 @@ end subroutine POISN2
     !
 subroutine POISP2(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer (ip), intent (in) :: m
     integer (ip), intent (in) :: n
@@ -1361,7 +1359,7 @@ subroutine POISP2(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
     real (wp) :: tcos(*)
     real (wp) :: p(*)
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer (ip) :: mr, nr, nrm1, j, nrmj, nrpj, i, ipstor, lh
     real (wp)    ::  s, t

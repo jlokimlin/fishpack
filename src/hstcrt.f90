@@ -120,7 +120,7 @@ contains
             end do
         end do
 
-        call HSTCRT (a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd &
+        call hstcrt (a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd &
             , elmbda, f, idimf, pertrb, ierror)
         !
         !     COMPUTE DISCRETIZATION ERROR.  THE EXACT SOLUTION IS
@@ -137,13 +137,12 @@ contains
         !     Print earlier output from platforms with 32 and 64 bit floating point
         !     arithemtic followed by the output from this computer
         write( stdout, '(A)') ''
-        write( stdout, '(A)') '    HSTCRT UNIT TEST *** '
-        write( stdout, '(A)') '    Previous 64 bit floating point arithmetic result '
-        write( stdout, '(A)') '    IERROR = 0,  Discretization Error = 1.2600E-3'
-        write( stdout, '(A)') ''
-        write( stdout, '(A)') '    The output from your computer is: '
-        write( stdout, *)&
-            '    IERROR =', ierror, ' Discretization Error = ', discretization_error
+        write( stdout, '(A)') '     hstcrt *** TEST RUN *** '
+        write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(A)') '     ierror = 0,  discretization error = 1.2600E-3'
+        write( stdout, '(A)') '     The output from your computer is: '
+        write( stdout, '(A,I3,A,1pe15.6)') &
+            '     ierror =', ierror, ' discretization error = ', discretization_error
 
     end subroutine hstcrt_unit_test
     !
@@ -186,8 +185,8 @@ contains
         !     *                                                               *
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
-        !     SUBROUTINE HSTCRT (A, B, M, MBDCND, BDA, BDB, C, D, N, NBDCND, BDC, BDD,
-        !    +                   ELMBDA, F, IDIMF, PERTRB, IERROR)
+        !     SUBROUTINE hstcrt (A, B, M, MBDCND, BDA, BDB, C, D, N, NBDCND, BDC, BDD,
+        !    +                   ELMBDA, F, IDIMF, PERTRB, ierror)
         !
         ! DIMENSION OF           BDA(N), BDB(N), BDC(M), BDD(M), F(IDIMF, N)
         ! ARGUMENTS
@@ -201,9 +200,9 @@ contains
         !                           = F(X, Y)
         !                         ON A STAGGERED GRID IN CARTESIAN COORDINATES.
         !
-        ! USAGE                   CALL HSTCRT (A, B, M, MBDCND, BDA, BDB, C, D
+        ! USAGE                   CALL hstcrt (A, B, M, MBDCND, BDA, BDB, C, D
         !                                      N, NBDCND, BDC, BDD, ELMBDA,
-        !                                      F, IDIMF, PERTRB, IERROR)
+        !                                      F, IDIMF, PERTRB, ierror)
         !
         ! ARGUMENTS
         ! ON INPUT
@@ -333,7 +332,7 @@ contains
         !                          THE CONSTANT LAMBDA IN THE HELMHOLTZ
         !                          EQUATION.  IF LAMBDA IS GREATER THAN 0,
         !                          A SOLUTION MAY NOT EXIST. HOWEVER,
-        !                          HSTCRT WILL  ATTEMPT TO FIND A SOLUTION.
+        !                          hstcrt WILL  ATTEMPT TO FIND A SOLUTION.
         !
         !                        F
         !                          A TWO-DIMENSIONAL ARRAY THAT SPECIFIES
@@ -348,7 +347,7 @@ contains
         !                        IDIMF
         !                          THE ROW (OR FIRST) DIMENSION OF THE ARRAY
         !                          F AS IT APPEARS IN THE PROGRAM CALLING
-        !                          HSTCRT.  THIS PARAMETER IS USED TO SPECIFY
+        !                          hstcrt.  THIS PARAMETER IS USED TO SPECIFY
         !                          THE VARIABLE DIMENSION OF F.
         !                          IDIMF MUST BE AT LEAST M.
         !
@@ -364,7 +363,7 @@ contains
         !                          POISSON EQUATION (LAMBDA = 0), A SOLUTION
         !                          MAY NOT EXIST.  PERTRB IS A CONSTANT,
         !                          CALCULATED AND SUBTRACTED FROM F, WHICH
-        !                          ENSURES THAT A SOLUTION EXISTS.  HSTCRT
+        !                          ENSURES THAT A SOLUTION EXISTS.  hstcrt
         !                          THEN COMPUTES THIS SOLUTION, WHICH IS A
         !                          LEAST SQUARES SOLUTION TO THE ORIGINAL
         !                          APPROXIMATION.  THIS SOLUTION PLUS ANY
@@ -377,7 +376,7 @@ contains
         !                          INSURE THAT A MEANINGFUL SOLUTION HAS BEEN
         !                          OBTAINED.
         !
-        !                        IERROR
+        !                        ierror
         !                          AN ERROR FLAG THAT INDICATES INVALID INPUT
         !                          PARAMETERS.  EXCEPT TO NUMBERS 0 AND  6,
         !                          A SOLUTION IS NOT ATTEMPTED.
@@ -401,8 +400,8 @@ contains
         !                         =  8  M .LE. 2
         !
         !                         SINCE THIS IS THE ONLY MEANS OF INDICATING
-        !                         A POSSIBLY INCORRECT CALL TO HSTCRT, THE
-        !                         USER SHOULD TEST IERROR AFTER THE CALL.
+        !                         A POSSIBLY INCORRECT CALL TO hstcrt, THE
+        !                         USER SHOULD TEST ierror AFTER THE CALL.
         !
         !                          = 20 If the dynamic allocation of real and
         !                               complex work space required for solution
@@ -430,7 +429,7 @@ contains
         ! ALGORITHM              THIS SUBROUTINE DEFINES THE FINITE-DIFFERENCE
         !                        EQUATIONS, INCORPORATES BOUNDARY DATA, ADJUSTS
         !                        THE RIGHT SIDE WHEN THE SYSTEM IS SINGULAR
-        !                        AND CALLS EITHER POISTG OR GENBUN WHICH SOLVES
+        !                        AND CALLS EITHER POISTG OR genbun WHICH SOLVES
         !                        THE LINEAR SYSTEM OF EQUATIONS.
         !
         ! TIMING                 FOR LARGE M AND N, THE OPERATION COUNT

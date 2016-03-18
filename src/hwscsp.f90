@@ -1,5 +1,10 @@
 module module_hwscsp
 
+    use, intrinsic :: iso_fortran_env, only: &
+        wp => REAL64, &
+        ip => INT32, &
+        stdout => OUTPUT_UNIT
+
     use type_FishpackWorkspace, only: &
         FishpackWorkspace
 
@@ -54,17 +59,17 @@ contains
         !
         type (FishpackWorkspace) :: workspace
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer::intl, m, mbdcnd, n, nbdcnd, idimf, mp1, i, np1, j, ierror
         real , dimension(48, 33) :: f
         real , dimension(33) :: bdtf, bdts, bdrs, bdrf
         real , dimension(48) :: theta
         real , dimension(33) :: r
-        real :: pi, dum, ts, tf, rs, rf, elmbda, dtheta, dr, ci4, pertrb, err, z, dphi, si
+        real :: pi, dum, ts, tf, rs, rf, elmbda, dtheta, dr, ci4, pertrb, discretization_error, z, dphi, si
         !-----------------------------------------------
         !
-        !     PROGRAM TO ILLUSTRATE THE USE OF HWSCSP
+        !     PROGRAM TO ILLUSTRATE THE USE OF hwscsp
         !
         !
         pi = acos( -1.0 )
@@ -111,32 +116,30 @@ contains
             f(i, :n) = ci4*R(:n)**2
         end do
 
-        call HWSCSP (intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, &
+        call hwscsp (intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, &
             nbdcnd, bdrs, bdrf, elmbda, f, idimf, pertrb, ierror, workspace)
         !
         !     COMPUTE DISCRETIZATION ERROR
         !
-        err = 0.
+        discretization_error = 0.
         do i = 1, mp1
             ci4 = COS(THETA(i))**4
             do j = 1, n
                 z = abs(F(i, j)-ci4*R(j)**4)
-                err = max(z, err)
+                discretization_error = max(z, discretization_error)
             end do
         end do
         !     Print earlier output from platforms with 32 and 64 bit floating point
         !     arithemtic followed by the output from this computer
-        write( *, *) ''
-        write( *, *) ' HWSCSP TEST RUN, EXAMPLE 1 *** '
-        write( *, *) ' Previous 64 bit floating point arithmetic result '
-        write( *, *) ' ierror = 0'
-        write( *, *) ' discretization error = 7.9984E-4 '
-        write( *, *) ''
-        write( *, *) ' The output from your computer is: '
-        write( *, *) ' IERROR =', ierror
-        write( *, *) ' Discretization Error =', err
+        write( stdout, '(A)') ''
+        write( stdout, '(A)') '     hwscsp *** TEST RUN, EXAMPLE 1 *** '
+        write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(A)') '     ierror = 0,  discretization error = 7.9984E-4 '
+        write( stdout, '(A)') '     The output from your computer is: '
+        write( stdout, '(A,I3,A,1pe15.6)') &
+            '     ierror =', ierror, '     discretization error =', discretization_error
         !
-        !     THE FOLLOWING PROGRAM ILLUSTRATES THE USE OF HWSCSP TO SOLVE
+        !     THE FOLLOWING PROGRAM ILLUSTRATES THE USE OF hwscsp TO SOLVE
         !     A THREE DIMENSIONAL PROBLEM WHICH HAS LONGITUDNAL DEPENDENCE
         !
         mbdcnd = 2
@@ -153,40 +156,41 @@ contains
         !     COMPUTE RIGHT SIDE OF THE EQUATION
         !
         f(:mp1, :n) = 0.
-        call HWSCSP (intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, &
+        call hwscsp (intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, &
             nbdcnd, bdrs, bdrf, elmbda, f, idimf, pertrb, ierror, workspace)
         !
         !     COMPUTE DISCRETIZATION ERROR   (FOURIER COEFFICIENTS)
         !
-        err = 0
+        discretization_error = 0
         do i = 1, mp1
             si = SIN(THETA(i))
             do j = 1, np1
                 z = abs(F(i, j)-R(j)*si)
-                err = max(z, err)
+                discretization_error = max(z, discretization_error)
             end do
         end do
         !
         !     Print earlier output from platforms with 32 and 64 bit floating point
         !     arithemtic followed by the output from this computer
 
-        write( *, *) ' ********** '
-        write( *, *) ' ********** '
-        write( *, *) ' HWSCSP TEST RUN, EXAMPLE 2 *** '
-        write( *, *) ' Previous 64 bit floating point arithmetic result '
-        write( *, *) ' ierror = 0'
-        write( *, *) ' discretization error = 5.8682E-5 '
+        write( stdout, '(A)') ''
+        write( stdout, '(A)') '     hwscsp *** TEST RUN, EXAMPLE 2 *** '
+        write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(A)') '     ierror = 0, discretization error = 5.8682E-5 '
+        write( stdout, '(A)') '     The output from your computer is: '
+        write( stdout, '(A,I3,A,1pe15.6)') &
+            '     ierror =', ierror, '     discretization error =', discretization_error
 
-        write( *, *) ' The output from your computer is: '
-        write( *, *) ' IERROR =', ierror
-        write( *, *) ' Discretization Error =', err
+
         !     release real and complex allocated work space
         call workspace%destroy()
 
     end subroutine hwscsp_unit_test
 
-    subroutine HWSCSP(INTL, TS, TF, M, MBDCND, BDTS, BDTF, RS, RF, N, &
-        NBDCND, BDRS, BDRF, ELMBDA, F, IDIMF, PERTRB, IERROR, W)
+
+
+    subroutine hwscsp(INTL, TS, TF, M, MBDCND, BDTS, BDTF, RS, RF, N, &
+        NBDCND, BDRS, BDRF, ELMBDA, F, IDIMF, PERTRB, ierror, W)
         !
         !     file hwscsp.f
         !
@@ -222,8 +226,8 @@ contains
         !     *                                                               *
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
-        !     SUBROUTINE HWSCSP (INTL, TS, TF, M, MBDCND, BDTS, BDTF, RS, RF, N, NBDCND,
-        !    +                   BDRS, BDRF, ELMBDA, F, IDIMF, PERTRB, IERROR, W)
+        !     SUBROUTINE hwscsp (INTL, TS, TF, M, MBDCND, BDTS, BDTF, RS, RF, N, NBDCND,
+        !    +                   BDRS, BDRF, ELMBDA, F, IDIMF, PERTRB, ierror, W)
         !
         !
         ! DIMENSION OF           BDTS(N+1),     BDTF(N+1), BDRS(M+1), BDRF(M+1),
@@ -249,17 +253,17 @@ contains
         !                        EQUATION RESULTS FROM THE FOURIER TRANSFORM
         !                        OF THE THREE DIMENSIONAL POISSON EQUATION.
         !
-        ! USAGE                  CALL HWSCSP (INTL, TS, TF, M, MBDCND, BDTS, BDTF,
+        ! USAGE                  CALL hwscsp (INTL, TS, TF, M, MBDCND, BDTS, BDTF,
         !                                     RS, RF, N, NBDCND, BDRS, BDRF, ELMBDA,
-        !                                     F, IDIMF, PERTRB, IERROR, W)
+        !                                     F, IDIMF, PERTRB, ierror, W)
         !
         ! ARGUMENTS
         ! ON INPUT               INTL
-        !                          = 0  ON INITIAL ENTRY TO HWSCSP OR IF ANY
+        !                          = 0  ON INITIAL ENTRY TO hwscsp OR IF ANY
         !                               OF THE ARGUMENTS RS, RF, N, NBDCND
         !                               ARE CHANGED FROM A PREVIOUS CALL.
         !                          = 1  IF RS, RF, N, NBDCND ARE ALL UNCHANGED
-        !                               FROM PREVIOUS CALL TO HWSCSP.
+        !                               FROM PREVIOUS CALL TO hwscsp.
         !
         !                          NOTE:
         !                          A CALL WITH INTL=0 TAKES APPROXIMATELY
@@ -442,7 +446,7 @@ contains
         !                        ELMBDA
         !                          THE CONSTANT LAMBDA IN THE HELMHOLTZ
         !                          EQUATION.  IF LAMBDA .GT. 0, A SOLUTION
-        !                          MAY NOT EXIST.  HOWEVER, HWSCSP WILL
+        !                          MAY NOT EXIST.  HOWEVER, hwscsp WILL
         !                          ATTEMPT TO FIND A SOLUTION.  IF NBDCND = 5
         !                          OR 6 OR  MBDCND = 5, 6, 7, 8, OR 9, ELMBDA
         !                          MUST BE ZERO.
@@ -491,7 +495,7 @@ contains
         !                        IDIMF
         !                          THE ROW (OR FIRST) DIMENSION OF THE ARRAY
         !                          F AS IT APPEARS IN THE PROGRAM CALLING
-        !                          HWSCSP.  THIS PARAMETER IS USED TO SPECIFY
+        !                          hwscsp.  THIS PARAMETER IS USED TO SPECIFY
         !                          THE VARIABLE DIMENSION OF F.  IDIMF MUST
         !                          BE AT LEAST M+1  .
         !
@@ -506,25 +510,25 @@ contains
         !
         !                          The first statement makes the fishpack module
         !                          defined in the file "fish.f" available to the
-        !                          user program calling HWSCSP.  The second statement
+        !                          user program calling hwscsp.  The second statement
         !                          declares a derived type variable (defined in
         !                          the module "fish.f") which is used internally
-        !                          in HWSCSP to dynamically allocate real and complex
+        !                          in hwscsp to dynamically allocate real and complex
         !                          work space used in solution.  An error flag
-        !                          (IERROR = 20) is set if the required work space
+        !                          (ierror = 20) is set if the required work space
         !                          allocation fails (for example if N, M are too large)
         !                          Real and complex values are set in the components
-        !                          of W on a initial (INTL=0) call to HWSCSP.  These
+        !                          of W on a initial (INTL=0) call to hwscsp.  These
         !                          must be preserved on non-initial calls (INTL=1)
-        !                          to HWSCSP.  This eliminates redundant calculations
+        !                          to hwscsp.  This eliminates redundant calculations
         !                          and saves compute time.
-        !               ****       IMPORTANT!  The user program calling HWSCSP should
+        !               ****       IMPORTANT!  The user program calling hwscsp should
         !                          include the statement:
         !
         !                               CALL FISHFIN(W)
         !
         !                          after the final approximation is generated by
-        !                          HWSCSP.  The will deallocate the real and complex
+        !                          hwscsp.  The will deallocate the real and complex
         !                          work space of W.  Failure to include this statement
         !                          could result in serious memory leakage.
         !
@@ -541,7 +545,7 @@ contains
         !                          POISSON EQUATION (LAMBDA = 0), A SOLUTION
         !                          MAY NOT EXIST.  PERTRB IS A CONSTANT,
         !                          CALCULATED AND SUBTRACTED FROM F, WHICH
-        !                          ENSURES THAT A SOLUTION EXISTS.  HWSCSP
+        !                          ENSURES THAT A SOLUTION EXISTS.  hwscsp
         !                          THEN COMPUTES THIS SOLUTION, WHICH IS A
         !                          LEAST SQUARES SOLUTION TO THE ORIGINAL
         !                          APPROXIMATION. THIS SOLUTION IS NOT UNIQUE
@@ -552,7 +556,7 @@ contains
         !                          COMPARISON SHOULD ALWAYS BE MADE TO INSURE
         !                          THAT A MEANINGFUL SOLUTION HAS BEEN OBTAINED.
         !
-        !                        IERROR
+        !                        ierror
         !                          AN ERROR FLAG THAT INDICATES INVALID INPUT
         !                          PARAMETERS.  EXCEPT FOR NUMBERS 0 AND 10,
         !                          A SOLUTION IS NOT ATTEMPTED.
@@ -581,13 +585,13 @@ contains
         !                               if N, M are too large for the platform used)
         !
         !                          SINCE THIS IS THE ONLY MEANS OF INDICATING
-        !                          A POSSLIBY INCORRECT CALL TO HWSCSP, THE
-        !                          USER SHOULD TEST IERROR AFTER A CALL.
+        !                          A POSSLIBY INCORRECT CALL TO hwscsp, THE
+        !                          USER SHOULD TEST ierror AFTER A CALL.
         !
         !                        W
         !                          The derived type (FishpackWorkspace) variable W
         !                          contains real and complex values that must not
-        !                          be destroyed if HWSCSP is called again with
+        !                          be destroyed if hwscsp is called again with
         !                          INTL=1.
         !
         ! SPECIAL CONDITIONS     NONE
@@ -613,7 +617,7 @@ contains
         ! ALGORITHM              THE ROUTINE DEFINES THE FINITE DIFFERENCE
         !                        EQUATIONS, INCORPORATES BOUNDARY DATA, AND
         !                        ADJUSTS THE RIGHT SIDE OF SINGULAR SYSTEMS
-        !                        AND THEN CALLS BLKTRI TO SOLVE THE SYSTEM.
+        !                        AND THEN CALLS blktri TO SOLVE THE SYSTEM.
         !
         ! REFERENCES             SWARZTRAUBER, P. AND R. SWEET, "EFFICIENT
         !                        FORTRAN SUBPROGRAMS FOR THE SOLUTION OF
@@ -622,7 +626,7 @@ contains
         !***********************************************************************
         type (FishpackWorkspace) :: w
         !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
+        ! Dictionary: calling arguments
         !-----------------------------------------------
         integer  :: INTL
         integer  :: M
@@ -630,7 +634,7 @@ contains
         integer  :: N
         integer  :: NBDCND
         integer  :: IDIMF
-        integer  :: IERROR
+        integer  :: ierror
         real  :: TS
         real  :: TF
         real  :: RS
@@ -643,7 +647,7 @@ contains
         real  :: BDRF(*)
         real  :: F(IDIMF, *)
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer :: I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, NCK, L, K, NP &
             , IRWK, ICWK, NP1, MP1
@@ -652,27 +656,27 @@ contains
         save I1, I2, I3, I4, I5, I6, I7, I8, I9, I10
         !-----------------------------------------------
         pi = acos( -1.0 )
-        IERROR = 0
-        if (TS<0. .or. TF>PI) IERROR = 1
-        if (TS >= TF) IERROR = 2
-        if (M < 5) IERROR = 3
-        if (MBDCND<1 .or. MBDCND>9) IERROR = 4
-        if (RS < 0.) IERROR = 5
-        if (RS >= RF) IERROR = 6
-        if (N < 5) IERROR = 7
-        if (NBDCND<1 .or. NBDCND>6) IERROR = 8
-        if (ELMBDA > 0.) IERROR = 9
-        if (IDIMF < M + 1) IERROR = 10
-        if (ELMBDA/=0. .and. MBDCND>=5) IERROR = 11
-        if (ELMBDA/=0. .and. (NBDCND==5 .or. NBDCND==6)) IERROR = 12
-        if((MBDCND==5.or.MBDCND==6.or.MBDCND==9).and.TS/=0.)IERROR=13
-        if (MBDCND>=7 .and. TF/=PI) IERROR = 14
-        if(TS==0..and.(MBDCND==4.or.MBDCND==8.or.MBDCND==3))IERROR=15
-        if(TF==PI.and.(MBDCND==2.or.MBDCND==3.or.MBDCND==6))IERROR=16
-        if (NBDCND>=5 .and. RS/=0.) IERROR = 17
+        ierror = 0
+        if (TS<0. .or. TF>PI) ierror = 1
+        if (TS >= TF) ierror = 2
+        if (M < 5) ierror = 3
+        if (MBDCND<1 .or. MBDCND>9) ierror = 4
+        if (RS < 0.) ierror = 5
+        if (RS >= RF) ierror = 6
+        if (N < 5) ierror = 7
+        if (NBDCND<1 .or. NBDCND>6) ierror = 8
+        if (ELMBDA > 0.) ierror = 9
+        if (IDIMF < M + 1) ierror = 10
+        if (ELMBDA/=0. .and. MBDCND>=5) ierror = 11
+        if (ELMBDA/=0. .and. (NBDCND==5 .or. NBDCND==6)) ierror = 12
+        if((MBDCND==5.or.MBDCND==6.or.MBDCND==9).and.TS/=0.)ierror=13
+        if (MBDCND>=7 .and. TF/=PI) ierror = 14
+        if(TS==0..and.(MBDCND==4.or.MBDCND==8.or.MBDCND==3))ierror=15
+        if(TF==PI.and.(MBDCND==2.or.MBDCND==3.or.MBDCND==6))ierror=16
+        if (NBDCND>=5 .and. RS/=0.) ierror = 17
         if (NBDCND>=5 .and. (MBDCND==1 .or. MBDCND==2 .or. MBDCND==5 .or. &
-            MBDCND==7)) IERROR = 18
-        if (IERROR/=0 .and. IERROR/=9) return
+            MBDCND==7)) ierror = 18
+        if (ierror/=0 .and. ierror/=9) return
         NCK = N
         go to (101, 103, 102, 103, 101, 103) NBDCND
 101 continue
@@ -713,7 +717,7 @@ contains
         !          allocate work space
         call w%create( irwk, icwk, ierror )
         !          return if allocation fails
-        if (IERROR == 20) return
+        if (ierror == 20) return
     end if
 
     call HWSCS1 (INTL, TS, TF, M, MBDCND, BDTS, BDTF, RS, RF, N, NBDCND, BDRS, &
@@ -721,13 +725,13 @@ contains
         w%rew(i3), w%rew(i4), w%rew(i5), w%rew(i6), w%rew(i7), w%rew(i8), &
         w%rew(i9), w%rew(i10), ierror)
 
-end subroutine HWSCSP
+end subroutine hwscsp
 
 subroutine HWSCS1(INTL, TS, TF, M, MBDCND, BDTS, BDTF, RS, RF, N, &
     NBDCND, BDRS, BDRF, ELMBDA, F, IDIMF, PERTRB, W, WC, S, AN, BN &
-    , CN, R, AM, BM, CM, SINT, BMH, IERROR)
+    , CN, R, AM, BM, CM, SINT, BMH, ierror)
     !-----------------------------------------------
-    !   D u m m y   A r g u m e n t s
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent (in) :: INTL
     integer , intent (in) :: M
@@ -735,7 +739,7 @@ subroutine HWSCS1(INTL, TS, TF, M, MBDCND, BDTS, BDTF, RS, RF, N, &
     integer , intent (in) :: N
     integer , intent (in) :: NBDCND
     integer  :: IDIMF
-    integer  :: IERROR
+    integer  :: ierror
     real , intent (in) :: TS
     real , intent (in) :: TF
     real , intent (in) :: RS
@@ -760,7 +764,7 @@ subroutine HWSCS1(INTL, TS, TF, M, MBDCND, BDTS, BDTF, RS, RF, N, &
     real , intent (in out) :: BMH(*)
     complex  :: WC(*)
     !-----------------------------------------------
-    !   L o c a l   V a r i a b l e s
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: MP1, I, NP1, J, MP, NP, ITS, ITF, ITSP, ITFM, ICTR, JRS &
         , L, JRF, JRSP, JRFM, MUNK, NUNK, ISING, IFLG
@@ -985,12 +989,12 @@ subroutine HWSCS1(INTL, TS, TF, M, MBDCND, BDTS, BDTF, RS, RF, N, &
         F(ITS:ITF, J) = RSQ*F(ITS:ITF, J)
     end do
     IFLG = INTL
-    call BLKTRII (IFLG, NP, NUNK, AN(JRS), BN(JRS), CN(JRS), MP, MUNK &
-        , AM(ITS), BM(ITS), CM(ITS), IDIMF, F(ITS, JRS), IERROR, W, WC)
+    call blktriI (IFLG, NP, NUNK, AN(JRS), BN(JRS), CN(JRS), MP, MUNK &
+        , AM(ITS), BM(ITS), CM(ITS), IDIMF, F(ITS, JRS), ierror, W, WC)
     IFLG = IFLG + 1
     do while(IFLG - 1 == 0)
-        call BLKTRII (IFLG, NP, NUNK, AN(JRS), BN(JRS), CN(JRS), MP, &
-            MUNK, AM(ITS), BM(ITS), CM(ITS), IDIMF, F(ITS, JRS), IERROR, &
+        call blktriI (IFLG, NP, NUNK, AN(JRS), BN(JRS), CN(JRS), MP, &
+            MUNK, AM(ITS), BM(ITS), CM(ITS), IDIMF, F(ITS, JRS), ierror, &
             W, WC)
         IFLG = IFLG + 1
     end do

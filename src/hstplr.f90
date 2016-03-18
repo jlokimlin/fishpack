@@ -33,8 +33,8 @@
 !     *                                                               *
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-!     SUBROUTINE HSTPLR (A, B, M, MBDCND, BDA, BDB, C, D, N, NBDCND, BDC, BDD, 
-!    +                   ELMBDA, F, IDIMF, PERTRB, IERROR)
+!     SUBROUTINE hstplr (A, B, M, MBDCND, BDA, BDB, C, D, N, NBDCND, BDC, BDD, 
+!    +                   ELMBDA, F, IDIMF, PERTRB, ierror)
 !
 ! DIMENSION OF           BDA(N), BDB(N), BDC(M), BDD(M), F(IDIMF, N)
 ! ARGUMENTS
@@ -50,9 +50,9 @@
 !                           (1/R**2)(D/DTHETA)(DU/DTHETA) +
 !                           LAMBDA*U = F(R, THETA)
 !
-! USAGE                  CALL HSTPLR (A, B, M, MBDCND, BDA, BDB, C, D, N, 
+! USAGE                  CALL hstplr (A, B, M, MBDCND, BDA, BDB, C, D, N, 
 !                                     NBDCND, BDC, BDD, ELMBDA, F, 
-!                                     IDIMF, PERTRB, IERROR)
+!                                     IDIMF, PERTRB, ierror)
 !
 ! ARGUMENTS
 ! ON INPUT               A, B
@@ -215,7 +215,7 @@
 !                        ELMBDA
 !                          THE CONSTANT LAMBDA IN THE HELMHOLTZ
 !                          EQUATION.  IF LAMBDA IS GREATER THAN 0, 
-!                          A SOLUTION MAY NOT EXIST.  HOWEVER, HSTPLR
+!                          A SOLUTION MAY NOT EXIST.  HOWEVER, hstplr
 !                          WILL ATTEMPT TO FIND A SOLUTION.
 !
 !                        F
@@ -231,7 +231,7 @@
 !                        IDIMF
 !                          THE ROW (OR FIRST) DIMENSION OF THE ARRAY
 !                          F AS IT APPEARS IN THE PROGRAM CALLING
-!                          HSTPLR.  THIS PARAMETER IS USED TO SPECIFY
+!                          hstplr.  THIS PARAMETER IS USED TO SPECIFY
 !                          THE VARIABLE DIMENSION OF F.
 !                          IDIMF MUST BE AT LEAST M.
 !
@@ -251,7 +251,7 @@
 !                          (LAMBDA = 0), A SOLUTION MAY NOT EXIST.
 !                          PERTRB IS A CONSTANT CALCULATED AND
 !                          SUBTRACTED FROM F, WHICH ENSURES THAT A
-!                          SOLUTION EXISTS.  HSTPLR THEN COMPUTES THIS
+!                          SOLUTION EXISTS.  hstplr THEN COMPUTES THIS
 !                          SOLUTION, WHICH IS A LEAST SQUARES SOLUTION
 !                          TO THE ORIGINAL APPROXIMATION.
 !                          THIS SOLUTION PLUS ANY CONSTANT IS ALSO
@@ -264,7 +264,7 @@
 !                          INSURE THAT A MEANINGFUL SOLUTION HAS BEEN
 !                          OBTAINED.
 !
-!                        IERROR
+!                        ierror
 !                          AN ERROR FLAG THAT INDICATES INVALID INPUT
 !                          PARAMETERS. EXCEPT TO NUMBERS 0 AND 11, 
 !                          A SOLUTION IS NOT ATTEMPTED.
@@ -301,8 +301,8 @@
 !                               for your computer)
 !
 !                          SINCE THIS IS THE ONLY MEANS OF INDICATING
-!                          A POSSIBLY INCORRECT CALL TO HSTPLR, THE
-!                          USER SHOULD TEST IERROR AFTER THE CALL.
+!                          A POSSIBLY INCORRECT CALL TO hstplr, THE
+!                          USER SHOULD TEST ierror AFTER THE CALL.
 !
 !
 ! I/O                    NONE
@@ -324,7 +324,7 @@
 ! ALGORITHM              THIS SUBROUTINE DEFINES THE FINITE-
 !                        DIFFERENCE EQUATIONS, INCORPORATES BOUNDARY
 !                        DATA, ADJUSTS THE RIGHT SIDE WHEN THE SYSTEM
-!                        IS SINGULAR AND CALLS EITHER POISTG OR GENBUN
+!                        IS SINGULAR AND CALLS EITHER POISTG OR genbun
 !                        WHICH SOLVES THE LINEAR SYSTEM OF EQUATIONS.
 !
 ! TIMING                 FOR LARGE M AND N, THE OPERATION COUNT
@@ -410,7 +410,7 @@ contains
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer :: idimf, m, mbdcnd, n, nbdcnd, i, j, ierror
         real (wp), dimension(51, 50) :: f
@@ -463,7 +463,7 @@ contains
         do i = 1, m
             f(i, :n) = 16.*R(i)**2
         end do
-        call HSTPLR (a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd &
+        call hstplr (a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd &
             , elmbda, f, idimf, pertrb, ierror)
         !
         !     COMPUTE DISCRETIZATION ERROR.  THE EXACT SOLUTION IS
@@ -480,19 +480,17 @@ contains
         !     Print earlier output from platforms with 32 and 64 bit floating point
         !     arithemtic followed by the output from this computer
         write( stdout, '(A)') ''
-        write( stdout, *) '    HSTPLR UNIT TEST *** '
-        write( stdout, *) &
-            '    Previous 64 bit floating point arithmetic result '
-        write( stdout, *) '    IERROR = 0,  Discretization Error = 1.1303E-3'
-
-        write( stdout, *) '    The output from your computer is: '
-        write( stdout, *) '    IERROR =', ierror, ' Discretization Error = ', &
-            discretization_error
+        write( stdout, '(A)') '     hstplr *** TEST RUN *** '
+        write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(A)') '     ierror = 0,  discretization error = 1.1303E-3'
+        write( stdout, '(A)') '     The output from your computer is: '
+        write( stdout, '(A,I3,A,1pe15.6)') &
+            '     ierror =', ierror, ' discretization error = ', discretization_error
 
     end subroutine hstplr_unit_test
-    !
-    !*****************************************************************************************
-    !
+
+
+
     subroutine hstplr( a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror )
         !-----------------------------------------------
@@ -558,7 +556,7 @@ contains
     subroutine hstplrr( a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror, w )
         !-----------------------------------------------
-        !   D u m m y   A r g u m e n t s
+        ! Dictionary: calling arguments
         !-----------------------------------------------
         integer (ip) :: m
         integer , intent (in) :: mbdcnd
@@ -579,7 +577,7 @@ contains
         real (wp) :: f(idimf, *)
         real (wp) :: w(*)
         !-----------------------------------------------
-        !   L o c a l   V a r i a b l e s
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer :: np, isw, mb, iwb, iwc, iwr, i, j, k, lp, ierr1
         real :: deltar, dlrsq, deltht, dlthsq, a1, a2
