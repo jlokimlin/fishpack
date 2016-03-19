@@ -5,6 +5,9 @@ module type_TridiagonalData
         ip => INT32, &
         stderr => ERROR_UNIT
 
+    use type_Grid, only: &
+        Grid
+
     ! Explicit typing only
     implicit none
 
@@ -25,12 +28,13 @@ module type_TridiagonalData
         !---------------------------------------------------------------------------------
         ! Class variables
         !---------------------------------------------------------------------------------
-        logical,                public :: initialized = .false.
-        integer (ip),           public :: X_BOUNDARY_CONDITION = -1
-        integer (ip),           public :: Y_BOUNDARY_CONDITION = -1
-        real (wp), allocatable, public :: subdiagonal(:)
-        real (wp), allocatable, public :: diagonal(:)
-        real (wp), allocatable, public :: superdiagonal(:)
+        logical,                             public :: initialized = .false.
+        integer (ip),                        public :: X_BOUNDARY_CONDITION = -1
+        integer (ip),                        public :: Y_BOUNDARY_CONDITION = -1
+        real (wp), allocatable,              public :: subdiagonal(:)
+        real (wp), allocatable,              public :: diagonal(:)
+        real (wp), allocatable,              public :: superdiagonal(:)
+        procedure (proc_interface), pointer, public :: assign_coefficients => null()
         !---------------------------------------------------------------------------------
     contains
         !---------------------------------------------------------------------------------
@@ -47,12 +51,23 @@ module type_TridiagonalData
     end type TridiagonalData
 
 
+    abstract interface
+        subroutine proc_interface( this, grid_type )
+            import :: TridiagonalData, Grid, wp
+            !--------------------------------------------------------------------------------
+            ! Dictionary: calling arguments
+            !--------------------------------------------------------------------------------
+            class (TridiagonalData), intent (in out) :: this
+            class (Grid),            intent (in out) :: grid_type
+            !--------------------------------------------------------------------------------
+        end subroutine proc_interface
+    end interface
+
+
 contains
 
 
-    subroutine create_tridiagonal_data( this, nx, x_type, y_type )
-        !
-        ! Purpose:
+    subroutine create_tridiagonal_data( this, nx, x_type, y_type, proc )
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
@@ -60,6 +75,7 @@ contains
         integer (ip),            intent (in)      :: nx
         integer (ip),            intent (in)      :: x_type
         integer (ip),            intent (in)      :: y_type
+        procedure (proc_interface), optional      :: proc
         !--------------------------------------------------------------------------------
 
         ! Ensure that object is usable
@@ -81,8 +97,18 @@ contains
         end if
 
         ! Set boundary condition types
-        call get_x_boundary_condition_type( x_type, this%X_BOUNDARY_CONDITION )
-        call get_y_boundary_condition_type( y_type, this%Y_BOUNDARY_CONDITION )
+        associate( &
+            x_bc => this%X_BOUNDARY_CONDITION, &
+            y_bc => this%Y_BOUNDARY_CONDITION &
+            )
+            call this%get_x_boundary_condition_type( x_type, x_bc )
+            call this%get_y_boundary_condition_type( y_type, y_bc )
+        end associate
+
+        ! Associate pointer
+        if (present(proc)) then
+            this%assign_coefficients => proc
+        end if
 
         ! Set initialization status
         this%initialized = .true.
@@ -153,6 +179,9 @@ contains
         ! Reset constants
         this%X_BOUNDARY_CONDITION = -1
         this%Y_BOUNDARY_CONDITION = -1
+
+        ! Nullify pointer
+        if (associated(this%assign_coefficients)) nullify( this%assign_coefficients )
 
         ! Reset initialization flag
         this%initialized = .false.

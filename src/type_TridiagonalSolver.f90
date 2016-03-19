@@ -9,6 +9,9 @@ module type_TridiagonalSolver
     use type_TridiagonalData, only: &
         TriDiagonalData
 
+    use type_Grid, only: &
+        Grid
+
     use type_CenteredGrid, only: &
         CenteredGrid
 
@@ -374,8 +377,8 @@ contains
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
-        type (TridiagonalSolver) :: this
-        type (StaggeredGrid)     :: grid
+        type (TridiagonalSolver) :: solver
+        type (StaggeredGrid)     :: staggered_grid
         integer (ip), parameter  :: NX = 40 !! number of horizontally staggered grid points
         integer (ip), parameter  :: NY = 20 !! number of vertically staggered grid points
         integer (ip)             :: i, j    !! counter
@@ -509,72 +512,49 @@ contains
         write( stdout, '(A)' ) '        u(x, y) = y**4 * cos(x). '
         write( stderr, '(A)') ''
 
-
-        !
         ! Create staggered grid
-        !
-        intervals: associate( &
+        associate( &
             x_interval => [ -PI/2, PI/2 ], &
             y_interval => [ 0.0_wp, 1.0_wp ] &
             )
-            call grid%create( x_interval, y_interval, NX, NY )
-        end associate intervals
+            call staggered_grid%create( x_interval, y_interval, NX, NY )
+        end associate
 
+        ! Associate various quantities
         associate( &
-            dx => grid%DX, &
-            dy => grid%DY, &
-            x => grid%x, &
-            y => grid%y, &
+            dx => staggered_grid%DX, &
+            dy => staggered_grid%DY, &
+            x => staggered_grid%x, &
+            y => staggered_grid%y, &
             f => source, &
             u => approximate_solution, &
             HALF_PI => PI/2 &
             )
 
             ! create the tridiagonal type
-            call this%create( NX, 1, 2 )
-
-            !
-            ! Set system coefficients
-            !
             associate( &
-                s => (dy/dx)**2, &
-                a => this%subdiagonal, &
-                b => this%diagonal, &
-                c => this%superdiagonal &
+                MIXED_ROBIN_IN_X => 1, &
+                PERIODIC_IN_Y => 2 &
                 )
-                a(1) = 0.0_wp
-                b(1) = -s * cos((-pi/2.0_wp) + dx)/cos(x(1))
-                c(1) = -b(1)
-                do i = 2, NX
-                    a(i) = s * cos( x(i) - dx/2.0_wp ) / cos(x(i))
-                    c(i) = s * cos( x(i) + dx/2.0_wp ) / cos(x(i))
-                    b(i) = -( a(i)+c(i) )
-                end do
-                a( NX ) = -b( NX )
-                c( NX ) = 0.0_wp
+                call solver%create( NX, MIXED_ROBIN_IN_X, PERIODIC_IN_Y, proc )
             end associate
 
-            !
+            ! Set system coefficients
+            call solver%assign_coefficients( staggered_grid )
+
             ! Generate the source, i.e., right side of equation
-            !
             do j = 1, NY
                 do i = 1, NX
                     f(i, j) = 2.0_wp * ( dy**2 ) * y(j)**2 * ( 6.0_wp - y(j)**2 ) * sin(x(i))
                 end do
             end do
 
-            do i = 1, NX
-                f(i, NY) = f(i, NY) - 4.0_wp * dy * sin(x(i))
-            end do
+            f(:, NY) = f(:, NY) - 4.0_wp * dy * sin(x(1:NX))
 
-            !
-            ! Solve real tridiagonal system
-            !
-            call this%solve_2d_real_linear_system_staggered( f, u, error_flag )
+            ! Solve system
+            call solver%solve_2d_real_linear_system_staggered( f, u, error_flag )
 
-            !
             ! Compute discretization error
-            !
             discretization_error = 0.0_wp
             do j = 1, NY
                 do i = 1, NX
@@ -593,6 +573,59 @@ contains
         write( stdout, '(A)' ) '    The output from your computer is: '
         write( stdout, '(A,I3,A,1pe15.6)' ) &
             '    ierror =', error_flag, ' discretization error = ', discretization_error
+
+
+    contains
+
+
+        subroutine proc( solver, staggered_grid )
+            !
+            ! Purpose:
+            !
+            ! User-supplied subroutine to assign coefficients
+            !
+            !--------------------------------------------------------------------------------
+            ! Dictionary: calling arguments
+            !--------------------------------------------------------------------------------
+            class (TridiagonalData), intent (in out)  :: solver
+            class (Grid),            intent (in out)  :: staggered_grid
+            !--------------------------------------------------------------------------------
+            integer (ip) :: i ! counter
+            !--------------------------------------------------------------------------------
+
+            select type (solver)
+                class is (TridiagonalSolver)
+                select type (staggered_grid)
+                    class is (StaggeredGrid)
+                    associate( &
+                        nx => staggered_grid%NX, &
+                        dx => staggered_grid%DX, &
+                        dy => staggered_grid%DY &
+                        )
+                        associate( &
+                            s => (dy/dx)**2, &
+                            a => solver%subdiagonal, &
+                            b => solver%diagonal, &
+                            c => solver%superdiagonal, &
+                            x => staggered_grid%x, &
+                            pi => acos( -1.0_wp ) &
+                            )
+                            a(1) = 0.0_wp
+                            b(1) = -s * cos((-pi/2.0_wp) + dx)/cos(x(1))
+                            c(1) = -b(1)
+                            do i = 2, nx
+                                a(i) = s * cos( x(i) - dx/2.0_wp ) / cos(x(i))
+                                c(i) = s * cos( x(i) + dx/2.0_wp ) / cos(x(i))
+                                b(i) = -( a(i)+c(i) )
+                            end do
+                            a(nx) = -b(nx)
+                            c(nx) = 0.0_wp
+                        end associate
+                    end associate
+                end select
+            end select
+
+        end subroutine proc
 
     end subroutine test_solve_2d_real_linear_system_staggered
 
@@ -705,7 +738,7 @@ contains
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
         type (TridiagonalSolver) :: solver
-        type (CenteredGrid)      :: grid
+        type (CenteredGrid)      :: centered_grid
         integer (ip), parameter  :: NX = 20 !! number of horizontally staggered grid points
         integer (ip), parameter  :: NY = 40 !! number of vertically staggered grid points
         integer (ip)             :: i, j !! counter
@@ -821,51 +854,32 @@ contains
         write( stdout, '(A)' ) ''
 
 
-        !
         ! Create centered grid
-        !
         associate( &
             x_interval => [ 0.0_wp, 1.0_wp ], &
             y_interval => [ -PI, PI ] &
             )
-
-            call grid%create( x_interval, y_interval, NX, NY )
-
+            call centered_grid%create( x_interval, y_interval, NX, NY )
         end associate
 
+        ! Associate various quantities
         associate( &
-            dx => grid%DX, &
-            dy => grid%DY, &
-            x => grid%x, &
-            y => grid%y, &
+            dx => centered_grid%DX, &
+            dy => centered_grid%DY, &
+            x => centered_grid%x, &
+            y => centered_grid%y, &
             f => source, &
             u => approximate_solution &
             )
 
             ! create the real tridiagonal system
-            call solver%create( NX, 1, 0 )
+            call solver%create( NX, 1, 0, proc )
 
-            ! Set system coefficients
+            ! Assign coefficients
+            call solver%assign_coefficients( centered_grid )
+
+            ! Associate mesh ratio
             associate( s => (dy/dx)**2 )
-                associate( &
-                    a => solver%subdiagonal, &
-                    b => solver%diagonal, &
-                    c => solver%superdiagonal &
-                    )
-                    do i = 2, NX - 1
-                        associate( t => 1.0_wp + x(i) )
-                            a(i) = ( (t**2) + t * dx) * s
-                            b(i) = -2.0_wp * ( t**2 ) * s
-                            c(i) = ( (t**2) - t * dx) * s
-                        end associate
-                    end do
-                    a(1) = 0.0_wp
-                    b(1) = -2.0_wp * s
-                    c(1) = -b(1)
-                    b(NX) = -2.0_wp * s * (1.0_wp + x(NX))**2
-                    a(NX) = (-b(NX)/2.0_wp) + (1.0_wp + x(NX)) * dx * s
-                    c(NX) = 0.0_wp
-                end associate
 
                 ! Generate the source, i.e., right hand side of the equation
                 do j = 1, NY
@@ -909,6 +923,62 @@ contains
         write( stdout, '(A)' ) '    The output from your computer is: '
         write( stdout, '(A,I3,A,1pe15.6)' ) &
             '    ierror =', error_flag, ' discretization error = ', discretization_error
+
+
+    contains
+
+
+        subroutine proc( solver, centered_grid )
+            !
+            ! Purpose:
+            !
+            ! User-supplied subroutine to assign coefficients
+            !
+            !--------------------------------------------------------------------------------
+            ! Dictionary: calling arguments
+            !--------------------------------------------------------------------------------
+            class (TridiagonalData), intent (in out)  :: solver
+            class (Grid),            intent (in out)  :: centered_grid
+            !--------------------------------------------------------------------------------
+            integer (ip) :: i !! Counter
+            !--------------------------------------------------------------------------------
+
+            select type (solver)
+                class is (TridiagonalSolver)
+                select type (centered_grid)
+                    class is (CenteredGrid)
+                    associate( &
+                        nx => centered_grid%NX, &
+                        dx => centered_grid%DX, &
+                        dy => centered_grid%DY, &
+                        x => centered_grid%x &
+                        )
+                        associate( &
+                            s => (dy/dx)**2, &
+                            a => solver%subdiagonal, &
+                            b => solver%diagonal, &
+                            c => solver%superdiagonal &
+                            )
+                            do i = 2, nx - 1
+                                associate( t => 1.0_wp + x(i) )
+                                    a(i) = ( (t**2) + t * dx) * s
+                                    b(i) = -2.0_wp * ( t**2 ) * s
+                                    c(i) = ( (t**2) - t * dx) * s
+                                end associate
+                            end do
+                            a(1) = 0.0_wp
+                            b(1) = -2.0_wp * s
+                            c(1) = -b(1)
+                            b(nx) = -2.0_wp * s * (1.0_wp + x(nx))**2
+                            a(nx) = (-b(nx)/2.0_wp) + (1.0_wp + x(nx)) * dx * s
+                            c(nx) = 0.0_wp
+                        end associate
+                    end associate
+                end select
+            end select
+
+        end subroutine proc
+
 
     end subroutine test_solve_2d_real_linear_system_centered
 

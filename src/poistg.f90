@@ -197,7 +197,7 @@ contains
         n = 20
         dy = 1./real(n)
         !
-        !     GENERATE AND STORE GRID POINTS FOR COMPUTATION.
+        !     generate and store grid points for computation.
         !
         do i = 1, m
             x(i) = (-pi/2.) + (real(i) - 0.5)*dx
@@ -206,36 +206,36 @@ contains
             y(j) = (real(j) - 0.5)*dy
         end do
         !
-        !     GENERATE COEFFICIENTS .
+        !     generate coefficients .
         !
         s = (dy/dx)**2
         a(1) = 0.
-        b(1) = -s*COS((-pi/2.) + dx)/COS(X(1))
-        c(1) = -B(1)
+        b(1) = -s*cos((-pi/2.) + dx)/cos(x(1))
+        c(1) = -b(1)
         do i = 2, m
-            a(i) = s*COS(X(i)-dx/2.)/COS(X(i))
-            c(i) = s*COS(X(i)+dx/2.)/COS(X(i))
-            b(i) = -(A(i)+C(i))
+            a(i) = s*cos(x(i)-dx/2.)/cos(x(i))
+            c(i) = s*cos(x(i)+dx/2.)/cos(x(i))
+            b(i) = -(a(i)+c(i))
         end do
-        a(40) = -B(40)
+        a(40) = -b(40)
         c(40) = 0.
         !
-        !     GENERATE RIGHT SIDE OF EQUATION.
+        !     generate right side of equation.
         !
         do i = 1, m
             do j = 1, n
-                f(i, j) = 2.*dy**2*Y(j)**2*(6. - Y(j)**2)*SIN(X(i))
+                f(i, j) = 2.*dy**2*y(j)**2*(6. - y(j)**2)*sin(x(i))
             end do
         end do
         do i = 1, m
-            f(i, n) = F(i, n) - 4.*dy*SIN(X(i))
+            f(i, n) = f(i, n) - 4.*dy*sin(x(i))
         end do
 
         call poistg( nperod, n, mperod, m, a, b, c, idimf, f, ierror)
         !
-        !     COMPUTE DISCRETIZATION ERROR.  THE EXACT SOLUTION IS
+        !     compute discretization error.  the exact solution is
         !
-        !     U(X, Y) = Y**4*SIN(X)
+        !     u(x, y) = y**4*sin(x)
         !
         discretization_error = 0.0_wp
         do i = 1, m
@@ -425,7 +425,7 @@ contains
         !                        UNIFORM RANDOM NUMBER GENERATOR WAS USED TO
         !                        CREATE A SOLUTION ARRAY X FOR THE SYSTEM GIVEN
         !                        IN THE 'PURPOSE' SECTION ABOVE, WITH
-        !                          A(I) = C(I) = -0.5*B(I) = 1,    I=1, 2, ..., M
+        !                          A(I) = C(I) = -0.5_wp * B(I) = 1,    I=1, 2, ..., M
         !                        AND, WHEN MPEROD = 1
         !                          A(1) = C(M) = 0
         !                          B(1) = B(M) =-1.
@@ -487,7 +487,7 @@ contains
         !--------------------------------------------------------------------------------
         integer (ip)             :: i !! Counter
         type (FishpackWorkspace) :: workspace
-        !-----------------------------------------------
+        !--------------------------------------------------------------------------------
 
         ! Initialize error flag
         ierror = 0
@@ -595,6 +595,7 @@ contains
         integer (ip) :: mhpi, mhmi, nby2, mskip
         real (wp)    :: a1
         !-----------------------------------------------
+
         iwba = m + 1
         iwbb = iwba + m
         iwbc = iwbb + m
@@ -608,12 +609,12 @@ contains
         iwp = iwtcos + 4*n
         do i = 1, m
             k = iwba + i - 1
-            w(k) = -A(i)
+            w(k) = -a(i)
             k = iwbc + i - 1
-            w(k) = -C(i)
+            w(k) = -c(i)
             k = iwbb + i - 1
-            w(k) = 2. - B(i)
-            y(i, :n) = -Y(i, :n)
+            w(k) = 2. - b(i)
+            y(i, :n) = -y(i, :n)
         end do
         np = nperod
         mp = mperod + 1
@@ -621,10 +622,10 @@ contains
 107 continue
     go to (108, 108, 108, 119) nperod
 108 continue
-    call postg2 (np, n, m, W(iwba), W(iwbb), W(iwbc), idimy, y, w, W( &
-        iwb2), W(iwb3), W(iww1), W(iww2), W(iww3), W(iwd), W(iwtcos), W &
+    call postg2 (np, n, m, w(iwba), w(iwbb), w(iwbc), idimy, y, w, w( &
+        iwb2), w(iwb3), w(iww1), w(iww2), w(iww3), w(iwd), w(iwtcos), w &
         (iwp))
-    ipstor = W(iww1)
+    ipstor = w(iww1)
     irev = 2
     if (nperod == 4) go to 120
 109 continue
@@ -636,28 +637,28 @@ contains
     if (mh*2 == m) modd = 2
     do j = 1, n
         do i = 1, mhm1
-            w(i) = Y(mh-i, j) - Y(i+mh, j)
-            w(i+mh) = Y(mh-i, j) + Y(i+mh, j)
+            w(i) = y(mh-i, j) - y(i+mh, j)
+            w(i+mh) = y(mh-i, j) + y(i+mh, j)
         end do
-        w(mh) = 2.*Y(mh, j)
+        w(mh) = 2.*y(mh, j)
         go to (113, 112) modd
 112 continue
-    w(m) = 2.*Y(m, j)
+    w(m) = 2.*y(m, j)
 113 continue
-    y(:m, j) = W(:m)
+    y(:m, j) = w(:m)
 end do
 k = iwbc + mhm1 - 1
 i = iwba + mhm1
 w(k) = 0.
 w(i) = 0.
-w(k+1) = 2.*W(k+1)
+w(k+1) = 2.*w(k+1)
 select case (modd) 
     case default
         k = iwbb + mhm1 - 1
-        w(k) = W(k) - W(i-1)
-        w(iwbc-1) = W(iwbc-1) + W(iwbb-1)
+        w(k) = w(k) - w(i-1)
+        w(iwbc-1) = w(iwbc-1) + w(iwbb-1)
     case (2)
-        w(iwbb-1) = W(k+1)
+        w(iwbb-1) = w(k+1)
 end select
 118 continue
     go to 107
@@ -669,22 +670,22 @@ end select
     do j = 1, nby2
         mskip = n + 1 - j
         do i = 1, m
-            a1 = Y(i, j)
-            y(i, j) = Y(i, mskip)
+            a1 = y(i, j)
+            y(i, j) = y(i, mskip)
             y(i, mskip) = a1
         end do
     end do
     go to (108, 109) irev
 123 continue
     do j = 1, n
-        w(mh-1:mh-mhm1:(-1)) = 0.5*(Y(mh+1:mhm1+mh, j)+Y(:mhm1, j))
-        w(mh+1:mhm1+mh) = 0.5*(Y(mh+1:mhm1+mh, j)-Y(:mhm1, j))
-        w(mh) = 0.5*Y(mh, j)
+        w(mh-1:mh-mhm1:(-1)) = 0.5_wp * (y(mh+1:mhm1+mh, j)+y(:mhm1, j))
+        w(mh+1:mhm1+mh) = 0.5_wp * (y(mh+1:mhm1+mh, j)-y(:mhm1, j))
+        w(mh) = 0.5_wp * y(mh, j)
         go to (126, 125) modd
 125 continue
-    w(m) = 0.5*Y(m, j)
+    w(m) = 0.5_wp * y(m, j)
 126 continue
-    y(:m, j) = W(:m)
+    y(:m, j) = w(:m)
 end do
 129 continue
     w(1) = ipstor + iwp - 1
@@ -694,7 +695,11 @@ end subroutine poistgg
 
 subroutine postg2(nperod, n, m, a, bb, c, idimq, q, b, b2, b3, w, &
     w2, w3, d, tcos, p)
-    implicit none
+    !
+    ! Purpose:
+    !
+    ! Subroutine to solve poisson's equation on a staggered grid.
+    !
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
@@ -724,14 +729,13 @@ subroutine postg2(nperod, n, m, a, bb, c, idimq, q, b, b2, b3, w, &
     integer (ip) :: jm1, jm2, jm3, i, nrodpr, ii, nlastp, jstep
     real (wp)    :: fnum, fnum2, fi, t
     !-----------------------------------------------
-    !
-    !     SUBROUTINE TO SOLVE POISSON'S EQUATION ON A STAGGERED GRID.
-    !
-    !
-    equivalence (K(1), K1), (K(2), K2), (K(3), K3), (K(4), K4)
+
+    !  specifies that variables share the same memory
+    equivalence (k(1), k1), (k(2), k2), (k(3), k3), (k(4), k4)
+
     np = nperod
-    fnum = 0.5*real(np/3)
-    fnum2 = 0.5*real(np/2)
+    fnum = 0.5_wp * real(np/3)
+    fnum2 = 0.5_wp * real(np/2)
     mr = m
     ipp = -mr
     ipstor = 0
@@ -764,13 +768,13 @@ subroutine postg2(nperod, n, m, a, bb, c, idimq, q, b, b2, b3, w, &
             if (j == 1) then
                 call cosgen(i2r, 1, fnum, 0.5, tcos)
                 if (i2r == 1) then
-                    b(:mr) = Q(:mr, 1)
-                    q(:mr, 1) = Q(:mr, 2)
+                    b(:mr) = q(:mr, 1)
+                    q(:mr, 1) = q(:mr, 2)
                     go to 112
                 end if
-                b(:mr) = Q(:mr, 1) + 0.5*(Q(:mr, jp2)-Q(:mr, jp1)-Q(:mr, &
+                b(:mr) = q(:mr, 1) + 0.5_wp * (q(:mr, jp2)-q(:mr, jp1)-q(:mr, &
                     jp3))
-                q(:mr, 1) = Q(:mr, jp2) + Q(:mr, 1) - Q(:mr, jp1)
+                q(:mr, 1) = q(:mr, jp2) + q(:mr, 1) - q(:mr, jp1)
                 go to 112
             end if
             go to (107, 108) ijump
@@ -779,24 +783,24 @@ subroutine postg2(nperod, n, m, a, bb, c, idimq, q, b, b2, b3, w, &
         call cosgen(i2r, 1, 0.5, 0.0, tcos)
 108 continue
     if (i2r == 1) then
-        b(:mr) = 2.*Q(:mr, j)
-        q(:mr, j) = Q(:mr, jm2) + Q(:mr, jp2)
+        b(:mr) = 2.*q(:mr, j)
+        q(:mr, j) = q(:mr, jm2) + q(:mr, jp2)
     else
         do i = 1, mr
-            fi = Q(i, j)
-            q(i, j)=Q(i, j)-Q(i, jm1)-Q(i, jp1)+Q(i, jm2)+Q(i, jp2)
-            b(i) = fi + Q(i, j) - Q(i, jm3) - Q(i, jp3)
+            fi = q(i, j)
+            q(i, j)=q(i, j)-q(i, jm1)-q(i, jp1)+q(i, jm2)+q(i, jp2)
+            b(i) = fi + q(i, j) - q(i, jm3) - q(i, jp3)
         end do
     end if
 112 continue
-    call TRIX (i2r, 0, mr, a, bb, c, b, tcos, d, w)
-    q(:mr, j) = Q(:mr, j) + B(:mr)
+    call trix(i2r, 0, mr, a, bb, c, b, tcos, d, w)
+    q(:mr, j) = q(:mr, j) + b(:mr)
 !
-!     END OF REDUCTION FOR REGULAR UNKNOWNS.
+!     end of reduction for regular unknowns.
 !
 end do
 !
-!     BEGIN SPECIAL REDUCTION FOR LAST UNKNOWN.
+!     begin special reduction for last unknown.
 !
 j = jstop + jr
 end if
@@ -806,66 +810,66 @@ jm2 = j - i2r
 jm3 = jm2 - i2rby2
 if (nrod /= 0) then
     !
-    !     ODD NUMBER OF UNKNOWNS
+    !     odd number of unknowns
     !
     if (i2r == 1) then
-        b(:mr) = Q(:mr, j)
-        q(:mr, j) = Q(:mr, jm2)
+        b(:mr) = q(:mr, j)
+        q(:mr, j) = q(:mr, jm2)
     else
-        b(:mr)=Q(:mr, j)+0.5*(Q(:mr, jm2)-Q(:mr, jm1)-Q(:mr, jm3))
+        b(:mr)=q(:mr, j)+0.5_wp * (q(:mr, jm2)-q(:mr, jm1)-q(:mr, jm3))
         if (nrodpr == 0) then
-            q(:mr, j) = Q(:mr, jm2) + P(ipp+1:mr+ipp)
+            q(:mr, j) = q(:mr, jm2) + p(ipp+1:mr+ipp)
             ipp = ipp - mr
         else
-            q(:mr, j) = Q(:mr, j) - Q(:mr, jm1) + Q(:mr, jm2)
+            q(:mr, j) = q(:mr, j) - q(:mr, jm1) + q(:mr, jm2)
         end if
-        if (lr /= 0) call cosgen(lr, 1, fnum2, 0.5, TCOS(kr+1))
+        if (lr /= 0) call cosgen(lr, 1, fnum2, 0.5, tcos(kr+1))
     end if
     call cosgen(kr, 1, fnum2, 0.5, tcos)
-    call TRIX (kr, lr, mr, a, bb, c, b, tcos, d, w)
-    q(:mr, j) = Q(:mr, j) + B(:mr)
+    call trix(kr, lr, mr, a, bb, c, b, tcos, d, w)
+    q(:mr, j) = q(:mr, j) + b(:mr)
     kr = kr + i2r
 else
     jp1 = j + i2rby2
     jp2 = j + i2r
     if (i2r == 1) then
-        b(:mr) = Q(:mr, j)
+        b(:mr) = q(:mr, j)
         tcos(1) = 0.
-        call TRIX (1, 0, mr, a, bb, c, b, tcos, d, w)
+        call trix(1, 0, mr, a, bb, c, b, tcos, d, w)
         ipp = 0
         ipstor = mr
-        p(:mr) = B(:mr)
-        b(:mr) = B(:mr) + Q(:mr, n)
+        p(:mr) = b(:mr)
+        b(:mr) = b(:mr) + q(:mr, n)
         tcos(1) = (-1.) + 2.*real(np/2)
         tcos(2) = 0.
-        call TRIX (1, 1, mr, a, bb, c, b, tcos, d, w)
-        q(:mr, j) = Q(:mr, jm2) + P(:mr) + B(:mr)
+        call trix(1, 1, mr, a, bb, c, b, tcos, d, w)
+        q(:mr, j) = q(:mr, jm2) + p(:mr) + b(:mr)
     else
-        b(:mr)=Q(:mr, j)+0.5*(Q(:mr, jm2)-Q(:mr, jm1)-Q(:mr, jm3))
+        b(:mr)=q(:mr, j)+0.5_wp * (q(:mr, jm2)-q(:mr, jm1)-q(:mr, jm3))
         if (nrodpr == 0) then
-            b(:mr) = B(:mr) + P(ipp+1:mr+ipp)
+            b(:mr) = b(:mr) + p(ipp+1:mr+ipp)
         else
-            b(:mr) = B(:mr) + Q(:mr, jp2) - Q(:mr, jp1)
+            b(:mr) = b(:mr) + q(:mr, jp2) - q(:mr, jp1)
         end if
         call cosgen(i2r, 1, 0.5, 0.0, tcos)
-        call TRIX (i2r, 0, mr, a, bb, c, b, tcos, d, w)
+        call trix(i2r, 0, mr, a, bb, c, b, tcos, d, w)
         ipp = ipp + mr
         ipstor = max(ipstor, ipp + mr)
-        p(ipp+1:mr+ipp) = B(:mr) + 0.5*(Q(:mr, j)-Q(:mr, jm1)-Q(:mr, &
+        p(ipp+1:mr+ipp) = b(:mr) + 0.5_wp * (q(:mr, j)-q(:mr, jm1)-q(:mr, &
             jp1))
-        b(:mr) = P(ipp+1:mr+ipp) + Q(:mr, jp2)
+        b(:mr) = p(ipp+1:mr+ipp) + q(:mr, jp2)
         if (lr /= 0) then
-            call cosgen(lr, 1, fnum2, 0.5, TCOS(i2r+1))
+            call cosgen(lr, 1, fnum2, 0.5, tcos(i2r+1))
             call merge_rename(tcos, 0, i2r, i2r, lr, kr)
         else
             do i = 1, i2r
                 ii = kr + i
-                tcos(ii) = TCOS(i)
+                tcos(ii) = tcos(i)
             end do
         end if
         call cosgen(kr, 1, fnum2, 0.5, tcos)
-        call TRIX (kr, kr, mr, a, bb, c, b, tcos, d, w)
-        q(:mr, j) = Q(:mr, jm2) + P(ipp+1:mr+ipp) + B(:mr)
+        call trix(kr, kr, mr, a, bb, c, b, tcos, d, w)
+        q(:mr, j) = q(:mr, jm2) + p(ipp+1:mr+ipp) + b(:mr)
     end if
     lr = kr
     kr = kr + jr
@@ -885,12 +889,12 @@ end if
         if (lr == 0) then
             if (n == 3) then
                 !
-                !     CASE N = 3.
+                !     case n = 3.
                 !
                 go to (143, 148, 143) np
 143         continue
-            b(:mr) = Q(:mr, 2)
-            b2(:mr) = Q(:mr, 1) + Q(:mr, 3)
+            b(:mr) = q(:mr, 2)
+            b2(:mr) = q(:mr, 1) + q(:mr, 3)
             b3(:mr) = 0.
             select case (np)
                 case default
@@ -909,9 +913,9 @@ end if
         k4 = 0
         go to 150
 148 continue
-    b(:mr) = Q(:mr, 2)
-    b2(:mr) = Q(:mr, 3)
-    b3(:mr) = Q(:mr, 1)
+    b(:mr) = q(:mr, 2)
+    b2(:mr) = q(:mr, 3)
+    b3(:mr) = q(:mr, 1)
     call cosgen(3, 1, 0.5, 0.0, tcos)
     tcos(4) = -1.
     tcos(5) = 1.
@@ -922,180 +926,180 @@ end if
     k3 = 1
     k4 = 1
 150 continue
-    call TRI3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
-    b(:mr) = B(:mr) + B2(:mr) + B3(:mr)
+    call tri3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
+    b(:mr) = b(:mr) + b2(:mr) + b3(:mr)
     go to (153, 153, 152) np
 152 continue
     tcos(1) = 2.
-    call TRIX (1, 0, mr, a, bb, c, b, tcos, d, w)
+    call trix(1, 0, mr, a, bb, c, b, tcos, d, w)
 153 continue
-    q(:mr, 2) = B(:mr)
-    b(:mr) = Q(:mr, 1) + B(:mr)
+    q(:mr, 2) = b(:mr)
+    b(:mr) = q(:mr, 1) + b(:mr)
     tcos(1) = (-1.) + 4.*fnum
-    call TRIX (1, 0, mr, a, bb, c, b, tcos, d, w)
-    q(:mr, 1) = B(:mr)
+    call trix(1, 0, mr, a, bb, c, b, tcos, d, w)
+    q(:mr, 1) = b(:mr)
     jr = 1
     i2r = 0
     go to 188
 end if
 !
-!     CASE N = 2**P+1
+!     case n = 2**p+1
 !
-b(:mr)=Q(:mr, j)+Q(:mr, 1)-Q(:mr, jm1)+Q(:mr, nlast)-Q(:mr, jm2)
+b(:mr)=q(:mr, j)+q(:mr, 1)-q(:mr, jm1)+q(:mr, nlast)-q(:mr, jm2)
 go to (158, 160, 158) np
 158 continue
-    b2(:mr) = Q(:mr, 1) + Q(:mr, nlast) + Q(:mr, j) - Q(:mr, jm1) - &
-        Q(:mr, jp1)
+    b2(:mr) = q(:mr, 1) + q(:mr, nlast) + q(:mr, j) - q(:mr, jm1) - &
+        q(:mr, jp1)
     b3(:mr) = 0.
     k1 = nlast - 1
     k2 = nlast + jr - 1
-    call cosgen(jr - 1, 1, 0.0, 1.0, TCOS(nlast))
+    call cosgen(jr - 1, 1, 0.0, 1.0, tcos(nlast))
     tcos(k2) = 2.*real(np - 2)
-    call cosgen(jr, 1, 0.5 - fnum, 0.5, TCOS(k2+1))
+    call cosgen(jr, 1, 0.5 - fnum, 0.5, tcos(k2+1))
     k3 = (3 - np)/2
     call merge_rename(tcos, k1, jr - k3, k2 - k3, jr + k3, 0)
     k1 = k1 - 1 + k3
-    call cosgen(jr, 1, fnum, 0.5, TCOS(k1+1))
+    call cosgen(jr, 1, fnum, 0.5, tcos(k1+1))
     k2 = jr
     k3 = 0
     k4 = 0
     go to 162
 160 continue
     do i = 1, mr
-        fi = (Q(i, j)-Q(i, jm1)-Q(i, jp1))/2.
-        b2(i) = Q(i, 1) + fi
-        b3(i) = Q(i, nlast) + fi
+        fi = (q(i, j)-q(i, jm1)-q(i, jp1))/2.
+        b2(i) = q(i, 1) + fi
+        b3(i) = q(i, nlast) + fi
     end do
     k1 = nlast + jr - 1
     k2 = k1 + jr - 1
-    call cosgen(jr - 1, 1, 0.0, 1.0, TCOS(k1+1))
-    call cosgen(nlast, 1, 0.5, 0.0, TCOS(k2+1))
+    call cosgen(jr - 1, 1, 0.0, 1.0, tcos(k1+1))
+    call cosgen(nlast, 1, 0.5, 0.0, tcos(k2+1))
     call merge_rename(tcos, k1, jr - 1, k2, nlast, 0)
     k3 = k1 + nlast - 1
     k4 = k3 + jr
-    call cosgen(jr, 1, 0.5, 0.5, TCOS(k3+1))
-    call cosgen(jr, 1, 0.0, 0.5, TCOS(k4+1))
+    call cosgen(jr, 1, 0.5, 0.5, tcos(k3+1))
+    call cosgen(jr, 1, 0.0, 0.5, tcos(k4+1))
     call merge_rename(tcos, k3, jr, k4, jr, k1)
     k2 = nlast - 1
     k3 = jr
     k4 = jr
 162 continue
-    call TRI3 (mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
-    b(:mr) = B(:mr) + B2(:mr) + B3(:mr)
+    call tri3 (mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
+    b(:mr) = b(:mr) + b2(:mr) + b3(:mr)
     if (np == 3) then
         tcos(1) = 2.
-        call TRIX (1, 0, mr, a, bb, c, b, tcos, d, w)
+        call trix(1, 0, mr, a, bb, c, b, tcos, d, w)
     end if
-    q(:mr, j) = B(:mr) + 0.5*(Q(:mr, j)-Q(:mr, jm1)-Q(:mr, jp1))
-    b(:mr) = Q(:mr, j) + Q(:mr, 1)
+    q(:mr, j) = b(:mr) + 0.5_wp * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
+    b(:mr) = q(:mr, j) + q(:mr, 1)
     call cosgen(jr, 1, fnum, 0.5, tcos)
-    call TRIX (jr, 0, mr, a, bb, c, b, tcos, d, w)
-    q(:mr, 1) = Q(:mr, 1) - Q(:mr, jm1) + B(:mr)
+    call trix(jr, 0, mr, a, bb, c, b, tcos, d, w)
+    q(:mr, 1) = q(:mr, 1) - q(:mr, jm1) + b(:mr)
     go to 188
 end if
 !
-!     CASE OF GENERAL N WITH NR = 3 .
+!     case of general n with nr = 3 .
 !
-b(:mr) = Q(:mr, 1) - Q(:mr, jm1) + Q(:mr, j)
+b(:mr) = q(:mr, 1) - q(:mr, jm1) + q(:mr, j)
 if (nrod == 0) then
-    b(:mr) = B(:mr) + P(ipp+1:mr+ipp)
+    b(:mr) = b(:mr) + p(ipp+1:mr+ipp)
 else
-    b(:mr) = B(:mr) + Q(:mr, nlast) - Q(:mr, jm2)
+    b(:mr) = b(:mr) + q(:mr, nlast) - q(:mr, jm2)
 end if
 do i = 1, mr
-    t = 0.5*(Q(i, j)-Q(i, jm1)-Q(i, jp1))
+    t = 0.5_wp * (q(i, j)-q(i, jm1)-q(i, jp1))
     q(i, j) = t
-    b2(i) = Q(i, nlast) + t
-    b3(i) = Q(i, 1) + t
+    b2(i) = q(i, nlast) + t
+    b3(i) = q(i, 1) + t
 end do
 k1 = kr + 2*jr
-call cosgen(jr - 1, 1, 0.0, 1.0, TCOS(k1+1))
+call cosgen(jr - 1, 1, 0.0, 1.0, tcos(k1+1))
 k2 = k1 + jr
 tcos(k2) = 2.*real(np - 2)
 k4 = (np - 1)*(3 - np)
 k3 = k2 + 1 - k4
-call COSGEN(kr+jr+k4, 1, real(k4)/2., 1.-real(k4), TCOS(k3))
+call cosgen(kr+jr+k4, 1, real(k4)/2., 1.-real(k4), tcos(k3))
 k4 = 1 - np/3
 call merge_rename(tcos, k1, jr - k4, k2 - k4, kr + jr + k4, 0)
 if (np == 3) k1 = k1 - 1
 k2 = kr + jr
 k4 = k1 + k2
-call cosgen(kr, 1, fnum2, 0.5, TCOS(k4+1))
+call cosgen(kr, 1, fnum2, 0.5, tcos(k4+1))
 k3 = k4 + kr
-call cosgen(jr, 1, fnum, 0.5, TCOS(k3+1))
+call cosgen(jr, 1, fnum, 0.5, tcos(k3+1))
 call merge_rename(tcos, k4, kr, k3, jr, k1)
 k4 = k3 + jr
-call cosgen(lr, 1, fnum2, 0.5, TCOS(k4+1))
+call cosgen(lr, 1, fnum2, 0.5, tcos(k4+1))
 call merge_rename(tcos, k3, jr, k4, lr, k1 + k2)
-call cosgen(kr, 1, fnum2, 0.5, TCOS(k3+1))
+call cosgen(kr, 1, fnum2, 0.5, tcos(k3+1))
 k3 = kr
 k4 = kr
-call TRI3 (mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
-b(:mr) = B(:mr) + B2(:mr) + B3(:mr)
+call tri3 (mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
+b(:mr) = b(:mr) + b2(:mr) + b3(:mr)
 if (np == 3) then
     tcos(1) = 2.
-    call TRIX (1, 0, mr, a, bb, c, b, tcos, d, w)
+    call trix(1, 0, mr, a, bb, c, b, tcos, d, w)
 end if
-q(:mr, j) = Q(:mr, j) + B(:mr)
-b(:mr) = Q(:mr, 1) + Q(:mr, j)
+q(:mr, j) = q(:mr, j) + b(:mr)
+b(:mr) = q(:mr, 1) + q(:mr, j)
 call cosgen(jr, 1, fnum, 0.5, tcos)
-call TRIX (jr, 0, mr, a, bb, c, b, tcos, d, w)
+call trix(jr, 0, mr, a, bb, c, b, tcos, d, w)
 if (jr == 1) then
-    q(:mr, 1) = B(:mr)
+    q(:mr, 1) = b(:mr)
     go to 188
 end if
-q(:mr, 1) = Q(:mr, 1) - Q(:mr, jm1) + B(:mr)
+q(:mr, 1) = q(:mr, 1) - q(:mr, jm1) + b(:mr)
 go to 188
 end if
 b3(:mr) = 0.
-b(:mr) = Q(:mr, 1) + P(ipp+1:mr+ipp)
-q(:mr, 1) = Q(:mr, 1) - Q(:mr, jm1)
-b2(:mr) = Q(:mr, 1) + Q(:mr, nlast)
+b(:mr) = q(:mr, 1) + p(ipp+1:mr+ipp)
+q(:mr, 1) = q(:mr, 1) - q(:mr, jm1)
+b2(:mr) = q(:mr, 1) + q(:mr, nlast)
 k1 = kr + jr
 k2 = k1 + jr
-call cosgen(jr - 1, 1, 0.0, 1.0, TCOS(k1+1))
+call cosgen(jr - 1, 1, 0.0, 1.0, tcos(k1+1))
 go to (182, 183, 182) np
 182 continue
     tcos(k2) = 2.*real(np - 2)
-    call cosgen(kr, 1, 0.0, 1.0, TCOS(k2+1))
+    call cosgen(kr, 1, 0.0, 1.0, tcos(k2+1))
     go to 184
 183 continue
-    call cosgen(kr + 1, 1, 0.5, 0.0, TCOS(k2))
+    call cosgen(kr + 1, 1, 0.5, 0.0, tcos(k2))
 184 continue
     k4 = 1 - np/3
     call merge_rename(tcos, k1, jr - k4, k2 - k4, kr + k4, 0)
     if (np == 3) k1 = k1 - 1
     k2 = kr
-    call cosgen(kr, 1, fnum2, 0.5, TCOS(k1+1))
+    call cosgen(kr, 1, fnum2, 0.5, tcos(k1+1))
     k4 = k1 + kr
-    call cosgen(lr, 1, fnum2, 0.5, TCOS(k4+1))
+    call cosgen(lr, 1, fnum2, 0.5, tcos(k4+1))
     k3 = lr
     k4 = 0
-    call TRI3 (mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
-    b(:mr) = B(:mr) + B2(:mr)
+    call tri3 (mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
+    b(:mr) = b(:mr) + b2(:mr)
     if (np == 3) then
         tcos(1) = 2.
-        call TRIX (1, 0, mr, a, bb, c, b, tcos, d, w)
+        call trix(1, 0, mr, a, bb, c, b, tcos, d, w)
     end if
-    q(:mr, 1) = Q(:mr, 1) + B(:mr)
+    q(:mr, 1) = q(:mr, 1) + b(:mr)
 188 continue
     j = nlast - jr
-    b(:mr) = Q(:mr, nlast) + Q(:mr, j)
+    b(:mr) = q(:mr, nlast) + q(:mr, j)
     jm2 = nlast - i2r
     if (jr == 1) then
         q(:mr, nlast) = 0.
     else
         if (nrod == 0) then
-            q(:mr, nlast) = P(ipp+1:mr+ipp)
+            q(:mr, nlast) = p(ipp+1:mr+ipp)
             ipp = ipp - mr
         else
-            q(:mr, nlast) = Q(:mr, nlast) - Q(:mr, jm2)
+            q(:mr, nlast) = q(:mr, nlast) - q(:mr, jm2)
         end if
     end if
     call cosgen(kr, 1, fnum2, 0.5, tcos)
-    call cosgen(lr, 1, fnum2, 0.5, TCOS(kr+1))
-    call TRIX (kr, lr, mr, a, bb, c, b, tcos, d, w)
-    q(:mr, nlast) = Q(:mr, nlast) + B(:mr)
+    call cosgen(lr, 1, fnum2, 0.5, tcos(kr+1))
+    call trix(kr, lr, mr, a, bb, c, b, tcos, d, w)
+    q(:mr, nlast) = q(:mr, nlast) + b(:mr)
     nlastp = nlast
 197 continue
     jstep = jr
@@ -1117,19 +1121,19 @@ go to (182, 183, 182) np
         jm2 = j - jr
         jp2 = j + jr
         if (j == jr) then
-            b(:mr) = Q(:mr, j) + Q(:mr, jp2)
+            b(:mr) = q(:mr, j) + q(:mr, jp2)
         else
-            b(:mr) = Q(:mr, j) + Q(:mr, jm2) + Q(:mr, jp2)
+            b(:mr) = q(:mr, j) + q(:mr, jm2) + q(:mr, jp2)
         end if
         if (jr == 1) then
-            q(:mr, j) = 0.
+            q(:mr, j) = 0.0_wp
         else
             jm1 = j - i2r
             jp1 = j + i2r
-            q(:mr, j) = 0.5*(Q(:mr, j)-Q(:mr, jm1)-Q(:mr, jp1))
+            q(:mr, j) = 0.5_wp * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
         end if
-        call TRIX (jr, 0, mr, a, bb, c, b, tcos, d, w)
-        q(:mr, j) = Q(:mr, j) + B(:mr)
+        call trix(jr, 0, mr, a, bb, c, b, tcos, d, w)
+        q(:mr, j) = q(:mr, j) + b(:mr)
     end do
     nrod = 1
     if (nlast + i2r <= n) nrod = 0

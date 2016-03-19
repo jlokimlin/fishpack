@@ -219,12 +219,14 @@ type_HelmholtzSolver.f90
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 type_TridiagonalData.o: \
+type_Grid.o\
 type_TridiagonalData.f90
 	$(FC) $(FFLAGS) -c type_TridiagonalData.f90 $(LINKS)\
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 type_TridiagonalSolver.o: \
 type_TridiagonalData.o \
+type_Grid.o\
 type_CenteredGrid.o\
 type_StaggeredGrid.o\
 genbun.o\
