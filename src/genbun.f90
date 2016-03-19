@@ -24,9 +24,8 @@ module module_genbun
     public :: genbunn
 
 contains
-    !
-    !*****************************************************************************************
-    !
+
+
     subroutine test_genbun()
         !     file tgenbun.f
         !
@@ -150,9 +149,8 @@ contains
             '     ierror =', ierror, ' discretization error = ', discretization_error
 
     end subroutine test_genbun
-    !
-    !*****************************************************************************************
-    !
+
+
     subroutine genbun( nperod, n, mperod, m, a, b, c, idimy, y, ierror)
         !
         !     file genbun.f
@@ -382,16 +380,16 @@ contains
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
-        integer (ip) :: nperod
-        integer (ip) :: n
-        integer (ip) :: mperod
-        integer (ip) :: m
-        integer (ip) :: idimy
-        integer (ip) :: ierror
-        real (wp) :: a(*)
-        real (wp) :: b(*)
-        real (wp) :: c(*)
-        real (wp) :: y(idimy, *)
+        integer (ip),          intent (in)     :: nperod
+        integer (ip),          intent (in)     :: n
+        integer (ip),          intent (in)     :: mperod
+        integer (ip),          intent (in)     :: m
+        integer (ip),          intent (in)     :: idimy
+        integer (ip),          intent (out)    :: ierror
+        real (wp),             intent (in)     :: a(*)
+        real (wp),             intent (in)     :: b(*)
+        real (wp),             intent (in)     :: c(*)
+        real (wp),             intent (in out) :: y(idimy,*)
         !--------------------------------------------------------------------------------
         ! Dictionary: local variables
         !--------------------------------------------------------------------------------
@@ -399,69 +397,76 @@ contains
         type (FishpackWorkspace) :: workspace
         !-----------------------------------------------
 
+        ! initialize error flag
         ierror = 0
 
-        !     check input arguments
-        ierror = 0
-        !     check input arguments
+        ! check input arguments: case 1
         if (m <= 2) then
             ierror = 1
             return
         end if
 
+        ! check input arguments: case 2
         if (n <= 2) then
             ierror = 2
             return
         end if
 
+        ! check input arguments: case 3
         if (idimy < m) then
             ierror = 3
             return
         end if
 
-        if (nperod<0 .or. nperod>4) then
+        ! check input arguments: case 4
+        if (nperod < 0 .or. nperod > 4) then
             ierror = 4
             return
         end if
 
-        if (mperod<0 .or. mperod>1) then
+        ! check input arguments: case 5
+        if (mperod < 0 .or. mperod > 1) then
             ierror = 5
             return
         end if
 
-        ! compute and allocate real work space for genbun
+        ! compute real workspace size for genbun
         call workspace%get_genbun_workspace_dimensions(n, m, irwk)
-        icwk = 0
 
-        call workspace%create( irwk, icwk, ierror )
+        ! create real workspace
+        associate( icwk => 0 )
+            call workspace%create( irwk, icwk, ierror )
+        end associate
 
         ! return if allocation failed (e.g., if n, m are too large)
         if (ierror == 20) return
 
-        call genbunn(nperod, n, mperod, m, a, b, c, idimy, y, ierror, workspace%rew )
+        ! solve system
+        associate( rew => workspace%rew )
+            call genbunn(nperod, n, mperod, m, a, b, c, idimy, y, ierror, rew )
+        end associate
 
         ! Release allocated work space
         call workspace%destroy()
 
     end subroutine genbun
-    !
-    !*****************************************************************************************
-    !
+
+
     subroutine genbunn(nperod, n, mperod, m, a, b, c, idimy, y, ierror, w)
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
-        integer (ip), intent (in) :: nperod
-        integer (ip) :: n
-        integer (ip), intent (in) :: mperod
-        integer (ip) :: m
-        integer (ip) :: idimy
-        integer (ip), intent (in out) :: ierror
-        real (wp), intent (in) :: a(*)
-        real (wp), intent (in) :: b(*)
-        real (wp), intent (in) :: c(*)
-        real (wp) :: y(idimy, *)
-        real (wp) :: w(*)
+        integer (ip), intent (in)     :: nperod
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: mperod
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: idimy
+        integer (ip), intent (out)    :: ierror
+        real (wp),    intent (in)     :: a(*)
+        real (wp),    intent (in)     :: b(*)
+        real (wp),    intent (in)     :: c(*)
+        real (wp),    intent (in out) :: y(idimy, *)
+        real (wp),    intent (in out) :: w(*)
         !--------------------------------------------------------------------------------
         ! Dictionary: local variables
         !--------------------------------------------------------------------------------
@@ -471,61 +476,76 @@ contains
         real (wp)       :: a1
         !-----------------------------------------------
 
+        ! initialize error flag
+        ierror = 0
+
+        ! check input arguments: case 6
         if (mperod /= 1) then
             do i = 2, m
-                if (A(i) /= C(1)) go to 103
-                if (C(i) /= C(1)) go to 103
-                if (B(i) /= B(1)) go to 103
+                if (a(i) /= c(1)) then
+                    ierror = 6
+                    exit
+                end if
+                if (c(i) /= c(1)) then
+                    ierror = 6
+                    exit
+                end if
+                if (b(i) /= b(1)) then
+                    ierror = 6
+                    exit
+                end if
             end do
-            go to 104
         end if
-        if (A(1)/=0. .or. C(m)/=0.) ierror = 7
-        go to 104
-103 continue
-    ierror = 6
-104 continue
-    if (ierror /= 0) return
-    mp1 = m + 1
-    iwba = mp1
-    iwbb = iwba + m
-    iwbc = iwbb + m
-    iwb2 = iwbc + m
-    iwb3 = iwb2 + m
-    iww1 = iwb3 + m
-    iww2 = iww1 + m
-    iww3 = iww2 + m
-    iwd = iww3 + m
-    iwtcos = iwd + m
-    iwp = iwtcos + 4*n
-    w(iwba:m-1+iwba) = -A(:m)
-    w(iwbc:m-1+iwbc) = -C(:m)
-    w(iwbb:m-1+iwbb) = 2. - B(:m)
-    y(:m, :n) = -Y(:m, :n)
-    mp = mperod + 1
-    np = nperod + 1
-    go to (114, 107) mp
+
+        ! check input arguments: case 7
+        if (a(1) /= 0.0_wp .or. c(m) /= 0.0_wp) then
+            ierror = 7
+        end if
+
+        ! check the error flag
+        if (ierror /= 0) return
+
+        mp1 = m + 1
+        iwba = mp1
+        iwbb = iwba + m
+        iwbc = iwbb + m
+        iwb2 = iwbc + m
+        iwb3 = iwb2 + m
+        iww1 = iwb3 + m
+        iww2 = iww1 + m
+        iww3 = iww2 + m
+        iwd = iww3 + m
+        iwtcos = iwd + m
+        iwp = iwtcos + 4*n
+        w(iwba:m-1+iwba) = -a(:m)
+        w(iwbc:m-1+iwbc) = -c(:m)
+        w(iwbb:m-1+iwbb) = 2. - b(:m)
+        y(:m, :n) = -y(:m, :n)
+        mp = mperod + 1
+        np = nperod + 1
+        go to (114, 107) mp
 107 continue
     go to (108, 109, 110, 111, 123) np
 108 continue
-    call POISP2 (m, n, W(iwba), W(iwbb), W(iwbc), y, idimy, w, W(iwb2) &
-        , W(iwb3), W(iww1), W(iww2), W(iww3), W(iwd), W(iwtcos), W(iwp) &
+    call poisp2 (m, n, w(iwba), w(iwbb), w(iwbc), y, idimy, w, w(iwb2) &
+        , w(iwb3), w(iww1), w(iww2), w(iww3), w(iwd), w(iwtcos), w(iwp) &
         )
     go to 112
 109 continue
-    call POISD2 (m, n, 1, W(iwba), W(iwbb), W(iwbc), y, idimy, w, W( &
-        iww1), W(iwd), W(iwtcos), W(iwp))
+    call poisd2 (m, n, 1, w(iwba), w(iwbb), w(iwbc), y, idimy, w, w( &
+        iww1), w(iwd), w(iwtcos), w(iwp))
     go to 112
 110 continue
-    call POISN2 (m, n, 1, 2, W(iwba), W(iwbb), W(iwbc), y, idimy, w, W &
-        (iwb2), W(iwb3), W(iww1), W(iww2), W(iww3), W(iwd), W(iwtcos), &
-        W(iwp))
+    call poisn2 (m, n, 1, 2, w(iwba), w(iwbb), w(iwbc), y, idimy, w, w &
+        (iwb2), w(iwb3), w(iww1), w(iww2), w(iww3), w(iwd), w(iwtcos), &
+        w(iwp))
     go to 112
 111 continue
-    call POISN2 (m, n, 1, 1, W(iwba), W(iwbb), W(iwbc), y, idimy, w, W &
-        (iwb2), W(iwb3), W(iww1), W(iww2), W(iww3), W(iwd), W(iwtcos), &
-        W(iwp))
+    call poisn2 (m, n, 1, 1, w(iwba), w(iwbb), w(iwbc), y, idimy, w, w &
+        (iwb2), w(iwb3), w(iww1), w(iww2), w(iww3), w(iwd), w(iwtcos), &
+        w(iwp))
 112 continue
-    ipstor = W(iww1)
+    ipstor = w(iww1)
     irev = 2
     if (nperod == 4) go to 124
 113 continue
@@ -536,32 +556,32 @@ contains
     modd = 1
     if (mh*2 == m) modd = 2
     do j = 1, n
-        w(:mhm1) = Y(mh-1:mh-mhm1:(-1), j) - Y(mh+1:mhm1+mh, j)
-        w(mh+1:mhm1+mh) = Y(mh-1:mh-mhm1:(-1), j) + Y(mh+1:mhm1+mh, j)
-        w(mh) = 2.*Y(mh, j)
+        w(:mhm1) = y(mh-1:mh-mhm1:(-1), j) - y(mh+1:mhm1+mh, j)
+        w(mh+1:mhm1+mh) = y(mh-1:mh-mhm1:(-1), j) + y(mh+1:mhm1+mh, j)
+        w(mh) = 2.*y(mh, j)
         go to (117, 116) modd
 116 continue
-    w(m) = 2.*Y(m, j)
+    w(m) = 2.*y(m, j)
 117 continue
-    y(:m, j) = W(:m)
+    y(:m, j) = w(:m)
 end do
 k = iwbc + mhm1 - 1
 i = iwba + mhm1
 w(k) = 0.
 w(i) = 0.
-w(k+1) = 2.*W(k+1)
+w(k+1) = 2.*w(k+1)
 select case (modd) 
     case default
         k = iwbb + mhm1 - 1
-        w(k) = W(k) - W(i-1)
-        w(iwbc-1) = W(iwbc-1) + W(iwbb-1)
+        w(k) = w(k) - w(i-1)
+        w(iwbc-1) = w(iwbc-1) + w(iwbb-1)
     case (2)
-        w(iwbb-1) = W(k+1)
+        w(iwbb-1) = w(k+1)
 end select
 122 continue
     go to 107
 !
-!     REVERSE COLUMNS WHEN NPEROD = 4.
+!     reverse columns when nperod = 4.
 !
 123 continue
     irev = 1
@@ -570,22 +590,22 @@ end select
     do j = 1, nby2
         mskip = n + 1 - j
         do i = 1, m
-            a1 = Y(i, j)
-            y(i, j) = Y(i, mskip)
+            a1 = y(i, j)
+            y(i, j) = y(i, mskip)
             y(i, mskip) = a1
         end do
     end do
     go to (110, 113) irev
 127 continue
     do j = 1, n
-        w(mh-1:mh-mhm1:(-1)) = 0.5*(Y(mh+1:mhm1+mh, j)+Y(:mhm1, j))
-        w(mh+1:mhm1+mh) = 0.5*(Y(mh+1:mhm1+mh, j)-Y(:mhm1, j))
-        w(mh) = 0.5*Y(mh, j)
+        w(mh-1:mh-mhm1:(-1)) = 0.5*(y(mh+1:mhm1+mh, j)+y(:mhm1, j))
+        w(mh+1:mhm1+mh) = 0.5*(y(mh+1:mhm1+mh, j)-y(:mhm1, j))
+        w(mh) = 0.5*y(mh, j)
         go to (130, 129) modd
 129 continue
-    w(m) = 0.5*Y(m, j)
+    w(m) = 0.5*y(m, j)
 130 continue
-    y(:m, j) = W(:m)
+    y(:m, j) = w(:m)
 end do
 133 continue
     w(1) = ipstor + iwp - 1

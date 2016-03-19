@@ -43,8 +43,10 @@ contains
         real (wp), contiguous,  intent (out)    :: solution(:,:)
         !--------------------------------------------------------------------------------
 
-        ! Ensure that object is usable
-        call this%destroy()
+        ! Check if object is usable
+        if (.not. this%initialized) then
+            error stop 'uninitialized object in SOLVE_2D_POISSON_CENTERED!'
+        end if
 
         ! Solve poisson's equation
         associate( helmholtz_constant => 0.0_wp )
@@ -64,8 +66,10 @@ contains
         real (wp), contiguous,  intent (out)    :: solution(:,:)
         !--------------------------------------------------------------------------------
 
-        ! Ensure that object is usable
-        call this%destroy()
+        ! Check if object is usable
+        if (.not. this%initialized) then
+            error stop 'uninitialized object in SOLVE_2D_POISSON_STAGGERED!'
+        end if
 
         ! Solve poisson's equation
         associate( helmholtz_constant => 0.0_wp )

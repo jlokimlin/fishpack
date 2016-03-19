@@ -9,3 +9,4 @@
 
 # executables
 *.exe
+/Debug/

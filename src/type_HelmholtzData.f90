@@ -109,7 +109,7 @@ contains
         !--------------------------------------------------------------------------------
 
         ! Ensure that object is usable
-        call this%destroy()
+        if ( .not.this%initialized ) call this%destroy()
 
         ! Allocate arrays
         allocate ( &
@@ -175,10 +175,8 @@ contains
         class (HelmholtzData), intent (in out)   :: this
         !--------------------------------------------------------------------------------
 
-        !
         ! Check if object is already usable
-        !
-        if ( .not. this%initialized ) return
+        if ( .not.this%initialized ) return
 
         ! Deallocate west component
         if ( allocated( this%west ) ) then

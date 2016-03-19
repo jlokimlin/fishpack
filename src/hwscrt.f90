@@ -19,10 +19,10 @@ module module_hwscrt
     public :: hwscrt
     public :: test_hwscrt
 
+
 contains
-    !
-    !*****************************************************************************************
-    !
+
+
     subroutine test_hwscrt()
         !     file thwscrt.f
         !
@@ -58,7 +58,7 @@ contains
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer :: idimf, m, mbdcnd, n, nbdcnd, mp1, np1, i, j, ierror
         real (wp), dimension(45, 82) :: f
@@ -67,7 +67,7 @@ contains
         real::a, b, c, d, elmbda, pi, dum, piby2, pisq, pertrb, discretization_error, z
         !-----------------------------------------------
         !
-        !     FROM DIMENSION STATEMENT WE GET VALUE OF IDIMF.
+        !     from dimension statement we get value of idimf.
         !
         idimf = 45
         a = 0.
@@ -80,7 +80,7 @@ contains
         nbdcnd = 0
         elmbda = -4.
         !
-        !     AUXILIARY QUANTITIES.
+        !     auxiliary quantities.
         !
         pi = acos( -1.0 )
         piby2 = pi/2.
@@ -88,8 +88,8 @@ contains
         mp1 = m + 1
         np1 = n + 1
         !
-        !     GENERATE AND STORE GRID POINTS FOR THE PURPOSE OF COMPUTING
-        !     BOUNDARY DATA AND THE RIGHT SIDE OF THE HELMHOLTZ EQUATION.
+        !     generate and store grid points for the purpose of computing
+        !     boundary data and the right side of the helmholtz equation.
         !
         do i = 1, mp1
             x(i) = real(i - 1)/20.
@@ -98,28 +98,28 @@ contains
             y(j) = (-1.) + real(j - 1)/20.
         end do
         !
-        !     GENERATE BOUNDARY DATA.
+        !     generate boundary data.
         !
         do j = 1, np1
-            bdb(j) = 4.*COS((Y(j)+1.)*piby2)
+            bdb(j) = 4.*cos((y(j)+1.)*piby2)
         end do
         !
-        !     BDA, BDC, AND BDD ARE DUMMY VARIABLES.
+        !     bda, bdc, and bdd are dummy variables.
         !
         f(1, :np1) = 0.
         !
-        !     GENERATE RIGHT SIDE OF EQUATION.
+        !     generate right side of equation.
         !
         do i = 2, mp1
             do j = 1, np1
-                f(i, j) = (2. - (4. + pisq/4.)*X(i)**2)*COS((Y(j)+1.)*piby2)
+                f(i, j) = (2. - (4. + pisq/4.)*x(i)**2)*cos((y(j)+1.)*piby2)
             end do
         end do
 
         call hwscrt(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
             elmbda, f, idimf, pertrb, ierror)
         !
-        !     Compute discretization error.  the exact solution is
+        !     compute discretization error.  the exact solution is
         !                u(x, y) = x**2*cos((y+1)*piby2)
         !
         discretization_error = 0.0_wp
@@ -129,7 +129,7 @@ contains
                 discretization_error = max(z, discretization_error)
             end do
         end do
-        !     Print earlier output from platforms with 32 and 64 bit floating point
+        !     print earlier output from platforms with 32 and 64 bit floating point
         !     arithemtic followed by the output from this computer
         write( stdout, '(A)') ''
         write( stdout, '(A)') '     hwscrt *** TEST RUN *** '
@@ -140,9 +140,8 @@ contains
             '     ierror =', ierror, ' discretization error = ', discretization_error
 
     end subroutine test_hwscrt
-    !
-    !*****************************************************************************************
-    !
+
+
     subroutine hwscrt( a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror )
         !
@@ -459,27 +458,27 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip) :: m
-        integer (ip) :: mbdcnd
-        integer (ip) :: n
-        integer (ip) :: nbdcnd
-        integer (ip) :: idimf
-        integer (ip) :: ierror
-        real (wp) :: a
-        real (wp) :: b
-        real (wp) :: c
-        real (wp) :: d
-        real (wp) :: elmbda
-        real (wp) :: pertrb
-        real (wp) :: bda(*)
-        real (wp) :: bdb(*)
-        real (wp) :: bdc(*)
-        real (wp) :: bdd(*)
-        real (wp) :: f(idimf, *)
+        integer (ip),          intent (in)     :: m
+        integer (ip),          intent (in)     :: mbdcnd
+        integer (ip),          intent (in)     :: n
+        integer (ip),          intent (in)     :: nbdcnd
+        integer (ip),          intent (in)     :: idimf
+        integer (ip),          intent (out)    :: ierror
+        real (wp),             intent (in)     :: a
+        real (wp),             intent (in)     :: b
+        real (wp),             intent (in)     :: c
+        real (wp),             intent (in)     :: d
+        real (wp),             intent (in)     :: elmbda
+        real (wp),             intent (out)    :: pertrb
+        real (wp), contiguous, intent (in)     :: bda(:)
+        real (wp), contiguous, intent (in)     :: bdb(:)
+        real (wp), contiguous, intent (in)     :: bdc(:)
+        real (wp), contiguous, intent (in)     :: bdd(:)
+        real (wp), contiguous, intent (in out) :: f(:,:)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer (ip)             :: irwk, icwk
+        integer (ip)             :: irwk
         type (FishpackWorkspace) :: workspace
         !-----------------------------------------------
 
@@ -494,51 +493,54 @@ contains
         if (m <= 3) ierror = 8
         if (ierror /= 0) return
 
-        !! allocate required work space length (generous estimate)
+        ! Estimate real workspace size (generous estimate)
         associate( int_arg => real( n + 1, kind=wp ) / log(2.0_wp) )
             irwk = 4 * ( n + 1) + (13 + int( int_arg, kind=ip )) *(m + 1)
         end associate
-        icwk = 0
 
-        !! create workspace arrays
-        call workspace%create( irwk, icwk, ierror )
+        ! create real workspace
+        associate( icwk => 0 )
+            call workspace%create( irwk, icwk, ierror )
+        end associate
 
-        !! check that allocation was successful
+        ! check that allocation was successful
         if (ierror == 20) return
 
-        call hwscrtt( a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
-            elmbda, f, idimf, pertrb, ierror, workspace%rew )
+        ! Solve system
+        associate( rew => workspace%rew )
+            call hwscrtt( a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
+                elmbda, f, idimf, pertrb, ierror, rew )
+        end associate
 
-        !! release dynamically allocated work space
+        ! release dynamically allocated work space
         call workspace%destroy()
 
     end subroutine hwscrt
-    !
-    !*****************************************************************************************
-    !
+
+
     subroutine hwscrtt( a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror, w )
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip), intent (in)  :: m
-        integer (ip), intent (in)  :: mbdcnd
-        integer (ip), intent (in)  :: n
-        integer (ip), intent (in)  :: nbdcnd
-        integer (ip)               :: idimf
-        integer (ip), intent (out) :: ierror
-        real (wp),    intent (in) :: a
-        real (wp),    intent (in) :: b
-        real (wp),    intent (in) :: c
-        real (wp),    intent (in) :: d
-        real (wp),    intent (in) :: elmbda
-        real (wp), intent (out) :: pertrb
-        real (wp), intent (in) :: bda(*)
-        real (wp), intent (in) :: bdb(*)
-        real (wp), intent (in) :: bdc(*)
-        real (wp), intent (in) :: bdd(*)
-        real (wp)              :: f(idimf, *)
-        real (wp)              :: w(*)
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: mbdcnd
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: nbdcnd
+        integer (ip), intent (in)     :: idimf
+        integer (ip), intent (out)    :: ierror
+        real (wp),    intent (in)     :: a
+        real (wp),    intent (in)     :: b
+        real (wp),    intent (in)     :: c
+        real (wp),    intent (in)     :: d
+        real (wp),    intent (in)     :: elmbda
+        real (wp),    intent (out)    :: pertrb
+        real (wp),    intent (in)     :: bda(*)
+        real (wp),    intent (in)     :: bdb(*)
+        real (wp),    intent (in)     :: bdc(*)
+        real (wp),    intent (in)     :: bdd(*)
+        real (wp),    intent (in out) :: f(idimf, *)
+        real (wp),    intent (in out) :: w(*)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
@@ -721,9 +723,8 @@ contains
     end if
 
 end subroutine hwscrtt
-    !
-    !*****************************************************************************************
-    !
+
+
 end module module_hwscrt
 !
 ! REVISION HISTORY---

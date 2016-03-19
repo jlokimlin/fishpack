@@ -489,70 +489,69 @@ contains
         type (FishpackWorkspace) :: workspace
         !--------------------------------------------------------------------------------
 
-        ! Initialize error flag
+        ! initialize error flag
         ierror = 0
 
-        ! Perform sanity check: case 1
+        ! check input arguments: case 1
         if (m <= 2) then
             ierror = 1
             return
         end if
 
-        ! Perform sanity check: case 2
+        ! check input arguments: case 1
         if (n <= 2) then
             ierror = 2
             return
         end if
 
-        ! Perform sanity check: case 3
+        ! check input arguments: case 3
         if (idimy < m) then
             ierror = 3
             return
         end if
 
-        ! Perform sanity check: case 4
+        ! check input arguments: case 4
         if (nperod < 1 .or. nperod > 4) then
             ierror = 4
             return
         end if
 
-        ! Perform sanity check: case 5
+        ! check input arguments: case 5
         if (mperod < 0 .or. mperod > 1) then
             ierror = 5
             return
         end if
 
-        ! Perform sanity check: case 6
+        ! check input arguments: case 6
         if (mperod /= 1) then
             do i = 1, m
-                if (A(i) /= C(1)) then
+                if (a(i) /= c(1)) then
                     ierror = 6
                     exit
                 end if
-                if (C(i) /= C(1)) then
+                if (c(i) /= c(1)) then
                     ierror = 6
                     exit
                 end if
-                if (B(i) /= B(1)) then
+                if (b(i) /= b(1)) then
                     ierror = 6
                     exit
                 end if
             end do
         end if
 
-        ! Perform sanity check: case 7
-        if (A(1)/= 0.0_wp .or. C(m)/= 0.0_wp) then
+       ! check input arguments: case 7
+        if (a(1)/= 0.0_wp .or. c(m)/= 0.0_wp) then
             ierror = 7
             return
         end if
 
-        ! Final sanity check
+        ! final sanity check
         if (ierror /= 0) then
             return
         end if
 
-        ! Compute and allocate real work space for poistg
-
+        ! compute and allocate real work space for poistg
         associate( &
             irwk => m * (9 + int(log(real(n, kind=wp))/log(2.0_wp),kind=ip)) + 4 * n, &
             icwk => 0 &
@@ -563,8 +562,10 @@ contains
         ! return if allocation failed (e.g., if n, m are too large)
         if (ierror == 20) return
 
-        ! Solve system
-        call  poistgg( nperod, n, mperod, m, a, b, c, idimy, y, ierror, workspace%rew )
+        ! solve system
+        associate( rew => workspace%rew )
+            call  poistgg( nperod, n, mperod, m, a, b, c, idimy, y, ierror, rew )
+        end associate
 
         ! release work space
         call workspace%destroy()

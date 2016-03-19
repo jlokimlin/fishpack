@@ -194,7 +194,7 @@ contains
 
         ! Check if object is usable
         if ( .not.this%initialized ) then
-            error stop 'uninitialized object in SOLVE_2D_HELMHOLTZ_CENTERED!'
+            error stop 'uninitialized object in SOLVE_2D_HELMHOLTZ_STAGGERED!'
         end if
 
         ! Call procedural solver

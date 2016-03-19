@@ -553,8 +553,14 @@ contains
             end if
         end if
 
-        call blktrii( iflg, np, n, an, bn, cn, mp, m, am, bm, cm, idimy, y, &
-            ierror, w%rew, w%cxw )
+        ! Solve system
+        associate( &
+            rew => w%rew, &
+            cxw => w%cxw &
+            )
+            call blktrii( iflg, np, n, an, bn, cn, mp, m, am, bm, cm, idimy, y, &
+                ierror, rew, cxw )
+        end associate
 
     end subroutine blktri
 

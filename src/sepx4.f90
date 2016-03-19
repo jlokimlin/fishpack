@@ -798,15 +798,15 @@ contains
         end associate
 
         ! Solve system
-        associate( w => workspace )
+        associate( rew => workspace%rew )
             call s4elip( iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta, c, d, n, &
-                nbdcnd, bdc, bdd, cofx, w%rew(i1), w%rew(i2), w%rew(i3), &
-                w%rew(i4), w%rew(i5), w%rew(i6), w%rew(i7), w%rew(i8), &
-                w%rew(i9), w%rew(i10), w%rew(i11), w%rew(i12), &
-                grhs, usol, idmn, w%rew(i13), pertrb, ierror)
+                nbdcnd, bdc, bdd, cofx, rew(i1), rew(i2), rew(i3), &
+                rew(i4), rew(i5), rew(i6), rew(i7), rew(i8), &
+                rew(i9), rew(i10), rew(i11), rew(i12), &
+                grhs, usol, idmn, rew(i13), pertrb, ierror)
         end associate
 
-        !     release dynamically allocated work space
+        ! release dynamically allocated work space
         call workspace%destroy()
 
     end subroutine sepx4
