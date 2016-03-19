@@ -27,7 +27,7 @@ program test
     implicit none
 
 
-    !call test_procedural_library()
+    call test_procedural_library()
     call test_object_oriented_library()
 
 
@@ -43,7 +43,7 @@ contains
         !--------------------------------------------------------------------------------
 
         call helmholtz_solver%unit_test()
-        !call tridiagonal_solver%unit_test()
+        call tridiagonal_solver%unit_test()
 
     end subroutine test_object_oriented_library
 
