@@ -218,6 +218,12 @@ type_HelmholtzSolver.f90
 	$(FC) $(FFLAGS) -c type_HelmholtzSolver.f90 $(LINKS)\
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
+type_PoissonSolver.o: \
+type_HelmholtzSolver.o \
+type_HelmholtzSolver.f90
+	$(FC) $(FFLAGS) -c type_PoissonSolver.f90 $(LINKS)\
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
 type_TridiagonalData.o: \
 type_Grid.o\
 type_TridiagonalData.f90
@@ -257,6 +263,7 @@ sepeli.o\
 sepx4.o\
 type_HelmholtzData.o\
 type_HelmholtzSolver.o\
+type_PoissonSolver.o \
 type_TridiagonalData.o\
 type_TridiagonalSolver.o\
 type_CenteredGrid.o\

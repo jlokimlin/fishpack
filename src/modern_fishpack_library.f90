@@ -82,11 +82,17 @@ module modern_fishpack_library
     use type_HelmholtzSolver, only: &
         HelmholtzSolver
 
+    use type_PoissonSolver, only: &
+        PoissonSolver
+
     use type_TridiagonalData, only: &
         TridiagonalData
 
     use type_TridiagonalSolver, only: &
         TridiagonalSolver
+
+    use type_Grid, only: &
+        Grid
 
     use type_CenteredGrid, only: &
         CenteredGrid
@@ -142,8 +148,10 @@ module modern_fishpack_library
     public :: test_sepx4
     public :: HelmholtzData
     public :: HelmholtzSolver
+    public :: PoissonSolver
     public :: TridiagonalData
     public :: TridiagonalSolver
+    public :: Grid
     public :: CenteredGrid
     public :: StaggeredGrid
     public :: MacGrid
