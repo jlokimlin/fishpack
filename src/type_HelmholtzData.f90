@@ -32,6 +32,9 @@ module type_HelmholtzData
     use type_RectangularDomain, only: &
         RectangularDomain
 
+    use type_Grid, only: &
+        Grid
+
     ! Explicit typing only
     implicit none
 
@@ -52,14 +55,15 @@ module type_HelmholtzData
         !---------------------------------------------------------------------------------
         ! Class variables
         !---------------------------------------------------------------------------------
-        logical,                  public :: initialized = .false.
-        integer (ip),             public :: Y_BOUNDARY_CONDITION_TYPE = -1 !! Boundary conditions in the vertical direction
-        integer (ip),             public :: X_BOUNDARY_CONDITION_TYPE = -1 !! Boundary conditions in the horizontal direction
-        real (wp), allocatable,   public :: west(:)
-        real (wp), allocatable,   public :: east(:)
-        real (wp), allocatable,   public :: south(:)
-        real (wp), allocatable,   public :: north(:)
-        type (RectangularDomain), public :: domain
+        logical,                             public :: initialized = .false.
+        integer (ip),                        public :: Y_BOUNDARY_CONDITION_TYPE = -1 !! Boundary conditions in the vertical direction
+        integer (ip),                        public :: X_BOUNDARY_CONDITION_TYPE = -1 !! Boundary conditions in the horizontal direction
+        real (wp), allocatable,              public :: west(:)
+        real (wp), allocatable,              public :: east(:)
+        real (wp), allocatable,              public :: south(:)
+        real (wp), allocatable,              public :: north(:)
+        type (RectangularDomain),            public :: domain
+        procedure (proc_interface), pointer, public :: assign_boundary_data => null()
         !---------------------------------------------------------------------------------
     contains
         !---------------------------------------------------------------------------------
@@ -75,10 +79,23 @@ module type_HelmholtzData
     end type HelmholtzData
 
 
+    abstract interface
+        subroutine proc_interface( this, grid_type )
+            import :: HelmholtzData, Grid, wp
+            !--------------------------------------------------------------------------------
+            ! Dictionary: calling arguments
+            !--------------------------------------------------------------------------------
+            class (HelmholtzData), intent (in out) :: this
+            class (Grid),          intent (in out) :: grid_type
+            !--------------------------------------------------------------------------------
+        end subroutine proc_interface
+    end interface
+
+
 contains
 
 
-    subroutine create_helmholtz_data( this, nx, ny, x_type, y_type, rectangular_domain )
+    subroutine create_helmholtz_data( this, nx, ny, x_type, y_type, rectangular_domain, func )
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
@@ -88,15 +105,11 @@ contains
         integer (ip),              intent (in),     optional  :: x_type
         integer (ip),              intent (in),     optional  :: y_type
         class (RectangularDomain), intent (in out), optional  :: rectangular_domain
+        procedure (proc_interface),                 optional  :: func
         !--------------------------------------------------------------------------------
 
         ! Ensure that object is usable
         call this%destroy()
-
-        ! Set rectangular domain
-        if ( present ( rectangular_domain ) ) then
-            this%domain = rectangular_domain
-        end if
 
         ! Allocate arrays
         allocate ( &
@@ -120,6 +133,7 @@ contains
         this%south = 0.0_wp
         this%north = 0.0_wp
 
+
         ! Set the boundary condition types
         associate( &
             x => this%X_BOUNDARY_CONDITION_TYPE, &
@@ -135,8 +149,18 @@ contains
             if ( present( y_type ) ) then
                 call this%get_boundary_condition_type( y_type, y )
             end if
-
         end associate
+
+        ! Set rectangular domain
+        if ( present ( rectangular_domain ) ) then
+            this%domain = rectangular_domain
+        end if
+
+
+        ! Associate pointer
+        if (present(func)) then
+            this%assign_boundary_data => func
+        end if
 
         ! Set initialization flag
         this%initialized = .true.
@@ -151,7 +175,9 @@ contains
         class (HelmholtzData), intent (in out)   :: this
         !--------------------------------------------------------------------------------
 
+        !
         ! Check if object is already usable
+        !
         if ( .not. this%initialized ) return
 
         ! Deallocate west component
@@ -219,13 +245,19 @@ contains
         end if
 
         ! destroy component data type
+        !
         call this%domain%destroy()
 
         ! Reset constants
+        !
         this%X_BOUNDARY_CONDITION_TYPE = -1
         this%Y_BOUNDARY_CONDITION_TYPE = -1
 
+        ! Nullify pointer
+        if (associated(this%assign_boundary_data)) nullify( this%assign_boundary_data )
+
         ! Reset status
+        !
         this%initialized = .false.
 
     end subroutine destroy_helmholtz_data

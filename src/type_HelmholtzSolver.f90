@@ -15,8 +15,8 @@ module type_HelmholtzSolver
     use type_HelmholtzData, only: &
         HelmholtzData
 
-    use type_RectangularDomain, only: &
-        RectangularDomain
+    use type_Grid, only: &
+        Grid
 
     use type_CenteredGrid, only: &
         CenteredGrid
@@ -40,8 +40,8 @@ module type_HelmholtzSolver
         !---------------------------------------------------------------------------------
         ! Class methods
         !---------------------------------------------------------------------------------
-        procedure, public         :: solve_2d_helmholtz_centered
-        procedure, public         :: solve_2d_helmholtz_staggered
+        procedure,         public :: solve_2d_helmholtz_centered
+        procedure,         public :: solve_2d_helmholtz_staggered
         procedure, nopass, public :: unit_test => unit_test_helmholtz_solver
         final                     :: finalize_helmholtz_solver
         !---------------------------------------------------------------------------------
@@ -329,8 +329,8 @@ contains
         !--------------------------------------------------------------------------------
         ! Dictionary: local variables
         !--------------------------------------------------------------------------------
-        type (HelmholtzSolver)  :: solver
-        type (CenteredGrid)     :: grid
+        type (HelmholtzSolver)  :: helmholtz_solver
+        type (CenteredGrid)     :: centered_grid
         integer (ip)            :: error_flag
         integer (ip)            :: i, j    !! Counters
         integer (ip), parameter :: NX = 40 !! Number of horizontally staggered grid poins
@@ -374,13 +374,15 @@ contains
             x_interval => [  0.0_wp, 2.0_wp ], &
             y_interval => [ -1.0_wp, 3.0_wp ] &
             )
-            call grid%create( x_interval, y_interval, NX, NY )
+            call centered_grid%create( x_interval, y_interval, NX, NY )
         end associate
 
+
+        ! Associate various quantities
         associate( &
-            x => grid%x, &
-            y => grid%y, &
-            domain => grid%domain, &
+            x => centered_grid%x, &
+            y => centered_grid%y, &
+            domain => centered_grid%domain, &
             ROBIN_CONDITIONS_IN_X => 2, &
             PERIODIC_IN_Y => 0, &
             HELMHOLTZ_CONSTANT => -4.0_wp, &
@@ -390,41 +392,29 @@ contains
             PI_SQUARED => PI**2 &
             )
 
-            !
+
             ! Set the boundary conditions
-            !
-            call solver%create( NX + 1, NY + 1, PERIODIC_IN_Y, ROBIN_CONDITIONS_IN_X, domain )
+            call helmholtz_solver%create( NX + 1, NY + 1, PERIODIC_IN_Y, ROBIN_CONDITIONS_IN_X, domain, func )
 
-            !
+
             ! generate boundary data
-            !
-            associate( bdb => solver%east )
-                do  j = 1, NY + 1
-                    bdb(j) = 4.0_wp * cos( ( y(j) + 1.0_wp ) * HALF_PI)
-                    ! Remark: The west (bda), south(bdc), and north (bdd) components are dummy variables.
-                end do
-            end associate
+            call helmholtz_solver%assign_boundary_data( centered_grid )
 
-            !
+
             ! Set source, i.e., right side of helmholtz equation
-            !
             f(1, :NY + 1) = 0.0_wp
-            do j = 1, NY + 1
+                        do j = 1, NY + 1
                 do i = 2, NX + 1
-                    f(i, j) = ( &
-                        2.0_wp  - ( 4.0_wp + PI_SQUARED/4.0_wp ) * ( x(i)**2 ) &
-                        ) * cos( ( y(j) + 1.0_wp) * HALF_PI )
+                    f(i, j) = ( 2.0_wp  - ( 4.0_wp + PI_SQUARED/4.0_wp ) * ( x(i)**2 )) * cos( ( y(j) + 1.0_wp) * HALF_PI )
                 end do
             end do
 
-            !
+
             ! Solve helmholtz equation
-            !
-            call solver%solve_2d_helmholtz_centered( &
-                HELMHOLTZ_CONSTANT, f, u, error_flag = error_flag )
-            !
+            call helmholtz_solver%solve_2d_helmholtz_centered( HELMHOLTZ_CONSTANT, f, u, error_flag = error_flag )
+
+
             ! Compute discretization error
-            !
             discretization_error = 0.0_wp
             do j = 1, NY + 1
                 do i = 1, NX + 1
@@ -436,9 +426,8 @@ contains
             end do
         end associate
 
-        !     Print earlier output from platforms with 32 and 64 bit floating point
+        !     Print earlier output from platforms with 64 bit floating point
         !     arithmetic followed by the output from this computer
-
         write( stdout, '(A)' ) ''
         write( stdout, '(A)' ) '    *** TEST_SOLVE_2D_HELMHOLTZ_CENTERED ***    '
         write( stdout, '(A)' ) '    Previous 64 bit floating point arithmetic result '
@@ -447,6 +436,42 @@ contains
         write( stdout, '(A,I3,A,1pe15.6)') &
             '    ierror = ', error_flag, '    discretization error = ', discretization_error
         write( stdout, '(A)' ) ''
+
+
+    contains
+
+
+        subroutine func( solver, centered_grid )
+            !
+            ! Purpose:
+            !
+            ! User-supplied subroutine to assign boundary data
+            !
+            !--------------------------------------------------------------------------------
+            ! Dictionary: calling arguments
+            !--------------------------------------------------------------------------------
+            class (HelmholtzData), intent (in out)  :: solver
+            class (Grid),          intent (in out)  :: centered_grid
+            !--------------------------------------------------------------------------------
+
+            select type (solver)
+                class is (HelmholtzSolver)
+                select type (centered_grid)
+                    class is (CenteredGrid)
+                    associate( bdb => solver%east )
+                        associate( &
+                            y => centered_grid%y(1:size(bdb)), &
+                            HALF_PI => acos(-1.0_wp)/2 &
+                            )
+                            bdb = 4.0_wp * cos( ( y + 1.0_wp ) * HALF_PI)
+                            ! Remark: The west (bda), south(bdc), and north (bdd) components are dummy variables.
+                        end associate
+                    end associate
+                end select
+            end select
+
+        end subroutine func
+
 
     end subroutine test_solve_2d_helmholtz_centered
 
@@ -484,8 +509,8 @@ contains
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
-        type (HelmholtzSolver)  :: mixed_robin
-        type (StaggeredGrid)    :: grid
+        type (HelmholtzSolver)  :: helmholtz_solver
+        type (StaggeredGrid)    :: staggered_grid
         integer (ip)            :: error_flag
         integer (ip)            :: i, j     !! Counters
         integer (ip), parameter :: NX = 48  !! Number of horizontally staggered grid poins
@@ -496,6 +521,7 @@ contains
         real (wp)               :: discretization_error
         real (wp)               :: exact_solution
         !--------------------------------------------------------------------------------
+
 
         ! Print description to console
         write( stdout, '(A)' ) ''
@@ -526,17 +552,20 @@ contains
         write( stdout, '(A)' ) '         u(x,y) = sin(pi*x) * cos(pi*y).'
         write( stdout, '(A)' ) ''
 
+
         ! Create staggered grid
         associate( &
             x_interval => [  1.0_wp, 3.0_wp ], &
             y_interval => [ -1.0_wp, 1.0_wp ] &
             )
-            call grid%create( x_interval, y_interval,  NX, NY )
+            call staggered_grid%create( x_interval, y_interval,  NX, NY )
         end associate
 
-        solver: associate( &
-            x => grid%x, &
-            y => grid%y, &
+
+        associate( &
+            x => staggered_grid%x, &
+            y => staggered_grid%y, &
+            domain => staggered_grid%domain, &
             f => source, &
             u => approximate_solution, &
             MIXED_ROBIN_IN_X => 2, &
@@ -544,52 +573,29 @@ contains
             HELMHOLTZ_CONSTANT => -2.0_wp &
             )
 
-            !--------------------------------------------------------------------------------
             ! Set boundary conditions
-            !--------------------------------------------------------------------------------
-
-            call mixed_robin%create( NX, NY, MIXED_ROBIN_IN_X, PERIODIC_IN_Y, grid%domain )
+            call helmholtz_solver%create( NX, NY, MIXED_ROBIN_IN_X, PERIODIC_IN_Y, domain, func )
 
             ! generate boundary data
-            coefficients: associate( &
-                bda => mixed_robin%west, &
-                bdb => mixed_robin%east &
-                )
+            call helmholtz_solver%assign_boundary_data( staggered_grid )
 
-                bda = 0.0_wp
 
-                do  j = 1, NY
-                    bdb(j) = -PI * cos( PI * y(j) )
-                    ! Remark:
-                    ! The south (bdc) and north (bdd) components are dummy variables.
-                end do
-            end associate coefficients
-
-            !--------------------------------------------------------------------------------
             ! Generate the source, i.e., right side of equation
-            !--------------------------------------------------------------------------------
-
-            loop_constant: associate( C => -2.0_wp * ( (PI **2 ) + 1.0_wp) )
+            associate( C => -2.0_wp * ( (PI **2 ) + 1.0_wp) )
                 do i = 1, NX
                     do j = 1, NY
                         f(i, j) = C * sin( PI * x(i) ) * cos( PI * y(j) )
                     end do
                 end do
-            end associate loop_constant
+            end associate
 
-            !--------------------------------------------------------------------------------
+
             ! Solve helmholtz equation
-            !--------------------------------------------------------------------------------
+            call helmholtz_solver%solve_2d_helmholtz_staggered( HELMHOLTZ_CONSTANT, f, u, error_flag = error_flag )
 
-            call mixed_robin%solve_2d_helmholtz_staggered( &
-                HELMHOLTZ_CONSTANT, f, u, error_flag = error_flag )
 
-            !--------------------------------------------------------------------------------
             ! Compute discretization error
-            !--------------------------------------------------------------------------------
-
             discretization_error = 0.0_wp
-
             do i = 1, NX
                 do j = 1, NY
                     exact_solution = sin( PI * x(i) ) * cos( PI * y(j) )
@@ -599,11 +605,10 @@ contains
                 end do
             end do
 
-        end associate solver
+        end associate
 
-        !     Print earlier output from platforms with 32 and 64 bit floating point
+        !     Print earlier output from platforms with 64 bit floating point
         !     arithmetic followed by the output from this computer
-
         write( stdout, '(A)' ) ''
         write( stdout, '(A)' ) '    *** TEST_SOLVE_2D_HELMHOLTZ_STAGGERED ***    '
         write( stdout, '(A)' ) '    Previous 64 bit floating point arithmetic result '
@@ -612,6 +617,46 @@ contains
         write( stdout, '(A,I3,A,1pe15.6)' ) &
             '    ierror = ', error_flag, '    discretization error = ', discretization_error
         write( stdout, '(A)' ) ''
+
+
+    contains
+
+
+        subroutine func( solver, staggered_grid )
+            !
+            ! Purpose:
+            !
+            ! User-supplied subroutine to assign boundary data
+            !
+            !--------------------------------------------------------------------------------
+            ! Dictionary: calling arguments
+            !--------------------------------------------------------------------------------
+            class (HelmholtzData), intent (in out)  :: solver
+            class (Grid),          intent (in out)  :: staggered_grid
+            !--------------------------------------------------------------------------------
+
+            select type (solver)
+                class is (HelmholtzSolver)
+                select type (staggered_grid)
+                    class is (StaggeredGrid)
+                    associate( &
+                        bda => solver%west, &
+                        bdb => solver%east &
+                        )
+                        associate( &
+                            y => staggered_grid%y( 1:size(bdb) ), &
+                            pi => acos(-1.0_wp) &
+                            )
+                            bda = 0.0_wp
+                            bdb = -pi * cos( pi * y )
+                            ! Remark: the south (bdc) and north (bdd) components are dummy variables.
+                        end associate
+                    end associate
+                end select
+            end select
+
+        end subroutine func
+
 
     end subroutine test_solve_2d_helmholtz_staggered
 
@@ -630,8 +675,8 @@ contains
         write( stdout, '(A)' ) '     *** TYPE (HelmholtzSovler) UNIT TESTS *** '
         write( stdout, '(A)' ) ''
 
-        call test_solve_2d_helmholtz_centered() ! Thwscrt
-        call test_solve_2d_helmholtz_staggered() ! hstcrt
+        call test_solve_2d_helmholtz_centered() ! compare with test_hwscrt
+        call test_solve_2d_helmholtz_staggered() ! compare with test_hstcrt
 
     end subroutine unit_test_helmholtz_solver
 

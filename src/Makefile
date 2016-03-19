@@ -202,6 +202,7 @@ type_MacGrid.f90
 
 type_HelmholtzData.o: \
 type_RectangularDomain.o \
+type_Grid.o\
 type_HelmholtzData.f90
 	$(FC) $(FFLAGS) -c type_HelmholtzData.f90 $(LINKS)\
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
@@ -210,6 +211,7 @@ type_HelmholtzSolver.o: \
 hwscrt.o \
 hstcrt.o \
 type_HelmholtzData.o \
+type_Grid.o\
 type_StaggeredGrid.o\
 type_CenteredGrid.o\
 type_HelmholtzSolver.f90
