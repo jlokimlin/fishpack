@@ -243,7 +243,7 @@ contains
         write( stdout, '(A,I3,A,1pe15.6)') '     ierror =', ierror, ' discretization error = ', &
             discretization_error
 
-        !! release dynamically allocated work space
+        ! Release memory
         call workspace%destroy()
 
     end subroutine test_blktri
@@ -522,11 +522,11 @@ contains
         real (wp) :: bm(*)
         real (wp) :: cm(*)
         real (wp) :: y(idimy, *)
+        class (FishpackWorkspace) :: w
         !--------------------------------------------------------------------------------
         ! Dictionary: local variables
         !--------------------------------------------------------------------------------
         integer (ip)             :: irwk, icwk
-        type (FishpackWorkspace) :: w
         !--------------------------------------------------------------------------------
 
         if (m < 5) then
@@ -543,10 +543,10 @@ contains
         end if
         if (iflg == 0) then
 
-            !! compute and allocate real and complex required work space
+            ! compute and allocate real and complex required work space
             call w%get_block_tridiagonal_workpace_dimensions (n, m, irwk, icwk)
 
-            !! Create workspace
+            ! Create workspace
             call w%create( irwk, icwk, ierror )
             if (ierror == 20) then
                 return
@@ -584,7 +584,7 @@ contains
         real (wp) :: bm(*)
         real (wp) :: cm(*)
         real (wp) :: y(idimy, *)
-        real (wp) :: w(*)
+        real (wp), intent (in out) :: w(*)
         complex (wp) :: wc(*)
         !-----------------------------------------------
         ! Dictionary: local variables

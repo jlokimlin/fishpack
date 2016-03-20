@@ -16,6 +16,13 @@ module module_cblktri
     public :: cblktri
     public :: test_cblktri
 
+    !---------------------------------------------------------------------------------
+    ! Dictionary: global variables confined to the module
+    !---------------------------------------------------------------------------------
+    integer, save :: npp, k, nm, ncmplx, ik
+    real,    save :: eps, cnv
+    !---------------------------------------------------------------------------------
+
 contains
 
     subroutine test_cblktri()
@@ -53,93 +60,94 @@ contains
         !     *                                                               *
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
-        type (FishpackWorkspace) :: workspace
+        !
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer :: IFLG, NP, N, MP, M, IDIMY, I, J, ierror
-        real , dimension(105) :: AN, BN, CN
-        real , dimension(75) :: S
-        real , dimension(105) :: T
-        real::DELTAS, DELTAT, HDS, TDS, TEMP1, TEMP2, TEMP3, HDT, TDT, ERR, Z
-        complex , dimension(75, 105) :: Y
-        complex, dimension(75) :: AM, BM, CM
+        integer :: iflg, np, n, mp, m, idimy, i, j, ierror
+        real , dimension(105) :: an, bn, cn
+        real , dimension(75) :: s
+        real , dimension(105) :: t
+        real::deltas, deltat, hds, tds, temp1, temp2, temp3, hdt, tdt, err, z
+        complex , dimension(75, 105) :: y
+        complex, dimension(75) :: am, bm, cm
+        type (FishpackWorkspace) :: workspace
         !-----------------------------------------------
         !
-        IFLG = 0
-        NP = 1
-        N = 63
-        MP = 1
-        M = 50
-        IDIMY = 75
+        iflg = 0
+        np = 1
+        n = 63
+        mp = 1
+        m = 50
+        idimy = 75
         !
-        !     GENERATE AND STORE GRID POINTS FOR THE PURPOSE OF COMPUTING THE
-        !     COEFFICIENTS AND THE ARRAY Y.
+        !     generate and store grid points for the purpose of computing the
+        !     coefficients and the array y.
         !
-        DELTAS = 1./real(M + 1)
-        do I = 1, M
-            S(I) = real(I)*DELTAS
+        deltas = 1./real(m + 1)
+        do i = 1, m
+            s(i) = real(i)*deltas
         end do
-        DELTAT = 1./real(N + 1)
-        do J = 1, N
-            T(J) = real(J)*DELTAT
-        end do
-        !
-        !     COMPUTE THE COEFFICIENTS AM, BM, CM CORRESPONDING TO THE S DIRECTION
-        !
-        HDS = DELTAS/2.
-        TDS = DELTAS + DELTAS
-        do I = 1, M
-            TEMP1 = 1./(S(I)*TDS)
-            TEMP2 = 1./((S(I)-HDS)*TDS)
-            TEMP3 = 1./((S(I)+HDS)*TDS)
-            AM(I) = CMPLX(TEMP1*TEMP2, 0.)
-            CM(I) = CMPLX(TEMP1*TEMP3, 0.)
-            BM(I) = (-(AM(I)+CM(I))) - (0., 1.)
+        deltat = 1./real(n + 1)
+        do j = 1, n
+            t(j) = real(j)*deltat
         end do
         !
-        !     COMPUTE THE COEFFICIENTS AN, BN, CN CORRESPONDING TO THE T DIRECTION
+        !     compute the coefficients am, bm, cm corresponding to the s direction
         !
-        HDT = DELTAT/2.
-        TDT = DELTAT + DELTAT
-        do J = 1, N
-            TEMP1 = 1./(T(J)*TDT)
-            TEMP2 = 1./((T(J)-HDT)*TDT)
-            TEMP3 = 1./((T(J)+HDT)*TDT)
-            AN(J) = TEMP1*TEMP2
-            CN(J) = TEMP1*TEMP3
-            BN(J) = -(AN(J)+CN(J))
+        hds = deltas/2.
+        tds = deltas + deltas
+        do i = 1, m
+            temp1 = 1./(s(i)*tds)
+            temp2 = 1./((s(i)-hds)*tds)
+            temp3 = 1./((s(i)+hds)*tds)
+            am(i) = cmplx(temp1*temp2, 0.)
+            cm(i) = cmplx(temp1*temp3, 0.)
+            bm(i) = (-(am(i)+cm(i))) - (0., 1.)
         end do
         !
-        !     COMPUTE RIGHT SIDE OF EQUATION
+        !     compute the coefficients an, bn, cn corresponding to the t direction
         !
-        do J = 1, N
-            Y(:M, J) = 3.75*S(:M)*T(J)*(S(:M)**4+T(J)**4) - (0., 1.)*(S(:M)*T &
-                (J))**5
+        hdt = deltat/2.
+        tdt = deltat + deltat
+        do j = 1, n
+            temp1 = 1./(t(j)*tdt)
+            temp2 = 1./((t(j)-hdt)*tdt)
+            temp3 = 1./((t(j)+hdt)*tdt)
+            an(j) = temp1*temp2
+            cn(j) = temp1*temp3
+            bn(j) = -(an(j)+cn(j))
         end do
         !
-        !     THE NONZERO BOUNDARY CONDITIONS ENTER THE LINEAR SYSTEM VIA
-        !     THE RIGHT SIDE Y(I, J). IF THE EQUATIONS (3) GIVEN ABOVE
-        !     ARE EVALUATED AT I=M AND J=1, ..., N THEN THE TERM CM(M)*U(M+1, J)
-        !     IS KNOWN FROM THE BOUNDARY CONDITION TO BE CM(M)*T(J)**5.
-        !     THEREFORE THIS TERM CAN BE INCLUDED IN THE RIGHT SIDE Y(M, J).
-        !     THE SAME ANALYSIS APPLIES AT J=N AND I=1, .., M. NOTE THAT THE
-        !     CORNER AT J=N, I=M INCLUDES CONTRIBUTIONS FROM BOTH BOUNDARIES.
+        !     compute right side of equation
         !
-        Y(M, :N) = Y(M, :N) - CM(M)*T(:N)**5
-        Y(:M, N) = Y(:M, N) - CN(N)*S(:M)**5
-        call cblktri(IFLG, NP, N, AN, BN, CN, MP, M, AM, BM, CM, IDIMY, Y, ierror, workspace)
-        IFLG = IFLG + 1
-        do while(IFLG - 1 <= 0)
-            call cblktri (IFLG, NP, N, AN, BN, CN, MP, M, AM, BM, CM, IDIMY &
-                , Y, ierror, workspace)
-            IFLG = IFLG + 1
+        do j = 1, n
+            y(:m, j) = 3.75*s(:m)*t(j)*(s(:m)**4+t(j)**4) - (0., 1.)*(s(:m)*t &
+                (j))**5
         end do
-        ERR = 0.
-        do J = 1, N
-            do I = 1, M
-                Z = abs(Y(I, J)-(S(I)*T(J))**5)
-                ERR = max(Z, ERR)
+        !
+        !     the nonzero boundary conditions enter the linear system via
+        !     the right side y(i, j). if the equations (3) given above
+        !     are evaluated at i=m and j=1, ..., n then the term cm(m)*u(m+1, j)
+        !     is known from the boundary condition to be cm(m)*t(j)**5.
+        !     therefore this term can be included in the right side y(m, j).
+        !     the same analysis applies at j=n and i=1, .., m. note that the
+        !     corner at j=n, i=m includes contributions from both boundaries.
+        !
+        y(m, :n) = y(m, :n) - cm(m)*t(:n)**5
+        y(:m, n) = y(:m, n) - cn(n)*s(:m)**5
+        call cblktri(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, idimy, y, ierror, workspace)
+        iflg = iflg + 1
+        do while(iflg - 1 <= 0)
+            call cblktri (iflg, np, n, an, bn, cn, mp, m, am, bm, cm, idimy &
+                , y, ierror, workspace)
+            iflg = iflg + 1
+        end do
+        err = 0.
+        do j = 1, n
+            do i = 1, m
+                z = abs(y(i, j)-(s(i)*t(j))**5)
+                err = max(z, err)
             end do
         end do
         !     Print earlier output from platforms with 32 and 64 bit floating point
@@ -158,8 +166,8 @@ contains
 
     end subroutine test_cblktri
 
-    subroutine cblktri(IFLG, NP, N, AN, BN, CN, MP, M, AM, BM, CM, &
-        IDIMY, Y, ierror, W)
+    subroutine cblktri(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
+        idimy, y, ierror, w)
         !
         !     file cblktri.f
         !
@@ -415,9 +423,9 @@ contains
         !                        J. NUMER. ANAL., 11(1974) PP. 1136-1150.
         !
         !***********************************************************************
-        type (fishpackworkspace) :: w
+
         !-----------------------------------------------
-        ! dictionary: calling arguments
+        ! Dictionary: calling arguments
         !-----------------------------------------------
         integer , intent (in) :: iflg
         integer , intent (in) :: np
@@ -433,15 +441,9 @@ contains
         complex  :: bm(*)
         complex  :: cm(*)
         complex  :: y(idimy, *)
+        type (fishpackworkspace) :: w
         !-----------------------------------------------
-        !   c o m m o n   b l o c k s
-        !-----------------------------------------------
-        !...  /ccblk/
-        common /ccblk/ npp, k, eps, cnv, nm, ncmplx, ik
-        integer   npp, k, nm, ncmplx, ik
-        real   eps, cnv
-        !-----------------------------------------------
-        ! dictionary: local variables
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer::m2, nh, nl, iwah, iw1, iwbh, iw2, iw3, iwd, iww, iwu, irwk, icwk
         !-----------------------------------------------
@@ -504,8 +506,7 @@ contains
                                 rew => w%rew, &
                                 cxw => w%cxw &
                                 )
-                                call ccompb(nl, ierror, an, bn, cn, rew,cxw, rew(iwah), &
-                                    w%rew(iwbh))
+                                call ccompb(nl, ierror, an, bn, cn, rew,cxw, rew(iwah), rew(iwbh))
                             end associate
                         else
                             if (mp /= 0) then
@@ -570,13 +571,6 @@ contains
         complex  :: wd(*)
         complex  :: ww(*)
         complex  :: wu(*)
-        !-----------------------------------------------
-        !   C o m m o n   B l o c k s
-        !-----------------------------------------------
-        !...  /ccblk/
-        common /ccblk/ npp, k, eps, cnv, nm, ncmplx, ik
-        integer   npp, k, nm, ncmplx, ik
-        real   eps, cnv
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
@@ -801,13 +795,6 @@ function cbsrh (xll, xrr, iz, c, a, bh, f, sgn) result( return_value )
     real  :: bh(*)
     real  :: return_value
     !-----------------------------------------------
-    !   c o m m o n   b l o c k s
-    !-----------------------------------------------
-    !...  /ccblk/
-    common /ccblk/ npp, k, eps, cnv, nm, ncmplx, ik
-    integer   npp, k, nm, ncmplx, ik
-    real   eps, cnv
-    !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
     real :: r1, xl, xr, dx, x
@@ -857,13 +844,6 @@ subroutine ccompb(n, ierror, an, bn, cn, b, bc, ah, bh)
     real  :: ah(*)
     real  :: bh(*)
     complex  :: bc(*)
-    !-----------------------------------------------
-    !   C o m m o n   B l o c k s
-    !-----------------------------------------------
-    !...  /CCBLK/
-    common /CCBLK/ NPP, K, EPS, CNV, NM, NCMPLX, IK
-    integer   NPP, K, NM, NCMPLX, IK
-    real   EPS, CNV
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -1236,13 +1216,6 @@ subroutine cindxa(i, ir, idxa, na)
     integer , intent (out) :: idxa
     integer , intent (out) :: na
     !-----------------------------------------------
-    !   c o m m o n   b l o c k s
-    !-----------------------------------------------
-    !...  /ccblk/
-    common /ccblk/ npp, k, eps, cnv, nm, ncmplx, ik
-    integer   npp, k, nm, ncmplx, ik
-    real   eps, cnv
-    !-----------------------------------------------
 
     na = 2**ir
     idxa = i - na + 1
@@ -1262,13 +1235,6 @@ subroutine cindxb(i, ir, idx, idp)
     integer , intent (in) :: ir
     integer , intent (out) :: idx
     integer , intent (out) :: idp
-    !-----------------------------------------------
-    !   C o m m o n   B l o c k s
-    !-----------------------------------------------
-    !...  /CCBLK/
-    common /CCBLK/ NPP, K, EPS, CNV, NM, NCMPLX, IK
-    integer   NPP, K, NM, NCMPLX, IK
-    real   EPS, CNV
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -1312,13 +1278,6 @@ subroutine cindxc(i, ir, idxc, nc)
     integer , intent (out) :: idxc
     integer , intent (out) :: nc
     !-----------------------------------------------
-    !   C o m m o n   B l o c k s
-    !-----------------------------------------------
-    !...  /ccblk/
-    common /ccblk/ npp, k, eps, cnv, nm, ncmplx, ik
-    integer   npp, k, nm, ncmplx, ik
-    real   eps, cnv
-    !-----------------------------------------------
 
     nc = 2**ir
     idxc = i
@@ -1354,13 +1313,6 @@ subroutine cppadd(n, ierror, a, c, cbp, bp, bh)
     real  :: bh(*)
     complex  :: cbp(*)
     !complex , intent (in out) :: cbp(*)
-    !-----------------------------------------------
-    !   C o m m o n   B l o c k s
-    !-----------------------------------------------
-    !...  /CCBLK/
-    common /CCBLK/ NPP, K, EPS, CNV, NM, NCMPLX, IK
-    integer   NPP, K, NM, NCMPLX, IK
-    real   EPS, CNV
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -1539,7 +1491,7 @@ subroutine proc(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, w, u)
     ! is  determines whether or not a change in sign is made
     !
     !-----------------------------------------------
-    ! dictionary: calling arguments
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent (in) :: nd
     integer , intent (in) :: nm1
@@ -1559,7 +1511,7 @@ subroutine proc(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, w, u)
     complex , intent (in out) :: w(*)
     complex  :: u(*)
     !-----------------------------------------------
-    ! dictionary: local variables
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: j, mm, id, ibr, m1, m2, ia, k
     real :: rt
@@ -1780,21 +1732,14 @@ end subroutine procp
 
 subroutine ctevls(n, d, e2, ierr)
     !-----------------------------------------------
-    ! dictionary: calling arguments
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent (in) :: n
     integer , intent (out) :: ierr
     real , intent (in out) :: d(n)
     real , intent (in out) :: e2(n)
     !-----------------------------------------------
-    !   c o m m o n   b l o c k s
-    !-----------------------------------------------
-    !...  /ccblk/
-    common /ccblk/ npp, k, eps, cnv, nm, ncmplx, ik
-    integer   npp, k, nm, ncmplx, ik
-    real   eps, cnv
-    !-----------------------------------------------
-    ! dictionary: local variables
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer :: i, j, l, m, ii, l1, mml, nhalf, ntop
     real :: b, c, f, g, h, p, r, s, dhold

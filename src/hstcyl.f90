@@ -507,31 +507,34 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip) :: m
-        integer (ip) :: mbdcnd
-        integer (ip) :: n
-        integer (ip) :: nbdcnd
-        integer (ip) :: idimf
-        integer (ip) :: ierror
-        real (wp) :: a
-        real (wp) :: b
-        real (wp) :: c
-        real (wp) :: d
-        real (wp) :: elmbda
-        real (wp) :: pertrb
-        real (wp) :: bda(*)
-        real (wp) :: bdb(*)
-        real (wp) :: bdc(*)
-        real (wp) :: bdd(*)
-        real (wp) :: f(idimf, *)
+        integer (ip),          intent (in)     :: m
+        integer (ip),          intent (in)     :: mbdcnd
+        integer (ip),          intent (in)     :: n
+        integer (ip),          intent (in)     :: nbdcnd
+        integer (ip),          intent (in)     :: idimf
+        integer (ip),          intent (out)    :: ierror
+        real (wp),             intent (in)     :: a
+        real (wp),             intent (in)     :: b
+        real (wp),             intent (in)     :: c
+        real (wp),             intent (in)     :: d
+        real (wp),             intent (in)     :: elmbda
+        real (wp),             intent (out)    :: pertrb
+        real (wp), contiguous, intent (in)     :: bda(:)
+        real (wp), contiguous, intent (in)     :: bdb(:)
+        real (wp), contiguous, intent (in)     :: bdc(:)
+        real (wp), contiguous, intent (in)     :: bdd(:)
+        real (wp), contiguous, intent (in out) :: f(:,:)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer                  :: irwk, icwk
+        integer                  :: irwk
         type (FishpackWorkspace) :: workspace
         !-----------------------------------------------
-        !
+
+        ! initialize error flag
         ierror = 0
+
+        ! Check input arguments
         if (a < 0.0_wp) ierror = 1
         if (a >= b) ierror = 2
         if (mbdcnd <= 0 .or. mbdcnd >= 7) ierror = 3
@@ -545,51 +548,53 @@ contains
         if (a == 0.0_wp .and. mbdcnd >= 5 .and. elmbda /= 0.0_wp) ierror = 12
         if (ierror /= 0) return
 
-        !     allocate real work space
-        !     compute and allocate required real work space
+        ! calculate required real work space size
         call workspace%get_genbun_workspace_dimensions( n, m, irwk )
         irwk = irwk + 3 * m
-        icwk = 0
 
-        !! Create workspace
-        call workspace%create( irwk, icwk, ierror )
+        ! Allocate real workspace array
+        associate( icwk => 0)
+            call workspace%create( irwk, icwk, ierror )
+        end associate
 
-        !! check that allocation was successful
+        ! if workspace allocation was succesful
         if (ierror == 20) return
 
-        call hstcyll(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
-            elmbda, f, idimf, pertrb, ierror, workspace%rew )
+        ! solve system
+        associate( rew => workspace%rew )
+            call hstcyll(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
+                elmbda, f, idimf, pertrb, ierror, rew )
+        end associate
 
-        !! Release dynamically allocated work space
+        ! Release memory
         call workspace%destroy()
 
     end subroutine hstcyl
-    !
-    !*****************************************************************************************
-    !
+
+
     subroutine hstcyll( a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror, w )
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip) :: m
+        integer (ip), intent (in) :: m
         integer (ip), intent (in) :: mbdcnd
-        integer (ip) :: n
+        integer (ip), intent (in) :: n
         integer (ip), intent (in) :: nbdcnd
-        integer (ip) :: idimf
+        integer (ip), intent (in) :: idimf
         integer (ip), intent (out) :: ierror
-        real (wp), intent (in) :: a
-        real (wp), intent (in) :: b
-        real (wp), intent (in) :: c
-        real (wp), intent (in) :: d
-        real (wp), intent (in) :: elmbda
-        real (wp), intent (out) :: pertrb
-        real (wp), intent (in) :: bda(*)
-        real (wp), intent (in) :: bdb(*)
-        real (wp), intent (in) :: bdc(*)
-        real (wp), intent (in) :: bdd(*)
-        real (wp) :: f(idimf, *)
-        real (wp) :: w(*)
+        real (wp),    intent (in) :: a
+        real (wp),    intent (in) :: b
+        real (wp),    intent (in) :: c
+        real (wp),    intent (in) :: d
+        real (wp),    intent (in) :: elmbda
+        real (wp),    intent (out) :: pertrb
+        real (wp),    intent (in) :: bda(*)
+        real (wp),    intent (in) :: bdb(*)
+        real (wp),    intent (in) :: bdc(*)
+        real (wp),    intent (in) :: bdd(*)
+        real (wp),    intent (in out) :: f(idimf,*)
+        real (wp),    intent (in out) :: w(*)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------

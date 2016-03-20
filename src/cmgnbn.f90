@@ -460,8 +460,7 @@ contains
         !                     65        1         1        5.E-13
         !                     65        1         3        1.E-11
         !
-        !***********************************************************************
-        type(FishpackWorkspace) :: w
+        !
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
@@ -478,89 +477,110 @@ contains
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer :: i, icwk, irwk
-        complex :: a1
+        integer                 :: i !! counter
+        type(FishpackWorkspace) :: workspace
         !-----------------------------------------------
+
+        ! initialize error flag
         ierror = 0
+
+        ! Check input arguments
         if (m <= 2) ierror = 1
         if (n <= 2) ierror = 2
         if (idimy < m) ierror = 3
-        if (nperod<0 .or. nperod>4) ierror = 4
-        if (mperod<0 .or. mperod>1) ierror = 5
+        if (nperod < 0 .or. nperod > 4) ierror = 4
+        if (mperod < 0 .or. mperod > 1) ierror = 5
 
         if (mperod /= 1) then
             do i = 2, m
-                if (abs(A(i)-C(1)) /= 0.) go to 103
-                if (abs(C(i)-C(1)) /= 0.) go to 103
-                if (abs(B(i)-B(1)) /= 0.) go to 103
+                if (abs(a(i)-c(1)) /= 0.) then
+                    ierror = 6
+                    exit
+                end if
+                if (abs(c(i)-c(1)) /= 0.) then
+                    ierror = 6
+                    exit
+                end if
+                if (abs(b(i)-b(1)) /= 0.) then
+                    ierror = 6
+                    exit
+                end if
             end do
-            go to 104
         end if
 
-        if (abs(A(1))/=0. .and. abs(C(m))/=0.) ierror = 7
-        go to 104
-103 continue
-    ierror = 6
-104 continue
-    if (ierror /= 0) return
-    !     allocate required complex work space
-    icwk = (10 + INT(log(real(n))/log(2.0)))*m + 4*n
-    irwk = 0
-    call w%create( irwk, icwk, ierror )
-    !     return if allocation failed
-    if (ierror == 20) return
-    call cmgnbnn(nperod, n, mperod, m, a, b, c, idimy, y, w%cxw)
-    !     release dynamically allocated work space
-    call w%destroy()
+        if (abs(a(1))/=0. .and. abs(c(m))/=0.) then
+            ierror = 7
+        end if
 
-end subroutine cmgnbn
+        if (ierror /= 0) return
 
-subroutine cmgnbnN(nperod, n, mperod, m, a, b, c, idimy, y, w)
+        ! allocate required workspace
+        associate( &
+            icwk => (10 + int(log(real(n))/log(2.0)))*m + 4*n, &
+            irwk => 0 &
+            )
+            call workspace%create( irwk, icwk, ierror )
+        end associate
 
-    !-----------------------------------------------
-    ! Dictionary: calling arguments
-    !-----------------------------------------------
-    integer , intent (in) :: nperod
-    integer  :: n
-    integer , intent (in) :: mperod
-    integer  :: m
-    integer  :: idimy
-    complex , intent (in) :: a(*)
-    complex , intent (in) :: b(*)
-    complex , intent (in) :: c(*)
-    complex  :: y(idimy, *)
-    complex  :: w(*)
-    !-----------------------------------------------
-    ! Dictionary: local variables
-    !-----------------------------------------------
-    integer :: iwba, iwbb, iwbc, iwb2, iwb3, iww1, iww2, iww3, iwd, &
-        iwtcos, iwp, i, k, j, mp, np, ipstor, irev, mh, mhm1, modd, &
-        mhpi, mhmi, nby2, mskip
-    complex :: a1
-    !-----------------------------------------------
-    iwba = m + 1
-    iwbb = iwba + m
-    iwbc = iwbb + m
-    iwb2 = iwbc + m
-    iwb3 = iwb2 + m
-    iww1 = iwb3 + m
-    iww2 = iww1 + m
-    iww3 = iww2 + m
-    iwd = iww3 + m
-    iwtcos = iwd + m
-    iwp = iwtcos + 4*n
-    do i = 1, m
-        k = iwba + i - 1
-        w(k) = -A(i)
-        k = iwbc + i - 1
-        w(k) = -C(i)
-        k = iwbb + i - 1
-        w(k) = 2. - B(i)
-        y(i, :n) = -Y(i, :n)
-    end do
-    mp = mperod + 1
-    np = nperod + 1
-    go to (114, 107) mp
+        !  Check if workspace allocation failed
+        if (ierror == 20) return
+
+        associate( cxw => workspace%cxw )
+            call cmgnbnn(nperod, n, mperod, m, a, b, c, idimy, y, cxw)
+        end associate
+
+        ! Release memory
+        call workspace%destroy()
+
+    end subroutine cmgnbn
+
+
+    subroutine cmgnbnn(nperod, n, mperod, m, a, b, c, idimy, y, w)
+
+        !-----------------------------------------------
+        ! Dictionary: calling arguments
+        !-----------------------------------------------
+        integer , intent (in) :: nperod
+        integer  :: n
+        integer , intent (in) :: mperod
+        integer  :: m
+        integer  :: idimy
+        complex , intent (in) :: a(*)
+        complex , intent (in) :: b(*)
+        complex , intent (in) :: c(*)
+        complex  :: y(idimy, *)
+        complex  :: w(*)
+        !-----------------------------------------------
+        ! Dictionary: local variables
+        !-----------------------------------------------
+        integer :: iwba, iwbb, iwbc, iwb2, iwb3, iww1, iww2, iww3, iwd, &
+            iwtcos, iwp, i, k, j, mp, np, ipstor, irev, mh, mhm1, modd, &
+            mhpi, mhmi, nby2, mskip
+        complex :: a1
+        !-----------------------------------------------
+        iwba = m + 1
+        iwbb = iwba + m
+        iwbc = iwbb + m
+        iwb2 = iwbc + m
+        iwb3 = iwb2 + m
+        iww1 = iwb3 + m
+        iww2 = iww1 + m
+        iww3 = iww2 + m
+        iwd = iww3 + m
+        iwtcos = iwd + m
+        iwp = iwtcos + 4*n
+        do i = 1, m
+            k = iwba + i - 1
+            w(k) = -A(i)
+            k = iwbc + i - 1
+            w(k) = -C(i)
+            k = iwbb + i - 1
+            w(k) = 2. - B(i)
+            y(i, :n) = -Y(i, :n)
+        end do
+        mp = mperod + 1
+        np = nperod + 1
+        go to (114, 107) mp
 107 continue
     go to (108, 109, 110, 111, 123) np
 108 continue
@@ -573,12 +593,12 @@ subroutine cmgnbnN(nperod, n, mperod, m, a, b, c, idimy, y, w)
         iww1), W(iwd), W(iwtcos), W(iwp))
     go to 112
 110 continue
-    call CMPOSN (m, n, 1, 2, W(iwba), W(iwbb), W(iwbc), y, idimy, w, W &
+    call cmposn(m, n, 1, 2, W(iwba), W(iwbb), W(iwbc), y, idimy, w, W &
         (iwb2), W(iwb3), W(iww1), W(iww2), W(iww3), W(iwd), W(iwtcos), &
         W(iwp))
     go to 112
 111 continue
-    call CMPOSN (m, n, 1, 1, W(iwba), W(iwbb), W(iwbc), y, idimy, w, W &
+    call cmposn(m, n, 1, 1, W(iwba), W(iwbb), W(iwbc), y, idimy, w, W &
         (iwb2), W(iwb3), W(iww1), W(iww2), W(iww3), W(iwd), W(iwtcos), &
         W(iwp))
 112 continue
@@ -649,7 +669,7 @@ end do
 133 continue
     w(1) = CMPLX(real(ipstor + iwp - 1), 0.)
     return
-end subroutine cmgnbnN
+end subroutine cmgnbnn
 
 
 subroutine CMPOSD(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
@@ -1455,7 +1475,7 @@ subroutine CMPOSP(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
         q(:mr, n) = 2.*Q(:mr, n)
         call CMPOSD (mr, nrm1, 1, a, bb, c, q, idimq, b, w, d, tcos, p)
         ipstor = REAL(W(1))
-        call CMPOSN (mr, nr + 1, 1, 1, a, bb, c, Q(1, nr), idimq, b, b2 &
+        call cmposn(mr, nr + 1, 1, 1, a, bb, c, Q(1, nr), idimq, b, b2 &
             , b3, w, w2, w3, d, tcos, p)
         ipstor = max(ipstor, INT(REAL(W(1))))
         do j = 1, nrm1
@@ -1492,7 +1512,7 @@ subroutine CMPOSP(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
         end do
         call CMPOSD (mr, nrm1, 2, a, bb, c, q, idimq, b, w, d, tcos, p)
         ipstor = REAL(W(1))
-        call CMPOSN (mr, nr, 2, 1, a, bb, c, Q(1, nr), idimq, b, b2, b3 &
+        call cmposn(mr, nr, 2, 1, a, bb, c, Q(1, nr), idimq, b, b2, b3 &
             , w, w2, w3, d, tcos, p)
         ipstor = max(ipstor, INT(REAL(W(1))))
         do j = 1, nrm1

@@ -1,5 +1,10 @@
 module module_hwsplr
 
+    use, intrinsic :: iso_fortran_env, only: &
+        wp => REAL64, &
+        ip => INT32, &
+        stdout => OUTPUT_UNIT
+
     use type_FishpackWorkspace, only: &
         FishpackWorkspace
 
@@ -59,29 +64,29 @@ contains
         real , dimension(100, 50) :: f
         real , dimension(51) :: bdc, bdd, r, bda, bdb
         real , dimension(49) :: theta
-        real :: a, b, c, pi, dum, d, elmbda, pertrb, err, z
+        real :: a, b, c, pi, dum, d, elmbda, pertrb, discretization_error, z
         !-----------------------------------------------
         !
-        !          PROGRAM TO ILLUSTRATE THE USE OF SUBROUTINE hwsplr TO SOLVE
-        !     THE EQUATION
+        !          program to illustrate the use of subroutine hwsplr to solve
+        !     the equation
         !
-        !     (1/R)(D/DR)(R*(DU/DR)) + (1/R**2)(D/DTHETA)(DU/DTHETA) = 16*R**2
+        !     (1/r)(d/dr)(r*(du/dr)) + (1/r**2)(d/dtheta)(du/dtheta) = 16*r**2
         !
-        !     ON THE QUARTER-DISK 0 .LT. R .LT. 1, 0 .LT. THETA .LT. PI/2 WITH
-        !     WITH THE BOUNDARY CONDITIONS
+        !     on the quarter-disk 0 .lt. r .lt. 1, 0 .lt. theta .lt. pi/2 with
+        !     with the boundary conditions
         !
-        !     U(1, THETA) = 1 - COS(4*THETA), 0 .LE. THETA .LE. 1
+        !     u(1, theta) = 1 - cos(4*theta), 0 .le. theta .le. 1
         !
-        !     AND
+        !     and
         !
-        !     (DU/DTHETA)(R, 0) = (DU/DTHETA)(R, PI/2) = 0,  0 .LE. R .LE. 1.
+        !     (du/dtheta)(r, 0) = (du/dtheta)(r, pi/2) = 0,  0 .le. r .le. 1.
         !
-        !     (NOTE THAT THE SOLUTION U IS UNSPECIFIED AT R = 0.)
-        !          THE R-INTERVAL WILL BE DIVIDED INTO 50 PANELS AND THE
-        !     THETA-INTERVAL WILL BE DIVIDED INTO 48 PANELS.
+        !     (note that the solution u is unspecified at r = 0.)
+        !          the r-interval will be divided into 50 panels and the
+        !     theta-interval will be divided into 48 panels.
         !
         !
-        !     FROM DIMENSION STATEMENT WE GET VALUE OF IDIMF.
+        !     from dimension statement we get value of idimf.
         !
         idimf = 100
         a = 0.
@@ -95,13 +100,13 @@ contains
         nbdcnd = 3
         elmbda = 0.
         !
-        !     AUXILIARY QUANTITIES.
+        !     auxiliary quantities.
         !
         mp1 = m + 1
         np1 = n + 1
         !
-        !     GENERATE AND STORE GRID POINTS FOR THE PURPOSE OF COMPUTING
-        !     BOUNDARY DATA AND THE RIGHT SIDE OF THE POISSON EQUATION.
+        !     generate and store grid points for the purpose of computing
+        !     boundary data and the right side of the poisson equation.
         !
         do i = 1, mp1
             r(i) = real(i - 1)/50.
@@ -110,48 +115,49 @@ contains
             theta(j) = real(j - 1)*pi/96.
         end do
         !
-        !     GENERATE BOUNDARY DATA.
+        !     generate boundary data.
         !
         bdc(:mp1) = 0.
         bdd(:mp1) = 0.
         !
-        !     BDA AND BDB ARE DUMMY VARIABLES.
+        !     bda and bdb are dummy variables.
         !
         do j = 1, np1
-            f(mp1, j) = 1. - COS(4.*THETA(j))
+            f(mp1, j) = 1. - cos(4.*theta(j))
         end do
         !
-        !     GENERATE RIGHT SIDE OF EQUATION.
+        !     generate right side of equation.
         !
         do i = 1, m
-            f(i, :np1) = 16.*R(i)**2
+            f(i, :np1) = 16.*r(i)**2
         end do
 
         call hwsplr(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
             elmbda, f, idimf, pertrb, ierror)
         !
-        !     COMPUTE DISCRETIZATION ERROR.  THE EXACT SOLUTION IS
-        !                U(R, THETA) = R**4*(1 - COS(4*THETA))
+        !     compute discretization error.  the exact solution is
+        !                u(r, theta) = r**4*(1 - cos(4*theta))
         !
-        err = 0.
+        discretization_error = 0.
         do i = 1, mp1
             do j = 1, np1
-                z = abs(F(i, j)-R(i)**4*(1.-COS(4.*THETA(j))))
-                err = max(z, err)
+                z = abs(f(i, j)-r(i)**4*(1.-cos(4.*theta(j))))
+                discretization_error = max(z, discretization_error)
             end do
         end do
 
-        write( *, *) ''
-        write( *, *) '    hwsplr *** TEST RUN *** '
-        write( *, *) &
-            '    Previous 64 bit floating point arithmetic result '
-        write( *, *) '    ierror = 0,  discretization error = 6.19134E-4'
-
-        write( *, *) '    The output from your computer is: '
-        write( *, *) '    ierror =', ierror, ' discretization error = ', &
-            err
+        !     Print earlier output from platforms with 32 and 64 bit floating point
+        !     arithemtic followed by the output from this computer
+        write( stdout, '(A)') ''
+        write( stdout, '(A)') '     hwsplr *** TEST RUN *** '
+        write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(A)') '     ierror = 0,  discretization error = 6.19134E-4'
+        write( stdout, '(A)') '     The output from your computer is: '
+        write( stdout, '(A,I3,A,1pe15.6)') &
+            '     ierror =', ierror, ' discretization error = ', discretization_error
 
     end subroutine test_hwsplr
+
 
     subroutine hwsplr(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror)
@@ -487,37 +493,38 @@ contains
         !                        FORTRAN SUBPROGRAMS FOR THE SOLUTION OF
         !                        ELLIPTIC EQUATIONS"
         !                          NCAR TN/IA-109, JULY, 1975, 138 PP.
-        !***********************************************************************
-        type (FishpackWorkspace) :: w
+        !
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer  :: m
-        integer  :: mbdcnd
-        integer  :: n
-        integer  :: nbdcnd
-        integer  :: idimf
-        integer  :: ierror
-        real  :: a
-        real  :: b
-        real  :: c
-        real  :: d
-        real  :: elmbda
-        real  :: pertrb
-        real  :: bda(*)
-        real  :: bdb(*)
-        real  :: bdc(*)
-        real  :: bdd(*)
-        real  :: f(idimf, *)
+        integer (ip),          intent (in)     :: m
+        integer (ip),          intent (in)     :: mbdcnd
+        integer (ip),          intent (in)     :: n
+        integer (ip),          intent (in)     :: nbdcnd
+        integer (ip),          intent (in)     :: idimf
+        integer (ip),          intent (out)    :: ierror
+        real (wp),             intent (in)     :: a
+        real (wp),             intent (in)     :: b
+        real (wp),             intent (in)     :: c
+        real (wp),             intent (in)     :: d
+        real (wp),             intent (in)     :: elmbda
+        real (wp),             intent (out)    :: pertrb
+        real (wp), contiguous, intent (in)     :: bda(:)
+        real (wp), contiguous, intent (in)     :: bdb(:)
+        real (wp), contiguous, intent (in)     :: bdc(:)
+        real (wp), contiguous, intent (in)     :: bdd(:)
+        real (wp), contiguous, intent (in out) :: f(:,:)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer :: irwk, icwk
+        type (FishpackWorkspace) :: workspace
+        integer                  :: irwk, icwk
         !-----------------------------------------------
-        !
-        !     CHECK FOR INVALID PARAMETERS.
-        !
+
+        ! initialize error flag
         ierror = 0
+
+        ! check if input values are valid
         if (a < 0.) ierror = 1
         if (a >= b) ierror = 2
         if (mbdcnd<=0 .or. mbdcnd>=7) ierror = 3
@@ -530,49 +537,60 @@ contains
         if (idimf < m + 1) ierror = 10
         if (m <= 3) ierror = 12
         if (ierror /= 0) return
-        !     compute and allocate required work space
-        irwk=4*(n+1)+(m+1)*(13+INT(log(real(n+1))/log(2.0)))
-        icwk = 0
-        call w%create( irwk, icwk, ierror )
-        !     check that allocation was successful
+
+        ! allocate real workspace array
+        associate( &
+            irwk => 4*(n+1)+(m+1)*(13+INT(log(real(n+1))/log(2.0))), &
+            icwk => 0 &
+            )
+            call workspace%create( irwk, icwk, ierror )
+        end associate
+
+        ! Check if allocation was succcessful
         if (ierror == 20) return
-        call hwsplrr(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
-            elmbda, f, idimf, pertrb, ierror, w%rew)
-        !     release allocated work space
-        call w%destroy()
+
+        ! solve system
+        associate( rew => workspace%rew )
+            call hwsplrr(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
+                elmbda, f, idimf, pertrb, ierror, rew)
+        end associate
+
+        ! Release memory
+        call workspace%destroy()
 
     end subroutine hwsplr
 
-    subroutine hwsplrR(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc &
+
+    subroutine hwsplrr(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc &
         , bdd, elmbda, f, idimf, pertrb, ierror, w)
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer , intent (in) :: m
-        integer , intent (in) :: mbdcnd
-        integer , intent (in) :: n
-        integer  :: nbdcnd
-        integer  :: idimf
-        integer , intent (out) :: ierror
-        real , intent (in) :: a
-        real , intent (in) :: b
-        real , intent (in) :: c
-        real , intent (in) :: d
-        real , intent (in) :: elmbda
-        real , intent (out) :: pertrb
-        real , intent (in) :: bda(*)
-        real , intent (in) :: bdb(*)
-        real , intent (in) :: bdc(*)
-        real , intent (in) :: bdd(*)
-        real  :: f(idimf, *)
-        real  :: w(*)
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: mbdcnd
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: nbdcnd
+        integer (ip), intent (in)     :: idimf
+        integer (ip), intent (out)    :: ierror
+        real (wp),    intent (in)     :: a
+        real (wp),    intent (in)     :: b
+        real (wp),    intent (in)     :: c
+        real (wp),    intent (in)     :: d
+        real (wp),    intent (in)     :: elmbda
+        real (wp),    intent (out)    :: pertrb
+        real (wp),    intent (in)     :: bda(*)
+        real (wp),    intent (in)     :: bdb(*)
+        real (wp),    intent (in)     :: bdc(*)
+        real (wp),    intent (in)     :: bdd(*)
+        real (wp),    intent (in out) :: f(idimf,*)
+        real (wp),    intent (in out) :: w(*)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
         integer :: mp1, np1, np, mstart, mstop, munk, nstart, nstop, nunk &
-            , id2, id3, id4, id5, id6, ij, i, j, l, lp, k, i1, ierr1, ip
+            , id2, id3, id4, id5, id6, ij, i, j, l, lp, k, i1, ierr1, ip_rename
         real :: deltar, dlrby2, dlrsq, deltht, dlthsq, a1, r, s2, a2, &
-             s, s1, ypole
+            s, s1, ypole
 
         !real, save ::  alll
         !-----------------------------------------------
@@ -767,8 +785,8 @@ end if
 148 continue
     j = id5 + munk
     w(j) = W(id2)/W(id3)
-    do ip = 3, munk
-        i = munk - ip + 2
+    do ip_rename = 3, munk
+        i = munk - ip_rename + 2
         j = id5 + i
         lp = id2 + i
         k = id3 + i
@@ -798,7 +816,8 @@ end if
         f(mstart:mstop, np1) = F(mstart:mstop, 1)
     end if
 
-end subroutine hwsplrR
+end subroutine hwsplrr
+
 
 end module module_hwsplr
 !

@@ -715,7 +715,7 @@ subroutine postg2(nperod, n, m, a, bb, c, idimq, q, b, b2, b3, w, &
     real (wp) :: b(*)
     real (wp) :: b2(*)
     real (wp) :: b3(*)
-    real (wp) :: w(*)
+    real (wp), intent (in out) :: w(*)
     real (wp) :: w2(*)
     real (wp) :: w3(*)
     real (wp) :: d(*)

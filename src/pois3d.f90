@@ -415,127 +415,144 @@ contains
         !                          33        3         3        7.E-13
         !
         ! REFERENCES              NONE
-        ! ********************************************************************
-
-        type (FishpackWorkspace) :: workspace
+        !
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip) :: lperod
-        integer (ip) :: l
-        integer (ip) :: mperod
-        integer (ip) :: m
-        integer (ip) :: nperod
-        integer (ip) :: n
-        integer (ip) :: ldimf
-        integer (ip) :: mdimf
-        integer (ip) :: ierror
-        real (wp) :: c1
-        real (wp) :: c2
-        real (wp) :: a(*)
-        real (wp) :: b(*)
-        real (wp) :: c(*)
-        real (wp) :: f(ldimf, mdimf, *)
+        integer (ip),          intent (in)     :: lperod
+        integer (ip),          intent (in)     :: l
+        integer (ip),          intent (in)     :: mperod
+        integer (ip),          intent (in)     :: m
+        integer (ip),          intent (in)     :: nperod
+        integer (ip),          intent (in)     :: n
+        integer (ip),          intent (in)     :: ldimf
+        integer (ip),          intent (in)     :: mdimf
+        integer (ip),          intent (out)     :: ierror
+        real (wp),             intent (in)     :: c1
+        real (wp),             intent (in)     :: c2
+        real (wp), contiguous, intent (inout ) :: a(:)
+        real (wp), contiguous, intent (in out) :: b(:)
+        real (wp), contiguous, intent (in out) :: c(:)
+        real (wp), contiguous, intent (in out) :: f(:,:,:)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer (ip) :: lp, mp, np, k
+        integer (ip)             :: lp, mp, np, k
+        type (FishpackWorkspace) :: workspace
         !-----------------------------------------------
 
         lp = lperod + 1
         mp = mperod + 1
         np = nperod + 1
-        !
-        !     CHECK FOR INVALID INPUT.
-        !
+
+        ! initialize error flag
         ierror = 0
+
+        ! Check if input arguments are valid
+
+        ! check case 1
         if (lp<1 .or. lp>5) ierror = 1
+        ! check case 2
         if (l < 3) ierror = 2
+        ! check case 3
         if (mp<1 .or. mp>5) ierror = 3
+        ! check case 4
         if (m < 3) ierror = 4
+        ! check case 5
         if (np<1 .or. np>2) ierror = 5
+        ! check case 6
         if (n < 3) ierror = 6
+        ! check case 7
         if (ldimf < l) ierror = 7
+        ! check case 8
         if (mdimf < m) ierror = 8
+        ! check case 9
         if (np == 1) then
             do k = 1, n
-                if (A(k) /= C(1)) go to 102
-                if (C(k) /= C(1)) go to 102
-                if (B(k) /= B(1)) go to 102
+                if (a(k) /= c(1)) then
+                    ierror = 9
+                    exit
+                end if
+                if (c(k) /= c(1)) then
+                    ierror = 9
+                    exit
+                end if
+                if (b(k) /= b(1)) then
+                    ierror = 9
+                    exit
+                end if
             end do
-            go to 104
-102     continue
-        ierror = 9
-    end if
-    if (nperod==1 .and. (A(1)/=0. .or. C(n)/=0.)) ierror = 10
-! 104 IF (ierror .NE. 0) GO TO 122
-104 continue
-    if (ierror /= 0) return
+        end if
+        ! Check case 10
+        if (nperod==1 .and. (a(1)/=0. .or. c(n)/=0.)) ierror = 10
+        ! Check if input values are valid
+        if (ierror /= 0) return
 
-    ! allocate required work space length (generous estimate)
-    associate( &
-        irwk=>30+l+m+2*n+max(l, m, n)+7*(int((l+1)/2)+int((m+1)/2)), &
-        icwk => 0 &
-        )
-        call workspace%create( irwk, icwk, ierror )
-    end associate
+        ! allocate required work space length (generous estimate)
+        associate( &
+            irwk=>30+l+m+2*n+max(l, m, n)+7*(int((l+1)/2)+int((m+1)/2)), &
+            icwk => 0 &
+            )
+            call workspace%create( irwk, icwk, ierror )
+        end associate
 
-    ! check that allocation was successful
-    if (ierror == 20) return
+        ! check that allocation was successful
+        if (ierror == 20) return
 
-    ! solve system
-    call pois3dd(lperod, l, c1, mperod, m, c2, nperod, n, a, b, c, ldimf, &
-        mdimf, f, ierror, workspace%rew)
+        ! solve system
+        associate( rew => workspace%rew )
+            call pois3dd(lperod, l, c1, mperod, m, c2, nperod, n, a, b, c, ldimf, &
+                mdimf, f, ierror, rew)
+        end associate
 
-    ! Release dynamically allocated memory
-    call workspace%destroy()
+        ! Release memory
+        call workspace%destroy()
 
-end subroutine pois3d
+    end subroutine pois3d
 
 
-subroutine pois3dd(lperod, l, c1, mperod, m, c2, nperod, n, a, b, &
-    c, ldimf, mdimf, f, ierror, w)
+    subroutine pois3dd(lperod, l, c1, mperod, m, c2, nperod, n, a, b, &
+        c, ldimf, mdimf, f, ierror, w)
+        !-----------------------------------------------
+        ! Dictionary: calling arguments
+        !-----------------------------------------------
+        integer (ip), intent (in)     :: lperod
+        integer (ip), intent (in)     :: l
+        integer (ip), intent (in)     :: mperod
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: nperod
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: ldimf
+        integer (ip), intent (in)     :: mdimf
+        integer (ip), intent (in)     :: ierror
+        real (wp),    intent (in)     :: c1
+        real (wp),    intent (in)     :: c2
+        real (wp),    intent (in out) :: a(*)
+        real (wp),    intent (in out) :: b(*)
+        real (wp),    intent (in out) :: c(*)
+        real (wp),    intent (in out) :: f(ldimf, mdimf, *)
+        real (wp),    intent (in out) :: w(*)
+        !-----------------------------------------------
+        ! Dictionary: local variables
+        !-----------------------------------------------
+        integer (ip) :: lp, mp, np, iwyrt, iwt, iwd, iwbb
+        integer (ip) :: iwx, iwy, nh, nhm1, nodd, i, j, k
+        real (wp)    :: save_rename(6)
+        !-----------------------------------------------
 
-    !-----------------------------------------------
-    ! Dictionary: calling arguments
-    !-----------------------------------------------
-    integer (ip), intent (in) :: lperod
-    integer (ip) :: l
-    integer (ip), intent (in) :: mperod
-    integer (ip) :: m
-    integer (ip), intent (in) :: nperod
-    integer (ip) :: n
-    integer (ip) :: ldimf
-    integer (ip) :: mdimf
-    integer (ip) :: ierror
-    real (wp) :: c1
-    real (wp) :: c2
-    real (wp) :: a(*)
-    real (wp) :: b(*)
-    real (wp) :: c(*)
-    real (wp) :: f(ldimf, mdimf, *)
-    real (wp) :: w(*)
-    !-----------------------------------------------
-    ! Dictionary: local variables
-    !-----------------------------------------------
-    integer (ip) :: lp, mp, np, iwyrt, iwt, iwd, iwbb
-    integer (ip) :: iwx, iwy, nh, nhm1, nodd, i, j, k
-    real (wp)    :: save_rename(6)
-    !-----------------------------------------------
-
-    lp = lperod + 1
-    mp = mperod + 1
-    np = nperod + 1
-    iwyrt = l + 1
-    iwt = iwyrt + m
-    iwd = iwt + max(l, m, n) + 1
-    iwbb = iwd + n
-    iwx = iwbb + n
-    iwy = iwx + 7*((l + 1)/2) + 15
-    go to (105, 114) np
-!
-!     reorder unknowns when nperod = 0.
-!
+        lp = lperod + 1
+        mp = mperod + 1
+        np = nperod + 1
+        iwyrt = l + 1
+        iwt = iwyrt + m
+        iwd = iwt + max(l, m, n) + 1
+        iwbb = iwd + n
+        iwx = iwbb + n
+        iwy = iwx + 7*((l + 1)/2) + 15
+        go to (105, 114) np
+    !
+    !     reorder unknowns when nperod = 0.
+    !
 105 continue
     nh = (n + 1)/2
     nhm1 = nh - 1

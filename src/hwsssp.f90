@@ -63,11 +63,11 @@ contains
         ! Dictionary: local variables
         !-----------------------------------------------
         integer :: m, mbdcnd, n, nbdcnd, idimf, mp1, i, np1, j, ierror
-        real , dimension(19, 73) :: f
-        real , dimension(73) :: bdtf, bdts, bdps, bdpf
-        real , dimension(19) :: sint
-        real , dimension(73) :: sinp
-        real :: pi, ts, tf, ps, pf, elmbda, dtheta, dphi, pertrb, err, z
+        real (wp), dimension(19, 73) :: f
+        real (wp), dimension(73) :: bdtf, bdts, bdps, bdpf
+        real (wp), dimension(19) :: sint
+        real (wp), dimension(73) :: sinp
+        real :: pi, ts, tf, ps, pf, elmbda, dtheta, dphi, pertrb, discretization_error, z
         !-----------------------------------------------
 
         pi = acos( -1.0 )
@@ -82,52 +82,53 @@ contains
         elmbda = 0.
         idimf = 19
         !
-        !     GENERATE SINES FOR USE IN SUBSEQUENT COMPUTATIONS
+        !     generate sines for use in subsequent computations
         !
         dtheta = tf/real(m)
         mp1 = m + 1
         do i = 1, mp1
-            sint(i) = SIN(real(i - 1)*dtheta)
+            sint(i) = sin(real(i - 1)*dtheta)
         end do
         dphi = (pi + pi)/real(n)
         np1 = n + 1
         do j = 1, np1
-            sinp(j) = SIN(real(j - 1)*dphi)
+            sinp(j) = sin(real(j - 1)*dphi)
         end do
         !
-        !     COMPUTE RIGHT SIDE OF EQUATION AND STORE IN F
+        !     compute right side of equation and store in f
         !
         do j = 1, np1
-            f(:mp1, j) = 2. - 6.*(SINT(:mp1)*SINP(j))**2
+            f(:mp1, j) = 2. - 6.*(sint(:mp1)*sinp(j))**2
         end do
         !
-        !     STORE DERIVATIVE DATA AT THE EQUATOR
+        !     store derivative data at the equator
         !
         bdtf(:np1) = 0.
         !
         call hwsssp(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
             bdps, bdpf, elmbda, f, idimf, pertrb, ierror)
         !
-        !     COMPUTE DISCRETIZATION ERROR. SINCE PROBLEM IS SINGULAR, THE
-        !     SOLUTION MUST BE NORMALIZED.
+        !     compute discretization error. since problem is singular, the
+        !     solution must be normalized.
         !
-        err = 0.0
+        discretization_error = 0.0
         do j = 1, np1
             do i = 1, mp1
-                z = abs(F(i, j)-(SINT(i)*SINP(j))**2-F(1, 1))
-                err = max(z, err)
+                z = abs(f(i, j)-(sint(i)*sinp(j))**2-f(1, 1))
+                discretization_error = max(z, discretization_error)
             end do
         end do
 
-        write( *, *) ''
-        write( *, *) '    hwsssp *** TEST RUN *** '
-        write( *, *) '    Previous 64 bit floating point arithmetic result '
-        write( *, *) '    ierror = 0,  discretization error = 3.38107E-3'
-        write( *, *) '    The output from your computer is: '
-        write( *, *) '    ierror =', ierror, ' discretization error = ', &
-            err
+        write( stdout, '(A)') ''
+        write( stdout, '(A)') '     hwsssp *** TEST RUN *** '
+        write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(A)') '     ierror = 0,  discretization error = 3.38107E-3'
+        write( stdout, '(A)') '     The output from your computer is: '
+        write( stdout, '(A,I3,A,1pe15.6)') &
+            '      ierror =', ierror, ' discretization error = ', discretization_error
 
     end subroutine test_hwsssp
+
 
     subroutine hwsssp(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
         bdps, bdpf, elmbda, f, idimf, pertrb, ierror)
@@ -522,28 +523,27 @@ contains
         !                        FORTRAN SUBPROGRAMS FOR THE SOLUTION OF
         !                        ELLIPTIC EQUATIONS", NCAR TN/IA-109, JULY, 
         !                        1975, 138 PP.
-        !***********************************************************************
         !
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer  :: m
-        integer  :: mbdcnd
-        integer  :: n
-        integer  :: nbdcnd
-        integer  :: idimf
-        integer  :: ierror
-        real  :: ts
-        real  :: tf
-        real  :: ps
-        real  :: pf
-        real  :: elmbda
-        real  :: pertrb
-        real  :: bdts(*)
-        real  :: bdtf(*)
-        real  :: bdps(*)
-        real  :: bdpf(*)
-        real  :: f(idimf, 1)
+        integer (ip),          intent (in)     :: m
+        integer (ip),          intent (in)     :: mbdcnd
+        integer (ip),          intent (in)     :: n
+        integer (ip),          intent (in)     :: nbdcnd
+        integer (ip),          intent (in)     :: idimf
+        integer (ip),          intent (out)    :: ierror
+        real (wp),             intent (in)     :: ts
+        real (wp),             intent (in)     :: tf
+        real (wp),             intent (in)     :: ps
+        real (wp),             intent (in)     :: pf
+        real (wp),             intent (in)     :: elmbda
+        real (wp),             intent (out)    :: pertrb
+        real (wp), contiguous, intent (in)     :: bdts(:)
+        real (wp), contiguous, intent (in)     :: bdtf(:)
+        real (wp), contiguous, intent (in)     :: bdps(:)
+        real (wp), contiguous, intent (in)     :: bdpf(:)
+        real (wp), contiguous, intent (in out) :: f(:,:)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
@@ -584,37 +584,40 @@ contains
         ! check that allocation was successful
         if (ierror == 20) return
 
-        call hwssspp(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, bdps, &
-            bdpf, elmbda, f, idimf, pertrb, ierror, workspace%rew)
+        associate( rew => workspace%rew )
+            call hwssspp(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, bdps, &
+                bdpf, elmbda, f, idimf, pertrb, ierror, rew)
+        end associate
 
-        ! release dynamically allocated work space
+        ! release dynamically allocated workspace arrays
         call workspace%destroy()
 
     end subroutine hwsssp
+
 
     subroutine hwssspp(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, &
         nbdcnd, bdps, bdpf, elmbda, f, idimf, pertrb, ierror, w)
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer  :: m
-        integer  :: mbdcnd
-        integer  :: n
-        integer  :: nbdcnd
-        integer  :: idimf
-        integer  :: ierror
-        real  :: ts
-        real  :: tf
-        real  :: ps
-        real  :: pf
-        real  :: elmbda
-        real  :: pertrb
-        real  :: bdts(*)
-        real  :: bdtf(*)
-        real  :: bdps(*)
-        real  :: bdpf(*)
-        real  :: f(idimf, *)
-        real  :: w(*)
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: mbdcnd
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: nbdcnd
+        integer (ip), intent (in)     :: idimf
+        integer (ip), intent (in)     :: ierror
+        real (wp),    intent (in)     :: ts
+        real (wp),    intent (in)     :: tf
+        real (wp),    intent (in)     :: ps
+        real (wp),    intent (in)     :: pf
+        real (wp),    intent (in)     :: elmbda
+        real (wp),    intent (out)    :: pertrb
+        real (wp),    intent (in)     :: bdts(*)
+        real (wp),    intent (in)     :: bdtf(*)
+        real (wp),    intent (in)     :: bdps(*)
+        real (wp),    intent (in)     :: bdpf(*)
+        real (wp),    intent (in out) :: f(idimf,*)
+        real (wp),    intent (in out) :: w(*)
         !-----------------------------------------------
 
         call hwsss1(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
@@ -629,29 +632,29 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer , intent (in) :: m
-        integer , intent (in) :: mbdcnd
-        integer , intent (in) :: n
-        integer  :: nbdcnd
-        integer  :: idimf
-        real , intent (in) :: ts
-        real , intent (in) :: tf
-        real , intent (in) :: ps
-        real , intent (in) :: pf
-        real , intent (in) :: elmbda
-        real , intent (out) :: pertrb
-        real , intent (in) :: bdts(*)
-        real , intent (in) :: bdtf(*)
-        real , intent (in) :: bdps(*)
-        real , intent (in) :: bdpf(*)
-        real  :: f(idimf,*)
-        real  :: am(*)
-        real  :: bm(*)
-        real  :: cm(*)
-        real , intent (in out) :: sn(*)
-        real , intent (in out) :: ss(*)
-        real , intent (in out) :: sint(*)
-        real  :: d(*)
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: mbdcnd
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: nbdcnd
+        integer (ip), intent (in)     :: idimf
+        real (wp),    intent (in)     :: ts
+        real (wp),    intent (in)     :: tf
+        real (wp),    intent (in)     :: ps
+        real (wp),    intent (in)     :: pf
+        real (wp),    intent (in)     :: elmbda
+        real (wp),    intent (out)    :: pertrb
+        real (wp),    intent (in)     :: bdts(*)
+        real (wp),    intent (in)     :: bdtf(*)
+        real (wp),    intent (in)     :: bdps(*)
+        real (wp),    intent (in)     :: bdpf(*)
+        real (wp),    intent (in out) :: f(idimf,*)
+        real (wp),    intent (in out) :: am(*)
+        real (wp),    intent (in out) :: bm(*)
+        real (wp),    intent (in out) :: cm(*)
+        real (wp),    intent (in out) :: sn(*)
+        real (wp),    intent (in out) :: ss(*)
+        real (wp),    intent (in out) :: sint(*)
+        real (wp),    intent (in out) :: d(*)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------

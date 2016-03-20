@@ -60,14 +60,14 @@ contains
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer :: lbdcnd, mbdcnd, nbdcnd, l, m, n, ldimf, mdimf, lp1, i, &
+        integer (ip) :: lbdcnd, mbdcnd, nbdcnd, l, m, n, ldimf, mdimf, lp1, i, &
             mp1, j, np1, k, ierror
-        real , dimension(11, 41, 16) :: f
-        real , dimension(11, 41) :: bdzf, bdxs, bdxf, bdys, bdyf, bdzs
-        real , dimension(11) :: x
-        real , dimension(41) :: y
-        real , dimension(16) :: z
-        real :: elmbda, xs, xf, ys, pi, yf, zs, zf, dx, dy, dz, pertrb, discretization_error, t
+        real (wp), dimension(11, 41, 16) :: f
+        real (wp), dimension(11, 41) :: bdzf, bdxs, bdxf, bdys, bdyf, bdzs
+        real (wp), dimension(11) :: x
+        real (wp), dimension(41) :: y
+        real (wp), dimension(16) :: z
+        real (wp) :: elmbda, xs, xf, ys, pi, yf, zs, zf, dx, dy, dz, pertrb, discretization_error, t
         !-----------------------------------------------
 
         !
@@ -592,44 +592,44 @@ contains
         !                        EQUATIONS.
         !
         ! REFERENCES             NONE
-        !***********************************************************************
-        type (FishpackWorkspace) :: workspace
+        !
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer  :: l
-        integer  :: lbdcnd
-        integer  :: m
-        integer  :: mbdcnd
-        integer  :: n
-        integer  :: nbdcnd
-        integer  :: ldimf
-        integer  :: mdimf
-        integer  :: ierror
-        real  :: xs
-        real  :: xf
-        real  :: ys
-        real  :: yf
-        real  :: zs
-        real  :: zf
-        real  :: elmbda
-        real  :: pertrb
-        real  :: bdxs(mdimf, *)
-        real  :: bdxf(mdimf, *)
-        real  :: bdys(ldimf, *)
-        real  :: bdyf(ldimf, *)
-        real  :: bdzs(ldimf, *)
-        real  :: bdzf(ldimf, *)
-        real  :: f(ldimf, mdimf, *)
+        integer (ip), intent (in)      :: l
+        integer (ip), intent (in)      :: lbdcnd
+        integer (ip), intent (in)      :: m
+        integer (ip), intent (in)      :: mbdcnd
+        integer (ip), intent (in)      :: n
+        integer (ip), intent (in)      :: nbdcnd
+        integer (ip), intent (in)      :: ldimf
+        integer (ip), intent (in)      :: mdimf
+        integer (ip), intent (out)     :: ierror
+        real (wp),    intent (in)      :: xs
+        real (wp),    intent (in)      :: xf
+        real (wp),    intent (in)      :: ys
+        real (wp),    intent (in)      :: yf
+        real (wp),    intent (in)      :: zs
+        real (wp),    intent (in)      :: zf
+        real (wp),    intent (in)      :: elmbda
+        real (wp),    intent (out)     :: pertrb
+        real (wp), contiguous, intent (in)      :: bdxs(:,:)
+        real (wp), contiguous, intent (in)      :: bdxf(:,:)
+        real (wp), contiguous, intent (in)      :: bdys(:,:)
+        real (wp), contiguous, intent (in)      :: bdyf(:,:)
+        real (wp), contiguous, intent (in)      :: bdzs(:,:)
+        real (wp), contiguous, intent (in)      :: bdzf(:,:)
+        real (wp), contiguous, intent (in out)  :: f(:,:,:)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer :: irwk, icwk
+        type (FishpackWorkspace) :: workspace
         !-----------------------------------------------
-        !
-        !     CHECK FOR INVALID INPUT.
-        !
+
+        ! initialize error flag
         ierror = 0
+
+        ! Check if input values are valid
         if (xf <= xs) ierror = 1
         if (l < 5) ierror = 2
         if (lbdcnd<0 .or. lbdcnd>4) ierror = 3
@@ -641,22 +641,27 @@ contains
         if (nbdcnd<0 .or. nbdcnd>4) ierror = 9
         if (ldimf < l + 1) ierror = 10
         if (mdimf < m + 1) ierror = 11
-        !     IF (ierror .NE. 0) GO TO 188
         if (ierror /= 0) return
 
-        ! allocate required work space length (generous estimate)
-        irwk=30+l+m+5*n+max(l, m, n)+7*(INT((l+1)/2)+INT((m+1)/2))
-        icwk = 0
+        ! Allocate real workspace array
+        associate( &
+            irwk => 30+l+m+5*n+max(l, m, n)+7*(int((l+1)/2)+int((m+1)/2)), & ! Estimate required workspace length (generous estimate)
+            icwk => 0 &
+            )
+            call workspace%create( irwk, icwk, ierror )
+        end associate
 
-        call workspace%create( irwk, icwk, ierror )
-        !     check that allocation was successful
+        ! Check if allocation was succcessful
         if (ierror == 20) return
 
-        call hw3crtt(xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m, mbdcnd, bdys, &
-            bdyf, zs, zf, n, nbdcnd, bdzs, bdzf, elmbda, ldimf, &
-            mdimf, f, pertrb, ierror, workspace%rew)
+        ! solve system
+        associate( rew => workspace%rew )
+            call hw3crtt(xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m, mbdcnd, bdys, &
+                bdyf, zs, zf, n, nbdcnd, bdzs, bdzf, elmbda, ldimf, &
+                mdimf, f, pertrb, ierror, rew)
+        end associate
 
-        !     release allocated work space
+        ! Release memory
         call workspace%destroy()
 
     end subroutine hw3crt
@@ -667,35 +672,35 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer , intent (in) :: l
-        integer  :: lbdcnd
-        integer , intent (in) :: m
-        integer  :: mbdcnd
-        integer , intent (in) :: n
-        integer , intent (in) :: nbdcnd
-        integer  :: ldimf
-        integer  :: mdimf
-        integer , intent (out) :: ierror
-        real , intent (in) :: xs
-        real , intent (in) :: xf
-        real , intent (in) :: ys
-        real , intent (in) :: yf
-        real , intent (in) :: zs
-        real , intent (in) :: zf
-        real , intent (in) :: elmbda
-        real , intent (out) :: pertrb
-        real , intent (in) :: bdxs(mdimf, *)
-        real , intent (in) :: bdxf(mdimf, *)
-        real , intent (in) :: bdys(ldimf, *)
-        real , intent (in) :: bdyf(ldimf, *)
-        real , intent (in) :: bdzs(ldimf, *)
-        real , intent (in) :: bdzf(ldimf, *)
-        real  :: f(ldimf, mdimf, *)
-        real  :: w(*)
+        integer (ip), intent (in)      :: l
+        integer (ip), intent (in)      :: lbdcnd
+        integer (ip), intent (in)      :: m
+        integer (ip), intent (in)      :: mbdcnd
+        integer (ip), intent (in)      :: n
+        integer (ip), intent (in)      :: nbdcnd
+        integer (ip), intent (in)      :: ldimf
+        integer (ip), intent (in)      :: mdimf
+        integer (ip), intent (out)     :: ierror
+        real (wp),    intent (in)      :: xs
+        real (wp),    intent (in)      :: xf
+        real (wp),    intent (in)      :: ys
+        real (wp),    intent (in)      :: yf
+        real (wp),    intent (in)      :: zs
+        real (wp),    intent (in)      :: zf
+        real (wp),    intent (in)      :: elmbda
+        real (wp),    intent (out)     :: pertrb
+        real (wp),    intent (in)      :: bdxs(mdimf, *)
+        real (wp),    intent (in)      :: bdxf(mdimf, *)
+        real (wp),    intent (in)      :: bdys(ldimf, *)
+        real (wp),    intent (in)      :: bdyf(ldimf, *)
+        real (wp),    intent (in)      :: bdzs(ldimf, *)
+        real (wp),    intent (in)      :: bdzf(ldimf, *)
+        real (wp),    intent (in out)  :: f(ldimf, mdimf, *)
+        real (wp),    intent (in out)  :: w(*)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer :: mstart, mstop, mp1, mp, munk, np, np1, nstart, nstop, &
+        integer (ip) :: mstart, mstop, mp1, mp, munk, np, np1, nstart, nstop, &
             nunk, lp1, lp, lstart, lstop, j, k, lunk, i, iwb, iwc, iww, &
             mstpm1, lstpm1, nstpm1, nperod, ir
         real::dy, twbydy, c2, dz, twbydz, c3, dx, c1, twbydx, xlp, ylp, zlp, s1, s2, s

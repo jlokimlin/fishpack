@@ -1,5 +1,10 @@
 module module_hwscyl
 
+    use, intrinsic :: iso_fortran_env, only: &
+        wp => REAL64, &
+        ip => INT32, &
+        stdout => OUTPUT_UNIT
+
     use type_FishpackWorkspace, only: &
         FishpackWorkspace
 
@@ -55,12 +60,12 @@ contains
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer :: idimf, m, mbdcnd, n, nbdcnd, mp1, np1, i, j, ierror
+        integer (ip) :: idimf, m, mbdcnd, n, nbdcnd, mp1, np1, i, j, ierror
         real , dimension(75, 105) :: f
         real , dimension(101) :: bda, bdb
         real , dimension(51) :: bdc, bdd, r
         real , dimension(101) :: z
-        real :: a, b, c, d, elmbda, pertrb, x, err
+        real :: a, b, c, d, elmbda, pertrb, x, discretization_error
         !-----------------------------------------------
         !
         !     FROM DIMENSION STATEMENT WE GET VALUE OF IDIMF.
@@ -121,25 +126,25 @@ contains
         end do
         x = x/real(np1*mp1)
         f(:mp1, :np1) = F(:mp1, :np1) - x
-        err = 0.
+        discretization_error = 0.
         do i = 1, mp1
             do j = 1, np1
                 x = abs(F(i, j)-(R(i)*Z(j))**4)
-                err = max(x, err)
+                discretization_error = max(x, discretization_error)
             end do
         end do
         !     Print earlier output from platforms with 32 and 64 bit floating point
         !     arithemtic followed by the output from this computer
-        write( *, *) ''
-        write( *, *) '    hwscyl *** TEST RUN *** '
-        write( *, *) &
-            '    Previous 64 bit floating point arithmetic result '
-        write( *, *) '    ierror = 0,  PERTRB = 2.2674E-4'
-        write( *, *) '    discretization error = 3.7367E-4 '
-
-        write( *, *) '    The output from your computer is: '
-        write( *, *) '    ierror =', ierror, ' PERTRB = ', pertrb
-        write( *, *) '    discretization error = ', err
+        write( stdout, '(A)') ''
+        write( stdout, '(A)') '     hwscyl *** TEST RUN *** '
+        write( stdout, '(A)') &
+            '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(A)') '     ierror = 0,  PERTRB = 2.2674E-4'
+        write( stdout, '(A)') '     discretization error = 3.7367E-4 '
+        write( stdout, '(A)') '     The output from your computer is: '
+        write( stdout, '(A,I3,A,1pe15.6)') &
+            '     ierror =', ierror, ' PERTRB = ', pertrb
+        write( stdout, '(A,1pe15.6)') '     discretization error = ', discretization_error
 
     end subroutine test_hwscyl
 
@@ -469,37 +474,37 @@ contains
         !                        FORTRAN SUBPROGRAMS FOR THE SOLUTION OF
         !                        ELLIPTIC EQUATIONS"
         !                          NCAR TN/IA-109, JULY, 1975, 138 PP.
-        !***********************************************************************
-        type (FishpackWorkspace) :: workspace
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer  :: m
-        integer  :: mbdcnd
-        integer  :: n
-        integer  :: nbdcnd
-        integer  :: idimf
-        integer  :: ierror
-        real  :: a
-        real  :: b
-        real  :: c
-        real  :: d
-        real  :: elmbda
-        real  :: pertrb
-        real  :: bda(*)
-        real  :: bdb(*)
-        real  :: bdc(*)
-        real  :: bdd(*)
-        real  :: f(idimf, *)
+        integer (ip),          intent (in)     :: m
+        integer (ip),          intent (in)     :: mbdcnd
+        integer (ip),          intent (in)     :: n
+        integer (ip),          intent (in)     :: nbdcnd
+        integer (ip),          intent (in)     :: idimf
+        integer (ip),          intent (out)    :: ierror
+        real (wp),             intent (in)     :: a
+        real (wp),             intent (in)     :: b
+        real (wp),             intent (in)     :: c
+        real (wp),             intent (in)     :: d
+        real (wp),             intent (in)     :: elmbda
+        real (wp),             intent (out)    :: pertrb
+        real (wp), contiguous, intent (in)     :: bda(:)
+        real (wp), contiguous, intent (in)     :: bdb(:)
+        real (wp), contiguous, intent (in)     :: bdc(:)
+        real (wp), contiguous, intent (in)     :: bdd(:)
+        real (wp), contiguous, intent (in out) :: f(:,:)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer :: irwk, icwk
+        type (FishpackWorkspace) :: workspace
+        integer (ip)             :: irwk
         !-----------------------------------------------
-        !
-        !     CHECK FOR INVALID PARAMETERS.
-        !
+
+        ! initialize error flag
         ierror = 0
+
+        ! check if input values are valid
         if (a < 0.) ierror = 1
         if (a >= b) ierror = 2
         if (mbdcnd<=0 .or. mbdcnd>=7) ierror = 3
@@ -512,20 +517,26 @@ contains
         if (idimf < m + 1) ierror = 10
         if (m <= 3) ierror = 12
         if (ierror /= 0) return
-        !     allocate real work space
-        !     compute and allocate required real work space
-        call workspace%get_genbun_workspace_dimensions(n, m, irwk)
-        irwk = irwk + 3*m
-        icwk = 0
 
-        call workspace%create( irwk, icwk, ierror )
-        !     check that allocation was successful
+        ! compute real workspace size
+        call workspace%get_genbun_workspace_dimensions(n, m, irwk)
+
+        ! Allocate workspace
+        irwk = irwk + 3*m
+        associate( icwk => 0 )
+            call workspace%create( irwk, icwk, ierror )
+        end associate
+
+        ! Check if allocation was succcessful
         if (ierror == 20) return
 
-        call hwscyll(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
-            elmbda, f, idimf, pertrb, ierror, workspace%rew)
+        ! solve system
+        associate( rew => workspace%rew )
+            call hwscyll(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
+                elmbda, f, idimf, pertrb, ierror, rew)
+        end associate
 
-        !     release allocated work space
+        ! Release memory
         call workspace%destroy()
 
     end subroutine hwscyl
@@ -535,28 +546,28 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer , intent (in) :: m
-        integer , intent (in) :: mbdcnd
-        integer , intent (in) :: n
-        integer  :: nbdcnd
-        integer  :: idimf
-        integer , intent (out) :: ierror
-        real , intent (in) :: a
-        real , intent (in) :: b
-        real , intent (in) :: c
-        real , intent (in) :: d
-        real , intent (in) :: elmbda
-        real , intent (out) :: pertrb
-        real , intent (in) :: bda(*)
-        real , intent (in) :: bdb(*)
-        real , intent (in) :: bdc(*)
-        real , intent (in) :: bdd(*)
-        real  :: f(idimf, *)
-        real  :: w(*)
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: mbdcnd
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: nbdcnd
+        integer (ip), intent (in)     :: idimf
+        integer (ip), intent (out)    :: ierror
+        real (wp),    intent (in)     :: a
+        real (wp),    intent (in)     :: b
+        real (wp),    intent (in)     :: c
+        real (wp),    intent (in)     :: d
+        real (wp),    intent (in)     :: elmbda
+        real (wp),    intent (out)    :: pertrb
+        real (wp),    intent (in)     :: bda(*)
+        real (wp),    intent (in)     :: bdb(*)
+        real (wp),    intent (in)     :: bdc(*)
+        real (wp),    intent (in)     :: bdd(*)
+        real (wp),    intent (in out) :: f(idimf,*)
+        real (wp),    intent (in out) :: w(*)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer :: mp1, np1, np, mstart, mstop, munk, nstart, nstop, nunk &
+        integer (ip) :: mp1, np1, np, mstart, mstop, munk, nstart, nstop, nunk &
             , id2, id3, id4, id5, id6, istart, ij, i, j, k, l, nsp1, nstm1 &
             , ierr1, i1
         real::deltar, dlrby2, dlrsq, deltht, dlthsq, a1, r, a2, s, s1, s2

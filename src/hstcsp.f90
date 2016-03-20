@@ -630,7 +630,6 @@ contains
         !                        BOUNDARY CONDITIONS ON A STAGGERED GRID OF
         !                        ARBITRARY SIZE, " J. COMP. PHYS. 20(1976), 
         !                        PP. 171-182.
-        !***********************************************************************
         !
         !-----------------------------------------------
         ! Dictionary: calling arguments
@@ -652,14 +651,14 @@ contains
         real (wp) :: bdb(*)
         real (wp) :: bdc(*)
         real (wp) :: bdd(*)
-        real (wp) :: f(idimf, *)
+        real (wp), intent (in out) :: f(idimf,*)
+        class (FishpackWorkspace) :: w
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
         integer (ip)             :: k, l, np, irwk, icwk, ierr1
         real (wp)                :: pi
         integer (ip), save       :: iw1, iwbm, iwcm, iwan, iwbn, iwcn, iwsnth, iwrsq
-        type (FishpackWorkspace) :: w
         !-----------------------------------------------
 
         pi = acos( -1.0 )
@@ -708,17 +707,22 @@ contains
                 if (ierror == 20) return
             end if
             ierr1 = 0
-            call HSTCS1 (intl, a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
-                elmbda, f, idimf, pertrb, ierr1, w%rew(iw1), w%rew(iwbm), w%rew(iwcm), &
-                w%rew(iwan), w%rew(iwbn), w%rew(iwcn), w%rew(iwsnth), w%rew(iwrsq), &
-                w%rew, w%cxw)
+
+            associate( &
+                rew => w%rew, &
+                cxw => w%cxw &
+                )
+                call hstcs1(intl, a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
+                    elmbda, f, idimf, pertrb, ierr1, rew(iw1), rew(iwbm), rew(iwcm), &
+                    rew(iwan), rew(iwbn), rew(iwcn), rew(iwsnth), rew(iwrsq), &
+                    rew, cxw)
+            end associate
             ierror = ierr1
         end if
 
     end subroutine hstcsp
-    !
-    !*****************************************************************************************
-    !
+
+
     subroutine hstcs1( intl, a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, &
         bdc, bdd, elmbda, f, idimf, pertrb, ierr1, am, bm, cm, an, bn, &
         cn, snth, rsq, w, wc)
@@ -742,7 +746,7 @@ contains
         real (wp), intent (in) :: bdb(*)
         real (wp), intent (in) :: bdc(*)
         real (wp), intent (in) :: bdd(*)
-        real (wp) :: f(idimf, *)
+        real (wp), intent (in out) :: f(idimf,*)
         real (wp) :: am(*)
         real (wp) :: bm(*)
         real (wp) :: cm(*)
@@ -751,7 +755,7 @@ contains
         real (wp) :: cn(*)
         real (wp), intent (in out) :: snth(*)
         real (wp), intent (in out) :: rsq(*)
-        real (wp) :: w(*)
+        real (wp), intent (in out) :: w(*)
         complex  :: wc(*)
         !-----------------------------------------------
         ! Dictionary: local variables

@@ -806,7 +806,7 @@ contains
                 grhs, usol, idmn, rew(i13), pertrb, ierror)
         end associate
 
-        ! release dynamically allocated work space
+        ! Release memory
         call workspace%destroy()
 
     end subroutine sepx4

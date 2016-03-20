@@ -26,9 +26,8 @@ program test
     ! Explicit typing only
     implicit none
 
-
     call test_procedural_library()
-    call test_object_oriented_library()
+    !call test_object_oriented_library()
 
 
 contains
@@ -58,7 +57,7 @@ contains
         call test_hstcsp()
         call test_hstcyl()
         call test_hstplr()
-        !call hstssp_unit_test()
+        call test_hstssp()
         call test_hw3crt()
         call test_hwscrt()
         call test_hwscsp()

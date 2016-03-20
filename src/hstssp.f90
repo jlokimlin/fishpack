@@ -22,10 +22,10 @@ module module_hstssp
     public :: hstssp
     public :: test_hstssp
 
+
 contains
-    !
-    !*****************************************************************************************
-    !
+
+
     subroutine test_hstssp()
         !
         !     file thstssp.f
@@ -135,9 +135,8 @@ contains
         write( stdout, '(A,1pe15.6)') '     discretization error = ', err
 
     end subroutine test_hstssp
-    !
-    !*****************************************************************************************
-    !
+
+
     subroutine hstssp( a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror )
         !
@@ -546,76 +545,82 @@ contains
         !                        NEUMANN BOUNDARY CONDITIONS ON A STAGGERED
         !                        GRID OF ARBITRARY SIZE, " J. COMP. PHYS.
         !                        20(1976), PP. 171-182.
-        !***********************************************************************
         !
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip) :: m
-        integer (ip) :: mbdcnd
-        integer (ip) :: n
-        integer (ip) :: nbdcnd
-        integer (ip) :: idimf
-        integer (ip) :: ierror
-        real (wp) :: a
-        real (wp) :: b
-        real (wp) :: c
-        real (wp) :: d
-        real (wp) :: elmbda
-        real (wp) :: pertrb
-        real (wp) :: bda(*)
-        real (wp) :: bdb(*)
-        real (wp) :: bdc(*)
-        real (wp) :: bdd(*)
-        real (wp) :: f(idimf, *)
+        integer (ip),          intent (in)     :: m
+        integer (ip),          intent (in)     :: mbdcnd
+        integer (ip),          intent (in)     :: n
+        integer (ip),          intent (in)     :: nbdcnd
+        integer (ip),          intent (in)     :: idimf
+        integer (ip),          intent (out)    :: ierror
+        real (wp),             intent (in)     :: a
+        real (wp),             intent (in)     :: b
+        real (wp),             intent (in)     :: c
+        real (wp),             intent (in)     :: d
+        real (wp),             intent (in)     :: elmbda
+        real (wp),             intent (out)    :: pertrb
+        real (wp), contiguous, intent (in)     :: bda(:)
+        real (wp), contiguous, intent (in)     :: bdb(:)
+        real (wp), contiguous, intent (in)     :: bdc(:)
+        real (wp), contiguous, intent (in)     :: bdd(:)
+        real (wp), contiguous, intent (in out) :: f(:,:)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer (ip)             :: irwk, icwk
-        real (wp)                :: pi
+        integer (ip)             :: irwk
         type (FishpackWorkspace) :: workspace
         !-----------------------------------------------
-        !
-        ierror = 0
-        pi = acos( -1.0_wp )
-        if (a<0. .or. b>pi) ierror = 1
-        if (a >= b) ierror = 2
-        if (mbdcnd<=0 .or. mbdcnd>9) ierror = 3
-        if (c >= d) ierror = 4
-        if (n <= 2) ierror = 5
-        if (nbdcnd<0 .or. nbdcnd>=5) ierror = 6
-        if(a>0..and.(mbdcnd==5.or.mbdcnd==6.or.mbdcnd==9))ierror=7
-        if(a==0..and.(mbdcnd==3.or.mbdcnd==4.or.mbdcnd==8))ierror=8
-        if (b<pi .and. mbdcnd>=7) ierror = 9
-        if(b==pi.and.(mbdcnd==2.or.mbdcnd==3.or.mbdcnd==6))ierror=10
-        if (mbdcnd>=5 .and. (nbdcnd==1 .or. nbdcnd==2 .or. nbdcnd==4)) &
-            ierror = 11
-        if (idimf < m) ierror = 12
-        if (m <= 2) ierror = 13
-        if (ierror /= 0) return
 
-        !! compute and allocate required real work space
+        ! initialize error flag
+        ierror = 0
+
+        ! Check input arguments
+        associate( pi => acos( -1.0_wp ))
+            if (a<0. .or. b>pi) ierror = 1
+            if (a >= b) ierror = 2
+            if (mbdcnd<=0 .or. mbdcnd>9) ierror = 3
+            if (c >= d) ierror = 4
+            if (n <= 2) ierror = 5
+            if (nbdcnd<0 .or. nbdcnd>=5) ierror = 6
+            if(a>0..and.(mbdcnd==5.or.mbdcnd==6.or.mbdcnd==9))ierror=7
+            if(a==0..and.(mbdcnd==3.or.mbdcnd==4.or.mbdcnd==8))ierror=8
+            if (b<pi .and. mbdcnd>=7) ierror = 9
+            if(b==pi.and.(mbdcnd==2.or.mbdcnd==3.or.mbdcnd==6))ierror=10
+            if (mbdcnd>=5 .and. (nbdcnd==1 .or. nbdcnd==2 .or. nbdcnd==4)) &
+                ierror = 11
+            if (idimf < m) ierror = 12
+            if (m <= 2) ierror = 13
+            if (ierror /= 0) return
+        end associate
+
+        ! compute required real workspace size
         call workspace%get_genbun_workspace_dimensions( n, m, irwk )
         irwk = irwk + 3 * m
-        icwk = 0
 
-        !! Create workspace
-        call workspace%create( irwk, icwk, ierror )
+        ! allocate real workspace
+        associate( icwk => 0 )
+            call workspace%create( irwk, icwk, ierror )
+        end associate
+
         ! Check that allocation was successful
         if (ierror == 20) then
             return
         end if
 
-        call hstsspp(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
-            elmbda, f, idimf, pertrb, ierror, workspace%rew)
+        ! solve system
+        associate( rew => workspace%rew )
+            call hstsspp(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
+                elmbda, f, idimf, pertrb, ierror, rew)
+        end associate
 
-        !! Release dynamically allocated work space
+        ! Release memory
         call workspace%destroy()
 
     end subroutine hstssp
-    !
-    !*****************************************************************************************
-    !
+
+
     subroutine hstsspp( a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror, w )
         !-----------------------------------------------
@@ -638,7 +643,7 @@ contains
         real (wp), intent (in) :: bdc(*)
         real (wp), intent (in) :: bdd(*)
         real (wp) :: f(idimf, 1)
-        real (wp) :: w(*)
+        real (wp), intent (in out) :: w(*)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------

@@ -182,15 +182,14 @@ contains
             '     ierror =', ierror, '     discretization error =', discretization_error
 
 
-        !     release real and complex allocated work space
+        ! release dynamically allocated workspace arrays
         call workspace%destroy()
 
     end subroutine test_hwscsp
 
 
-
-    subroutine hwscsp(INTL, TS, TF, M, MBDCND, BDTS, BDTF, RS, RF, N, &
-        NBDCND, BDRS, BDRF, ELMBDA, F, IDIMF, PERTRB, ierror, W)
+    subroutine hwscsp(intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, &
+        nbdcnd, bdrs, bdrf, elmbda, f, idimf, pertrb, ierror, w)
         !
         !     file hwscsp.f
         !
@@ -720,16 +719,22 @@ contains
         if (ierror == 20) return
     end if
 
-    call HWSCS1 (INTL, TS, TF, M, MBDCND, BDTS, BDTF, RS, RF, N, NBDCND, BDRS, &
-        BDRF, ELMBDA, F, IDIMF, PERTRB, w%rew, w%cxw, w%rew(i1), w%rew(i2), &
-        w%rew(i3), w%rew(i4), w%rew(i5), w%rew(i6), w%rew(i7), w%rew(i8), &
-        w%rew(i9), w%rew(i10), ierror)
+    associate( &
+        rew => w%rew, &
+        cxw => w%cxw &
+        )
+        call hwscs1 (intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, nbdcnd, bdrs, &
+            bdrf, elmbda, f, idimf, pertrb, rew, cxw, rew(i1), rew(i2), &
+            rew(i3), rew(i4), rew(i5), rew(i6), rew(i7), rew(i8), &
+            rew(i9), rew(i10), ierror)
+    end associate
 
 end subroutine hwscsp
 
-subroutine HWSCS1(INTL, TS, TF, M, MBDCND, BDTS, BDTF, RS, RF, N, &
-    NBDCND, BDRS, BDRF, ELMBDA, F, IDIMF, PERTRB, W, WC, S, AN, BN &
-    , CN, R, AM, BM, CM, SINT, BMH, ierror)
+
+subroutine hwscs1(intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, &
+    nbdcnd, bdrs, bdrf, elmbda, f, idimf, pertrb, w, wc, s, an, bn &
+    , cn, r, am, bm, cm, sint, bmh, ierror)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------

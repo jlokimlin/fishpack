@@ -512,7 +512,7 @@ contains
                 elmbda, f, idimf, pertrb, ierror, rew )
         end associate
 
-        ! release dynamically allocated work space
+        ! Release memory
         call workspace%destroy()
 
     end subroutine hwscrt

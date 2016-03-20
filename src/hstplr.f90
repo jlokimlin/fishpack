@@ -1,351 +1,3 @@
-!
-!     file hstplr.f
-!
-!     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-!     *                                                               *
-!     *                  copyright (c) 2005 by UCAR                   *
-!     *                                                               *
-!     *       University Corporation for Atmospheric Research         *
-!     *                                                               *
-!     *                      all rights reserved                      *
-!     *                                                               *
-!     *                    FISHPACK90  version 1.1                    *
-!     *                                                               *
-!     *                 A Package of Fortran 77 and 90                *
-!     *                                                               *
-!     *                Subroutines and Example Programs               *
-!     *                                                               *
-!     *               for Modeling Geophysical Processes              *
-!     *                                                               *
-!     *                             by                                *
-!     *                                                               *
-!     *        John Adams, Paul Swarztrauber and Roland Sweet         *
-!     *                                                               *
-!     *                             of                                *
-!     *                                                               *
-!     *         the National Center for Atmospheric Research          *
-!     *                                                               *
-!     *                Boulder, Colorado  (80307)  U.S.A.             *
-!     *                                                               *
-!     *                   which is sponsored by                       *
-!     *                                                               *
-!     *              the National Science Foundation                  *
-!     *                                                               *
-!     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-!
-!     SUBROUTINE hstplr (A, B, M, MBDCND, BDA, BDB, C, D, N, NBDCND, BDC, BDD, 
-!    +                   ELMBDA, F, IDIMF, PERTRB, ierror)
-!
-! DIMENSION OF           BDA(N), BDB(N), BDC(M), BDD(M), F(IDIMF, N)
-! ARGUMENTS
-!
-! LATEST REVISION        June 2004
-!
-! PURPOSE                SOLVES THE STANDARD FIVE-POINT FINITE
-!                        DIFFERENCE APPROXIMATION ON A STAGGERED
-!                        GRID TO THE HELMHOLTZ EQUATION IN POLAR
-!                        COORDINATES.  THE EQUATION IS
-!
-!                           (1/R)(D/DR)(R(DU/DR)) +
-!                           (1/R**2)(D/DTHETA)(DU/DTHETA) +
-!                           LAMBDA*U = F(R, THETA)
-!
-! USAGE                  CALL hstplr (A, B, M, MBDCND, BDA, BDB, C, D, N, 
-!                                     NBDCND, BDC, BDD, ELMBDA, F, 
-!                                     IDIMF, PERTRB, ierror)
-!
-! ARGUMENTS
-! ON INPUT               A, B
-!
-!                          THE RANGE OF R, I.E. A .LE. R .LE. B.
-!                          A MUST BE LESS THAN B AND A MUST BE
-!                          NON-NEGATIVE.
-!
-!                        M
-!                          THE NUMBER OF GRID POINTS IN THE INTERVAL
-!                          (A, B).  THE GRID POINTS IN THE R-DIRECTION
-!                          ARE GIVEN BY R(I) = A + (I-0.5)DR FOR
-!                          I=1, 2, ..., M WHERE DR =(B-A)/M.
-!                          M MUST BE GREATER THAN 2.
-!
-!                        MBDCND
-!                          INDICATES THE TYPE OF BOUNDARY CONDITIONS
-!                          AT R = A AND R = B.
-!
-!                          = 1  IF THE SOLUTION IS SPECIFIED AT R = A
-!                               AND R = B.
-!
-!                          = 2  IF THE SOLUTION IS SPECIFIED AT R = A
-!                               AND THE DERIVATIVE OF THE SOLUTION
-!                               WITH RESPECT TO R IS SPECIFIED AT R = B.
-!                               (SEE NOTE 1 BELOW)
-!
-!                          = 3  IF THE DERIVATIVE OF THE SOLUTION
-!                               WITH RESPECT TO R IS SPECIFIED AT
-!                               R = A (SEE NOTE 2 BELOW) AND R = B.
-!
-!                          = 4  IF THE DERIVATIVE OF THE SOLUTION
-!                               WITH RESPECT TO R IS SPECIFIED AT
-!                               SPECIFIED AT R = A (SEE NOTE 2 BELOW)
-!                               AND THE SOLUTION IS SPECIFIED AT R = B.
-!
-!
-!                          = 5  IF THE SOLUTION IS UNSPECIFIED AT
-!                               R = A = 0 AND THE SOLUTION IS
-!                               SPECIFIED AT R = B.
-!
-!                          = 6  IF THE SOLUTION IS UNSPECIFIED AT
-!                               R = A = 0 AND THE DERIVATIVE OF THE
-!                               SOLUTION WITH RESPECT TO R IS SPECIFIED
-!                               AT R = B.
-!
-!                          NOTE 1:
-!                          IF A = 0, MBDCND = 2, AND NBDCND = 0 OR 3, 
-!                          THE SYSTEM OF EQUATIONS TO BE SOLVED IS
-!                          SINGULAR.  THE UNIQUE SOLUTION IS
-!                          IS DETERMINED BY EXTRAPOLATION TO THE
-!                          SPECIFICATION OF U(0, THETA(1)).
-!                          BUT IN THIS CASE THE RIGHT SIDE OF THE
-!                          SYSTEM WILL BE PERTURBED BY THE CONSTANT
-!                          PERTRB.
-!
-!                          NOTE 2:
-!                          IF A = 0, DO NOT USE MBDCND = 3 OR 4, 
-!                          BUT INSTEAD USE MBDCND = 1, 2, 5, OR 6.
-!
-!                        BDA
-!                          A ONE-DIMENSIONAL ARRAY OF LENGTH N THAT
-!                          SPECIFIES THE BOUNDARY VALUES (IF ANY) OF
-!                          THE SOLUTION AT R = A.
-!
-!                          WHEN MBDCND = 1 OR 2, 
-!                            BDA(J) = U(A, THETA(J)) ,     J=1, 2, ..., N.
-!
-!                          WHEN MBDCND = 3 OR 4, 
-!                            BDA(J) = (D/DR)U(A, THETA(J)) , 
-!                            J=1, 2, ..., N.
-!
-!                          WHEN MBDCND = 5 OR 6, BDA IS A DUMMY
-!                          VARIABLE.
-!
-!                        BDB
-!                          A ONE-DIMENSIONAL ARRAY OF LENGTH N THAT
-!                          SPECIFIES THE BOUNDARY VALUES OF THE
-!                          SOLUTION AT R = B.
-!
-!                          WHEN MBDCND = 1, 4, OR 5, 
-!                            BDB(J) = U(B, THETA(J)) ,     J=1, 2, ..., N.
-!
-!                          WHEN MBDCND = 2, 3, OR 6, 
-!                            BDB(J) = (D/DR)U(B, THETA(J)) , 
-!                            J=1, 2, ..., N.
-!
-!                        C, D
-!                          THE RANGE OF THETA, I.E. C .LE. THETA .LE. D.
-!                          C MUST BE LESS THAN D.
-!
-!                        N
-!                          THE NUMBER OF UNKNOWNS IN THE INTERVAL
-!                          (C, D).  THE UNKNOWNS IN THE THETA-
-!                          DIRECTION ARE GIVEN BY THETA(J) = C +
-!                          (J-0.5)DT,   J=1, 2, ..., N, WHERE
-!                          DT = (D-C)/N.  N MUST BE GREATER THAN 2.
-!
-!                        NBDCND
-!                          INDICATES THE TYPE OF BOUNDARY CONDITIONS
-!                          AT THETA = C  AND THETA = D.
-!
-!                          = 0  IF THE SOLUTION IS PERIODIC IN THETA, 
-!                               I.E. U(I, J) = U(I, N+J).
-!
-!                          = 1  IF THE SOLUTION IS SPECIFIED AT
-!                               THETA = C AND THETA = D
-!                               (SEE NOTE BELOW).
-!
-!                          = 2  IF THE SOLUTION IS SPECIFIED AT
-!                               THETA = C AND THE DERIVATIVE OF THE
-!                               SOLUTION WITH RESPECT TO THETA IS
-!                               SPECIFIED AT THETA = D
-!                               (SEE NOTE BELOW).
-!
-!                          = 3  IF THE DERIVATIVE OF THE SOLUTION
-!                               WITH RESPECT TO THETA IS SPECIFIED
-!                               AT THETA = C AND THETA = D.
-!
-!                          = 4  IF THE DERIVATIVE OF THE SOLUTION
-!                               WITH RESPECT TO THETA IS SPECIFIED
-!                               AT THETA = C AND THE SOLUTION IS
-!                               SPECIFIED AT THETA = D
-!                               (SEE NOTE BELOW).
-!
-!                          NOTE:
-!                          WHEN NBDCND = 1, 2, OR 4, DO NOT USE
-!                          MBDCND = 5 OR 6 (THE FORMER INDICATES THAT
-!                          THE SOLUTION IS SPECIFIED AT R =  0; THE
-!                          LATTER INDICATES THE SOLUTION IS UNSPECIFIED
-!                          AT R = 0).  USE INSTEAD MBDCND = 1 OR 2.
-!
-!                        BDC
-!                          A ONE DIMENSIONAL ARRAY OF LENGTH M THAT
-!                          SPECIFIES THE BOUNDARY VALUES OF THE
-!                          SOLUTION AT THETA = C.
-!
-!                          WHEN NBDCND = 1 OR 2, 
-!                            BDC(I) = U(R(I), C) ,        I=1, 2, ..., M.
-!
-!                          WHEN NBDCND = 3 OR 4, 
-!                            BDC(I) = (D/DTHETA)U(R(I), C), 
-!                            I=1, 2, ..., M.
-!
-!                          WHEN NBDCND = 0, BDC IS A DUMMY VARIABLE.
-!
-!                        BDD
-!                          A ONE-DIMENSIONAL ARRAY OF LENGTH M THAT
-!                          SPECIFIES THE BOUNDARY VALUES OF THE
-!                          SOLUTION AT THETA = D.
-!
-!                          WHEN NBDCND = 1 OR 4, 
-!                            BDD(I) = U(R(I), D) ,         I=1, 2, ..., M.
-!
-!                          WHEN NBDCND = 2 OR 3, 
-!                            BDD(I) =(D/DTHETA)U(R(I), D), I=1, 2, ..., M.
-!
-!                          WHEN NBDCND = 0, BDD IS A DUMMY VARIABLE.
-!
-!                        ELMBDA
-!                          THE CONSTANT LAMBDA IN THE HELMHOLTZ
-!                          EQUATION.  IF LAMBDA IS GREATER THAN 0, 
-!                          A SOLUTION MAY NOT EXIST.  HOWEVER, hstplr
-!                          WILL ATTEMPT TO FIND A SOLUTION.
-!
-!                        F
-!                          A TWO-DIMENSIONAL ARRAY THAT SPECIFIES THE
-!                          VALUES OF THE RIGHT SIDE OF THE HELMHOLTZ
-!                          EQUATION.
-!
-!                          FOR I=1, 2, ..., M AND J=1, 2, ..., N
-!                            F(I, J) = F(R(I), THETA(J)) .
-!
-!                          F MUST BE DIMENSIONED AT LEAST M X N.
-!
-!                        IDIMF
-!                          THE ROW (OR FIRST) DIMENSION OF THE ARRAY
-!                          F AS IT APPEARS IN THE PROGRAM CALLING
-!                          hstplr.  THIS PARAMETER IS USED TO SPECIFY
-!                          THE VARIABLE DIMENSION OF F.
-!                          IDIMF MUST BE AT LEAST M.
-!
-!
-! ON OUTPUT
-!
-!                        F
-!                          CONTAINS THE SOLUTION U(I, J) OF THE FINITE
-!                          DIFFERENCE APPROXIMATION FOR THE GRID POINT
-!                          (R(I), THETA(J)) FOR I=1, 2, ..., M, 
-!                          J=1, 2, ..., N.
-!
-!                        PERTRB
-!                          IF A COMBINATION OF PERIODIC, DERIVATIVE, 
-!                          OR UNSPECIFIED BOUNDARY CONDITIONS IS
-!                          SPECIFIED FOR A POISSON EQUATION
-!                          (LAMBDA = 0), A SOLUTION MAY NOT EXIST.
-!                          PERTRB IS A CONSTANT CALCULATED AND
-!                          SUBTRACTED FROM F, WHICH ENSURES THAT A
-!                          SOLUTION EXISTS.  hstplr THEN COMPUTES THIS
-!                          SOLUTION, WHICH IS A LEAST SQUARES SOLUTION
-!                          TO THE ORIGINAL APPROXIMATION.
-!                          THIS SOLUTION PLUS ANY CONSTANT IS ALSO
-!                          A SOLUTION; HENCE, THE SOLUTION IS NOT
-!                          UNIQUE.  THE VALUE OF PERTRB SHOULD BE
-!                          SMALL COMPARED TO THE RIGHT SIDE F.
-!                          OTHERWISE, A SOLUTION IS OBTAINED TO AN
-!                          ESSENTIALLY DIFFERENT PROBLEM.
-!                          THIS COMPARISON SHOULD ALWAYS BE MADE TO
-!                          INSURE THAT A MEANINGFUL SOLUTION HAS BEEN
-!                          OBTAINED.
-!
-!                        ierror
-!                          AN ERROR FLAG THAT INDICATES INVALID INPUT
-!                          PARAMETERS. EXCEPT TO NUMBERS 0 AND 11, 
-!                          A SOLUTION IS NOT ATTEMPTED.
-!
-!                          =  0  NO ERROR
-!
-!                          =  1  A .LT. 0
-!
-!                          =  2  A .GE. B
-!
-!                          =  3  MBDCND .LT. 1 OR MBDCND .GT. 6
-!
-!                          =  4  C .GE. D
-!
-!                          =  5  N .LE. 2
-!
-!                          =  6  NBDCND .LT. 0 OR NBDCND .GT. 4
-!
-!                          =  7  A = 0 AND MBDCND = 3 OR 4
-!
-!                          =  8  A .GT. 0 AND MBDCND .GE. 5
-!
-!                          =  9  MBDCND .GE. 5 AND NBDCND .NE. 0 OR 3
-!
-!                          = 10  IDIMF .LT. M
-!
-!                          = 11  LAMBDA .GT. 0
-!
-!                          = 12  M .LE. 2
-!
-!                          = 20 If the dynamic allocation of real and
-!                               complex work space required for solution
-!                               fails (for example if N, M are too large
-!                               for your computer)
-!
-!                          SINCE THIS IS THE ONLY MEANS OF INDICATING
-!                          A POSSIBLY INCORRECT CALL TO hstplr, THE
-!                          USER SHOULD TEST ierror AFTER THE CALL.
-!
-!
-! I/O                    NONE
-!
-! PRECISION              SINGLE
-!
-! REQUIRED FILES         fish.f, comf.f, genbun.f, gnbnaux.f, poistg.f
-!
-! LANGUAGE               FORTRAN 90
-!
-! HISTORY                WRITTEN BY ROLAND SWEET AT NCAR IN 1977.
-!                        RELEASED ON NCAR'S PUBLIC SOFTWARE LIBRARIES
-!                        IN JANUARY 1980.
-!                        Revised in June 2004 by John Adams using
-!                        Fortran 90 dynamically allocated work space.
-!
-! PORTABILITY            FORTRAN 90
-!
-! ALGORITHM              THIS SUBROUTINE DEFINES THE FINITE-
-!                        DIFFERENCE EQUATIONS, INCORPORATES BOUNDARY
-!                        DATA, ADJUSTS THE RIGHT SIDE WHEN THE SYSTEM
-!                        IS SINGULAR AND CALLS EITHER POISTG OR genbun
-!                        WHICH SOLVES THE LINEAR SYSTEM OF EQUATIONS.
-!
-! TIMING                 FOR LARGE M AND N, THE OPERATION COUNT
-!                        IS ROUGHLY PROPORTIONAL TO M*N*LOG2(N).
-!
-! ACCURACY               THE SOLUTION PROCESS EMPLOYED RESULTS IN
-!                        A LOSS OF NO MORE THAN FOUR SIGNIFICANT
-!                        DIGITS FOR N AND M AS LARGE AS 64.
-!                        MORE DETAILED INFORMATION ABOUT ACCURACY
-!                        CAN BE FOUND IN THE DOCUMENTATION FOR
-!                        ROUTINE POISTG WHICH IS THE ROUTINE THAT
-!                        ACTUALLY SOLVES THE FINITE DIFFERENCE
-!                        EQUATIONS.
-!
-! REFERENCES             U. SCHUMANN AND R. SWEET, "A DIRECT METHOD
-!                        FOR THE SOLUTION OF POISSON'S EQUATION WITH
-!                        NEUMANN BOUNDARY CONDITIONS ON A STAGGERED
-!                        GRID OF ARBITRARY SIZE, " J. COMP. PHYS.
-!                        20(1976), PP. 171-182.
-!***********************************************************************
-!
 module module_hstplr
 
     use, intrinsic :: iso_fortran_env, only: &
@@ -370,10 +22,10 @@ module module_hstplr
     public :: hstplr
     public :: test_hstplr
 
+
 contains
-    !
-    !*****************************************************************************************
-    !
+
+
     subroutine test_hstplr()
         !     file thstplr.f
         !
@@ -420,7 +72,7 @@ contains
         real :: a, b, c, pi, d, elmbda, pertrb, discretization_error, z
         !-----------------------------------------------
         !
-        !     FROM DIMENSION STATEMENT WE GET VALUE OF IDIMF.
+        !     from dimension statement we get value of idimf.
         !
         idimf = 51
         a = 0.
@@ -434,8 +86,8 @@ contains
         nbdcnd = 3
         elmbda = 0.
         !
-        !     GENERATE AND STORE GRID POINTS FOR THE PURPOSE OF COMPUTING
-        !     BOUNDARY DATA AND THE RIGHT SIDE OF THE POISSON EQUATION.
+        !     generate and store grid points for the purpose of computing
+        !     boundary data and the right side of the poisson equation.
         !
         do i = 1, m
             r(i) = (real(i) - 0.5)/50.
@@ -444,31 +96,31 @@ contains
             theta(j) = (real(j) - 0.5)*pi/96.
         end do
         !
-        !     GENERATE BOUNDARY DATA.
+        !     generate boundary data.
         !
         do j = 1, n
-            bdb(j) = 1. - COS(4.*THETA(j))
+            bdb(j) = 1. - cos(4.*theta(j))
         end do
         !
-        !     GENERATE BOUNDARY DATA.
+        !     generate boundary data.
         !
         bdc(:m) = 0.
         bdd(:m) = 0.
         !
-        !     BDA IS A DUMMY VARIABLE.
+        !     bda is a dummy variable.
         !
         !
-        !     GENERATE RIGHT SIDE OF EQUATION.
+        !     generate right side of equation.
         !
         do i = 1, m
-            f(i, :n) = 16.*R(i)**2
+            f(i, :n) = 16.*r(i)**2
         end do
         call hstplr (a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd &
             , elmbda, f, idimf, pertrb, ierror)
         !
-        !     COMPUTE DISCRETIZATION ERROR.  THE EXACT SOLUTION IS
+        !     compute discretization error.  the exact solution is
         !
-        !                U(R, THETA) = R**4*(1 - COS(4*THETA))
+        !                u(r, theta) = r**4*(1 - cos(4*theta))
         !
         discretization_error = 0.0_wp
         do i = 1, m
@@ -490,33 +142,379 @@ contains
     end subroutine test_hstplr
 
 
-
     subroutine hstplr( a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror )
+        !
+        !     file hstplr.f
+        !
+        !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+        !     *                                                               *
+        !     *                  copyright (c) 2005 by UCAR                   *
+        !     *                                                               *
+        !     *       University Corporation for Atmospheric Research         *
+        !     *                                                               *
+        !     *                      all rights reserved                      *
+        !     *                                                               *
+        !     *                    FISHPACK90  version 1.1                    *
+        !     *                                                               *
+        !     *                 A Package of Fortran 77 and 90                *
+        !     *                                                               *
+        !     *                Subroutines and Example Programs               *
+        !     *                                                               *
+        !     *               for Modeling Geophysical Processes              *
+        !     *                                                               *
+        !     *                             by                                *
+        !     *                                                               *
+        !     *        John Adams, Paul Swarztrauber and Roland Sweet         *
+        !     *                                                               *
+        !     *                             of                                *
+        !     *                                                               *
+        !     *         the National Center for Atmospheric Research          *
+        !     *                                                               *
+        !     *                Boulder, Colorado  (80307)  U.S.A.             *
+        !     *                                                               *
+        !     *                   which is sponsored by                       *
+        !     *                                                               *
+        !     *              the National Science Foundation                  *
+        !     *                                                               *
+        !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+        !
+        !     SUBROUTINE hstplr (A, B, M, MBDCND, BDA, BDB, C, D, N, NBDCND, BDC, BDD,
+        !    +                   ELMBDA, F, IDIMF, PERTRB, ierror)
+        !
+        ! DIMENSION OF           BDA(N), BDB(N), BDC(M), BDD(M), F(IDIMF, N)
+        ! ARGUMENTS
+        !
+        ! LATEST REVISION        June 2004
+        !
+        ! PURPOSE                SOLVES THE STANDARD FIVE-POINT FINITE
+        !                        DIFFERENCE APPROXIMATION ON A STAGGERED
+        !                        GRID TO THE HELMHOLTZ EQUATION IN POLAR
+        !                        COORDINATES.  THE EQUATION IS
+        !
+        !                           (1/R)(D/DR)(R(DU/DR)) +
+        !                           (1/R**2)(D/DTHETA)(DU/DTHETA) +
+        !                           LAMBDA*U = F(R, THETA)
+        !
+        ! USAGE                  CALL hstplr (A, B, M, MBDCND, BDA, BDB, C, D, N,
+        !                                     NBDCND, BDC, BDD, ELMBDA, F,
+        !                                     IDIMF, PERTRB, ierror)
+        !
+        ! ARGUMENTS
+        ! ON INPUT               A, B
+        !
+        !                          THE RANGE OF R, I.E. A .LE. R .LE. B.
+        !                          A MUST BE LESS THAN B AND A MUST BE
+        !                          NON-NEGATIVE.
+        !
+        !                        M
+        !                          THE NUMBER OF GRID POINTS IN THE INTERVAL
+        !                          (A, B).  THE GRID POINTS IN THE R-DIRECTION
+        !                          ARE GIVEN BY R(I) = A + (I-0.5)DR FOR
+        !                          I=1, 2, ..., M WHERE DR =(B-A)/M.
+        !                          M MUST BE GREATER THAN 2.
+        !
+        !                        MBDCND
+        !                          INDICATES THE TYPE OF BOUNDARY CONDITIONS
+        !                          AT R = A AND R = B.
+        !
+        !                          = 1  IF THE SOLUTION IS SPECIFIED AT R = A
+        !                               AND R = B.
+        !
+        !                          = 2  IF THE SOLUTION IS SPECIFIED AT R = A
+        !                               AND THE DERIVATIVE OF THE SOLUTION
+        !                               WITH RESPECT TO R IS SPECIFIED AT R = B.
+        !                               (SEE NOTE 1 BELOW)
+        !
+        !                          = 3  IF THE DERIVATIVE OF THE SOLUTION
+        !                               WITH RESPECT TO R IS SPECIFIED AT
+        !                               R = A (SEE NOTE 2 BELOW) AND R = B.
+        !
+        !                          = 4  IF THE DERIVATIVE OF THE SOLUTION
+        !                               WITH RESPECT TO R IS SPECIFIED AT
+        !                               SPECIFIED AT R = A (SEE NOTE 2 BELOW)
+        !                               AND THE SOLUTION IS SPECIFIED AT R = B.
+        !
+        !
+        !                          = 5  IF THE SOLUTION IS UNSPECIFIED AT
+        !                               R = A = 0 AND THE SOLUTION IS
+        !                               SPECIFIED AT R = B.
+        !
+        !                          = 6  IF THE SOLUTION IS UNSPECIFIED AT
+        !                               R = A = 0 AND THE DERIVATIVE OF THE
+        !                               SOLUTION WITH RESPECT TO R IS SPECIFIED
+        !                               AT R = B.
+        !
+        !                          NOTE 1:
+        !                          IF A = 0, MBDCND = 2, AND NBDCND = 0 OR 3,
+        !                          THE SYSTEM OF EQUATIONS TO BE SOLVED IS
+        !                          SINGULAR.  THE UNIQUE SOLUTION IS
+        !                          IS DETERMINED BY EXTRAPOLATION TO THE
+        !                          SPECIFICATION OF U(0, THETA(1)).
+        !                          BUT IN THIS CASE THE RIGHT SIDE OF THE
+        !                          SYSTEM WILL BE PERTURBED BY THE CONSTANT
+        !                          PERTRB.
+        !
+        !                          NOTE 2:
+        !                          IF A = 0, DO NOT USE MBDCND = 3 OR 4,
+        !                          BUT INSTEAD USE MBDCND = 1, 2, 5, OR 6.
+        !
+        !                        BDA
+        !                          A ONE-DIMENSIONAL ARRAY OF LENGTH N THAT
+        !                          SPECIFIES THE BOUNDARY VALUES (IF ANY) OF
+        !                          THE SOLUTION AT R = A.
+        !
+        !                          WHEN MBDCND = 1 OR 2,
+        !                            BDA(J) = U(A, THETA(J)) ,     J=1, 2, ..., N.
+        !
+        !                          WHEN MBDCND = 3 OR 4,
+        !                            BDA(J) = (D/DR)U(A, THETA(J)) ,
+        !                            J=1, 2, ..., N.
+        !
+        !                          WHEN MBDCND = 5 OR 6, BDA IS A DUMMY
+        !                          VARIABLE.
+        !
+        !                        BDB
+        !                          A ONE-DIMENSIONAL ARRAY OF LENGTH N THAT
+        !                          SPECIFIES THE BOUNDARY VALUES OF THE
+        !                          SOLUTION AT R = B.
+        !
+        !                          WHEN MBDCND = 1, 4, OR 5,
+        !                            BDB(J) = U(B, THETA(J)) ,     J=1, 2, ..., N.
+        !
+        !                          WHEN MBDCND = 2, 3, OR 6,
+        !                            BDB(J) = (D/DR)U(B, THETA(J)) ,
+        !                            J=1, 2, ..., N.
+        !
+        !                        C, D
+        !                          THE RANGE OF THETA, I.E. C .LE. THETA .LE. D.
+        !                          C MUST BE LESS THAN D.
+        !
+        !                        N
+        !                          THE NUMBER OF UNKNOWNS IN THE INTERVAL
+        !                          (C, D).  THE UNKNOWNS IN THE THETA-
+        !                          DIRECTION ARE GIVEN BY THETA(J) = C +
+        !                          (J-0.5)DT,   J=1, 2, ..., N, WHERE
+        !                          DT = (D-C)/N.  N MUST BE GREATER THAN 2.
+        !
+        !                        NBDCND
+        !                          INDICATES THE TYPE OF BOUNDARY CONDITIONS
+        !                          AT THETA = C  AND THETA = D.
+        !
+        !                          = 0  IF THE SOLUTION IS PERIODIC IN THETA,
+        !                               I.E. U(I, J) = U(I, N+J).
+        !
+        !                          = 1  IF THE SOLUTION IS SPECIFIED AT
+        !                               THETA = C AND THETA = D
+        !                               (SEE NOTE BELOW).
+        !
+        !                          = 2  IF THE SOLUTION IS SPECIFIED AT
+        !                               THETA = C AND THE DERIVATIVE OF THE
+        !                               SOLUTION WITH RESPECT TO THETA IS
+        !                               SPECIFIED AT THETA = D
+        !                               (SEE NOTE BELOW).
+        !
+        !                          = 3  IF THE DERIVATIVE OF THE SOLUTION
+        !                               WITH RESPECT TO THETA IS SPECIFIED
+        !                               AT THETA = C AND THETA = D.
+        !
+        !                          = 4  IF THE DERIVATIVE OF THE SOLUTION
+        !                               WITH RESPECT TO THETA IS SPECIFIED
+        !                               AT THETA = C AND THE SOLUTION IS
+        !                               SPECIFIED AT THETA = D
+        !                               (SEE NOTE BELOW).
+        !
+        !                          NOTE:
+        !                          WHEN NBDCND = 1, 2, OR 4, DO NOT USE
+        !                          MBDCND = 5 OR 6 (THE FORMER INDICATES THAT
+        !                          THE SOLUTION IS SPECIFIED AT R =  0; THE
+        !                          LATTER INDICATES THE SOLUTION IS UNSPECIFIED
+        !                          AT R = 0).  USE INSTEAD MBDCND = 1 OR 2.
+        !
+        !                        BDC
+        !                          A ONE DIMENSIONAL ARRAY OF LENGTH M THAT
+        !                          SPECIFIES THE BOUNDARY VALUES OF THE
+        !                          SOLUTION AT THETA = C.
+        !
+        !                          WHEN NBDCND = 1 OR 2,
+        !                            BDC(I) = U(R(I), C) ,        I=1, 2, ..., M.
+        !
+        !                          WHEN NBDCND = 3 OR 4,
+        !                            BDC(I) = (D/DTHETA)U(R(I), C),
+        !                            I=1, 2, ..., M.
+        !
+        !                          WHEN NBDCND = 0, BDC IS A DUMMY VARIABLE.
+        !
+        !                        BDD
+        !                          A ONE-DIMENSIONAL ARRAY OF LENGTH M THAT
+        !                          SPECIFIES THE BOUNDARY VALUES OF THE
+        !                          SOLUTION AT THETA = D.
+        !
+        !                          WHEN NBDCND = 1 OR 4,
+        !                            BDD(I) = U(R(I), D) ,         I=1, 2, ..., M.
+        !
+        !                          WHEN NBDCND = 2 OR 3,
+        !                            BDD(I) =(D/DTHETA)U(R(I), D), I=1, 2, ..., M.
+        !
+        !                          WHEN NBDCND = 0, BDD IS A DUMMY VARIABLE.
+        !
+        !                        ELMBDA
+        !                          THE CONSTANT LAMBDA IN THE HELMHOLTZ
+        !                          EQUATION.  IF LAMBDA IS GREATER THAN 0,
+        !                          A SOLUTION MAY NOT EXIST.  HOWEVER, hstplr
+        !                          WILL ATTEMPT TO FIND A SOLUTION.
+        !
+        !                        F
+        !                          A TWO-DIMENSIONAL ARRAY THAT SPECIFIES THE
+        !                          VALUES OF THE RIGHT SIDE OF THE HELMHOLTZ
+        !                          EQUATION.
+        !
+        !                          FOR I=1, 2, ..., M AND J=1, 2, ..., N
+        !                            F(I, J) = F(R(I), THETA(J)) .
+        !
+        !                          F MUST BE DIMENSIONED AT LEAST M X N.
+        !
+        !                        IDIMF
+        !                          THE ROW (OR FIRST) DIMENSION OF THE ARRAY
+        !                          F AS IT APPEARS IN THE PROGRAM CALLING
+        !                          hstplr.  THIS PARAMETER IS USED TO SPECIFY
+        !                          THE VARIABLE DIMENSION OF F.
+        !                          IDIMF MUST BE AT LEAST M.
+        !
+        !
+        ! ON OUTPUT
+        !
+        !                        F
+        !                          CONTAINS THE SOLUTION U(I, J) OF THE FINITE
+        !                          DIFFERENCE APPROXIMATION FOR THE GRID POINT
+        !                          (R(I), THETA(J)) FOR I=1, 2, ..., M,
+        !                          J=1, 2, ..., N.
+        !
+        !                        PERTRB
+        !                          IF A COMBINATION OF PERIODIC, DERIVATIVE,
+        !                          OR UNSPECIFIED BOUNDARY CONDITIONS IS
+        !                          SPECIFIED FOR A POISSON EQUATION
+        !                          (LAMBDA = 0), A SOLUTION MAY NOT EXIST.
+        !                          PERTRB IS A CONSTANT CALCULATED AND
+        !                          SUBTRACTED FROM F, WHICH ENSURES THAT A
+        !                          SOLUTION EXISTS.  hstplr THEN COMPUTES THIS
+        !                          SOLUTION, WHICH IS A LEAST SQUARES SOLUTION
+        !                          TO THE ORIGINAL APPROXIMATION.
+        !                          THIS SOLUTION PLUS ANY CONSTANT IS ALSO
+        !                          A SOLUTION; HENCE, THE SOLUTION IS NOT
+        !                          UNIQUE.  THE VALUE OF PERTRB SHOULD BE
+        !                          SMALL COMPARED TO THE RIGHT SIDE F.
+        !                          OTHERWISE, A SOLUTION IS OBTAINED TO AN
+        !                          ESSENTIALLY DIFFERENT PROBLEM.
+        !                          THIS COMPARISON SHOULD ALWAYS BE MADE TO
+        !                          INSURE THAT A MEANINGFUL SOLUTION HAS BEEN
+        !                          OBTAINED.
+        !
+        !                        ierror
+        !                          AN ERROR FLAG THAT INDICATES INVALID INPUT
+        !                          PARAMETERS. EXCEPT TO NUMBERS 0 AND 11,
+        !                          A SOLUTION IS NOT ATTEMPTED.
+        !
+        !                          =  0  NO ERROR
+        !
+        !                          =  1  A .LT. 0
+        !
+        !                          =  2  A .GE. B
+        !
+        !                          =  3  MBDCND .LT. 1 OR MBDCND .GT. 6
+        !
+        !                          =  4  C .GE. D
+        !
+        !                          =  5  N .LE. 2
+        !
+        !                          =  6  NBDCND .LT. 0 OR NBDCND .GT. 4
+        !
+        !                          =  7  A = 0 AND MBDCND = 3 OR 4
+        !
+        !                          =  8  A .GT. 0 AND MBDCND .GE. 5
+        !
+        !                          =  9  MBDCND .GE. 5 AND NBDCND .NE. 0 OR 3
+        !
+        !                          = 10  IDIMF .LT. M
+        !
+        !                          = 11  LAMBDA .GT. 0
+        !
+        !                          = 12  M .LE. 2
+        !
+        !                          = 20 If the dynamic allocation of real and
+        !                               complex work space required for solution
+        !                               fails (for example if N, M are too large
+        !                               for your computer)
+        !
+        !                          SINCE THIS IS THE ONLY MEANS OF INDICATING
+        !                          A POSSIBLY INCORRECT CALL TO hstplr, THE
+        !                          USER SHOULD TEST ierror AFTER THE CALL.
+        !
+        !
+        ! I/O                    NONE
+        !
+        ! PRECISION              SINGLE
+        !
+        ! REQUIRED FILES         fish.f, comf.f, genbun.f, gnbnaux.f, poistg.f
+        !
+        ! LANGUAGE               FORTRAN 90
+        !
+        ! HISTORY                WRITTEN BY ROLAND SWEET AT NCAR IN 1977.
+        !                        RELEASED ON NCAR'S PUBLIC SOFTWARE LIBRARIES
+        !                        IN JANUARY 1980.
+        !                        Revised in June 2004 by John Adams using
+        !                        Fortran 90 dynamically allocated work space.
+        !
+        ! PORTABILITY            FORTRAN 90
+        !
+        ! ALGORITHM              THIS SUBROUTINE DEFINES THE FINITE-
+        !                        DIFFERENCE EQUATIONS, INCORPORATES BOUNDARY
+        !                        DATA, ADJUSTS THE RIGHT SIDE WHEN THE SYSTEM
+        !                        IS SINGULAR AND CALLS EITHER POISTG OR genbun
+        !                        WHICH SOLVES THE LINEAR SYSTEM OF EQUATIONS.
+        !
+        ! TIMING                 FOR LARGE M AND N, THE OPERATION COUNT
+        !                        IS ROUGHLY PROPORTIONAL TO M*N*LOG2(N).
+        !
+        ! ACCURACY               THE SOLUTION PROCESS EMPLOYED RESULTS IN
+        !                        A LOSS OF NO MORE THAN FOUR SIGNIFICANT
+        !                        DIGITS FOR N AND M AS LARGE AS 64.
+        !                        MORE DETAILED INFORMATION ABOUT ACCURACY
+        !                        CAN BE FOUND IN THE DOCUMENTATION FOR
+        !                        ROUTINE POISTG WHICH IS THE ROUTINE THAT
+        !                        ACTUALLY SOLVES THE FINITE DIFFERENCE
+        !                        EQUATIONS.
+        !
+        ! REFERENCES             U. SCHUMANN AND R. SWEET, "A DIRECT METHOD
+        !                        FOR THE SOLUTION OF POISSON'S EQUATION WITH
+        !                        NEUMANN BOUNDARY CONDITIONS ON A STAGGERED
+        !                        GRID OF ARBITRARY SIZE, " J. COMP. PHYS.
+        !                        20(1976), PP. 171-182.
+        !
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip) :: m
-        integer (ip) :: mbdcnd
-        integer (ip) :: n
-        integer (ip) :: nbdcnd
-        integer (ip) :: idimf
-        integer (ip) :: ierror
-        real (wp) :: a
-        real (wp) :: b
-        real (wp) :: c
-        real (wp) :: d
-        real (wp) :: elmbda
-        real (wp) :: pertrb
-        real (wp) :: bda(*)
-        real (wp) :: bdb(*)
-        real (wp) :: bdc(*)
-        real (wp) :: bdd(*)
-        real (wp) :: f(idimf, *)
+        integer (ip),          intent (in)     :: m
+        integer (ip),          intent (in)     :: mbdcnd
+        integer (ip),          intent (in)     :: n
+        integer (ip),          intent (in)     :: nbdcnd
+        integer (ip),          intent (in)     :: idimf
+        integer (ip),          intent (out)    :: ierror
+        real (wp),             intent (in)     :: a
+        real (wp),             intent (in)     :: b
+        real (wp),             intent (in)     :: c
+        real (wp),             intent (in)     :: d
+        real (wp),             intent (in)     :: elmbda
+        real (wp),             intent (out)    :: pertrb
+        real (wp), contiguous, intent (in)     :: bda(:)
+        real (wp), contiguous, intent (in)     :: bdb(:)
+        real (wp), contiguous, intent (in)     :: bdc(:)
+        real (wp), contiguous, intent (in)     :: bdd(:)
+        real (wp), contiguous, intent (in out) :: f(:,:)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer :: irwk, icwk
+        integer                  :: irwk
         type (FishpackWorkspace) :: workspace
         !-----------------------------------------------
 
@@ -534,48 +532,52 @@ contains
         if (m <= 2) ierror = 12
         if (ierror /= 0) return
 
-        !     compute and allocate required real work space
+        ! compute required real workspace size
         call workspace%get_genbun_workspace_dimensions( n, m, irwk )
-
         irwk = irwk + 3 * m
-        icwk = 0
 
-        !! Create workspace
-        call workspace%create( irwk, icwk, ierror )
+        ! allocate real workspace array
+        associate( icwk => 0 )
+            call workspace%create( irwk, icwk, ierror )
+        end associate
 
-        ! Check that allocation was successful
+        ! Check if allocation was successful
         if (ierror == 20) return
 
-        call hstplrr( a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
-            elmbda, f, idimf, pertrb, ierror, workspace%rew)
+        associate( rew => workspace%rew )
+            call hstplrr( a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
+                elmbda, f, idimf, pertrb, ierror, rew)
+        end associate
+
+        ! release memory
+        call workspace%destroy()
 
     end subroutine hstplr
-    !
-    !*****************************************************************************************
-    !
+
+
     subroutine hstplrr( a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror, w )
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip) :: m
-        integer , intent (in) :: mbdcnd
-        integer (ip) :: n
-        integer , intent (in) :: nbdcnd
-        integer (ip) :: idimf
-        integer , intent (out) :: ierror
-        real (wp), intent (in) :: a
-        real (wp), intent (in) :: b
-        real (wp), intent (in) :: c
-        real (wp), intent (in) :: d
-        real (wp), intent (in) :: elmbda
-        real (wp), intent (out) :: pertrb
-        real (wp), intent (in) :: bda(*)
-        real (wp), intent (in) :: bdb(*)
-        real (wp), intent (in) :: bdc(*)
-        real (wp), intent (in) :: bdd(*)
-        real (wp) :: f(idimf, *)
-        real (wp) :: w(*)
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: mbdcnd
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: nbdcnd
+        integer (ip), intent (in)     :: idimf
+        integer (ip), intent (out)    :: ierror
+        real (wp),    intent (in)     :: a
+        real (wp),    intent (in)     :: b
+        real (wp),    intent (in)     :: c
+        real (wp),    intent (in)     :: d
+        real (wp),    intent (in)     :: elmbda
+        real (wp),    intent (out)    :: pertrb
+        real (wp),    intent (in)     :: bda(*)
+        real (wp),    intent (in)     :: bdb(*)
+        real (wp),    intent (in)     :: bdc(*)
+        real (wp),    intent (in)     :: bdd(*)
+        real (wp),    intent (in out) :: f(idimf,*)
+        real (wp),    intent (in out) :: w(*)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
@@ -713,9 +715,8 @@ end if
     end if
 
 end subroutine hstplrr
-    !
-    !*****************************************************************************************
-    !
+
+
 end module module_hstplr
 !
 ! REVISION HISTORY---
