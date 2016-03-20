@@ -561,7 +561,7 @@ contains
         if (ierror == 20) return
 
         ! solve system
-        associate( rew => workspace%rew )
+        associate( rew => workspace%real_workspace )
             call hstcyll(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
                 elmbda, f, idimf, pertrb, ierror, rew )
         end associate

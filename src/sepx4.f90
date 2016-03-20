@@ -798,7 +798,7 @@ contains
         end associate
 
         ! Solve system
-        associate( rew => workspace%rew )
+        associate( rew => workspace%real_workspace )
             call s4elip( iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta, c, d, n, &
                 nbdcnd, bdc, bdd, cofx, rew(i1), rew(i2), rew(i3), &
                 rew(i4), rew(i5), rew(i6), rew(i7), rew(i8), &

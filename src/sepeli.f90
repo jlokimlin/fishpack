@@ -2,7 +2,8 @@ module module_sepeli
 
     use, intrinsic :: iso_fortran_env, only: &
         ip => INT32, &
-        wp => REAL64
+        wp => REAL64, &
+        stdout => OUTPUT_UNIT
 
     use type_FishpackWorkspace, only: &
         FishpackWorkspace
@@ -68,7 +69,6 @@ contains
         !     *                                                               *
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
-        type (FishpackWorkspace) :: workspace
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
@@ -78,22 +78,23 @@ contains
         real (wp)               :: a, b, c, d, dlx, dly
         real (wp)               :: x, af, bf, cf, y, df, ef, ff, alpha
         real (wp)               :: beta, dum(1), pertrb, err, err2, err4
+        type (FishpackWorkspace) :: workspace
         !-----------------------------------------------
 
-        ! Allocate memory
+        ! allocate memory
         allocate( usol(33,33), grhs(33,33), bda(33), bdb(33) )
 
-        !     DEFINE ARITHMETIC FUNCTIONS GIVING EXACT SOLUTION
+        !     define arithmetic functions giving exact solution
         !
         !
-        !     SET LIMITS ON REGION
+        !     set limits on region
         !
         a = 0.0
         b = 1.0
         c = 0.0
         d = 1.0
         !
-        !     SET GRID SIZE
+        !     set grid size
         !
         m = 32
         n = 32
@@ -104,7 +105,7 @@ contains
         do i = 1, nx
             x = a + real(i - 1)*dlx
             !
-            !     SET SPECIFIED BOUNDARY CONDITIONS AT Y=C, D
+            !     set specified boundary conditions at y=c, d
             !
             usol(i, 1) = ue(x, c)
             usol(i, ny) = ue(x, d)
@@ -113,14 +114,14 @@ contains
                 y = c + real(j - 1)*dly
                 call get_coefficients_in_y_direction (y, df, ef, ff)
                 !
-                !     SET RIGHT HAND SIDE
+                !     set right hand side
                 !
                 grhs(i, j) = af*uxxe(x, y) + bf*uxe(x, y) + cf*ue(x, y) + df* &
                     uyye(x, y) + ef*uye(x, y) + ff*ue(x, y)
             end do
         end do
         !
-        !     SET MIXED BOUNDARY CONDITIONS AT X=A, B
+        !     set mixed boundary conditions at x=a, b
         !
         alpha = 1.0
         beta = 1.0
@@ -130,18 +131,18 @@ contains
             bdb(j) = uxe(b, y) + beta*ue(b, y)
         end do
         !
-        !     SET BOUNDARY SWITHCES
+        !     set boundary swithces
         !
         mbdcnd = 3
         nbdcnd = 1
         !
-        !     SET FIRST DIMENSION OF USOL, GRHS
+        !     set first dimension of usol, grhs
         !
         idmn = 33
         !     set for initialization of sepeli
         intl = 0
         !
-        !     OBTAIN SECOND ORDER APPROXIMATION
+        !     obtain second order approximation
         !
         iorder = 2
         call sepeli(intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta &
@@ -153,16 +154,16 @@ contains
             x = a + real(i - 1)*dlx
             do j = 1, ny
                 y = c + real(j - 1)*dly
-                err = max(err, abs((USOL(i, j)-ue(x, y))/ue(x, y)))
+                err = max(err, abs((usol(i, j)-ue(x, y))/ue(x, y)))
             end do
         end do
         err2 = err
         !
-        !     OBTAIN FOURTH ORDER APPROXIMATION
+        !     obtain fourth order approximation
         !
         iorder = 4
         !
-        !     NON-INITIAL CALL
+        !     non-initial call
         !
         intl = 1
         call sepeli (intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta &
@@ -170,37 +171,36 @@ contains
             get_coefficients_in_x_direction, get_coefficients_in_y_direction, grhs, usol, &
             idmn, workspace, pertrb, ierror)
         !
-        !     COMPUTE DISCRETIZATION ERROR
+        !     compute discretization error
         !
         err = 0.0
         do j = 1, ny
             y = c + real(j - 1)*dly
             do i = 1, nx
                 x = a + real(i - 1)*dlx
-                err = max(err, abs((USOL(i, j)-ue(x, y))/ue(x, y)))
+                err = max(err, abs((usol(i, j)-ue(x, y))/ue(x, y)))
             end do
         end do
         err4 = err
         !     Print earlier output from platforms with 32 and 64 bit floating point
         !     arithemtic followed by the output from this computer
-        write( *, *) ''
-        write( *, *) '    sepeli *** TEST RUN *** '
-        write( *, *) &
-            '    Previous 64 bit floating point arithmetic result '
-        write( *, *) '    ierror = 0'
-        write( *, *) '    Second Order discretization error = 9.7891E-5'
-        write( *, *) '    Fourth Order discretization error = 1.4735E-6'
-
-        write( *, *) '    The output from your computer is: '
-        write( *, *) '    ierror =', ierror
-        write( *, *) '    Second Order discretization error =', err2
-        write( *, *) '    Fourth Order discretization error =', err4
+        write( stdout, '(A)') ''
+        write( stdout, '(A)') '     sepeli *** TEST RUN *** '
+        write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(A)') '     ierror = 0'
+        write( stdout, '(A)') '     Second Order discretization error = 9.7891E-5'
+        write( stdout, '(A)') '     Fourth Order discretization error = 1.4735E-6'
+        write( stdout, '(A)') '     The output from your computer is: '
+        write( stdout, '(A,I3)')  '     ierror =', ierror
+        write( stdout, '(A,1pe15.6)') '     Second Order discretization error =', err2
+        write( stdout, '(A,1pe15.6)')  '     Fourth Order discretization error =', err4
 
         ! release dynamically allocated real and complex work space
         call workspace%destroy()
 
         ! Release memory
         deallocate( usol, grhs, bda, bdb )
+
 
     contains
 
@@ -309,6 +309,7 @@ contains
             ff = -y
 
         end subroutine get_coefficients_in_y_direction
+
 
     end subroutine test_sepeli
 
@@ -903,8 +904,8 @@ contains
         ierror = 0
         !     compute second or fourth order solution
         associate( &
-            rew => w%rew, &
-            cxw => w%cxw &
+            rew => w%real_workspace, &
+            cxw => w%complex_workspace &
             )
             call spelip(intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta, c, d, n, &
                 nbdcnd, bdc, gama, bdd, xnu, cofx, cofy, rew(i1), rew(i2), rew(i3), &

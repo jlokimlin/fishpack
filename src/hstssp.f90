@@ -610,7 +610,7 @@ contains
         end if
 
         ! solve system
-        associate( rew => workspace%rew )
+        associate( rew => workspace%real_workspace )
             call hstsspp(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
                 elmbda, f, idimf, pertrb, ierror, rew)
         end associate

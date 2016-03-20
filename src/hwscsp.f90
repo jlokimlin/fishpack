@@ -182,7 +182,7 @@ contains
             '     ierror =', ierror, '     discretization error =', discretization_error
 
 
-        ! release dynamically allocated workspace arrays
+        ! Release memory
         call workspace%destroy()
 
     end subroutine test_hwscsp
@@ -720,8 +720,8 @@ contains
     end if
 
     associate( &
-        rew => w%rew, &
-        cxw => w%cxw &
+        rew => w%real_workspace, &
+        cxw => w%complex_workspace &
         )
         call hwscs1 (intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, nbdcnd, bdrs, &
             bdrf, elmbda, f, idimf, pertrb, rew, cxw, rew(i1), rew(i2), &

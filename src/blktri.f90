@@ -555,8 +555,8 @@ contains
 
         ! Solve system
         associate( &
-            rew => w%rew, &
-            cxw => w%cxw &
+            rew => w%real_workspace, &
+            cxw => w%complex_workspace &
             )
             call blktrii( iflg, np, n, an, bn, cn, mp, m, am, bm, cm, idimy, y, &
                 ierror, rew, cxw )

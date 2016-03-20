@@ -544,7 +544,7 @@ contains
         ! Check if allocation was successful
         if (ierror == 20) return
 
-        associate( rew => workspace%rew )
+        associate( rew => workspace%real_workspace )
             call hstplrr( a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
                 elmbda, f, idimf, pertrb, ierror, rew)
         end associate

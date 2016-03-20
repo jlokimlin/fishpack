@@ -2,7 +2,8 @@ module module_pois3d
 
     use, intrinsic :: iso_fortran_env, only: &
         ip => INT32, &
-        wp => REAL64
+        wp => REAL64, &
+        stdout => OUTPUT_UNIT
 
     use type_FishpackWorkspace, only: &
         FishpackWorkspace
@@ -83,10 +84,10 @@ contains
         real (wp), dimension(10) :: a, b, c
         real (wp), dimension(30) :: x, y
         real (wp), dimension(10) :: z
-        real (wp) :: pi, dx, c1, dy, c2, dz, dzsq, t, err
+        real (wp) :: pi, dx, c1, dy, c2, dz, dzsq, t, discretization_error
         !-----------------------------------------------
         !
-        !     FROM THE DIMENSION STATEMENT WE GET THAT LDIMF = 32, MDIMF = 33,
+        !     from the dimension statement we get that ldimf = 32, mdimf = 33,
         !
         ldimf = 32
         mdimf = 33
@@ -104,7 +105,7 @@ contains
         dz = 1./real(n)
         dzsq = 1./dz**2
         !
-        !     GENERATE GRID POINTS FOR LATER USE.
+        !     generate grid points for later use.
         !
         do i = 1, l
             x(i) = (-pi) + real(i - 1)*dx
@@ -113,66 +114,64 @@ contains
             y(j) = (-pi) + real(j - 1)*dy
         end do
         !
-        !     GENERATE COEFFICIENTS
+        !     generate coefficients
         !
         a(1) = 0.
         b(1) = -2.*dzsq
-        c(1) = -B(1)
+        c(1) = -b(1)
         z(1) = 0.
         do k = 2, n
             z(k) = real(k - 1)*dz
-            t = 1. + Z(k)
+            t = 1. + z(k)
             a(k) = t**2*dzsq + t/dz
             b(k) = -2.*t**2*dzsq
             c(k) = t**2*dzsq - t/dz
         end do
         !
-        !     GENERATE RIGHT SIDE OF EQUATION
+        !     generate right side of equation
         !
         do i = 1, l
             do j = 1, m
                 do k = 2, n
-                    f(i, j, k) = 2.*SIN(X(i))*SIN(Y(j))*(1. + Z(k))**4
+                    f(i, j, k) = 2.*sin(x(i))*sin(y(j))*(1. + z(k))**4
                 end do
             end do
         end do
         do i = 1, l
             do j = 1, l
-                f(i, j, 1) = (10. + 8./dz)*SIN(X(i))*SIN(Y(j))
-                f(i, j, n) = F(i, j, n) - C(n)*16.*SIN(X(i))*SIN(Y(j))
+                f(i, j, 1) = (10. + 8./dz)*sin(x(i))*sin(y(j))
+                f(i, j, n) = f(i, j, n) - c(n)*16.*sin(x(i))*sin(y(j))
             end do
         end do
         c(n) = 0.
         !
-        !     CALL pois3d TO SOLVE EQUATIONS.
+        !     call pois3d to solve equations.
         !
         call pois3d(lperod, l, c1, mperod, m, c2, nperod, n, a, b, c, &
             ldimf, mdimf, f, ierror)
         !
-        !     COMPUTE DISCRETIZATION ERROR.  THE EXACT SOLUTION IS
+        !     compute discretization error.  the exact solution is
         !
-        !              U(X, Y, Z) = SIN(X)*SIN(Y)*(1+Z)**4
+        !              u(x, y, z) = sin(x)*sin(y)*(1+z)**4
         !
-        err = 0.
+        discretization_error = 0.
         do i = 1, l
             do j = 1, m
                 do k = 1, n
-                    t = abs(F(i, j, k)-SIN(X(i))*SIN(Y(j))*(1.+Z(k))**4)
-                    err = max(t, err)
+                    t = abs(f(i, j, k)-sin(x(i))*sin(y(j))*(1.+z(k))**4)
+                    discretization_error = max(t, discretization_error)
                 end do
             end do
         end do
         !     Print earlier output from platforms with 32 and 64 bit floating point
         !     arithemtic followed by the output from this computer
-        write( *, *) ''
-        write( *, *) '    pois3d *** TEST RUN *** '
-        write( *, *) &
-            '    Previous 64 bit floating point arithmetic result '
-        write( *, *) '    ierror = 0,  discretization error = 2.93277E-2'
-
-        write( *, *) '    The output from your computer is: '
-        write( *, *) '    ierror =', ierror, ' discretization error = ', &
-            err
+        write( stdout, '(A)') ''
+        write( stdout, '(A)') '     pois3d *** TEST RUN *** '
+        write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(A)') '     ierror = 0,  discretization error = 2.93277E-2'
+        write( stdout, '(A)') '     The output from your computer is: '
+        write( stdout, '(A,I3,A,1pe15.6)') '     ierror =', ierror, ' discretization error = ', &
+            discretization_error
 
     end subroutine test_pois3d
 
@@ -500,7 +499,7 @@ contains
         if (ierror == 20) return
 
         ! solve system
-        associate( rew => workspace%rew )
+        associate( rew => workspace%real_workspace )
             call pois3dd(lperod, l, c1, mperod, m, c2, nperod, n, a, b, c, ldimf, &
                 mdimf, f, ierror, rew)
         end associate

@@ -655,7 +655,7 @@ contains
         if (ierror == 20) return
 
         ! solve system
-        associate( rew => workspace%rew )
+        associate( rew => workspace%real_workspace )
             call hw3crtt(xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m, mbdcnd, bdys, &
                 bdyf, zs, zf, n, nbdcnd, bdzs, bdzf, elmbda, ldimf, &
                 mdimf, f, pertrb, ierror, rew)

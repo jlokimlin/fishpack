@@ -709,8 +709,8 @@ contains
             ierr1 = 0
 
             associate( &
-                rew => w%rew, &
-                cxw => w%cxw &
+                rew => w%real_workspace, &
+                cxw => w%complex_workspace &
                 )
                 call hstcs1(intl, a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
                     elmbda, f, idimf, pertrb, ierr1, rew(iw1), rew(iwbm), rew(iwcm), &

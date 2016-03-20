@@ -525,7 +525,7 @@ contains
         !  Check if workspace allocation failed
         if (ierror == 20) return
 
-        associate( cxw => workspace%cxw )
+        associate( cxw => workspace%complex_workspace )
             call cmgnbnn(nperod, n, mperod, m, a, b, c, idimy, y, cxw)
         end associate
 

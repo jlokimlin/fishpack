@@ -27,7 +27,7 @@ program test
     implicit none
 
     call test_procedural_library()
-    !call test_object_oriented_library()
+    call test_object_oriented_library()
 
 
 contains

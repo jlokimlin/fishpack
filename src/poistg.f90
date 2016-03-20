@@ -563,7 +563,7 @@ contains
         if (ierror == 20) return
 
         ! solve system
-        associate( rew => workspace%rew )
+        associate( rew => workspace%real_workspace )
             call  poistgg( nperod, n, mperod, m, a, b, c, idimy, y, ierror, rew )
         end associate
 

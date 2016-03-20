@@ -503,16 +503,16 @@ contains
                             if (ierror /= 0) return
                             !     compute b poly roots (real and complex)
                             associate( &
-                                rew => w%rew, &
-                                cxw => w%cxw &
+                                rew => w%real_workspace, &
+                                cxw => w%complex_workspace &
                                 )
                                 call ccompb(nl, ierror, an, bn, cn, rew,cxw, rew(iwah), rew(iwbh))
                             end associate
                         else
                             if (mp /= 0) then
                                 associate( &
-                                    rew => w%rew, &
-                                    cxw => w%cxw &
+                                    rew => w%real_workspace, &
+                                    cxw => w%complex_workspace &
                                     )
                                     call cblkt1 (nl, an, bn, cn, m, am, bm, cm, idimy, y, rew, cxw, &
                                         cxw(iw1), cxw(iw2), cxw(iw3), cxw(iwd), cxw(iww), &
@@ -520,8 +520,8 @@ contains
                                 end associate
                             else
                                 associate( &
-                                    rew => w%rew, &
-                                    cxw => w%cxw &
+                                    rew => w%real_workspace, &
+                                    cxw => w%complex_workspace &
                                     )
                                     call cblkt1 (nl, an, bn, cn, m, am, bm, cm, idimy, y, rew, cxw, &
                                         cxw(iw1), cxw(iw2), cxw(iw3), cxw(iwd), cxw(iww), &

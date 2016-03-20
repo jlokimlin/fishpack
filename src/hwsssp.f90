@@ -548,30 +548,32 @@ contains
         ! Dictionary: local variables
         !-----------------------------------------------
         type (FishpackWorkspace) :: workspace
-        integer                  :: nbr
-        real                     :: pi, dum, tpi
         !-----------------------------------------------
-        !
-        nbr = nbdcnd + 1
-        pi = acos( -1.0 )
-        tpi = 2.*pi
+
+        ! initialize error flag
         ierror = 0
-        if (ts<0. .or. tf>pi) ierror = 1
-        if (ts >= tf) ierror = 2
-        if (mbdcnd<1 .or. mbdcnd>9) ierror = 3
-        if (ps<0. .or. pf>tpi) ierror = 4
-        if (ps >= pf) ierror = 5
-        if (n < 5) ierror = 6
-        if (m < 5) ierror = 7
-        if (nbdcnd<0 .or. nbdcnd>4) ierror = 8
-        if (elmbda > 0.) ierror = 9
-        if (idimf < m + 1) ierror = 10
-        if ((nbdcnd==1 .or. nbdcnd==2 .or. nbdcnd==4) .and. mbdcnd>=5) ierror = 11
-        if(ts==0..and.(mbdcnd==3.or.mbdcnd==4.or.mbdcnd==8))ierror=12
-        if(tf==pi.and.(mbdcnd==2.or.mbdcnd==3.or.mbdcnd==6))ierror=13
-        if((mbdcnd==5.or.mbdcnd==6.or.mbdcnd==9).and.ts/=0.)ierror=14
-        if (mbdcnd>=7 .and. tf/=pi) ierror = 15
-        if (ierror/=0 .and. ierror/=9) return
+
+        ! Check if input values are valid
+        associate( pi => acos( -1.0_wp ) )
+            associate( two_pi => 2.0_wp * pi)
+                if (ts<0. .or. tf>pi) ierror = 1
+                if (ts >= tf) ierror = 2
+                if (mbdcnd<1 .or. mbdcnd>9) ierror = 3
+                if (ps<0. .or. pf>two_pi) ierror = 4
+                if (ps >= pf) ierror = 5
+                if (n < 5) ierror = 6
+                if (m < 5) ierror = 7
+                if (nbdcnd<0 .or. nbdcnd>4) ierror = 8
+                if (elmbda > 0.) ierror = 9
+                if (idimf < m + 1) ierror = 10
+                if ((nbdcnd==1 .or. nbdcnd==2 .or. nbdcnd==4) .and. mbdcnd>=5) ierror = 11
+                if(ts==0..and.(mbdcnd==3.or.mbdcnd==4.or.mbdcnd==8))ierror=12
+                if(tf==pi.and.(mbdcnd==2.or.mbdcnd==3.or.mbdcnd==6))ierror=13
+                if((mbdcnd==5.or.mbdcnd==6.or.mbdcnd==9).and.ts/=0.)ierror=14
+                if (mbdcnd>=7 .and. tf/=pi) ierror = 15
+                if (ierror/=0 .and. ierror/=9) return
+            end associate
+        end associate
 
         ! allocate generous work space estimate
         associate( &
@@ -584,12 +586,13 @@ contains
         ! check that allocation was successful
         if (ierror == 20) return
 
-        associate( rew => workspace%rew )
+        ! solve system
+        associate( rew => workspace%real_workspace )
             call hwssspp(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, bdps, &
                 bdpf, elmbda, f, idimf, pertrb, ierror, rew)
         end associate
 
-        ! release dynamically allocated workspace arrays
+        ! Release memory
         call workspace%destroy()
 
     end subroutine hwsssp
@@ -625,6 +628,7 @@ contains
             w(3*m+4), w(4*m+5), w(5*m+6), w(6*m+7))
 
     end subroutine hwssspp
+
 
     subroutine hwsss1(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
         bdps, bdpf, elmbda, f, idimf, pertrb, am, bm, cm, sn, ss, &

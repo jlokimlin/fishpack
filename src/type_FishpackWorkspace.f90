@@ -49,31 +49,32 @@ module type_FishpackWorkspace
     private
     public :: FishpackWorkspace
 
+
     ! Declare derived data type
     type, public :: FishpackWorkspace
         !---------------------------------------------------------------------------------
         ! Class variables
         !---------------------------------------------------------------------------------
-        real (wp),    allocatable :: rew(:)
-        complex (wp), allocatable :: cxw(:)
+        real (wp),    allocatable :: real_workspace(:)
+        complex (wp), allocatable :: complex_workspace(:)
         !---------------------------------------------------------------------------------
     contains
         !---------------------------------------------------------------------------------
         ! Class methods
         !---------------------------------------------------------------------------------
-        procedure,         public :: create => create_fish_workspace
-        procedure,         public :: destroy => destroy_fish_workspace
+        procedure,         public :: create => create_fishpack_workspace
+        procedure,         public :: destroy => destroy_fishpack_workspace
         procedure, nopass, public :: get_block_tridiagonal_workpace_dimensions
         procedure, nopass, public :: get_genbun_workspace_dimensions
-        final                     :: finalize_fish_workspace
+        final                     :: finalize_fishpack_workspace
         !---------------------------------------------------------------------------------
     end type FishpackWorkspace
 
+
 contains
-    !
-    !*****************************************************************************************
-    !
-    subroutine create_fish_workspace( this, irwk, icwk, ierror )
+
+
+    subroutine create_fishpack_workspace( this, irwk, icwk, ierror )
         ! Remark:
         ! ierror is set to 20 if the dynamic allocation is unsuccessful
         ! (e.g., this would happen if m,n are too large for the computers memory
@@ -82,9 +83,9 @@ contains
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
         class (FishpackWorkspace), intent (in out)  :: this
-        integer,                   intent (in)       :: irwk ! required real work space length
+        integer (ip),              intent (in)      :: irwk ! required real work space length
         integer (ip),              intent (in)      :: icwk ! required integer work space length
-        integer,                   intent (in out)   :: ierror
+        integer (ip),              intent (in out)  :: ierror
         !--------------------------------------------------------------------------------
         ! Dictionary: local variables
         !--------------------------------------------------------------------------------
@@ -96,12 +97,20 @@ contains
 
         ! allocate irwk words of real work space
         if (irwk > 0) then
-            allocate(this%rew(irwk), stat = allocation_status)
+            allocate(this%real_workspace(irwk), stat = allocation_status)
+            !  Check if allocation was successful
+            if (allocation_status /= 0 ) then
+                error stop 'Failed to allocate real_workspace array'
+            end if
         end if
-        
+
         ! allocate icwk words of complex work space
         if (icwk > 0) then
-            allocate(this%cxw(icwk), stat = allocation_status)
+            allocate(this%complex_workspace(icwk), stat = allocation_status)
+            !  Check if allocation was successful
+            if (allocation_status /= 0 ) then
+                error stop 'Failed to allocate complex_workspace array'
+            end if
         end if
 	
         ! Set error flag
@@ -112,10 +121,9 @@ contains
             ierror = 20
         end if
 
-    end subroutine create_fish_workspace
-    !
-    !*****************************************************************************************
-    !
+    end subroutine create_fishpack_workspace
+
+
     subroutine get_block_tridiagonal_workpace_dimensions( n, m, irwk, icwk)
         !
         ! Purpose:
@@ -149,9 +157,8 @@ contains
         end associate
 
     end subroutine get_block_tridiagonal_workpace_dimensions
-    !
-    !*****************************************************************************************
-    !
+
+
     subroutine get_genbun_workspace_dimensions( n, m, irwk )
         !
         ! Purpose:
@@ -183,10 +190,9 @@ contains
         irwk = 4*n + (10 + log2n)*m
 
     end subroutine get_genbun_workspace_dimensions
-    !
-    !*****************************************************************************************
-    !
-    subroutine destroy_fish_workspace( this )
+
+
+    subroutine destroy_fishpack_workspace( this )
         !
         ! Purpose:
         !
@@ -200,22 +206,15 @@ contains
         !--------------------------------------------------------------------------------
 
         ! Free dynamically allocated real workspace array
-        if ( allocated( this%rew ) ) deallocate( this%rew )
+        if ( allocated( this%real_workspace ) ) deallocate( this%real_workspace )
 
         ! Release dynamically allocated complex workspace array
-        if ( allocated( this%cxw ) )  deallocate( this%cxw )
+        if ( allocated( this%complex_workspace ) )  deallocate( this%complex_workspace )
 
-    end subroutine destroy_fish_workspace
-    !
-    !*****************************************************************************************
-    !
-    subroutine finalize_fish_workspace( this )
-        !
-        ! Purpose:
-        !
-        ! This subroutine releases dynamically allocated work space.
-        ! It should be called after a fishpack solver has finished
-        !
+    end subroutine destroy_fishpack_workspace
+
+
+    subroutine finalize_fishpack_workspace( this )
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
@@ -224,8 +223,7 @@ contains
 
         call this%destroy()
 
-    end subroutine finalize_fish_workspace
-    !
-    !*****************************************************************************************
-    !
+    end subroutine finalize_fishpack_workspace
+
+
 end module type_FishpackWorkspace
