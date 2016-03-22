@@ -958,8 +958,8 @@ subroutine POISN2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
     !
     equivalence (K(1), K1), (K(2), K2), (K(3), K3), (K(4), K4)
     fistag = 3 - istag
-    fnum = 1.0_wp/real(istag, kind = wp)
-    fden = 0.5_wp * real(istag - 1, kind = wp)
+    fnum = 1.0_wp/real(istag, kind=wp)
+    fden = 0.5_wp * real(istag - 1, kind=wp)
     mr = m
     ipp = -mr
     ipstor = 0

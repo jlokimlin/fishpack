@@ -693,7 +693,7 @@ contains
                 s = sum(f(msp1:mstm1, nstart) + f(msp1:mstm1, nstop))
                 s1 = s1 + s*a1 + f(mstart, nstart) + f(mstart, nstop) &
                     + f( mstop, nstart) + f(mstop, nstop)
-                s = (2.0_wp + real(nunk - 2, kind = wp)*a2) * (2.0_wp + real(munk - 2, kind=wp)*a1)
+                s = (2.0_wp + real(nunk - 2, kind=wp)*a2) * (2.0_wp + real(munk - 2, kind=wp)*a1)
                 pertrb = s1/s
                 f(mstart:mstop, nstart:nstop) = f(mstart:mstop, nstart: nstop) - pertrb
                 pertrb = pertrb/delysq

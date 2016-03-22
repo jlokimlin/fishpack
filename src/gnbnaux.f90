@@ -62,7 +62,7 @@
 !                        Fortran 90 features
 !
 ! PORTABILITY            FORTRAN 90
-! ********************************************************************
+!
 module module_gnbnaux
 
     use, intrinsic :: iso_fortran_env, only: &
@@ -83,6 +83,29 @@ contains
 
 
     pure subroutine cosgen(n, ijump, fnum, fden, a)
+        !
+        ! Purpose:
+        !
+        !     this subroutine computes required cosine values in ascending
+        !     order.  when ijump .gt. 1 the routine computes values
+        !
+        !        2*cos(j*pi/l) , j=1, 2, ..., l and j .ne. 0(mod n/ijump+1)
+        !
+        !     where l = ijump*(n/ijump+1).
+        !
+        !
+        !     when ijump = 1 it computes
+        !
+        !            2*cos((j-fnum)*pi/(n+fden)) ,  j=1, 2, ... , n
+        !
+        !     where
+        !        fnum = 0.5, fden = 0.0,  for regular reduction values
+        !        fnum = 0.0, fden = 1.0, for b-r and c-r when istag = 1
+        !        fnum = 0.0, fden = 0.5, for b-r and c-r when istag = 2
+        !        fnum = 0.5, fden = 0.5, for b-r and c-r when istag = 2
+        !                                in poisn2 only.
+        !
+        !
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
@@ -98,34 +121,12 @@ contains
         real (wp), parameter :: PI = acos( -1.0_wp)
         real (wp)            :: dum, pibyn, x, y
         !-----------------------------------------------
-        !
-        !
-        !     THIS SUBROUTINE COMPUTES REQUIRED COSINE VALUES IN ASCENDING
-        !     ORDER.  WHEN IJUMP .GT. 1 THE ROUTINE COMPUTES VALUES
-        !
-        !        2*COS(J*PI/L) , J=1, 2, ..., L AND J .NE. 0(MOD N/IJUMP+1)
-        !
-        !     WHERE L = IJUMP*(N/IJUMP+1).
-        !
-        !
-        !     WHEN IJUMP = 1 IT COMPUTES
-        !
-        !            2*COS((J-FNUM)*PI/(N+FDEN)) ,  J=1, 2, ... , N
-        !
-        !     WHERE
-        !        FNUM = 0.5, FDEN = 0.0,  FOR REGULAR REDUCTION VALUES
-        !        FNUM = 0.0, FDEN = 1.0, FOR B-R AND C-R WHEN ISTAG = 1
-        !        FNUM = 0.0, FDEN = 0.5, FOR B-R AND C-R WHEN ISTAG = 2
-        !        FNUM = 0.5, FDEN = 0.5, FOR B-R AND C-R WHEN ISTAG = 2
-        !                                IN POISN2 ONLY.
-        !
-        !
 
         if (n /= 0) then
             if (ijump /= 1) then
                 k3 = n/ijump + 1
                 k4 = k3 - 1
-                pibyn = PI/real(n + ijump)
+                pibyn = PI/(n + ijump)
                 do k = 1, ijump
                     k1 = (k - 1)*k3
                     k5 = (k - 1)*k4
@@ -137,10 +138,10 @@ contains
                 end do
             else
                 np1 = n + 1
-                y = PI/(real(n, kind = wp) + fden)
+                y = PI/(real(n, kind=wp) + fden)
 
                 do i = 1, n
-                    x = real(np1 - i, kind = wp) - fnum
+                    x = real(np1 - i, kind=wp) - fnum
                     a(i) = 2.0_wp * cos(x*y)
                 end do
             end if
@@ -150,62 +151,65 @@ contains
 
 
     subroutine trix(idegbr, idegcr, m, a, b, c, y, tcos, d, w)
+        !
+        ! Purpose:
+        !
+        !     subroutine to solve a system of linear equations where the
+        !     coefficient matrix is a rational function in the matrix given by
+        !     tridiagonal  ( . . . , a(i), b(i), c(i), . . . ).
+        !
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
         integer (ip), intent (in) :: idegbr
         integer (ip), intent (in) :: idegcr
         integer (ip), intent (in) :: m
-        real (wp), intent (in) :: a(*)
-        real (wp), intent (in) :: b(*)
-        real (wp), intent (in) :: c(*)
-        real (wp), intent (in out) :: y(*)
-        real (wp), intent (in) :: tcos(*)
-        real (wp), intent (in out) :: d(*)
-        real (wp), intent (in out) :: w(*)
+        real (wp),    intent (in) :: a(*)
+        real (wp),    intent (in) :: b(*)
+        real (wp),    intent (in) :: c(*)
+        real (wp),    intent (in out) :: y(*)
+        real (wp),    intent (in) :: tcos(*)
+        real (wp),    intent (in out) :: d(*)
+        real (wp),    intent (in out) :: w(*)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
         integer (ip) :: mm1, ifb, ifc, l, lint, k, i, ip
         real (wp)    :: x, xx, z
         !-----------------------------------------------
-        !
-        !     SUBROUTINE TO SOLVE A SYSTEM OF LINEAR EQUATIONS WHERE THE
-        !     COEFFICIENT MAtrix IS A RATIONAL FUNCTION IN THE MAtrix GIVEN BY
-        !     TRIDIAGONAL  ( . . . , A(I), B(I), C(I), . . . ).
-        !
+
         mm1 = m - 1
         ifb = idegbr + 1
         ifc = idegcr + 1
         l = ifb/ifc
         lint = 1
         do k = 1, idegbr
-            x = TCOS(k)
+            x = tcos(k)
             if (k == l) then
                 i = idegbr + lint
-                xx = x - TCOS(i)
-                w(:m) = Y(:m)
-                y(:m) = xx*Y(:m)
+                xx = x - tcos(i)
+                w(:m) = y(:m)
+                y(:m) = xx*y(:m)
             end if
-            z = 1./(B(1)-x)
-            d(1) = C(1)*z
-            y(1) = Y(1)*z
+            z = 1./(b(1)-x)
+            d(1) = c(1)*z
+            y(1) = y(1)*z
             do i = 2, mm1
-                z = 1./(B(i)-x-A(i)*D(i-1))
-                d(i) = C(i)*z
-                y(i) = (Y(i)-A(i)*Y(i-1))*z
+                z = 1./(b(i)-x-a(i)*d(i-1))
+                d(i) = c(i)*z
+                y(i) = (y(i)-a(i)*y(i-1))*z
             end do
-            z = B(m) - x - A(m)*D(mm1)
+            z = b(m) - x - a(m)*d(mm1)
             if (z == 0.) then
                 y(m) = 0.
             else
-                y(m) = (Y(m)-A(m)*Y(mm1))/z
+                y(m) = (y(m)-a(m)*y(mm1))/z
             end if
             do ip = 1, mm1
-                y(m-ip) = Y(m-ip) - D(m-ip)*Y(m+1-ip)
+                y(m-ip) = y(m-ip) - d(m-ip)*y(m+1-ip)
             end do
             if (k /= l) cycle
-            y(:m) = Y(:m) + W(:m)
+            y(:m) = y(:m) + w(:m)
             lint = lint + 1
             l = (lint*ifb)/ifc
         end do
@@ -245,13 +249,13 @@ contains
         integer (ip) :: l3, lint1, lint2, lint3, kint1, kint2, kint3, n, i, ipp
         real (wp)    :: x, z, xx
         !-----------------------------------------------
-        !
+
 
         mm1 = m - 1
-        k1 = K(1)
-        k2 = K(2)
-        k3 = K(3)
-        k4 = K(4)
+        k1 = k(1)
+        k2 = k(2)
+        k3 = k(3)
+        k4 = k(4)
         if1 = k1 + 1
         if2 = k2 + 1
         if3 = k3 + 1
@@ -269,71 +273,79 @@ contains
             kint3 = kint2 + k3
         end if
         do n = 1, k1
-            x = TCOS(n)
+            x = tcos(n)
             if (k2k3k4 /= 0) then
                 if (n == l1) then
-                    w1(:m) = Y1(:m)
+                    w1(:m) = y1(:m)
                 end if
                 if (n == l2) then
-                    w2(:m) = Y2(:m)
+                    w2(:m) = y2(:m)
                 end if
                 if (n == l3) then
-                    w3(:m) = Y3(:m)
+                    w3(:m) = y3(:m)
                 end if
             end if
-            z = 1./(B(1)-x)
-            d(1) = C(1)*z
-            y1(1) = Y1(1)*z
-            y2(1) = Y2(1)*z
-            y3(1) = Y3(1)*z
+            z = 1./(b(1)-x)
+            d(1) = c(1)*z
+            y1(1) = y1(1)*z
+            y2(1) = y2(1)*z
+            y3(1) = y3(1)*z
             do i = 2, m
-                z = 1./(B(i)-x-A(i)*D(i-1))
-                d(i) = C(i)*z
-                y1(i) = (Y1(i)-A(i)*Y1(i-1))*z
-                y2(i) = (Y2(i)-A(i)*Y2(i-1))*z
-                y3(i) = (Y3(i)-A(i)*Y3(i-1))*z
+                z = 1./(b(i)-x-a(i)*d(i-1))
+                d(i) = c(i)*z
+                y1(i) = (y1(i)-a(i)*y1(i-1))*z
+                y2(i) = (y2(i)-a(i)*y2(i-1))*z
+                y3(i) = (y3(i)-a(i)*y3(i-1))*z
             end do
             do ipp = 1, mm1
-                y1(m-ipp) = Y1(m-ipp) - D(m-ipp)*Y1(m+1-ipp)
-                y2(m-ipp) = Y2(m-ipp) - D(m-ipp)*Y2(m+1-ipp)
-                y3(m-ipp) = Y3(m-ipp) - D(m-ipp)*Y3(m+1-ipp)
+                y1(m-ipp) = y1(m-ipp) - d(m-ipp)*y1(m+1-ipp)
+                y2(m-ipp) = y2(m-ipp) - d(m-ipp)*y2(m+1-ipp)
+                y3(m-ipp) = y3(m-ipp) - d(m-ipp)*y3(m+1-ipp)
             end do
             if (k2k3k4 == 0) cycle
             if (n == l1) then
                 i = lint1 + kint1
-                xx = x - TCOS(i)
-                y1(:m) = xx*Y1(:m) + W1(:m)
+                xx = x - tcos(i)
+                y1(:m) = xx*y1(:m) + w1(:m)
                 lint1 = lint1 + 1
                 l1 = (lint1*if1)/if2
             end if
             if (n == l2) then
                 i = lint2 + kint2
-                xx = x - TCOS(i)
-                y2(:m) = xx*Y2(:m) + W2(:m)
+                xx = x - tcos(i)
+                y2(:m) = xx*y2(:m) + w2(:m)
                 lint2 = lint2 + 1
                 l2 = (lint2*if1)/if3
             end if
             if (n /= l3) cycle
             i = lint3 + kint3
-            xx = x - TCOS(i)
-            y3(:m) = xx*Y3(:m) + W3(:m)
+            xx = x - tcos(i)
+            y3(:m) = xx*y3(:m) + w3(:m)
             lint3 = lint3 + 1
             l3 = (lint3*if1)/if4
         end do
 
     end subroutine tri3
-    !
-    !*****************************************************************************************
-    !
+
+
     subroutine merge_rename(tcos, i1, m1, i2, m2, i3)
+        !
+        ! Purpose:
+        !
+        !     this subroutine merges two ascending strings of numbers in the
+        !     array tcos.  the first string is of length m1 and starts at
+        !     tcos(i1+1).  the second string is of length m2 and starts at
+        !     tcos(i2+1).  the merged string goes into tcos(i3+1).
+        !
+        !
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: i1
-        integer (ip), intent (in) :: m1
-        integer (ip), intent (in) :: i2
-        integer (ip), intent (in) :: m2
-        integer (ip), intent (in) :: i3
+        integer (ip), intent (in)     :: i1
+        integer (ip), intent (in)     :: m1
+        integer (ip), intent (in)     :: i2
+        integer (ip), intent (in)     :: m2
+        integer (ip), intent (in)     :: i3
         real (wp),    intent (in out) :: tcos(*)
         !-----------------------------------------------
         ! Dictionary: local variables
@@ -341,13 +353,7 @@ contains
         integer (ip) :: j11, j3, j1, j2, j, l, k, m
         real (wp)    :: x, y
         !-----------------------------------------------
-        !
-        !     THIS SUBROUTINE MERGES TWO ASCENDING STRINGS OF NUMBERS IN THE
-        !     ARRAY TCOS.  THE FIRST STRING IS OF LENGTH M1 AND STARTS AT
-        !     TCOS(I1+1).  THE SECOND STRING IS OF LENGTH M2 AND STARTS AT
-        !     TCOS(I2+1).  THE MERGED STRING GOES INTO TCOS(I3+1).
-        !
-        !
+
         j1 = 1
         j2 = 1
         j = i3
@@ -359,9 +365,9 @@ contains
     do j1 = j11, j3
         j = j + 1
         l = j1 + i1
-        x = TCOS(l)
+        x = tcos(l)
         l = j2 + i2
-        y = TCOS(l)
+        y = tcos(l)
         if (x - y > 0.) go to 103
         tcos(j) = x
     end do
@@ -376,7 +382,7 @@ contains
     do j = j1, m1
         m = k + j
         l = j + i1
-        tcos(m) = TCOS(l)
+        tcos(m) = tcos(l)
     end do
     go to 109
 106 continue
@@ -386,7 +392,7 @@ contains
     do j = j2, m2
         m = k + j
         l = j + i2
-        tcos(m) = TCOS(l)
+        tcos(m) = tcos(l)
     end do
 109 continue
 

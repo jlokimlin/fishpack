@@ -708,18 +708,18 @@ subroutine postg2(nperod, n, m, a, bb, c, idimq, q, b, b2, b3, w, &
     integer (ip), intent (in) :: n
     integer (ip), intent (in) :: m
     integer (ip), intent (in) :: idimq
-    real (wp) :: a(*)
-    real (wp) :: bb(*)
-    real (wp) :: c(*)
+    real (wp), intent (in) :: a(*)
+    real (wp), intent (in) :: bb(*)
+    real (wp), intent (in) :: c(*)
     real (wp), intent (in out) :: q(idimq, *)
-    real (wp) :: b(*)
-    real (wp) :: b2(*)
-    real (wp) :: b3(*)
+    real (wp), intent (in out) :: b(*)
+    real (wp), intent (in out) :: b2(*)
+    real (wp), intent (in out) :: b3(*)
     real (wp), intent (in out) :: w(*)
-    real (wp) :: w2(*)
-    real (wp) :: w3(*)
-    real (wp) :: d(*)
-    real (wp) :: tcos(*)
+    real (wp), intent (in out) :: w2(*)
+    real (wp), intent (in out) :: w3(*)
+    real (wp), intent (in out) :: d(*)
+    real (wp), intent (in out) :: tcos(*)
     real (wp), intent (in out) :: p(*)
     !-----------------------------------------------
     ! Dictionary: local variables

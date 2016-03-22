@@ -78,12 +78,12 @@ contains
         a = 1.
         b = 3.
         m = 48
-        dx = (b - a)/real(m)
+        dx = (b - a)/m
         mbdcnd = 2
         c = -1.
         d = 1.
         n = 53
-        dy = (d - c)/real(n)
+        dy = (d - c)/n
         nbdcnd = 0
         elmbda = -2.
         !
@@ -495,16 +495,13 @@ contains
             call workspace%create( irwk, icwk, ierror )
         end associate
 
-        !  check that workspace allocation was successful
-        if (ierror == 20) return
-
         ! Solve system
         associate( rew => workspace%real_workspace )
             call hstcrtt(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
                 elmbda, f, idimf, pertrb, ierror, rew)
         end associate
 
-        ! Release dynamically allocated workspace
+        ! Release memory
         call workspace%destroy()
 
     end subroutine hstcrt
@@ -543,10 +540,10 @@ contains
         nperod = nbdcnd
         mperod = 0
         if (mbdcnd > 0) mperod = 1
-        deltax = (b - a)/real(m)
+        deltax = (b - a)/m
         twdelx = 1./deltax
         delxsq = 2./deltax**2
-        deltay = (d - c)/real(n)
+        deltay = (d - c)/n
         twdely = 1./deltay
         delysq = deltay**2
         twdysq = 2./delysq

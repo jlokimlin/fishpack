@@ -143,13 +143,13 @@ contains
         ds = 1.0_wp/(m + 1)
 
         do i = 1, m
-            s(i) = real(i, kind = wp) * ds
+            s(i) = real(i, kind=wp) * ds
         end do
 
         dt = 1.0_wp/(n + 1)
 
         do j = 1, n
-            t(j) = real(j, kind = wp) * dt
+            t(j) = real(j, kind=wp) * dt
         end do
         !
         !     Compute the coefficients am, bm, cm corresponding to the s direction

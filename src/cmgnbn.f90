@@ -469,20 +469,20 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip) :: nperod
-        integer (ip) :: n
-        integer (ip) :: mperod
-        integer (ip) :: m
-        integer (ip) :: idimy
-        integer (ip) :: ierror
-        complex (wp) :: a(*)
-        complex (wp) :: b(*)
-        complex (wp) :: c(*)
-        complex (wp) :: y(idimy, *)
+        integer (ip),             intent (in)     :: nperod
+        integer (ip),             intent (in)     :: n
+        integer (ip),             intent (in)     :: mperod
+        integer (ip),             intent (in)     :: m
+        integer (ip),             intent (in)     :: idimy
+        integer (ip),             intent (out)    :: ierror
+        complex (wp), contiguous, intent (in)     :: a(:)
+        complex (wp), contiguous, intent (in)     :: b(:)
+        complex (wp), contiguous, intent (in)     :: c(:)
+        complex (wp), contiguous, intent (in out) :: y(:,:)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer                 :: i !! counter
+        integer (ip)             :: i !! counter
         type (FishpackWorkspace) :: workspace
         !-----------------------------------------------
 
@@ -543,16 +543,16 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: nperod
-        integer (ip) :: n
-        integer (ip), intent (in) :: mperod
-        integer (ip) :: m
-        integer (ip) :: idimy
-        complex (wp), intent (in) :: a(*)
-        complex (wp), intent (in) :: b(*)
-        complex (wp), intent (in) :: c(*)
-        complex (wp) :: y(idimy, *)
-        complex (wp) :: w(*)
+        integer (ip), intent (in)     :: nperod
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: mperod
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: idimy
+        complex (wp), intent (in)     :: a(*)
+        complex (wp), intent (in)     :: b(*)
+        complex (wp), intent (in)     :: c(*)
+        complex (wp), intent (in out) :: y(idimy, *)
+        complex (wp), intent (in out) :: w(*)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
@@ -674,23 +674,22 @@ end do
 end subroutine cmgnbnn
 
 
-subroutine CMPOSD(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
-
+subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer (ip), intent (in) :: mr
-    integer (ip), intent (in) :: nr
-    integer (ip), intent (in) :: istag
-    integer (ip), intent (in) :: idimq
-    complex (wp) :: ba(*)
-    complex (wp) :: bb(*)
-    complex (wp) :: bc(*)
+    integer (ip), intent (in)     :: mr
+    integer (ip), intent (in)     :: nr
+    integer (ip), intent (in)     :: istag
+    integer (ip), intent (in)     :: idimq
+    complex (wp), intent (in)     :: ba(*)
+    complex (wp), intent (in)     :: bb(*)
+    complex (wp), intent (in)     :: bc(*)
     complex (wp), intent (in out) :: q(idimq, 1)
-    complex (wp) :: b(*)
-    complex (wp) :: w(*)
-    complex (wp) :: d(*)
-    complex (wp) :: tcos(*)
+    complex (wp), intent (in out) :: b(*)
+    complex (wp), intent (in out) :: w(*)
+    complex (wp), intent (in out) :: d(*)
+    complex (wp), intent (in out) :: tcos(*)
     complex (wp), intent (in out) :: p(*)
     !-----------------------------------------------
     ! Dictionary: local variables
@@ -977,7 +976,7 @@ go to 164
 183 continue
     w(1) = CMPLX(real(ipstor), 0.)
     return
-end subroutine CMPOSD
+end subroutine cmposd
 
 
 subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
