@@ -939,7 +939,7 @@ contains
         end if
         wsave(:n) = r(:n)
         call rfftf (n, wsave, wsave(n+1))
-        cf = 2./real(n)
+        cf = 2./n
         cfm = -cf
         azero = 0.5*cf*wsave(1)
         ns2 = (n + 1)/2
@@ -968,7 +968,7 @@ contains
         !-----------------------------------------------
         integer :: ns2, i
         !-----------------------------------------------
-        !
+
         if (n - 2 <= 0) then
             if (n - 2 /= 0) then
                 r(1) = azero
@@ -978,13 +978,18 @@ contains
             r(2) = azero - a(1)
             return
         end if
+
         ns2 = (n - 1)/2
         r(2:ns2*2:2) = 0.5*a(:ns2)
         r(3:ns2*2+1:2) = -0.5*b(:ns2)
         r(1) = azero
-        if (mod(n, 2) == 0) r(n) = a(ns2+1)
+
+        if (mod(n, 2) == 0) then
+            r(n) = a(ns2+1)
+        end if
+
         call rfftb (n, r, wsave(n+1))
-        return
+
     end subroutine ezfftb
 
 
@@ -995,7 +1000,7 @@ contains
         integer  :: n
         real (wp) :: wsave(*)
         !-----------------------------------------------
-        !
+
         if (n == 1) return
 
         call ezfft1 (n, wsave(2*n+1), wsave(3*n+1))
@@ -1046,7 +1051,7 @@ contains
     if (nl /= 1) go to 104
     ifac(1) = n
     ifac(2) = nf
-    argh = two_pi/real(n)
+    argh = two_pi/n
     is = 0
     nfm1 = nf - 1
     l1 = 1
@@ -1723,7 +1728,7 @@ subroutine cfftb1(n, c, ch, wa, ifac)
 end subroutine cfftb1
 
 
-subroutine passb2(ido, l1, cc, ch, wa1)
+pure subroutine passb2(ido, l1, cc, ch, wa1)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
@@ -1759,7 +1764,7 @@ subroutine passb2(ido, l1, cc, ch, wa1)
 end subroutine passb2
 
 
-subroutine passb3(ido, l1, cc, ch, wa1, wa2)
+pure subroutine passb3(ido, l1, cc, ch, wa1, wa2)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
@@ -1819,7 +1824,7 @@ subroutine passb3(ido, l1, cc, ch, wa1, wa2)
 end subroutine passb3
 
 
-subroutine passb4(ido, l1, cc, ch, wa1, wa2, wa3)
+pure subroutine passb4(ido, l1, cc, ch, wa1, wa2, wa3)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
@@ -1887,7 +1892,7 @@ subroutine passb4(ido, l1, cc, ch, wa1, wa2, wa3)
 end subroutine passb4
 
 
-subroutine passb5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
+pure subroutine passb5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
@@ -2198,7 +2203,7 @@ subroutine cfftf1(n, c, ch, wa, ifac)
 end subroutine cfftf1
 
 
-subroutine passf2(ido, l1, cc, ch, wa1)
+pure subroutine passf2(ido, l1, cc, ch, wa1)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
@@ -2230,11 +2235,11 @@ subroutine passf2(ido, l1, cc, ch, wa1)
             ch(i-1, k, 2) = wa1(i-1)*tr2 + wa1(i)*ti2
         end do
     end do
-    return
+
 end subroutine passf2
 
 
-subroutine passf3(ido, l1, cc, ch, wa1, wa2)
+pure subroutine passf3(ido, l1, cc, ch, wa1, wa2)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
@@ -2290,11 +2295,11 @@ subroutine passf3(ido, l1, cc, ch, wa1, wa2)
             ch(i-1, k, 3) = wa2(i-1)*dr3 + wa2(i)*di3
         end do
     end do
-    return
+
 end subroutine passf3
 
 
-subroutine passf4(ido, l1, cc, ch, wa1, wa2, wa3)
+pure subroutine passf4(ido, l1, cc, ch, wa1, wa2, wa3)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
@@ -2358,11 +2363,11 @@ subroutine passf4(ido, l1, cc, ch, wa1, wa2, wa3)
             ch(i, k, 4) = wa3(i-1)*ci4 - wa3(i)*cr4
         end do
     end do
-    return
+
 end subroutine passf4
 
 
-subroutine passf5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
+pure subroutine passf5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
@@ -2479,8 +2484,9 @@ subroutine passf(nac, ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: idot, nt, ipp2, ipph, idp, j, jc, k, i, idl, inc, l, lc &
-        , ik, idlj, idij, idj
+    integer :: idot, nt, ipp2, ipph, idp, j, jc
+    integer :: k, i, idl, inc, l, lc
+    integer :: ik, idlj, idij, idj
     real (wp) :: war, wai
     !-----------------------------------------------
     idot = ido/2
@@ -2562,7 +2568,7 @@ subroutine passf(nac, ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
                 wa(idij+2:ido-2+idij:2)*ch(3:ido-1:2, k, j)
         end do
     end do
-    return
+
 end subroutine passf
 
 
@@ -2651,7 +2657,7 @@ subroutine rffti1(n, wa, ifac)
         end do
         l1 = l2
     end do
-    return
+
 end subroutine rffti1
 
 
@@ -2750,11 +2756,11 @@ subroutine rfftb1(n, c, ch, wa, ifac)
     end do
     if (na == 0) return
     c(:n) = ch(:n)
-    return
+
 end subroutine rfftb1
 
 
-subroutine radb2(ido, l1, cc, ch, wa1)
+pure subroutine radb2(ido, l1, cc, ch, wa1)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
@@ -2790,11 +2796,11 @@ subroutine radb2(ido, l1, cc, ch, wa1)
         ch(ido,:, 1) = cc(ido, 1,:) + cc(ido, 1,:)
         ch(ido,:, 2) = -(cc(1, 2,:)+cc(1, 2,:))
     end if
-    return
+
 end subroutine radb2
 
 
-subroutine radb3(ido, l1, cc, ch, wa1, wa2)
+pure subroutine radb3(ido, l1, cc, ch, wa1, wa2)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
@@ -2848,7 +2854,7 @@ subroutine radb3(ido, l1, cc, ch, wa1, wa2)
 end subroutine radb3
 
 
-subroutine radb4(ido, l1, cc, ch, wa1, wa2, wa3)
+pure subroutine radb4(ido, l1, cc, ch, wa1, wa2, wa3)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
@@ -2925,7 +2931,7 @@ subroutine radb4(ido, l1, cc, ch, wa1, wa2, wa3)
 end subroutine radb4
 
 
-subroutine radb5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
+pure subroutine radb5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
@@ -3155,7 +3161,7 @@ subroutine radbg(ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
             end do
         end do
     end if
-    return
+
 end subroutine radbg
 
 
@@ -3261,7 +3267,7 @@ c(:n) = ch(:n)
 end subroutine rfftf1
 
 
-subroutine radf2(ido, l1, cc, ch, wa1)
+pure subroutine radf2(ido, l1, cc, ch, wa1)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
@@ -3302,7 +3308,7 @@ subroutine radf2(ido, l1, cc, ch, wa1)
 end subroutine radf2
 
 
-subroutine radf3(ido, l1, cc, ch, wa1, wa2)
+pure subroutine radf3(ido, l1, cc, ch, wa1, wa2)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
@@ -3315,7 +3321,7 @@ subroutine radf3(ido, l1, cc, ch, wa1, wa2)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: k, idp2, i, ic
+    integer              :: k, idp2, i, ic
     real (wp), parameter :: taur = -0.5_wp
     real (wp), parameter :: taui = sqrt(3.0_wp)/2.0_wp ! 0.866025403784439
     real (wp)            :: cr2, dr2, di2, dr3, di3, ci2, tr2, ti2, tr3, ti3
@@ -3350,7 +3356,7 @@ subroutine radf3(ido, l1, cc, ch, wa1, wa2)
             ch(ic, 2, k) = ti3 - ti2
         end do
     end do
-    return
+
 end subroutine radf3
 
 
@@ -3372,9 +3378,8 @@ subroutine radf4(ido, l1, cc, ch, wa1, wa2, wa3)
     real (wp) :: tr1, tr2, cr2, ci2, cr3, ci3
     real (wp) :: cr4, ci4, tr4, ti1
     real (wp) :: ti4, ti2, ti3, tr3
-    real (wp), parameter :: hsqt2 = 1.0_wp/sqrt(2.0_wp) ! 0.7071067811865475
+    real (wp), parameter :: one_over_sqrt2 = 1.0_wp/sqrt(2.0_wp) ! 0.7071067811865475
     !-----------------------------------------------
-
 
     do k = 1, l1
         tr1 = cc(1, k, 2) + cc(1, k, 4)
@@ -3384,6 +3389,7 @@ subroutine radf4(ido, l1, cc, ch, wa1, wa2, wa3)
         ch(ido, 2, k) = cc(1, k, 1) - cc(1, k, 3)
         ch(1, 3, k) = cc(1, k, 4) - cc(1, k, 2)
     end do
+
     if (ido - 2 >= 0) then
         if (ido - 2 /= 0) then
             idp2 = ido + 2
@@ -3417,15 +3423,15 @@ subroutine radf4(ido, l1, cc, ch, wa1, wa2, wa3)
             if (mod(ido, 2) == 1) return
         end if
         do k = 1, l1
-            ti1 = -hsqt2*(cc(ido, k, 2)+cc(ido, k, 4))
-            tr1 = hsqt2*(cc(ido, k, 2)-cc(ido, k, 4))
+            ti1 = -one_over_sqrt2*(cc(ido, k, 2)+cc(ido, k, 4))
+            tr1 = one_over_sqrt2*(cc(ido, k, 2)-cc(ido, k, 4))
             ch(ido, 1, k) = tr1 + cc(ido, k, 1)
             ch(ido, 3, k) = cc(ido, k, 1) - tr1
             ch(1, 2, k) = ti1 - cc(ido, k, 3)
             ch(1, 4, k) = ti1 + cc(ido, k, 3)
         end do
     end if
-    return
+
 end subroutine radf4
 
 
@@ -3507,7 +3513,7 @@ subroutine radf5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
             ch(ic, 4, k) = ti4 - ti3
         end do
     end do
-    return
+
 end subroutine radf5
 
 
