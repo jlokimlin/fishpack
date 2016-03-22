@@ -2,7 +2,8 @@ module module_sepx4
 
     use, intrinsic :: iso_fortran_env, only: &
         ip => INT32, &
-        wp => REAL64
+        wp => REAL64, &
+        stdout => OUTPUT_UNIT
 
     use type_FishpackWorkspace, only: &
         FishpackWorkspace
@@ -176,16 +177,16 @@ contains
         end do
         err4 = err
 
-        write( *, *) ''
-        write( *, *) '    sepx4 *** TEST RUN *** '
-        write( *, *) '    Previous 64 bit floating point arithmetic result '
-        write( *, *) '    ierror = 0'
-        write( *, *) '    Second Order discretization error = 1.5985E-4'
-        write( *, *) '    Fourth Order discretization error = 1.8575E-6'
-        write( *, *) '    The output from your computer is: '
-        write( *, *) '    ierror =', ierror
-        write( *, *) '    Second Order discretization error =', err2
-        write( *, *) '    Fourth Order discretization error =', err4
+        write( stdout, '(A)') ''
+        write( stdout, '(A)') '     sepx4 *** TEST RUN *** '
+        write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(A)') '     ierror = 0'
+        write( stdout, '(A)') '     Second Order discretization error = 1.5985E-4'
+        write( stdout, '(A)') '     Fourth Order discretization error = 1.8575E-6'
+        write( stdout, '(A)') '     The output from your computer is: '
+        write( stdout, '(A,I3)') '     ierror =', ierror
+        write( stdout, '(A,1pe15.6)') '     Second Order discretization error =', err2
+        write( stdout, '(A,1pe15.6)') '     Fourth Order discretization error =', err4
 
 
     contains
@@ -717,27 +718,27 @@ contains
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
-        integer (ip), intent (in)     :: iorder
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: mbdcnd
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: nbdcnd
-        integer (ip), intent (in)     :: idmn
-        integer (ip), intent (out)    :: ierror
-        real (wp),    intent (in)     :: a
-        real (wp),    intent (in)     :: b
-        real (wp),    intent (in)     :: alpha
-        real (wp),    intent (in)     :: beta
-        real (wp),    intent (in)     :: c
-        real (wp),    intent (in)     :: d
-        real (wp),    intent (out)    :: pertrb
-        real (wp),    intent (in)     :: bda(*)
-        real (wp),    intent (in)     :: bdb(*)
-        real (wp),    intent (in)     :: bdc(*)
-        real (wp),    intent (in)     :: bdd(*)
-        real (wp),    intent (in out) :: grhs(idmn, *)
-        real (wp),    intent (out)    :: usol(idmn, *)
-        procedure (get_coefficients)  :: cofx
+        integer (ip),          intent (in)     :: iorder
+        integer (ip),          intent (in)     :: m
+        integer (ip),          intent (in)     :: mbdcnd
+        integer (ip),          intent (in)     :: n
+        integer (ip),          intent (in)     :: nbdcnd
+        integer (ip),          intent (in)     :: idmn
+        integer (ip),          intent (out)    :: ierror
+        real (wp),             intent (in)     :: a
+        real (wp),             intent (in)     :: b
+        real (wp),             intent (in)     :: alpha
+        real (wp),             intent (in)     :: beta
+        real (wp),             intent (in)     :: c
+        real (wp),             intent (in)     :: d
+        real (wp),             intent (out)    :: pertrb
+        real (wp), contiguous, intent (in)     :: bda(:)
+        real (wp), contiguous, intent (in)     :: bdb(:)
+        real (wp), contiguous, intent (in)     :: bdc(:)
+        real (wp), contiguous, intent (in)     :: bdd(:)
+        real (wp), contiguous, intent (in out) :: grhs(:,:)
+        real (wp), contiguous, intent (out)    :: usol(:,:)
+        procedure (get_coefficients)           :: cofx
         !--------------------------------------------------------------------------------
         ! Dictionary: local variables
         !--------------------------------------------------------------------------------
@@ -801,8 +802,8 @@ contains
         associate( rew => workspace%real_workspace )
             call s4elip( iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta, c, d, n, &
                 nbdcnd, bdc, bdd, cofx, rew(i1), rew(i2), rew(i3), &
-                rew(i4), rew(i5), rew(i6), rew(i7), rew(i8), &
-                rew(i9), rew(i10), rew(i11), rew(i12), &
+                rew(i4), rew(i5), rew(i6), rew(i7:i7), rew(i8:i8), &
+                rew(i9:i9), rew(i10), rew(i11), rew(i12), &
                 grhs, usol, idmn, rew(i13), pertrb, ierror)
         end associate
 
@@ -840,19 +841,19 @@ contains
         real (wp),    intent (in)       :: c
         real (wp),    intent (in)       :: d
         real (wp),    intent (out)      :: pertrb
-        real (wp),    intent (in)       :: bda(*)
-        real (wp),    intent (in)       :: bdb(*)
-        real (wp),    intent (in)       :: bdc(*)
-        real (wp),    intent (in)       :: bdd(*)
+        real (wp), contiguous, intent (in)       :: bda(:)
+        real (wp), contiguous, intent (in)       :: bdb(:)
+        real (wp), contiguous, intent (in)       :: bdc(:)
+        real (wp), contiguous, intent (in)       :: bdd(:)
         real (wp),    intent (in out)   :: an(*)
         real (wp),    intent (in out)   :: bn(*)
         real (wp),    intent (in out)   :: cn(*)
         real (wp),    intent (in out)   :: dn(*)
         real (wp),    intent (in out)   :: un(*)
         real (wp),    intent (in out)   :: zn(*)
-        real (wp),    intent (in out)   :: am(*)
-        real (wp),    intent (in out)   :: bm(*)
-        real (wp),    intent (in out)   :: cm(*)
+        real (wp), contiguous,   intent (in out)   :: am(:)
+        real (wp), contiguous,   intent (in out)   :: bm(:)
+        real (wp), contiguous,   intent (in out)   :: cm(:)
         real (wp),    intent (in out)   :: dm(*)
         real (wp),    intent (in out)   :: um(*)
         real (wp),    intent (in out)   :: zm(*)

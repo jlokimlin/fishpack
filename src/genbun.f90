@@ -386,9 +386,9 @@ contains
         integer (ip),          intent (in)     :: m
         integer (ip),          intent (in)     :: idimy
         integer (ip),          intent (out)    :: ierror
-        real (wp),             intent (in)     :: a(*)
-        real (wp),             intent (in)     :: b(*)
-        real (wp),             intent (in)     :: c(*)
+        real (wp), contiguous, intent (in)     :: a(:)
+        real (wp), contiguous, intent (in)     :: b(:)
+        real (wp), contiguous, intent (in)     :: c(:)
         real (wp),             intent (in out) :: y(idimy,*)
         !--------------------------------------------------------------------------------
         ! Dictionary: local variables
@@ -437,9 +437,6 @@ contains
         associate( icwk => 0 )
             call workspace%create( irwk, icwk, ierror )
         end associate
-
-        ! return if allocation failed (e.g., if n, m are too large)
-        if (ierror == 20) return
 
         ! solve system
         associate( rew => workspace%real_workspace )
