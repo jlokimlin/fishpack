@@ -69,9 +69,7 @@ contains
             A => x_interval(1), &
             C => y_interval(1) &
             )
-
             call this%get_staggered_grids( A, C, nx, ny, this%x, this%y )
-
         end associate
 
         ! Set status

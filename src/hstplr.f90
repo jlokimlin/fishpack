@@ -700,10 +700,10 @@ end if
     !
     ierr1 = 0
     if (lp /= 0) then
-        call poistgg (lp, n, 1, m, w, w(iwb+1), w(iwc+1), idimf, f, &
+        call poistgg(lp, n, 1, m, w, w(iwb+1), w(iwc+1), idimf, f, &
             ierr1, w(iwr+1))
     else
-        call genbunn (lp, n, 1, m, w, w(iwb+1), w(iwc+1), idimf, f, &
+        call genbunn(lp, n, 1, m, w, w(iwb+1), w(iwc+1), idimf, f, &
             ierr1, w(iwr+1))
     end if
     if (.not.(a/=0. .or. mbdcnd/=2 .or. isw/=2)) then

@@ -38,23 +38,24 @@ cd modern_fishpack; make all
 ## Result
 
 ```
+
      blktri *** TEST RUN *** 
      Previous 64 bit floating point arithmetic result 
      ierror = 0,  discretization error = 1.6478E-05
      The output from your computer is: 
      ierror =  0 discretization error =    1.647786E-05
- 
+
      cblktri *** TEST RUN *** 
      Previous 64 bit floating point arithmetic result 
      ierror = 0,  discretization error = 1.6457E-05
      The output from your computer is: 
-     ierror =           0  discretization error =    1.6457199287630284E-005
- 
+     ierror =  0 discretization error =    1.645720E-05
+
      cmgnbn *** TEST RUN *** 
      Previous 64 bit floating point arithmetic result 
      ierror = 0,  discretization error = 9.1620E-3
      The output from your computer is: 
-     ierror =           0  discretization error =    9.1619959089139329E-003
+     ierror =  0 discretization error =    9.161996E-03
 
      genbun *** TEST RUN *** 
      Previous 64 bit floating point arithmetic result 
@@ -161,14 +162,16 @@ cd modern_fishpack; make all
      ierror =  0
      Second Order discretization error =   9.789104E-05
      Fourth Order discretization error =   1.473507E-06
- 
+
      sepx4 *** TEST RUN *** 
      Previous 64 bit floating point arithmetic result 
      ierror = 0
      Second Order discretization error = 1.5985E-4
      Fourth Order discretization error = 1.8575E-6
      The output from your computer is: 
-     ierror =           0
-     Second Order discretization error =   1.5985033721532815E-004
-     Fourth Order discretization error =   1.8574879123711696E-006
+     ierror =  0
+     Second Order discretization error =   1.598503E-04
+     Fourth Order discretization error =   1.857488E-06
+
+
 ```

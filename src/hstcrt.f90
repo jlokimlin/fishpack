@@ -510,28 +510,28 @@ contains
     subroutine hstcrtt( a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror, w )
         !-----------------------------------------------
-        ! dictionary: calling arguments
+        ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: mbdcnd
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: nbdcnd
-        integer (ip), intent (in)     :: idimf
-        integer (ip), intent (out)    :: ierror
-        real (wp),    intent (in)     :: a
-        real (wp),    intent (in)     :: b
-        real (wp),    intent (in)     :: c
-        real (wp),    intent (in)     :: d
-        real (wp),    intent (in)     :: elmbda
-        real (wp),    intent (out)    :: pertrb
-        real (wp),    intent (in)     :: bda(*)
-        real (wp),    intent (in)     :: bdb(*)
-        real (wp),    intent (in)     :: bdc(*)
-        real (wp),    intent (in)     :: bdd(*)
-        real (wp),    intent (in out) :: f(idimf, *)
-        real (wp),    intent (in out) :: w(*)
+        integer (ip),          intent (in)     :: m
+        integer (ip),          intent (in)     :: mbdcnd
+        integer (ip),          intent (in)     :: n
+        integer (ip),          intent (in)     :: nbdcnd
+        integer (ip),          intent (in)     :: idimf
+        integer (ip),          intent (out)    :: ierror
+        real (wp),             intent (in)     :: a
+        real (wp),             intent (in)     :: b
+        real (wp),             intent (in)     :: c
+        real (wp),             intent (in)     :: d
+        real (wp),             intent (in)     :: elmbda
+        real (wp),             intent (out)    :: pertrb
+        real (wp), contiguous, intent (in)     :: bda(:)
+        real (wp), contiguous, intent (in)     :: bdb(:)
+        real (wp), contiguous, intent (in)     :: bdc(:)
+        real (wp), contiguous, intent (in)     :: bdd(:)
+        real (wp), contiguous, intent (in out) :: f(:,:)
+        real (wp),             intent (in out) :: w(*)
         !-----------------------------------------------
-        ! dictionary: local variables
+        ! Dictionary: local variables
         !-----------------------------------------------
         integer (ip) :: nperod, mperod, np, mp, id2, id3, id4, j, ierr1
         real (wp)    :: deltax, twdelx, delxsq, deltay, twdely, delysq, twdysq, s, st2
@@ -628,10 +628,10 @@ end if
 133 continue
     ierr1 = 0
     if (nperod /= 0) then
-        call poistgg (nperod, n, mperod, m, w(1), w(id2+1), w(id3+1), &
+        call poistgg(nperod, n, mperod, m, w(1), w(id2+1), w(id3+1), &
             idimf, f, ierr1, w(id4+1))
     else
-        call genbunn (nperod, n, mperod, m, w(1), w(id2+1), w(id3+1), &
+        call genbunn(nperod, n, mperod, m, w(1), w(id2+1), w(id3+1), &
             idimf, f, ierr1, w(id4+1))
     end if
 

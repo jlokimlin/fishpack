@@ -736,7 +736,7 @@ end if
     !
     ierr1 = 0
     i1 = 1
-    call genbunn (nbdcnd, nunk, i1, munk, W(1), W(id2+1), W(id3+1), &
+    call genbunn(nbdcnd, nunk, i1, munk, W(1), W(id2+1), W(id3+1), &
         idimf, F(mstart, nstart), ierr1, W(id4+1))
     if (nbdcnd == 0) then
         f(mstart:mstop, np1) = F(mstart:mstop, 1)

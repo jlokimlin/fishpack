@@ -790,7 +790,7 @@ end if
         call POISTGG(lp, n, i1, m, w, W(iwb+1), W(iwc+1), idimf, f, &
             ierr1, W(iwr+1))
     else
-        call genbunn (lp, n, i1, m, w, W(iwb+1), W(iwc+1), idimf, f, &
+        call genbunn(lp, n, i1, m, w, W(iwb+1), W(iwc+1), idimf, f, &
             ierr1, W(iwr+1))
     end if
     if (isw==2 .and. jsw==2) then

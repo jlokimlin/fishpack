@@ -772,7 +772,7 @@ end if
     !
     i1 = 1
     ierr1 = 0
-    call genbunn (nbdcnd, nunk, i1, munk, W(1), W(id2+1), W(id3+1), &
+    call genbunn(nbdcnd, nunk, i1, munk, W(1), W(id2+1), W(id3+1), &
         idimf, F(mstart, nstart), ierr1, W(id4+1))
     go to (157, 157, 157, 157, 148, 147) mbdcnd
 !

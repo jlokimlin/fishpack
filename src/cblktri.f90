@@ -164,7 +164,8 @@ contains
         write( stdout, '(A)') '     The output from your computer is: '
         write( stdout, '(A,I3,A,1pe15.6)') &
             '     ierror =', ierror, ' discretization error = ', ERR
-        !     release dynamically allocated work space
+
+        ! Release memory
         call workspace%destroy()
 
     end subroutine test_cblktri

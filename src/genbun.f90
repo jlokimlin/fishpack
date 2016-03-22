@@ -393,7 +393,7 @@ contains
         !--------------------------------------------------------------------------------
         ! Dictionary: local variables
         !--------------------------------------------------------------------------------
-        integer (ip)             :: irwk, icwk
+        integer (ip)             :: irwk
         type (FishpackWorkspace) :: workspace
         !-----------------------------------------------
 
@@ -469,7 +469,7 @@ contains
         !--------------------------------------------------------------------------------
         integer (ip)    :: i, mp1, iwba, iwbb, iwbc, iwb2, iwb3, iww1, iww2, iww3
         integer (ip)    :: iwd, iwtcos, iwp, k, j, mp, np, ipstor, irev, mh, mhm1, modd
-        integer (ip)    :: mhpi, mhmi, nby2, mskip
+        integer (ip)    :: nby2, mskip
         real (wp)       :: a1
         !-----------------------------------------------
 
@@ -632,7 +632,7 @@ subroutine POISD2(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
     ! Dictionary: local variables
     !-----------------------------------------------
     integer (ip)    :: m, n, jsh, ipp, ipstor, kr, irreg, jstsav, i, lr, nun
-    integer (ip)    :: jst, jsp, l, nodd, j, jm1, jp1, jm2, jp2, jm3, jp3, noddpr, ip1
+    integer (ip)    :: jst, jsp, l, nodd, j, jm1, jp1, jm2, jp2, jm3, jp3, noddpr
     integer (ip)    :: krpi, ideg, jdeg
     real (wp)       :: fi, t
     !-----------------------------------------------
