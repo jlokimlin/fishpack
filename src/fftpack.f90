@@ -3,10 +3,10 @@ module module_fftpack
     use, intrinsic :: iso_fortran_env, only: &
         wp => REAL64
 
-    ! explicit typing only
+    ! Explicit typing only
     implicit none
 
-    ! everything is private unless stated otherwise
+    ! Everything is private unless stated otherwise
     private
     public :: rffti
     public :: rfftf

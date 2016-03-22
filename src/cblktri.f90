@@ -69,12 +69,12 @@ contains
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer :: iflg, np, n, mp, m, idimy, i, j, ierror
-        real , dimension(105) :: an, bn, cn
-        real , dimension(75) :: s
-        real , dimension(105) :: t
+        integer (ip) :: iflg, np, n, mp, m, idimy, i, j, ierror
+        real (wp), dimension(105) :: an, bn, cn
+        real (wp), dimension(75) :: s
+        real (wp), dimension(105) :: t
         real::deltas, deltat, hds, tds, temp1, temp2, temp3, hdt, tdt, err, z
-        complex , dimension(75, 105) :: y
+        complex (wp), dimension(75, 105) :: y
         complex, dimension(75) :: am, bm, cm
         type (FishpackWorkspace) :: workspace
         !-----------------------------------------------
@@ -163,7 +163,7 @@ contains
         write( stdout, '(A)') '     ierror = 0,  discretization error = 1.6457E-05'
         write( stdout, '(A)') '     The output from your computer is: '
         write( stdout, '(A,I3,A,1pe15.6)') &
-        '     ierror =', ierror, ' discretization error = ', ERR
+            '     ierror =', ierror, ' discretization error = ', ERR
         !     release dynamically allocated work space
         call workspace%destroy()
 
@@ -431,25 +431,26 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer , intent (in) :: iflg
-        integer , intent (in) :: np
-        integer , intent (in) :: n
-        integer , intent (in) :: mp
-        integer  :: m
-        integer  :: idimy
-        integer  :: ierror
-        real  :: an(*)
-        real  :: bn(*)
-        real  :: cn(*)
-        complex  :: am(*)
-        complex  :: bm(*)
-        complex  :: cm(*)
-        complex  :: y(idimy, *)
-        type (fishpackworkspace) :: w
+        integer (ip),              intent (in)     :: iflg
+        integer (ip),              intent (in)     :: np
+        integer (ip),              intent (in)     :: n
+        integer (ip),              intent (in)     :: mp
+        integer (ip),              intent (in)     :: m
+        integer (ip),              intent (in)     :: idimy
+        integer (ip),              intent (out)    :: ierror
+        real (wp),    contiguous,  intent (in)     :: an(:)
+        real (wp),    contiguous,  intent (in)     :: bn(:)
+        real (wp),    contiguous,  intent (in)     :: cn(:)
+        complex (wp), contiguous,  intent (in)     :: am(:)
+        complex (wp), contiguous,  intent (in)     :: bm(:)
+        complex (wp), contiguous,  intent (in)     :: cm(:)
+        complex (wp), contiguous,  intent (in out) :: y(:,:)
+        class (fishpackworkspace), intent (in out) :: w
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer::m2, nh, nl, iwah, iw1, iwbh, iw2, iw3, iwd, iww, iwu, irwk, icwk
+        integer (ip) :: m2, nh, nl, iwah, iw1, iwbh
+        integer (ip) :: iw2, iw3, iwd, iww, iwu, irwk, icwk
         !-----------------------------------------------
         !
         ! test m and n for the proper form
@@ -557,35 +558,32 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer  :: n
-        integer  :: m
-        integer , intent (in) :: idimy
-        real  :: an(*)
-        real  :: bn(*)
-        real  :: cn(*)
-        real  :: b(*)
-        complex  :: am(*)
-        complex  :: bm(*)
-        complex  :: cm(*)
-        complex  :: y(idimy, *)
-        complex  :: bc(*)
-        complex  :: w1(*)
-        complex  :: w2(*)
-        complex  :: w3(*)
-        complex  :: wd(*)
-        complex  :: ww(*)
-        complex  :: wu(*)
+        integer (ip), intent (in) :: n
+        integer (ip), intent (in) :: m
+        integer (ip), intent (in) :: idimy
+        real (wp) :: an(*)
+        real (wp) :: bn(*)
+        real (wp) :: cn(*)
+        real (wp) :: b(*)
+        complex (wp) :: am(*)
+        complex (wp) :: bm(*)
+        complex (wp) :: cm(*)
+        complex (wp) :: y(idimy, *)
+        complex (wp) :: bc(*)
+        complex (wp) :: w1(*)
+        complex (wp) :: w2(*)
+        complex (wp) :: w3(*)
+        complex (wp) :: wd(*)
+        complex (wp) :: ww(*)
+        complex (wp) :: wu(*)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer :: kdo, l, ir, i2, i1, i3, i4, irm1, im2, nm2, im3, nm3, &
-            im1, nm1, if, i, ipi1, ipi2, ipi3, idxc, nc, idxa, na, ip2, np2 &
-            , ip1, np1, ip3, np3, j, iz, nz, izr, ll, ifd, ip, np, imi1, &
-            imi2
-        real :: dum
-        !-----------------------------------------------
-        !   e x t e r n a l   f u n c t i o n s
-        !-----------------------------------------------
+        integer (ip) :: kdo, l, ir, i2, i1, i3, i4, irm1, im2, nm2, im3, nm3
+        integer (ip) :: im1, nm1, if_rename, i, ipi1, ipi2, ipi3, idxc, nc, idxa, na, ip2, np2
+        integer (ip) :: ip1, np1, ip3, np3, j, iz, nz, izr, ll, ifd
+        integer (ip) :: ip_rename, np, imi1, imi2
+        real (wp)    :: dum
         !-----------------------------------------------
 
         ! begin reduction phase
@@ -598,24 +596,24 @@ contains
             i3 = i2 + i1
             i4 = i2 + i2
             irm1 = ir - 1
-            call cindxb (i2, ir, im2, nm2)
-            call cindxb (i1, irm1, im3, nm3)
-            call cindxb (i3, irm1, im1, nm1)
+            call cindxb(i2, ir, im2, nm2)
+            call cindxb(i1, irm1, im3, nm3)
+            call cindxb(i3, irm1, im1, nm1)
             call prdct (nm2, b(im2), nm3, b(im3), nm1, b(im1), 0, dum, y(1, &
                 i2), w3, m, am, bm, cm, wd, ww, wu)
-            if = 2**k
-            do i = i4, if, i4
+            if_rename = 2**k
+            do i = i4, if_rename, i4
                 if (i - nm > 0) cycle
                 ipi1 = i + i1
                 ipi2 = i + i2
                 ipi3 = i + i3
                 call cindxc (i, ir, idxc, nc)
-                if (i - if >= 0) cycle
+                if (i - if_rename >= 0) cycle
                 call cindxa (i, ir, idxa, na)
-                call cindxb (i - i1, irm1, im1, nm1)
-                call cindxb (ipi2, ir, ip2, np2)
-                call cindxb (ipi1, irm1, ip1, np1)
-                call cindxb (ipi3, irm1, ip3, np3)
+                call cindxb(i - i1, irm1, im1, nm1)
+                call cindxb(ipi2, ir, ip2, np2)
+                call cindxb(ipi1, irm1, ip1, np1)
+                call cindxb(ipi3, irm1, ip3, np3)
                 call prdct (nm1, b(im1), 0, dum, 0, dum, na, an(idxa), w3, &
                     w1, m, am, bm, cm, wd, ww, wu)
                 if (ipi2 - nm > 0) then
@@ -631,12 +629,12 @@ contains
             end do
         end do
         if (npp == 0) then
-            if = 2**k
-            i = if/2
+            if_rename = 2**k
+            i = if_rename/2
             i1 = i/2
-            call cindxb (i - i1, k - 2, im1, nm1)
-            call cindxb (i + i1, k - 2, ip1, np1)
-            call cindxb (i, k - 1, iz, nz)
+            call cindxb(i - i1, k - 2, im1, nm1)
+            call cindxb(i + i1, k - 2, ip1, np1)
+            call cindxb(i, k - 1, iz, nz)
             call prdct (nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dum, y(1, i) &
                 , w1, m, am, bm, cm, wd, ww, wu)
             izr = i
@@ -648,9 +646,9 @@ contains
                 i1 = i2/2
                 i = i2
                 call cindxc (i, ir, idxc, nc)
-                call cindxb (i, ir, iz, nz)
-                call cindxb (i - i1, ir - 1, im1, nm1)
-                call cindxb (i + i1, ir - 1, ip1, np1)
+                call cindxb(i, ir, iz, nz)
+                call cindxb(i - i1, ir - 1, im1, nm1)
+                call cindxb(i + i1, ir - 1, ip1, np1)
                 call prdct (np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc), w1, &
                     w1, m, am, bm, cm, wd, ww, wu)
                 w1(:m) = y(:m, i) + w1(:m)
@@ -663,14 +661,14 @@ contains
                 i2 = 2**ir
                 i1 = i2/2
                 i4 = i2 + i2
-                ifd = if - i2
+                ifd = if_rename - i2
                 do i = i2, ifd, i4
                     if (i - i2 - izr /= 0) cycle
                     if (i - nm > 0) cycle  l118
                     call cindxa (i, ir, idxa, na)
-                    call cindxb (i, ir, iz, nz)
-                    call cindxb (i - i1, ir - 1, im1, nm1)
-                    call cindxb (i + i1, ir - 1, ip1, np1)
+                    call cindxb(i, ir, iz, nz)
+                    call cindxb(i - i1, ir - 1, im1, nm1)
+                    call cindxb(i + i1, ir - 1, ip1, np1)
                     call prdct (nm1, b(im1), 0, dum, 0, dum, na, an(idxa), w2 &
                         , w2, m, am, bm, cm, wd, ww, wu)
                     w2(:m) = y(:m, i) + w2(:m)
@@ -682,13 +680,13 @@ contains
             end do l118
 119     continue
         y(:m, nm+1) = y(:m, nm+1) - cn(nm+1)*w1(:m) - an(nm+1)*w2(:m)
-        call cindxb (if/2, k - 1, im1, nm1)
-        call cindxb (if, k - 1, ip, np)
+        call cindxb(if_rename/2, k - 1, im1, nm1)
+        call cindxb(if_rename, k - 1, ip_rename, np)
         if (ncmplx /= 0) then
-            call cprdct (nm + 1, bc(ip), nm1, b(im1), 0, dum, 0, dum, y( &
+            call cprdct (nm + 1, bc(ip_rename), nm1, b(im1), 0, dum, 0, dum, y( &
                 1, nm+1), y(1, nm+1), m, am, bm, cm, w1, w3, ww)
         else
-            call prdct (nm + 1, b(ip), nm1, b(im1), 0, dum, 0, dum, y(1, &
+            call prdct (nm + 1, b(ip_rename), nm1, b(im1), 0, dum, 0, dum, y(1, &
                 nm+1), y(1, nm+1), m, am, bm, cm, wd, ww, wu)
         end if
         w1(:m) = an(1)*y(:m, nm+1)
@@ -702,9 +700,9 @@ contains
             i1 = i2/2
             i = i4
             call cindxa (i, ir, idxa, na)
-            call cindxb (i - i2, ir, im2, nm2)
-            call cindxb (i - i2 - i1, ir - 1, im3, nm3)
-            call cindxb (i - i1, ir - 1, im1, nm1)
+            call cindxb(i - i2, ir, im2, nm2)
+            call cindxb(i - i2 - i1, ir - 1, im3, nm3)
+            call cindxb(i - i1, ir - 1, im1, nm1)
             call prdct (nm2, b(im2), nm3, b(im3), nm1, b(im1), 0, dum, &
                 w1, w1, m, am, bm, cm, wd, ww, wu)
             call prdct (nm1, b(im1), 0, dum, 0, dum, na, an(idxa), w1, &
@@ -720,7 +718,7 @@ contains
             i3 = i2 + i1
             i4 = i2 + i2
             irm1 = ir - 1
-            do i = i4, if, i4
+            do i = i4, if_rename, i4
                 ipi1 = i + i1
                 ipi2 = i + i2
                 ipi3 = i + i3
@@ -729,9 +727,9 @@ contains
                     cycle  l131
                 end if
                 call cindxc (i, ir, idxc, nc)
-                call cindxb (ipi2, ir, ip2, np2)
-                call cindxb (ipi1, irm1, ip1, np1)
-                call cindxb (ipi3, irm1, ip3, np3)
+                call cindxb(ipi2, ir, ip2, np2)
+                call cindxb(ipi1, irm1, ip1, np1)
+                call cindxb(ipi3, irm1, ip3, np3)
                 call prdct (np2, b(ip2), np1, b(ip1), np3, b(ip3), 0, dum &
                     , w2, w2, m, am, bm, cm, wd, ww, wu)
                 call prdct (np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc), w2 &
@@ -752,7 +750,7 @@ contains
         i2 = 2**ir
         i1 = i2/2
         i4 = i2 + i2
-        ifd = if - i2
+        ifd = if_rename - i2
         do i = i2, ifd, i4
             if (i - nm > 0) cycle
             imi1 = i - i1
@@ -761,9 +759,9 @@ contains
             ipi2 = i + i2
             call cindxa (i, ir, idxa, na)
             call cindxc (i, ir, idxc, nc)
-            call cindxb (i, ir, iz, nz)
-            call cindxb (imi1, irm1, im1, nm1)
-            call cindxb (ipi1, irm1, ip1, np1)
+            call cindxb(i, ir, iz, nz)
+            call cindxb(imi1, irm1, im1, nm1)
+            call cindxb(ipi1, irm1, ip1, np1)
             if (i - i2 <= 0) then
                 w1(:m) = (0., 0.)
             else
@@ -789,19 +787,19 @@ function cbsrh (xll, xrr, iz, c, a, bh, f, sgn) result( return_value )
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer  :: iz
-    real , intent (in) :: xll
-    real , intent (in) :: xrr
-    real  :: f
-    real , intent (in) :: sgn
-    real  :: c(*)
-    real  :: a(*)
-    real  :: bh(*)
-    real  :: return_value
+    integer (ip) :: iz
+    real (wp), intent (in) :: xll
+    real (wp), intent (in) :: xrr
+    real (wp) :: f
+    real (wp), intent (in) :: sgn
+    real (wp) :: c(*)
+    real (wp) :: a(*)
+    real (wp) :: bh(*)
+    real (wp) :: return_value
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    real :: r1, xl, xr, dx, x
+    real (wp) :: r1, xl, xr, dx, x
     !-----------------------------------------------
 
     xl = xll
@@ -839,21 +837,21 @@ subroutine ccompb(n, ierror, an, bn, cn, b, bc, ah, bh)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer  :: n
-    integer  :: ierror
-    real  :: an(*)
-    real , intent (in) :: bn(*)
-    real  :: cn(*)
-    real  :: b(*)
-    real  :: ah(*)
-    real  :: bh(*)
-    complex  :: bc(*)
+    integer (ip) :: n
+    integer (ip) :: ierror
+    real (wp) :: an(*)
+    real (wp), intent (in) :: bn(*)
+    real (wp) :: cn(*)
+    real (wp) :: b(*)
+    real (wp) :: ah(*)
+    real (wp) :: bh(*)
+    complex (wp) :: bc(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: j, if, kdo, l, ir, i2, i4, ipl, ifd, i, ib, nb, js, jf &
+    integer (ip) :: j, if, kdo, l, ir, i2, i4, ipl, ifd, i, ib, nb, js, jf &
         , ls, lh, nmp, l1, l2, j2, j1, n2m2
-    real :: dum, bnorm, arg, d1, d2, d3
+    real (wp) :: dum, bnorm, arg, d1, d2, d3
     !-----------------------------------------------
     !
     !     ccompb computes the roots of the b polynomials using subroutine
@@ -880,7 +878,7 @@ subroutine ccompb(n, ierror, an, bn, cn, b, bc, ah, bh)
         ipl = i4 - 1
         ifd = if - i4
         do i = i4, ifd, i4
-            call cindxb (i, l, ib, nb)
+            call cindxb(i, l, ib, nb)
             if (nb <= 0) cycle  l108
             js = i - ipl
             jf = js + nb - 1
@@ -910,8 +908,8 @@ subroutine ccompb(n, ierror, an, bn, cn, b, bc, ah, bh)
         end do
         call ctevls (nb, ah, bh, ierror)
         if (ierror /= 0) go to 118
-        call cindxb (if, k - 1, j2, lh)
-        call cindxb (if/2, k - 1, j1, lh)
+        call cindxb(if, k - 1, j2, lh)
+        call cindxb(if/2, k - 1, j1, lh)
         j2 = j2 + 1
         lh = j2
         n2m2 = j2 + nm + nm - 2
@@ -930,7 +928,7 @@ subroutine ccompb(n, ierror, an, bn, cn, b, bc, ah, bh)
         if (j2 - n2m2 <= 0) go to 114
     end if
     b(lh) = b(n2m2+1)
-    call cindxb (if, k - 1, j1, j2)
+    call cindxb(if, k - 1, j1, j2)
     j2 = j1 + nmp + nmp
     !call cppadd (nm + 1, ierror, an, cn, b(j1), bc(j1), b(j2))
     call cppadd (nm + 1, ierror, an, cn, cmplx(b(j1:j1)), real(bc(j1:j1)), b(j2))
@@ -943,7 +941,7 @@ return
     return
 119 continue
     ierror = 5
-    return
+
 end subroutine ccompb
 
 
@@ -951,29 +949,29 @@ subroutine cproc(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, w, yy)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent (in) :: nd
-    integer , intent (in) :: nm1
-    integer , intent (in) :: nm2
-    integer , intent (in) :: na
-    integer , intent (in) :: m
-    real , intent (in) :: bm1(*)
-    real , intent (in) :: bm2(*)
-    real , intent (in) :: aa(*)
-    complex , intent (in) :: bd(*)
-    complex , intent (in) :: x(*)
-    complex , intent (in out) :: y(*)
-    complex , intent (in) :: a(*)
-    complex , intent (in) :: b(*)
-    complex , intent (in) :: c(*)
-    complex , intent (in out) :: d(*)
-    complex , intent (in out) :: w(*)
-    complex  :: yy(*)
+    integer (ip), intent (in) :: nd
+    integer (ip), intent (in) :: nm1
+    integer (ip), intent (in) :: nm2
+    integer (ip), intent (in) :: na
+    integer (ip), intent (in) :: m
+    real (wp), intent (in) :: bm1(*)
+    real (wp), intent (in) :: bm2(*)
+    real (wp), intent (in) :: aa(*)
+    complex (wp), intent (in) :: bd(*)
+    complex (wp), intent (in) :: x(*)
+    complex (wp), intent (in out) :: y(*)
+    complex (wp), intent (in) :: a(*)
+    complex (wp), intent (in) :: b(*)
+    complex (wp), intent (in) :: c(*)
+    complex (wp), intent (in out) :: d(*)
+    complex (wp), intent (in out) :: w(*)
+    complex (wp) :: yy(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: j, mm, id, m1, m2, ia, iflg, k
-    real :: rt
-    complex :: crt, den, y1, y2
+    integer (ip) :: j, mm, id, m1, m2, ia, iflg, k
+    real (wp) :: rt
+    complex (wp) :: crt, den, y1, y2
     !-----------------------------------------------
     !
     ! proc applies a sequence of matrix operations to the vector x and
@@ -1085,29 +1083,29 @@ subroutine cprocp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, u, yy
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent (in) :: nd
-    integer , intent (in) :: nm1
-    integer , intent (in) :: nm2
-    integer , intent (in) :: na
-    integer , intent (in) :: m
-    real , intent (in) :: bm1(*)
-    real , intent (in) :: bm2(*)
-    real , intent (in) :: aa(*)
-    real  :: yy(*)
-    complex , intent (in) :: bd(*)
-    complex , intent (in) :: x(*)
-    complex , intent (in out) :: y(*)
-    complex , intent (in) :: a(*)
-    complex , intent (in) :: b(*)
-    complex , intent (in) :: c(*)
-    complex , intent (in out) :: d(*)
-    complex , intent (in out) :: u(*)
+    integer (ip), intent (in) :: nd
+    integer (ip), intent (in) :: nm1
+    integer (ip), intent (in) :: nm2
+    integer (ip), intent (in) :: na
+    integer (ip), intent (in) :: m
+    real (wp), intent (in) :: bm1(*)
+    real (wp), intent (in) :: bm2(*)
+    real (wp), intent (in) :: aa(*)
+    real (wp) :: yy(*)
+    complex (wp), intent (in) :: bd(*)
+    complex (wp), intent (in) :: x(*)
+    complex (wp), intent (in out) :: y(*)
+    complex (wp), intent (in) :: a(*)
+    complex (wp), intent (in) :: b(*)
+    complex (wp), intent (in) :: c(*)
+    complex (wp), intent (in out) :: d(*)
+    complex (wp), intent (in out) :: u(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: j, mm, mm2, id, m1, m2, ia, iflg, k
-    real :: rt
-    complex :: v, den, bh, ym, am, y1, y2, yh, crt
+    integer (ip) :: j, mm, mm2, id, m1, m2, ia, iflg, k
+    real (wp) :: rt
+    complex (wp) :: v, den, bh, ym, am, y1, y2, yh, crt
     !-----------------------------------------------
 
     y(:m) = x(:m)
@@ -1215,10 +1213,10 @@ subroutine cindxa(i, ir, idxa, na)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent (in) :: i
-    integer , intent (in) :: ir
-    integer , intent (out) :: idxa
-    integer , intent (out) :: na
+    integer (ip), intent (in) :: i
+    integer (ip), intent (in) :: ir
+    integer (ip), intent (out) :: idxa
+    integer (ip), intent (out) :: na
     !-----------------------------------------------
 
     na = 2**ir
@@ -1235,14 +1233,14 @@ subroutine cindxb(i, ir, idx, idp)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent (in) :: i
-    integer , intent (in) :: ir
-    integer , intent (out) :: idx
-    integer , intent (out) :: idp
+    integer (ip), intent (in) :: i
+    integer (ip), intent (in) :: ir
+    integer (ip), intent (out) :: idx
+    integer (ip), intent (out) :: idp
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: izh, id, ipl
+    integer (ip) :: izh, id, ipl
     !-----------------------------------------------
     !
     ! b(idx) is the location of the first root of the b(i, ir) polynomial
@@ -1277,10 +1275,10 @@ subroutine cindxc(i, ir, idxc, nc)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent (in) :: i
-    integer , intent (in) :: ir
-    integer , intent (out) :: idxc
-    integer , intent (out) :: nc
+    integer (ip), intent (in) :: i
+    integer (ip), intent (in) :: ir
+    integer (ip), intent (out) :: idxc
+    integer (ip), intent (out) :: nc
     !-----------------------------------------------
 
     nc = 2**ir
@@ -1308,21 +1306,21 @@ subroutine cppadd(n, ierror, a, c, cbp, bp, bh)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent (in) :: n
-    integer , intent (out) :: ierror
-    real  :: a(*)
-    real  :: c(*)
-    !real , intent (in out) :: bp(*)
-    real  :: bp(*)
-    real  :: bh(*)
-    complex  :: cbp(*)
-    !complex , intent (in out) :: cbp(*)
+    integer (ip), intent (in) :: n
+    integer (ip), intent (out) :: ierror
+    real (wp) :: a(*)
+    real (wp) :: c(*)
+    !real (wp), intent (in out) :: bp(*)
+    real (wp) :: bp(*)
+    real (wp) :: bh(*)
+    complex (wp) :: cbp(*)
+    !complex (wp), intent (in out) :: cbp(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer::iz, izm, izm2, j, nt, modiz, is, if, ig, it, icv, i3, i2, nhalf
-    real :: r4, r5, r6, scnv, xl, db, sgn, xr, xm, psg
-    complex :: cf, cx, fsg, hsg, dd, f, fp, fpp, cdis, r1, r2, r3
+    integer (ip) ::iz, izm, izm2, j, nt, modiz, is, if, ig, it, icv, i3, i2, nhalf
+    real (wp) :: r4, r5, r6, scnv, xl, db, sgn, xr, xm, psg
+    complex (wp) :: cf, cx, fsg, hsg, dd, f, fp, fpp, cdis, r1, r2, r3
     !-----------------------------------------------
 
     scnv = sqrt(cnv)
@@ -1497,29 +1495,29 @@ subroutine proc(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, w, u)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent (in) :: nd
-    integer , intent (in) :: nm1
-    integer , intent (in) :: nm2
-    integer , intent (in) :: na
-    integer , intent (in) :: m
-    real , intent (in) :: bd(*)
-    real , intent (in) :: bm1(*)
-    real , intent (in) :: bm2(*)
-    real , intent (in) :: aa(*)
-    complex , intent (in) :: x(*)
-    complex , intent (in out) :: y(*)
-    complex , intent (in) :: a(*)
-    complex , intent (in) :: b(*)
-    complex , intent (in) :: c(*)
-    complex , intent (in out) :: d(*)
-    complex , intent (in out) :: w(*)
-    complex  :: u(*)
+    integer (ip), intent (in) :: nd
+    integer (ip), intent (in) :: nm1
+    integer (ip), intent (in) :: nm2
+    integer (ip), intent (in) :: na
+    integer (ip), intent (in) :: m
+    real (wp), intent (in) :: bd(*)
+    real (wp), intent (in) :: bm1(*)
+    real (wp), intent (in) :: bm2(*)
+    real (wp), intent (in) :: aa(*)
+    complex (wp), intent (in) :: x(*)
+    complex (wp), intent (in out) :: y(*)
+    complex (wp), intent (in) :: a(*)
+    complex (wp), intent (in) :: b(*)
+    complex (wp), intent (in) :: c(*)
+    complex (wp), intent (in out) :: d(*)
+    complex (wp), intent (in out) :: w(*)
+    complex (wp) :: u(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: j, mm, id, ibr, m1, m2, ia, k
-    real :: rt
-    complex :: den
+    integer (ip) :: j, mm, id, ibr, m1, m2, ia, k
+    real (wp) :: rt
+    complex (wp) :: den
     !-----------------------------------------------
 
     w(:m) = x(:m)
@@ -1617,29 +1615,29 @@ subroutine procp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, u, w)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent (in) :: nd
-    integer , intent (in) :: nm1
-    integer , intent (in) :: nm2
-    integer , intent (in) :: na
-    integer , intent (in) :: m
-    real , intent (in) :: bd(*)
-    real , intent (in) :: bm1(*)
-    real , intent (in) :: bm2(*)
-    real , intent (in) :: aa(*)
-    complex , intent (in) :: x(*)
-    complex , intent (in out) :: y(*)
-    complex , intent (in) :: a(*)
-    complex , intent (in) :: b(*)
-    complex , intent (in) :: c(*)
-    complex , intent (in out) :: d(*)
-    complex , intent (in out) :: u(*)
-    complex , intent (in out) :: w(*)
+    integer (ip), intent (in)     :: nd
+    integer (ip), intent (in)     :: nm1
+    integer (ip), intent (in)     :: nm2
+    integer (ip), intent (in)     :: na
+    integer (ip), intent (in)     :: m
+    real (wp),    intent (in)     :: bd(*)
+    real (wp),    intent (in)     :: bm1(*)
+    real (wp),    intent (in)     :: bm2(*)
+    real (wp),    intent (in)     :: aa(*)
+    complex (wp), intent (in)     :: x(*)
+    complex (wp), intent (in out) :: y(*)
+    complex (wp), intent (in)     :: a(*)
+    complex (wp), intent (in)     :: b(*)
+    complex (wp), intent (in)     :: c(*)
+    complex (wp), intent (in out) :: d(*)
+    complex (wp), intent (in out) :: u(*)
+    complex (wp), intent (in out) :: w(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: j, mm, mm2, id, ibr, m1, m2, ia, k
-    real :: rt
-    complex :: den, ym, v, bh, am
+    integer (ip) :: j, mm, mm2, id, ibr, m1, m2, ia, k
+    real (wp) :: rt
+    complex (wp) :: den, ym, v, bh, am
     !-----------------------------------------------
 
     y(:m) = x(:m)
@@ -1738,15 +1736,15 @@ subroutine ctevls(n, d, e2, ierr)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent (in) :: n
-    integer , intent (out) :: ierr
-    real , intent (in out) :: d(n)
-    real , intent (in out) :: e2(n)
+    integer (ip), intent (in) :: n
+    integer (ip), intent (out) :: ierr
+    real (wp), intent (in out) :: d(n)
+    real (wp), intent (in out) :: e2(n)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: i, j, l, m, ii, l1, mml, nhalf, ntop
-    real :: b, c, f, g, h, p, r, s, dhold
+    integer (ip) :: i, j, l, m, ii, l1, mml, nhalf, ntop
+    real (wp) :: b, c, f, g, h, p, r, s, dhold
     !-----------------------------------------------
     !
     !
