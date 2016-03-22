@@ -297,30 +297,30 @@ contains
 
                 ! Write x_staggered
                 inquire( iolength = record_length ) x_staggered
-                open( newunit = file_unit, file = header//'x_staggered.dat', status = 'unknown', &
-                    form = 'unformatted', access = 'direct', recl = record_length )
-                write( file_unit, rec = 1 ) x_staggered
+                open( newunit=file_unit, file=header//'x_staggered.dat', status='replace', &
+                    form='unformatted', access='direct', recl=record_length )
+                write( file_unit, rec=1 ) x_staggered
                 close( file_unit )
 
                 ! Write y_staggered
                 inquire( iolength = record_length ) y_staggered
-                open( newunit = file_unit, file = header//'y_staggered.dat', status = 'unknown', &
-                    form = 'unformatted', access = 'direct', recl = record_length )
-                write( file_unit, rec = 1 ) y_staggered
+                open( newunit=file_unit, file=header//'y_staggered.dat', status='replace', &
+                    form='unformatted', access='direct', recl=record_length )
+                write( file_unit, rec=1 ) y_staggered
                 close( file_unit )
 
                 ! Write x_centered
                 inquire( iolength = record_length ) x_centered
-                open( newunit = file_unit, file = header//'x_centered.dat', status = 'unknown', &
-                    form = 'unformatted', access = 'direct', recl = record_length )
-                write( file_unit, rec = 1 ) x_centered
+                open( newunit=file_unit, file=header//'x_centered.dat', status='replace', &
+                    form='unformatted', access='direct', recl=record_length )
+                write( file_unit, rec=1 ) x_centered
                 close( file_unit )
 
                 ! Write y_centered
                 inquire( iolength = record_length ) y_centered
-                open( newunit = file_unit, file = header//'y_centered.dat', status = 'unknown', &
-                    form = 'unformatted', access = 'direct', recl = record_length )
-                write( file_unit, rec = 1 ) y_centered
+                open( newunit=file_unit, file=header//'y_centered.dat', status='replace', &
+                    form='unformatted', access='direct', recl=record_length )
+                write( file_unit, rec=1 ) y_centered
                 close( file_unit )
 
             end associate
