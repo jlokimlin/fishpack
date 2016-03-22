@@ -924,7 +924,7 @@ contains
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer :: i, ns2, ns2m
+        integer :: ns2, ns2m
         real (wp) :: cf, cfm
         !-----------------------------------------------
         !
@@ -966,7 +966,7 @@ contains
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer :: ns2, i
+        integer :: ns2
         !-----------------------------------------------
 
         if (n - 2 <= 0) then
@@ -1020,9 +1020,9 @@ contains
         ! Dictionary: local variables
         !-----------------------------------------------
         integer , parameter :: ntryh(*) =[ 4, 2, 3, 5 ]
-        integer  :: nl, nf, j, ntry, nq, nr, i, ib, is, nfm1, l1, k1, ip, l2, ido, ipm, ii
+        integer  :: nl, nf, j, ntry, nq, nr, i, is, nfm1, l1, k1, ip, l2, ido, ipm, ii
         real (wp), parameter :: two_pi = 2.0_wp * acos( -1.0_wp )
-        real (wp) ::  dum, argh, arg1, ch1, sh1, dch1, dsh1, ch1h
+        real (wp) :: argh, arg1, ch1, sh1, dch1, dsh1, ch1h
         !-----------------------------------------------
 
         nl = n
@@ -1099,7 +1099,7 @@ subroutine costi(n, wsave)
     !-----------------------------------------------
     integer :: nm1, np1, ns2, k, kc
     real (wp), parameter :: pi = acos( -1.0_wp )
-    real (wp)            :: dum, dt, fk
+    real (wp)            :: dt, fk
     !-----------------------------------------------
 
     if (n <= 3) return
@@ -1555,10 +1555,10 @@ subroutine cffti1(n, wa, ifac)
     ! Dictionary: local variables
     !-----------------------------------------------
     integer , parameter :: ntryh(*) = [3, 4, 2, 5]
-    integer :: nl, nf, j, ntry, nq, nr, i, ib, l1, k1, ip, ld, l2, ido
+    integer :: nl, nf, j, ntry, nq, nr, i, l1, k1, ip, ld, l2, ido
     integer :: idot, ipm, i1, ii
     real (wp), parameter :: two_pi = 2.0_wp * acos( -1.0_wp )
-    real (wp) :: dum, argh, fi, argld, arg
+    real (wp) :: argh, fi, argld, arg
     !-----------------------------------------------
 
     nl = n
@@ -1653,7 +1653,7 @@ subroutine cfftb1(n, c, ch, wa, ifac)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: nf, na, l1, iw, k1, ip, l2, ido, idot, idl1, ix2, ix3, ix4, nac, n2, i
+    integer :: nf, na, l1, iw, k1, ip, l2, ido, idot, idl1, ix2, ix3, ix4, nac, n2
     !-----------------------------------------------
 
     nf = ifac(2)
@@ -2009,8 +2009,7 @@ subroutine passb(nac, ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: idot, nt, ipp2, ipph, idp, j, jc, k, i, idl, inc, l, lc &
-        , ik, idlj, idij, idj
+    integer :: idot, nt, ipp2, ipph, idp, j, jc, k, i, idl, inc, l, lc, idlj, idij, idj
     real (wp) :: war, wai
     !-----------------------------------------------
     idot = ido/2
@@ -2129,7 +2128,7 @@ subroutine cfftf1(n, c, ch, wa, ifac)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer::nf, na, l1, iw, k1, ip, l2, ido, idot, idl1, ix2, ix3, ix4, nac, n2, i
+    integer:: nf, na, l1, iw, k1, ip, l2, ido, idot, idl1, ix2, ix3, ix4, nac, n2
     !-----------------------------------------------
     nf = ifac(2)
     na = 0
@@ -2486,7 +2485,7 @@ subroutine passf(nac, ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
     !-----------------------------------------------
     integer :: idot, nt, ipp2, ipph, idp, j, jc
     integer :: k, i, idl, inc, l, lc
-    integer :: ik, idlj, idij, idj
+    integer :: idlj, idij, idj
     real (wp) :: war, wai
     !-----------------------------------------------
     idot = ido/2
@@ -2598,10 +2597,10 @@ subroutine rffti1(n, wa, ifac)
     ! Dictionary: local variables
     !-----------------------------------------------
     integer, parameter :: ntryh(*) = [4, 2, 3, 5]
-    integer :: nl, nf, j, ntry, nq, nr, i, ib, is, nfm1, l1, k1, ip
+    integer :: nl, nf, j, ntry, nq, nr, i, is, nfm1, l1, k1, ip
     integer :: ld, l2, ido, ipm, ii
     real (wp), parameter :: two_pi = 2.0_wp * acos( -1.0_wp )
-    real (wp) :: dum, argh, argld, fi, arg
+    real (wp) :: argh, argld, fi, arg
     !-----------------------------------------------
 
     nl = n
@@ -2690,7 +2689,7 @@ subroutine rfftb1(n, c, ch, wa, ifac)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: nf, na, l1, iw, k1, ip, l2, ido, idl1, ix2, ix3, ix4, i
+    integer :: nf, na, l1, iw, k1, ip, l2, ido, idl1, ix2, ix3, ix4
     !-----------------------------------------------
     nf = ifac(2)
     na = 0
@@ -3035,9 +3034,9 @@ subroutine radbg(ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer::idp2, nbd, ipp2, ipph, k, i, j, jc, j2, ic, l, lc, ik, is, idij
+    integer:: idp2, nbd, ipp2, ipph, k, i, j, jc, j2, l, lc, is, idij
     real (wp), parameter :: two_pi = 2.0_wp * acos( -1.0_wp )
-    real (wp) :: dum, arg, dcp, dsp, ar1, ai1, ar1h, dc2, ds2, ar2, ai2, ar2h
+    real (wp) :: arg, dcp, dsp, ar1, ai1, ar1h, dc2, ds2, ar2, ai2, ar2h
     !-----------------------------------------------
 
     arg = two_pi/ip
@@ -3194,7 +3193,7 @@ subroutine rfftf1(n, c, ch, wa, ifac)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: nf, na, l2, iw, k1, kh, ip, l1, ido, idl1, ix2, ix3, ix4, i
+    integer :: nf, na, l2, iw, k1, kh, ip, l1, ido, idl1, ix2, ix3, ix4
     !-----------------------------------------------
 
     nf = ifac(2)
@@ -3534,9 +3533,9 @@ subroutine radfg(ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer::ipph, ipp2, idp2, nbd, ik, j, k, is, idij, i, jc, l, lc, j2, ic
+    integer:: ipph, ipp2, idp2, nbd, j, k, is, idij, i, jc, l, lc
     real (wp), parameter :: two_pi = 2.0_wp * acos( -1.0_wp )
-    real (wp) :: dum, arg, dcp, dsp, ar1, ai1, ar1h, dc2, ds2, ar2, ai2, ar2h
+    real (wp) :: arg, dcp, dsp, ar1, ai1, ar1h, dc2, ds2, ar2, ai2, ar2h
     !-----------------------------------------------
 
     arg = two_pi/ip
