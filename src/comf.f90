@@ -140,7 +140,7 @@ module module_comf
     !---------------------------------------------------------------------------------
     ! Dictionary: global variables confined to the module
     !---------------------------------------------------------------------------------
-    real (wp), save :: v
+    real (wp), save :: saved_value
     !---------------------------------------------------------------------------------
 
 contains
@@ -163,7 +163,7 @@ contains
 
         call strwrd(eps + 1.0_wp)
 
-        do while(v - 1.0_wp > 0.0_wp)
+        do while(saved_value - 1.0_wp > 0.0_wp)
             eps = eps/2
             call strwrd(eps + 1.0_wp)
         end do
@@ -180,7 +180,7 @@ contains
         real (wp), intent (in) :: x
         !-----------------------------------------------
 
-        v = x
+        saved_value = x
 
     end subroutine strwrd
 

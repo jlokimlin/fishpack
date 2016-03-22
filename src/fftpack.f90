@@ -1,6 +1,6 @@
 module module_fftpack
 
-    use iso_fortran_env, only: &
+    use, intrinsic :: iso_fortran_env, only: &
         wp => REAL64
 
     ! explicit typing only
@@ -997,6 +997,7 @@ contains
         !-----------------------------------------------
         !
         if (n == 1) return
+
         call ezfft1 (n, wsave(2*n+1), wsave(3*n+1))
 
     end subroutine ezffti
@@ -1015,10 +1016,10 @@ contains
         !-----------------------------------------------
         integer , parameter :: ntryh(*) =[ 4, 2, 3, 5 ]
         integer  :: nl, nf, j, ntry, nq, nr, i, ib, is, nfm1, l1, k1, ip, l2, ido, ipm, ii
-        real (wp) :: tpi, dum, argh, arg1, ch1, sh1, dch1, dsh1, ch1h
+        real (wp), parameter :: two_pi = 2.0_wp * acos( -1.0_wp )
+        real (wp) ::  dum, argh, arg1, ch1, sh1, dch1, dsh1, ch1h
         !-----------------------------------------------
 
-        tpi = 2.0_wp * acos( -1.0_wp )
         nl = n
         nf = 0
         j = 0
@@ -1045,7 +1046,7 @@ contains
     if (nl /= 1) go to 104
     ifac(1) = n
     ifac(2) = nf
-    argh = tpi/real(n)
+    argh = two_pi/real(n)
     is = 0
     nfm1 = nf - 1
     l1 = 1
@@ -1092,16 +1093,16 @@ subroutine costi(n, wsave)
     ! Dictionary: local variables
     !-----------------------------------------------
     integer :: nm1, np1, ns2, k, kc
-    real (wp) :: pi, dum, dt, fk
+    real (wp), parameter :: pi = acos( -1.0_wp )
+    real (wp)            :: dum, dt, fk
     !-----------------------------------------------
-    !
-    pi = 4.0*atan(1.0)
+
     if (n <= 3) return
     nm1 = n - 1
     np1 = n + 1
     ns2 = n/2
-    dt = pi/real(nm1)
-    fk = 0.
+    dt = pi/nm1
+    fk = 0.0_wp
     do k = 2, ns2
         kc = np1 - k
         fk = fk + 1.
@@ -1169,7 +1170,7 @@ subroutine cost(n, x, wsave)
         end do
         if (modn /= 0) x(n) = xim2
     end if
-    return
+
 end subroutine cost
 
 
@@ -1183,17 +1184,19 @@ subroutine sinti(n, wsave)
     ! Dictionary: local variables
     !-----------------------------------------------
     integer :: ns2, np1, k
-    real (wp) :: pi, dum, dt
+    real (wp), parameter :: pi = acos( -1.0_wp )
     !-----------------------------------------------
-    !
-    pi = 4.0*atan(1.0)
+
     if (n <= 1) return
     ns2 = n/2
     np1 = n + 1
-    dt = pi/real(np1)
-    do k = 1, ns2
-        wsave(k) = 2.0_wp * sin(k*dt)
-    end do
+
+    associate( dt => pi/np1 )
+        do k = 1, ns2
+            wsave(k) = 2.0_wp * sin(k*dt)
+        end do
+    end associate
+
     call rffti (np1, wsave(ns2+1))
 
 end subroutine sinti
@@ -1236,7 +1239,7 @@ subroutine sint1(n, war, was, xh, x, ifac)
     ! Dictionary: local variables
     !-----------------------------------------------
     integer :: i, np1, ns2, k, kc, modn
-    real (wp) :: sqrt3 = sqrt( 3.0_wp) ! 1.73205080756888
+    real (wp), parameter :: sqrt3 = sqrt( 3.0_wp) ! 1.73205080756888
     real (wp) ::  xhold, t1, t2
     !-----------------------------------------------
 
@@ -1287,17 +1290,19 @@ subroutine cosqi(n, wsave)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: k
-    real (wp) :: pih, dum, dt, fk
+    integer              :: k !! Counter
+    real (wp), parameter :: half_pi = acos( -1.0_wp )/2
+    real (wp)            :: fk
     !-----------------------------------------------
-    !
-    pih = 2.0*atan(1.0)
-    dt = pih/real(n)
-    fk = 0.
-    do k = 1, n
-        fk = fk + 1.
-        wsave(k) = cos(fk*dt)
-    end do
+
+    associate( dt => half_pi/n )
+        fk = 0.0_wp
+        do k = 1, n
+            fk = fk + 1.0_wp
+            wsave(k) = cos(fk*dt)
+        end do
+    end associate
+
     call rffti (n, wsave(n+1))
 
 end subroutine cosqi
@@ -1313,16 +1318,16 @@ subroutine cosqf(n, x, wsave)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    real (wp)            :: tsqx
     real (wp), parameter :: sqrt2 = sqrt(2.0_wp) ! 1.4142135623731
     !-----------------------------------------------
 
 
     if (n - 2 >= 0) then
         if (n - 2 > 0) go to 103
-        tsqx = sqrt2*x(2)
-        x(2) = x(1) - tsqx
-        x(1) = x(1) + tsqx
+        associate( tsqx => sqrt2*x(2) )
+            x(2) = x(1) - tsqx
+            x(1) = x(1) + tsqx
+        end associate
     end if
     return
 103 continue
@@ -1381,7 +1386,6 @@ subroutine cosqb(n, x, wsave)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    real (wp) :: x1
     real (wp), parameter :: tsqrt2 = 2.0_wp * sqrt(2.0_wp) ! 2.82842712474619
     !-----------------------------------------------
 
@@ -1390,11 +1394,13 @@ subroutine cosqb(n, x, wsave)
             x(1) = 4.0_wp * x(1)
             return
         end if
-        x1 = 4.0_wp * (x(1)+x(2))
-        x(2) = tsqrt2*(x(1)-x(2))
-        x(1) = x1
+        associate( x1 => 4.0_wp * (x(1)+x(2)) )
+            x(2) = tsqrt2*(x(1)-x(2))
+            x(1) = x1
+        end associate
         return
     end if
+
     call cosqb1 (n, x, wsave, wsave(n+1))
 
 end subroutine cosqb
@@ -1448,7 +1454,7 @@ subroutine sinqi(n, wsave)
     integer  :: n
     real (wp) :: wsave(*)
     !-----------------------------------------------
-    !
+
     call cosqi (n, wsave)
 
 end subroutine sinqi
@@ -1520,15 +1526,14 @@ subroutine cffti(n, wsave)
     integer  :: n
     real (wp) :: wsave(*)
     !-----------------------------------------------
-    ! Dictionary: local variables
-    !-----------------------------------------------
-    integer :: iw1, iw2
-    !-----------------------------------------------
-    !
+
     if (n == 1) return
-    iw1 = n + n + 1
-    iw2 = iw1 + n + n
-    call cffti1 (n, wsave(iw1), wsave(iw2))
+
+    associate( iw1 => 2*n + 1 )
+        associate( iw2 => iw1 + 2*n )
+            call cffti1(n, wsave(iw1), wsave(iw2))
+        end associate
+    end associate
 
 end subroutine cffti
 
@@ -1547,7 +1552,8 @@ subroutine cffti1(n, wa, ifac)
     integer , parameter :: ntryh(*) = [3, 4, 2, 5]
     integer :: nl, nf, j, ntry, nq, nr, i, ib, l1, k1, ip, ld, l2, ido
     integer :: idot, ipm, i1, ii
-    real (wp) :: tpi, dum, argh, fi, argld, arg
+    real (wp), parameter :: two_pi = 2.0_wp * acos( -1.0_wp )
+    real (wp) :: dum, argh, fi, argld, arg
     !-----------------------------------------------
 
     nl = n
@@ -1576,8 +1582,7 @@ subroutine cffti1(n, wa, ifac)
     if (nl /= 1) go to 104
     ifac(1) = n
     ifac(2) = nf
-    tpi = 8.0*atan(1.0)
-    argh = tpi/real(n)
+    argh = two_pi/n
     i = 2
     l1 = 1
     do k1 = 1, nf

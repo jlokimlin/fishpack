@@ -9,7 +9,6 @@ module module_blktri
         FishpackWorkspace
 
     use module_comf, only: &
-        epmach, &
         psgf, &
         ppspf, &
         ppsgf
@@ -250,7 +249,7 @@ contains
 
 
     subroutine blktri( iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
-        idimy, y, ierror, w )
+        idimy, y, ierror, workspace )
         !
         !     file blktri.f
         !
@@ -508,55 +507,63 @@ contains
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
-        integer (ip) :: iflg
-        integer (ip) :: np
-        integer (ip) :: n
-        integer (ip) :: mp
-        integer (ip) :: m
-        integer (ip) :: idimy
-        integer (ip) :: ierror
-        real (wp) :: an(*)
-        real (wp) :: bn(*)
-        real (wp) :: cn(*)
-        real (wp) :: am(*)
-        real (wp) :: bm(*)
-        real (wp) :: cm(*)
-        real (wp) :: y(idimy, *)
-        class (FishpackWorkspace) :: w
+        integer (ip),          intent (in)     :: iflg
+        integer (ip),          intent (in)     :: np
+        integer (ip),          intent (in)     :: n
+        integer (ip),          intent (in)     :: mp
+        integer (ip),          intent (in)     :: m
+        integer (ip),          intent (in)     :: idimy
+        integer (ip),          intent (out)    :: ierror
+        real (wp), contiguous, intent (in out) :: an(:)
+        real (wp), contiguous, intent (in out) :: bn(:)
+        real (wp), contiguous, intent (in out) :: cn(:)
+        real (wp), contiguous, intent (in out) :: am(:)
+        real (wp), contiguous, intent (in out) :: bm(:)
+        real (wp), contiguous, intent (in out) :: cm(:)
+        real (wp), contiguous, intent (in out) :: y(:,:)
+        class (FishpackWorkspace)              :: workspace
         !--------------------------------------------------------------------------------
         ! Dictionary: local variables
         !--------------------------------------------------------------------------------
-        integer (ip)             :: irwk, icwk
+        integer (ip)  :: irwk, icwk
         !--------------------------------------------------------------------------------
 
+        ! Initialize error flag
+        ierror = 0
+
+        ! Check if input values are valid - case 1
         if (m < 5) then
             ierror = 1
             return
         end if
+
+        ! Check if input values are valid - case 2
         if (n < 3) then
             ierror = 2
             return
         end if
+
+        ! Check if input values are valid - case 3
         if (idimy < m) then
             ierror = 3
             return
         end if
+
+
         if (iflg == 0) then
 
             ! compute and allocate real and complex required work space
-            call w%get_block_tridiagonal_workpace_dimensions (n, m, irwk, icwk)
+            call workspace%get_block_tridiagonal_workpace_dimensions (n, m, irwk, icwk)
 
-            ! Create workspace
-            call w%create( irwk, icwk, ierror )
-            if (ierror == 20) then
-                return
-            end if
+            ! Allocate memory for workspace
+            call workspace%create( irwk, icwk, ierror )
+
         end if
 
         ! Solve system
         associate( &
-            rew => w%real_workspace, &
-            cxw => w%complex_workspace &
+            rew => workspace%real_workspace, &
+            cxw => workspace%complex_workspace &
             )
             call blktrii( iflg, np, n, an, bn, cn, mp, m, am, bm, cm, idimy, y, &
                 ierror, rew, cxw )
@@ -570,22 +577,22 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: iflg
-        integer (ip), intent (in) :: np
-        integer (ip), intent (in) :: n
-        integer (ip), intent (in) :: mp
-        integer (ip) :: m
-        integer (ip) :: idimy
-        integer (ip) :: ierror
-        real (wp) :: an(*)
-        real (wp) :: bn(*)
-        real (wp) :: cn(*)
-        real (wp) :: am(*)
-        real (wp) :: bm(*)
-        real (wp) :: cm(*)
-        real (wp) :: y(idimy, *)
-        real (wp), intent (in out) :: w(*)
-        complex (wp) :: wc(*)
+        integer (ip), intent (in)     :: iflg
+        integer (ip), intent (in)     :: np
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: mp
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: idimy
+        integer (ip), intent (out)    :: ierror
+        real (wp),    intent (in out) :: an(*)
+        real (wp),    intent (in out) :: bn(*)
+        real (wp),    intent (in out) :: cn(*)
+        real (wp),    intent (in out) :: am(*)
+        real (wp),    intent (in out) :: bm(*)
+        real (wp),    intent (in out) :: cm(*)
+        real (wp),    intent (in out) :: y(idimy,*)
+        real (wp),    intent (in out) :: w(*)
+        complex (wp), intent (in out) :: wc(*)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
@@ -650,11 +657,11 @@ contains
         if (npp == 0) nm = n - 1
 
         if (mp /= 0) then
-            call blktr1 (nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, &
+            call blktr1(nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, &
                 w(iw1), w(iw2), w(iw3), w(iwd), w(iww), w(iwu), wc(iw1), &
                 wc(iw2), wc(iw3), prod, cprod)
         else
-            call blktr1 (nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, &
+            call blktr1(nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, &
                 w(iw1), w(iw2), w(iw3), w(iwd), w(iww), w(iwu), wc(iw1), &
                 wc(iw2), wc(iw3), prodp, cprodp)
         end if
@@ -707,7 +714,7 @@ contains
         !-----------------------------------------------
         integer (ip) :: kdo, l, ir, i2, i1, i3, i4, irm1, im2, nm2, im3, nm3
         integer (ip) :: im1, nm1, i0, if_rename, i, ipi1, ipi2, ipi3, idxc, nc, idxa, na, ip2
-        integer (ip) :: np2, ip1, np1, ip3, np3, j, iz, nz, izr, ll, ifd, ip_rename, np
+        integer (ip) :: np2, ip1, np1, ip3, np3, iz, nz, izr, ll, ifd, ip_rename, np
         integer (ip) :: imi1, imi2
         real (wp) :: dum
         !-----------------------------------------------
@@ -911,7 +918,6 @@ contains
 end subroutine blktr1
 
 
-
 function bsrh(xll, xrr, iz, c, a, bh, f, sgn) result(return_value)
     !-----------------------------------------------
     ! Dictionary: calling arguments
@@ -959,9 +965,8 @@ function bsrh(xll, xrr, iz, c, a, bh, f, sgn) result(return_value)
     return_value = 0.5_wp * (xl + xr)
 
 end function bsrh
-    !
-    !*****************************************************************************************
-    !
+
+
 subroutine compb(n, ierror, an, bn, cn, b, bc, ah, bh)
     !-----------------------------------------------
     ! Dictionary: calling arguments
@@ -1123,89 +1128,88 @@ subroutine cprod(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, b, c, d, w, y)
     complex (wp) :: crt, den, y1, y2
     !-----------------------------------------------
 
-    do J = 1, M
-        Y(J) = CMPLX(X(J), 0.)
+    do j = 1, m
+        y(j) = cmplx(x(j), 0.)
     end do
-    MM = M - 1
-    ID = ND
-    M1 = NM1
-    M2 = NM2
-    IA = NA
+    mm = m - 1
+    id = nd
+    m1 = nm1
+    m2 = nm2
+    ia = na
 102 continue
-    IFLG = 0
-    if (ID > 0) then
-        CRT = BD(ID)
-        ID = ID - 1
+    iflg = 0
+    if (id > 0) then
+        crt = bd(id)
+        id = id - 1
         !
-        ! BEGIN SOLUTION TO SYSTEM
+        ! begin solution to system
         !
-        D(M) = A(M)/(B(M)-CRT)
-        W(M) = Y(M)/(B(M)-CRT)
-        do J = 2, MM
-            K = M - J
-            DEN = B(K+1) - CRT - C(K+1)*D(K+2)
-            D(K+1) = A(K+1)/DEN
-            W(K+1) = (Y(K+1)-C(K+1)*W(K+2))/DEN
+        d(m) = a(m)/(b(m)-crt)
+        w(m) = y(m)/(b(m)-crt)
+        do j = 2, mm
+            k = m - j
+            den = b(k+1) - crt - c(k+1)*d(k+2)
+            d(k+1) = a(k+1)/den
+            w(k+1) = (y(k+1)-c(k+1)*w(k+2))/den
         end do
-        DEN = B(1) - CRT - C(1)*D(2)
-        if (abs(DEN) /= 0.) then
-            Y(1) = (Y(1)-C(1)*W(2))/DEN
+        den = b(1) - crt - c(1)*d(2)
+        if (abs(den) /= 0.) then
+            y(1) = (y(1)-c(1)*w(2))/den
         else
-            Y(1) = (1., 0.)
+            y(1) = (1., 0.)
         end if
-        do J = 2, M
-            Y(J) = W(J) - D(J)*Y(J-1)
+        do j = 2, m
+            y(j) = w(j) - d(j)*y(j-1)
         end do
     end if
-    if (M1 <= 0) then
-        if (M2 <= 0) go to 121
-        RT = BM2(M2)
-        M2 = M2 - 1
+    if (m1 <= 0) then
+        if (m2 <= 0) go to 121
+        rt = bm2(m2)
+        m2 = m2 - 1
     else
-        if (M2 <= 0) then
-            RT = BM1(M1)
-            M1 = M1 - 1
+        if (m2 <= 0) then
+            rt = bm1(m1)
+            m1 = m1 - 1
         else
-            if (abs(BM1(M1)) - abs(BM2(M2)) > 0.) then
-                RT = BM1(M1)
-                M1 = M1 - 1
+            if (abs(bm1(m1)) - abs(bm2(m2)) > 0.) then
+                rt = bm1(m1)
+                m1 = m1 - 1
             else
-                RT = BM2(M2)
-                M2 = M2 - 1
+                rt = bm2(m2)
+                m2 = m2 - 1
             end if
         end if
     end if
-    Y1 = (B(1)-RT)*Y(1) + C(1)*Y(2)
-    if (MM - 2 >= 0) then
-        do J = 2, MM
-            Y2 = A(J)*Y(J-1) + (B(J)-RT)*Y(J) + C(J)*Y(J+1)
-            Y(J-1) = Y1
-            Y1 = Y2
+    y1 = (b(1)-rt)*y(1) + c(1)*y(2)
+    if (mm - 2 >= 0) then
+        do j = 2, mm
+            y2 = a(j)*y(j-1) + (b(j)-rt)*y(j) + c(j)*y(j+1)
+            y(j-1) = y1
+            y1 = y2
         end do
     end if
-    Y(M) = A(M)*Y(M-1) + (B(M)-RT)*Y(M)
-    Y(M-1) = Y1
-    IFLG = 1
+    y(m) = a(m)*y(m-1) + (b(m)-rt)*y(m)
+    y(m-1) = y1
+    iflg = 1
     go to 102
 121 continue
-    if (IA > 0) then
-        RT = AA(IA)
-        IA = IA - 1
-        IFLG = 1
+    if (ia > 0) then
+        rt = aa(ia)
+        ia = ia - 1
+        iflg = 1
         !
-        ! SCALAR MULTIPLICATION
+        ! scalar multiplication
         !
-        Y(:M) = RT*Y(:M)
+        y(:m) = rt*y(:m)
     end if
-    if (IFLG > 0) go to 102
-    do J = 1, M
-        YY(J) = REAL(Y(J))
+    if (iflg > 0) go to 102
+    do j = 1, m
+        yy(j) = real(y(j))
     end do
-    return
+
 end subroutine cprod
-    !
-    !*****************************************************************************************
-    !
+
+
 subroutine cprodp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, &
     b, c, d, u, y)
         !
@@ -1358,10 +1362,8 @@ subroutine cprodp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, &
     end do
 
 end subroutine cprodp
-    !
-    !*****************************************************************************************
-    !
-subroutine indxa(i, ir, idxa, na)
+
+pure subroutine indxa(i, ir, idxa, na)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
@@ -1378,10 +1380,8 @@ subroutine indxa(i, ir, idxa, na)
     end if
 
 end subroutine indxa
-    !
-    !*****************************************************************************************
-    !
-subroutine indxb(i, ir, idx, idp)
+
+pure subroutine indxb(i, ir, idx, idp)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
@@ -1471,7 +1471,7 @@ subroutine ppadd(n, ierror, a, c, cbp, bp, bh)
     !-----------------------------------------------
     integer (ip) :: iz, izm, izm2, j, nt, modiz, is, if, ig, it, icv, i3, i2, nhalf
     real (wp)    :: r4, r5, r6, scnv, xl, db, sgn, xr, xm, psg
-    complex (wp) :: cf, cx, fsg, hsg, dd, f, fp, fpp, cdis, r1, r2, r3
+    complex (wp) :: cx, fsg, hsg, dd, f, fp, fpp, cdis, r1, r2, r3
     !-----------------------------------------------
 
     scnv = sqrt(cnv)

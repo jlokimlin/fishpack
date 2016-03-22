@@ -1,5 +1,10 @@
 module module_cblktri
 
+    use, intrinsic :: iso_fortran_env, only: &
+        wp => REAL64, &
+        ip => INT32, &
+        stdout => OUTPUT_UNIT
+
     use module_comf, only: &
         psgf, &
         ppspf, &
@@ -152,19 +157,18 @@ contains
         end do
         !     Print earlier output from platforms with 32 and 64 bit floating point
         !     arithemtic followed by the output from this computer
-        write( *, *) ''
-        write( *, *) '    cblktri *** TEST RUN *** '
-        write( *, *) &
-            '    Previous 64 bit floating point arithmetic result '
-        write( *, *) '    ierror = 0,  discretization error = 1.6457E-05'
-
-        write( *, *) '    The output from your computer is: '
-        write( *, *) '    ierror =', ierror, ' discretization error = ', &
-            ERR
+        write( stdout, '(A)') ''
+        write( stdout, '(A)') '     cblktri *** TEST RUN *** '
+        write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(A)') '     ierror = 0,  discretization error = 1.6457E-05'
+        write( stdout, '(A)') '     The output from your computer is: '
+        write( stdout, '(A,I3,A,1pe15.6)') &
+        '     ierror =', ierror, ' discretization error = ', ERR
         !     release dynamically allocated work space
         call workspace%destroy()
 
     end subroutine test_cblktri
+
 
     subroutine cblktri(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
         idimy, y, ierror, w)
