@@ -11,7 +11,8 @@ module module_blktri
     use module_comf, only: &
         psgf, &
         ppspf, &
-        ppsgf
+        ppsgf, &
+        comf_interface
 
     ! Explicit typing only
     implicit none
@@ -688,27 +689,27 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip)              :: n
-        integer (ip)              :: m
-        integer (ip), intent (in) :: idimy
-        real (wp)                 :: an(*)
-        real (wp)                 :: bn(*)
-        real (wp)                 :: cn(*)
-        real (wp)                 :: am(*)
-        real (wp)                 :: bm(*)
-        real (wp)                 :: cm(*)
-        real (wp)                 :: y(idimy, 1)
-        real (wp)                 :: b(*)
-        real (wp)                 :: w1(*)
-        real (wp)                 :: w2(*)
-        real (wp)                 :: w3(*)
-        real (wp)                 :: wd(*)
-        real (wp)                 :: ww(*)
-        real (wp)                 :: wu(*)
-        complex (wp)              :: bc(*)
-        complex (wp)              :: cw1(*)
-        complex (wp)              :: cw2(*)
-        complex (wp)              :: cw3(*)
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: idimy
+        real (wp),    intent (in)     :: an(*)
+        real (wp),    intent (in)     :: bn(*)
+        real (wp),    intent (in)     :: cn(*)
+        real (wp),    intent (in)     :: am(*)
+        real (wp),    intent (in)     :: bm(*)
+        real (wp),    intent (in)     :: cm(*)
+        real (wp),    intent (in out) :: y(idimy,1)
+        real (wp),    intent (in)     :: b(*)
+        real (wp),    intent (in out) :: w1(*)
+        real (wp),    intent (in out) :: w2(*)
+        real (wp),    intent (in out) :: w3(*)
+        real (wp),    intent (in)     :: wd(*)
+        real (wp),    intent (in)     :: ww(*)
+        real (wp),    intent (in)     :: wu(*)
+        complex (wp), intent (in)     :: bc(*)
+        complex (wp), intent (in)     :: cw1(*)
+        complex (wp), intent (in)     :: cw2(*)
+        complex (wp), intent (in)     :: cw3(*)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
@@ -922,15 +923,15 @@ function bsrh(xll, xrr, iz, c, a, bh, f, sgn) result(return_value)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    real (wp), intent (in) :: xll
-    real (wp), intent (in) :: xrr
-    integer (ip)           :: iz
-    real (wp)              :: c(*)
-    real (wp)              :: a(*)
-    real (wp)              :: bh(*)
-    real (wp)              :: f
-    real (wp), intent (in) :: sgn
-    real (wp)              :: return_value
+    real (wp), intent (in)     :: xll
+    real (wp), intent (in)     :: xrr
+    integer (ip), intent (in)  :: iz
+    real (wp), intent (in)     :: c(*)
+    real (wp), intent (in)     :: a(*)
+    real (wp), intent (in)     :: bh(*)
+    procedure (comf_interface) :: f
+    real (wp), intent (in)     :: sgn
+    real (wp)                  :: return_value
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -971,15 +972,15 @@ subroutine compb(n, ierror, an, bn, cn, b, bc, ah, bh)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer (ip)           :: n
-    integer (ip)           :: ierror
-    real (wp)              :: an(*)
-    real (wp), intent (in) :: bn(*)
-    real (wp)              :: cn(*)
-    real (wp)              :: b(*)
-    real (wp)              :: ah(*)
-    real (wp)              :: bh(*)
-    complex (wp)           :: bc(*)
+    integer (ip), intent (in)     :: n
+    integer (ip), intent (out)    :: ierror
+    real (wp),    intent (in)     :: an(*)
+    real (wp),    intent (in)     :: bn(*)
+    real (wp),    intent (in)     :: cn(*)
+    real (wp),    intent (in out) :: b(*)
+    real (wp),    intent (in out) :: ah(*)
+    real (wp),    intent (in out) :: bh(*)
+    complex (wp), intent (in out) :: bc(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -1103,20 +1104,20 @@ subroutine cprod(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, b, c, d, w, y)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer (ip), intent (in) :: nd
-    integer (ip), intent (in) :: nm1
-    integer (ip), intent (in) :: nm2
-    integer (ip), intent (in) :: na
-    integer (ip), intent (in) :: m
-    real (wp), intent (in) :: bm1(*)
-    real (wp), intent (in) :: bm2(*)
-    real (wp), intent (in) :: aa(*)
-    real (wp), intent (in) :: x(*)
-    real (wp), intent (out) :: yy(*)
-    real (wp), intent (in) :: a(*)
-    real (wp), intent (in) :: b(*)
-    real (wp), intent (in) :: c(*)
-    complex (wp), intent (in) :: bd(*)
+    integer (ip), intent (in)     :: nd
+    integer (ip), intent (in)     :: nm1
+    integer (ip), intent (in)     :: nm2
+    integer (ip), intent (in)     :: na
+    integer (ip), intent (in)     :: m
+    real (wp),    intent (in)     :: bm1(*)
+    real (wp),    intent (in)     :: bm2(*)
+    real (wp),    intent (in)     :: aa(*)
+    real (wp),    intent (in)     :: x(*)
+    real (wp),    intent (out)    :: yy(*)
+    real (wp),    intent (in)     :: a(*)
+    real (wp),    intent (in)     :: b(*)
+    real (wp),    intent (in)     :: c(*)
+    complex (wp), intent (in)     :: bd(*)
     complex (wp), intent (in out) :: d(*)
     complex (wp), intent (in out) :: w(*)
     complex (wp), intent (in out) :: y(*)
@@ -1232,20 +1233,20 @@ subroutine cprodp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, &
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer (ip), intent (in) :: nd
-    integer (ip), intent (in) :: nm1
-    integer (ip), intent (in) :: nm2
-    integer (ip), intent (in) :: na
-    integer (ip), intent (in) :: m
-    real (wp), intent (in) :: bm1(*)
-    real (wp), intent (in) :: bm2(*)
-    real (wp), intent (in) :: aa(*)
-    real (wp), intent (in) :: x(*)
-    real (wp), intent (out) :: yy(*)
-    real (wp), intent (in) :: a(*)
-    real (wp), intent (in) :: b(*)
-    real (wp), intent (in) :: c(*)
-    complex (wp), intent (in) :: bd(*)
+    integer (ip), intent (in)     :: nd
+    integer (ip), intent (in)     :: nm1
+    integer (ip), intent (in)     :: nm2
+    integer (ip), intent (in)     :: na
+    integer (ip), intent (in)     :: m
+    real (wp),    intent (in)     :: bm1(*)
+    real (wp),    intent (in)     :: bm2(*)
+    real (wp),    intent (in)     :: aa(*)
+    real (wp),    intent (in)     :: x(*)
+    real (wp),    intent (out)    :: yy(*)
+    real (wp),    intent (in)     :: a(*)
+    real (wp),    intent (in)     :: b(*)
+    real (wp),    intent (in)     :: c(*)
+    complex (wp), intent (in)     :: bd(*)
     complex (wp), intent (in out) :: d(*)
     complex (wp), intent (in out) :: u(*)
     complex (wp), intent (in out) :: y(*)
@@ -1428,8 +1429,8 @@ pure subroutine indxc(i, ir, idxc, nc)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer (ip), intent (in) :: i
-    integer (ip), intent (in) :: ir
+    integer (ip), intent (in)  :: i
+    integer (ip), intent (in)  :: ir
     integer (ip), intent (out) :: idxc
     integer (ip), intent (out) :: nc
     !-----------------------------------------------
@@ -1459,12 +1460,12 @@ subroutine ppadd(n, ierror, a, c, cbp, bp, bh)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer (ip), intent (in) :: n
-    integer (ip), intent (out) :: ierror
-    real (wp) :: a(*)
-    real (wp) :: c(*)
-    real (wp), intent (in out) :: bp(*)
-    real (wp) :: bh(*)
+    integer (ip), intent (in)     :: n
+    integer (ip), intent (out)    :: ierror
+    real (wp),    intent (in)     :: a(*)
+    real (wp),    intent (in)     :: c(*)
+    real (wp),    intent (in out) :: bp(*)
+    real (wp),    intent (in out) :: bh(*)
     complex (wp), intent (in out) :: cbp(*)
     !-----------------------------------------------
     ! Dictionary: local variables
@@ -1893,7 +1894,7 @@ subroutine prodp( nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, u, w)
 end subroutine prodp
 
 
-subroutine tevls(N, D, E2, IERR)
+subroutine tevls(n, d, e2, ierr)
     !
     !
     !     real sqrt, abs, sign

@@ -86,7 +86,7 @@ contains
             this%subdiagonal( nx ), &
             this%diagonal( nx ), &
             this%superdiagonal( nx ), &
-            stat = allocate_status, &
+            stat=allocate_status, &
             errmsg = error_message )
 
         ! Check allocation status
@@ -131,7 +131,7 @@ contains
             ! Deallocate array
             deallocate( &
                 this%subdiagonal, &
-                stat = deallocate_status, &
+                stat=deallocate_status, &
                 errmsg = error_message )
 
             ! Check deallocation status
@@ -148,7 +148,7 @@ contains
             ! Deallocate array
             deallocate( &
                 this%diagonal, &
-                stat = deallocate_status, &
+                stat=deallocate_status, &
                 errmsg = error_message )
 
             ! Check deallocation status
@@ -165,7 +165,7 @@ contains
             ! Deallocate array
             deallocate( &
                 this%superdiagonal, &
-                stat = deallocate_status, &
+                stat=deallocate_status, &
                 errmsg = error_message )
 
             ! Check deallocation status

@@ -97,7 +97,7 @@ contains
 
         ! allocate irwk words of real work space
         if (irwk > 0) then
-            allocate(this%real_workspace(irwk), stat = allocation_status)
+            allocate(this%real_workspace(irwk), stat=allocation_status)
             !  Check if allocation was successful
             if (allocation_status /= 0 ) then
                 error stop 'Failed to allocate real_workspace array'
@@ -106,7 +106,7 @@ contains
 
         ! allocate icwk words of complex work space
         if (icwk > 0) then
-            allocate(this%complex_workspace(icwk), stat = allocation_status)
+            allocate(this%complex_workspace(icwk), stat=allocation_status)
             !  Check if allocation was successful
             if (allocation_status /= 0 ) then
                 error stop 'Failed to allocate complex_workspace array'
@@ -134,7 +134,8 @@ contains
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
-        integer (ip), intent (in)  :: n,m
+        integer (ip), intent (in)  :: n
+        integer (ip), intent (in)  :: m
         integer (ip), intent (out) :: irwk
         integer (ip), intent (out) :: icwk
         !--------------------------------------------------------------------------------
@@ -170,7 +171,7 @@ contains
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
         integer (ip), intent (in)  :: n
-        integer (ip), intent (in) :: m
+        integer (ip), intent (in)  :: m
         integer (ip), intent (out) :: irwk
         !--------------------------------------------------------------------------------
         ! Dictionary: local variables
@@ -206,10 +207,10 @@ contains
         !--------------------------------------------------------------------------------
 
         ! Free dynamically allocated real workspace array
-        if ( allocated( this%real_workspace ) ) deallocate( this%real_workspace )
+        if (allocated(this%real_workspace)) deallocate( this%real_workspace )
 
         ! Release dynamically allocated complex workspace array
-        if ( allocated( this%complex_workspace ) )  deallocate( this%complex_workspace )
+        if (allocated(this%complex_workspace)) deallocate( this%complex_workspace )
 
     end subroutine destroy_fishpack_workspace
 

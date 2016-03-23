@@ -136,12 +136,29 @@ module module_comf
     public :: ppsgf
     public :: ppspf
     public :: psgf
+    public :: comf_interface
 
     !---------------------------------------------------------------------------------
     ! Dictionary: global variables confined to the module
     !---------------------------------------------------------------------------------
     real (wp), save :: saved_value
-    !---------------------------------------------------------------------------------
+        !---------------------------------------------------------------------------------
+
+    interface
+        pure function comf_interface(x, iz, c, a, bh) result( return_value )
+            import :: ip, wp
+            !-----------------------------------------------
+            ! Dictionary: calling arguments
+            !-----------------------------------------------
+            integer (ip), intent (in) :: iz
+            real (wp),    intent (in) :: x
+            real (wp),    intent (in) :: c(*)
+            real (wp),    intent (in) :: a(*)
+            real (wp),    intent (in) :: bh(*)
+            real (wp)                 :: return_value
+            !-----------------------------------------------
+        end function
+    end interface
 
 contains
 

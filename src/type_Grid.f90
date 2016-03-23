@@ -105,7 +105,7 @@ contains
         !--------------------------------------------------------------------------------
 
         ! Check if object is already usable
-        if (.not.this%initialized) return
+        if (this%initialized .eqv. .false.) return
         
         ! Reset constants
         this%NX = 0
@@ -178,7 +178,7 @@ contains
             ! Deallocate grid
             deallocate ( &
                 grid, &
-                stat = deallocate_status, &
+                stat=deallocate_status, &
                 errmsg = error_message )
 
             ! Check deallocation status
@@ -192,7 +192,7 @@ contains
         ! Allocate grid
         allocate ( &
             grid( lower_bound:upper_bound ), &
-            stat = allocate_status, &
+            stat=allocate_status, &
             errmsg = error_message )
 
         ! Check allocation status

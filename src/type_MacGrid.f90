@@ -200,7 +200,7 @@ contains
             ! Deallocate grid
             deallocate ( &
                 this%x_centered, &
-                stat = deallocate_status, &
+                stat=deallocate_status, &
                 errmsg = error_message )
 
             ! Check deallocation status
@@ -217,7 +217,7 @@ contains
             ! Deallocate grid
             deallocate ( &
                 this%x_staggered, &
-                stat = deallocate_status, &
+                stat=deallocate_status, &
                 errmsg = error_message )
 
             ! Check deallocation status
@@ -234,7 +234,7 @@ contains
             ! Deallocate grid
             deallocate ( &
                 this%y_centered, &
-                stat = deallocate_status, &
+                stat=deallocate_status, &
                 errmsg = error_message )
 
             ! Check deallocation status
@@ -251,7 +251,7 @@ contains
             ! Deallocate grid
             deallocate ( &
                 this%y_staggered, &
-                stat = deallocate_status, &
+                stat=deallocate_status, &
                 errmsg = error_message )
 
             ! Check deallocation status

@@ -92,7 +92,7 @@ contains
             ! Deallocate grid
             deallocate ( &
                 this%x, &
-                stat = deallocate_status, &
+                stat=deallocate_status, &
                 errmsg = error_message )
 
             ! Check deallocation status
@@ -109,7 +109,7 @@ contains
             ! Deallocate grid
             deallocate ( &
                 this%y, &
-                stat = deallocate_status, &
+                stat=deallocate_status, &
                 errmsg = error_message )
 
             ! Check deallocation status

@@ -109,22 +109,20 @@ contains
         !--------------------------------------------------------------------------------
 
         ! Ensure that object is usable
-        if ( .not.this%initialized ) call this%destroy()
+        call this%destroy()
 
-        ! Allocate arrays
+        ! Allocate memory
         allocate ( &
-            this%west( ny ), &
-            this%east( ny ), &
-            this%south( nx ), &
-            this%north( nx ), &
-            stat = allocate_status, &
-            errmsg = error_message )
+            this%west(ny), &
+            this%east(ny), &
+            this%south(nx), &
+            this%north(nx), &
+            stat=allocate_status )
 
         ! Check allocation status
         if ( allocate_status /= 0 ) then
-            write( stderr, '(A)' ) 'TYPE (HelmholtzData)'
-            write( stderr, '(A)' ) 'Allocation failed in create'
-            write( stderr, '(A)' ) trim( error_message )
+            error stop 'TYPE (HelmholtzData): '&
+                //'Allocation failed in CREATE_HELMHOLTZ_DATA'
         end if
 
         ! Initialize values to zero
@@ -176,14 +174,14 @@ contains
         !--------------------------------------------------------------------------------
 
         ! Check if object is already usable
-        if ( .not.this%initialized ) return
+        if (this%initialized .eqv. .false. ) return
 
         ! Deallocate west component
         if ( allocated( this%west ) ) then
 
             deallocate( &
                 this%west, &
-                stat = deallocate_status, &
+                stat=deallocate_status, &
                 errmsg = error_message )
 
             ! Check deallocation status
@@ -199,7 +197,7 @@ contains
 
             deallocate( &
                 this%east, &
-                stat = deallocate_status, &
+                stat=deallocate_status, &
                 errmsg = error_message )
 
             ! Check deallocation status
@@ -215,7 +213,7 @@ contains
 
             deallocate( &
                 this%south, &
-                stat = deallocate_status, &
+                stat=deallocate_status, &
                 errmsg = error_message )
 
             ! Check deallocation status
@@ -231,7 +229,7 @@ contains
 
             deallocate( &
                 this%north, &
-                stat = deallocate_status, &
+                stat=deallocate_status, &
                 errmsg = error_message )
 
             ! Check deallocation status
