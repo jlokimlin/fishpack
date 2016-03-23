@@ -161,14 +161,14 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: idegbr
-        integer (ip), intent (in) :: idegcr
-        integer (ip), intent (in) :: m
-        real (wp),    intent (in) :: a(*)
-        real (wp),    intent (in) :: b(*)
-        real (wp),    intent (in) :: c(*)
+        integer (ip), intent (in)     :: idegbr
+        integer (ip), intent (in)     :: idegcr
+        integer (ip), intent (in)     :: m
+        real (wp),    intent (in)     :: a(*)
+        real (wp),    intent (in)     :: b(*)
+        real (wp),    intent (in)     :: c(*)
         real (wp),    intent (in out) :: y(*)
-        real (wp),    intent (in) :: tcos(*)
+        real (wp),    intent (in)     :: tcos(*)
         real (wp),    intent (in out) :: d(*)
         real (wp),    intent (in out) :: w(*)
         !-----------------------------------------------
@@ -229,19 +229,19 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: m
-        integer (ip), intent (in) :: k(4)
-        real (wp), intent (in) :: a(*)
-        real (wp), intent (in) :: b(*)
-        real (wp), intent (in) :: c(*)
-        real (wp), intent (in out) :: y1(*)
-        real (wp), intent (in out) :: y2(*)
-        real (wp), intent (in out) :: y3(*)
-        real (wp), intent (in) :: tcos(*)
-        real (wp), intent (in out) :: d(*)
-        real (wp), intent (in out) :: w1(*)
-        real (wp), intent (in out) :: w2(*)
-        real (wp), intent (in out) :: w3(*)
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: k(4)
+        real (wp),    intent (in)     :: a(*)
+        real (wp),    intent (in)     :: b(*)
+        real (wp),    intent (in)     :: c(*)
+        real (wp),    intent (in out) :: y1(*)
+        real (wp),    intent (in out) :: y2(*)
+        real (wp),    intent (in out) :: y3(*)
+        real (wp),    intent (in)     :: tcos(*)
+        real (wp),    intent (in out) :: d(*)
+        real (wp),    intent (in out) :: w1(*)
+        real (wp),    intent (in out) :: w2(*)
+        real (wp),    intent (in out) :: w3(*)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------

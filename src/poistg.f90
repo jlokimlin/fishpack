@@ -185,7 +185,7 @@ contains
         real (wp), dimension(42, 20) :: f
         real (wp), dimension(40) :: a, b, c, x
         real (wp), dimension(20) :: y
-        real :: pi, dx, dy, s, discretization_error, t
+        real :: pi, dx, dy, s, discretization_error
         !-----------------------------------------------
 
         idimf = 42
@@ -541,7 +541,7 @@ contains
         end if
 
        ! check input arguments: case 7
-        if (a(1)/= 0.0_wp .or. c(m)/= 0.0_wp) then
+        if (a(1) /= 0.0_wp .or. c(m) /= 0.0_wp) then
             ierror = 7
             return
         end if
@@ -558,9 +558,6 @@ contains
             )
             call workspace%create( irwk, icwk, ierror )
         end associate
-
-        ! return if allocation failed (e.g., if n, m are too large)
-        if (ierror == 20) return
 
         ! solve system
         associate( rew => workspace%real_workspace )
@@ -593,7 +590,7 @@ contains
         !-----------------------------------------------
         integer (ip) :: iwba, iwbb, iwbc, iwb2, iwb3, iww1, iww2, iww3, iwd
         integer (ip) :: iwtcos, iwp, i, k, j, np, mp, ipstor, irev, mh, mhm1, modd
-        integer (ip) :: mhpi, mhmi, nby2, mskip
+        integer (ip) :: nby2, mskip
         real (wp)    :: a1
         !-----------------------------------------------
 
@@ -704,23 +701,23 @@ subroutine postg2(nperod, n, m, a, bb, c, idimq, q, b, b2, b3, w, &
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer (ip), intent (in) :: nperod
-    integer (ip), intent (in) :: n
-    integer (ip), intent (in) :: m
-    integer (ip), intent (in) :: idimq
-    real (wp), intent (in) :: a(*)
-    real (wp), intent (in) :: bb(*)
-    real (wp), intent (in) :: c(*)
-    real (wp), intent (in out) :: q(idimq, *)
-    real (wp), intent (in out) :: b(*)
-    real (wp), intent (in out) :: b2(*)
-    real (wp), intent (in out) :: b3(*)
-    real (wp), intent (in out) :: w(*)
-    real (wp), intent (in out) :: w2(*)
-    real (wp), intent (in out) :: w3(*)
-    real (wp), intent (in out) :: d(*)
-    real (wp), intent (in out) :: tcos(*)
-    real (wp), intent (in out) :: p(*)
+    integer (ip), intent (in)     :: nperod
+    integer (ip), intent (in)     :: n
+    integer (ip), intent (in)     :: m
+    integer (ip), intent (in)     :: idimq
+    real (wp),    intent (in)     :: a(*)
+    real (wp),    intent (in)     :: bb(*)
+    real (wp),    intent (in)     :: c(*)
+    real (wp),    intent (in out) :: q(idimq, *)
+    real (wp),    intent (in out) :: b(*)
+    real (wp),    intent (in out) :: b2(*)
+    real (wp),    intent (in out) :: b3(*)
+    real (wp),    intent (in out) :: w(*)
+    real (wp),    intent (in out) :: w2(*)
+    real (wp),    intent (in out) :: w3(*)
+    real (wp),    intent (in out) :: d(*)
+    real (wp),    intent (in out) :: tcos(*)
+    real (wp),    intent (in out) :: p(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
