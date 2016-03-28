@@ -18,8 +18,7 @@ module type_CenteredGrid
     !---------------------------------------------------------------------------------
     ! Dictionary: global variables confined to the module
     !---------------------------------------------------------------------------------
-    character (len=250) :: error_message  !! Probably long enough
-    integer (ip)        :: deallocate_status  !! To check deallocation status
+    integer (ip) :: deallocate_status  !! To check deallocation status
     !---------------------------------------------------------------------------------
 
     ! Declare derived data type
@@ -62,15 +61,14 @@ contains
         this%NX = nx
         this%NY = ny
 
+        ! Allocate parent type
         call this%create_grid( x_interval, y_interval, nx, ny )
 
         associate( &
             A => x_interval(1), &
             C => y_interval(1) &
             )
-
             call this%get_centered_grids( A, C, nx, ny, this%x, this%y )
-
         end associate
 
         ! Set status
@@ -86,37 +84,28 @@ contains
         class (CenteredGrid), intent (in out) :: this
         !--------------------------------------------------------------------------------
 
+        ! Check initialization flag
+        if (this%initialized .eqv. .false. ) return
+
         ! Deallocate horizontally staggered grid in x
         if ( allocated( this%x ) ) then
-
             ! Deallocate grid
-            deallocate ( &
-                this%x, &
-                stat=deallocate_status, &
-                errmsg = error_message )
-
+            deallocate ( this%x, stat=deallocate_status )
             ! Check deallocation status
             if ( deallocate_status /= 0 ) then
-                write( stderr, '(A)' ) 'TYPE (CenteredGrid)'
-                write( stderr, '(A)' ) 'Deallocating X failed in DESTROY_CENTERED_GRID'
-                write( stderr, '(A)' ) trim( error_message )
+                error stop 'TYPE (CenteredGrid): '&
+                    //'Deallocating X failed in DESTROY_CENTERED_GRID'
             end if
         end if
 
         ! Deallocate vertically staggered grid in y
         if ( allocated(this%y) ) then
-
             ! Deallocate grid
-            deallocate ( &
-                this%y, &
-                stat=deallocate_status, &
-                errmsg = error_message )
-
+            deallocate ( this%y, stat=deallocate_status )
             ! Check deallocation status
             if ( deallocate_status /= 0 ) then
-                write( stderr, '(A)' ) 'TYPE (CenteredGrid)'
-                write( stderr, '(A)' ) 'Deallocating Y failed in DESTROY_CENTERED_GRID'
-                write( stderr, '(A)' ) trim( error_message )
+                error stop 'TYPE (CenteredGrid): '&
+                    //'Deallocating Y failed in DESTROY_CENTERED_GRID'
             end if
         end if
 
