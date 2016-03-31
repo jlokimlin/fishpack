@@ -7,19 +7,18 @@ LINKS = \
 -L$(LIB_DIRECTORY) -l$(LIB_NAME) \
 -I$(MODULE_PATH)
 
-EXECUTABLE = ./test.exe
+SRC=$(subst .o,.f90, $(OBJ))
 
-test.o: \
-test.f90
-	$(FC) $(FFLAGS) -c test.f90 $(LINKS)\
-	 -o $(OBJ_DIRECTORY)/$@
+EXES=$(subst .o,.exe, $(OBJ))
 
-exec: $(OBJ)
-	$(FC) $(FFLAGS) -o $(EXECUTABLE) $(OBJS) $(LINKS)
+run: $(EXES)
 
-run:
-	make clean
-	make exec; $(EXECUTABLE)
-	 
+$(EXES): $(SRC)
+
+%.exe : %.f90
+	rm -f $@
+	$(FC) $(FFLAGS) $< -o $@ $(LINKS)
+	./$@
+
 clean:
-	rm -f $(OBJS) $(EXECUTABLE)
+	rm -f $(OBJS) $(EXES)

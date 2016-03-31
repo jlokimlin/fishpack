@@ -261,6 +261,7 @@ pois3d.o\
 poistg.o\
 sepeli.o\
 sepx4.o\
+type_FishpackWorkspace.o\
 type_HelmholtzData.o\
 type_HelmholtzSolver.o\
 type_PoissonSolver.o \

@@ -326,7 +326,6 @@
 !                        BOUNDARY CONDITIONS ON A STAGGERED GRID OF
 !                        ARBITRARY SIZE, " J. COMP. PHYS. 20(1976), 
 !                        PP. 171-182.
-!***********************************************************************
 !
 module module_hstcyl
 
@@ -350,160 +349,13 @@ module module_hstcyl
     ! Everything is private unless stated otherwise
     private
     public :: hstcyl
-    public :: test_hstcyl
+
 
 contains
-     !
-     !*****************************************************************************************
-     !
-    subroutine test_hstcyl()
-        !     file thstcyl.f
-        !
-        !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-        !     *                                                               *
-        !     *                  copyright (c) 2005 by UCAR                   *
-        !     *                                                               *
-        !     *       University Corporation for Atmospheric Research         *
-        !     *                                                               *
-        !     *                      all rights reserved                      *
-        !     *                                                               *
-        !     *                    FISHPACK90  version 1.1                    *
-        !     *                                                               *
-        !     *                 A Package of Fortran 77 and 90                *
-        !     *                                                               *
-        !     *                Subroutines and Example Programs               *
-        !     *                                                               *
-        !     *               for Modeling Geophysical Processes              *
-        !     *                                                               *
-        !     *                             by                                *
-        !     *                                                               *
-        !     *        John Adams, Paul Swarztrauber and Roland Sweet         *
-        !     *                                                               *
-        !     *                             of                                *
-        !     *                                                               *
-        !     *         the National Center for Atmospheric Research          *
-        !     *                                                               *
-        !     *                Boulder, Colorado  (80307)  U.S.A.             *
-        !     *                                                               *
-        !     *                   which is sponsored by                       *
-        !     *                                                               *
-        !     *              the National Science Foundation                  *
-        !     *                                                               *
-        !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-        !
-        !
-        !     PROGRAM TO ILLUSTRATE THE USE OF hstcyl TO SOLVE THE EQUATION
-        !
-        !    (1/R)(D/DR)(R*DU/DR) + (D/DZ)(DU/DZ) = (2*R*Z)**2*(4*Z**2 + 3*R**2)
-        !
-        !     ON THE RECTANGLE 0 .LT. R .LT. 1 , 0 .LT. Z .LT. 1 WITH THE
-        !     BOUNDARY CONDITIONS
-        !
-        !     (DU/DR)(1, Z) = 4*Z**2  FOR  0 .LE. Z .LE. 1
-        !
-        !     AND
-        !
-        !     (DU/DZ)(R, 0) = 0 AND (DU/DZ)(R, 1) = 4*R**2  FOR  0 .LE. R .LE. 1 .
-        !
-        !     THE SOLUTION TO THIS PROBLEM IS NOT UNIQUE.  IT IS A
-        !     ONE-PARAMETER FAMILY OF SOLUTIONS GIVEN BY
-        !
-        !            U(R, Z) = (R*Z)**4 + ARBITRARY CONSTANT .
-        !
-        !     THE R-INTERVAL WILL CONTAIN 50 UNKNOWNS AND THE Z-INTERVAL WILL
-        !     CONTAIN 52 UNKNOWNS.
-        !
-        !
-        !-----------------------------------------------
-        ! Dictionary: calling arguments
-        !-----------------------------------------------
-        integer (ip)                 :: idimf, m, mbdcnd, n, nbdcnd, i, j, ierror
-        real (wp), dimension(51, 52) :: f
-        real (wp), dimension(52)     :: bda, bdb
-        real (wp), dimension(50)     :: bdc, bdd, r
-        real (wp), dimension(52)     :: z
-        real (wp)                    :: a, b, c, d, elmbda, pertrb, x, discretization_error
-        !-----------------------------------------------
 
-        !     FROM DIMENSION STATEMENT WE GET VALUE OF IDIMF.
-        !
-        idimf = 51
-        a = 0.0_wp
-        b = 1.0_wp
-        m = 50
-        mbdcnd = 6
-        c = 0.0_wp
-        d = 1.0_wp
-        n = 52
-        nbdcnd = 3
-        elmbda = 0.0_wp
-        !
-        !     GENERATE AND STORE GRID POINTS FOR THE PURPOSE OF COMPUTING
-        !     BOUNDARY DATA AND THE RIGHT SIDE OF THE POISSON EQUATION.
-        !
-        do i = 1, m
-            r(i) = (real(i, kind=wp) - 0.5_wp)/50
-        end do
 
-        do j = 1, n
-            z(j) = (real(j, kind=wp) - 0.5_wp)/52
-        end do
-        !
-        !     Generate boundary data.
-        !
-        bdb(:n) = 4.0_wp * ( z(:n)**4 )
-        !
-        !     Generate boundary data.
-        !
-        bdc(:m) = 0.0_wp
-        bdd(:m) = 4.0_wp * ( r(:m)**4 )
-        !
-        !     BDA IS A DUMMY VARIABLE.
-        !
-        !     GENERATE RIGHT SIDE OF EQUATION.
-        !
-        do i = 1, m
-            f(i, :n) = 4.0_wp*(r(i)**2) * (z(:n)**2) * (4.0_wp * (z(:n)**2) &
-                + 3.0_wp * (r(i)**2) )
-        end do
-
-        call hstcyl(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
-            elmbda, f, idimf, pertrb, ierror)
-        !
-        !     COMPUTE DISCRETIZATION ERROR BY MINIMIZING OVER ALL A THE FUNCTION
-        !     NORM(F(I, J) - A*1 - U(R(I), Z(J))).  THE EXACT SOLUTION IS
-        !                U(R, Z) = (R*Z)**4 + ARBITRARY CONSTANT.
-        !
-        x = 0.0_wp
-        do i = 1, m
-            x = x + sum(f(i, :n)-(r(i)*z(:n))**4)
-        end do
-        x = x/(m*n)
-        f(:m, :n) = f(:m, :n) - x
-        discretization_error = 0.0_wp
-        do i = 1, m
-            do j = 1, n
-                x = abs(f(i, j)-(r(i)*z(j))**4)
-                discretization_error = max(x, discretization_error)
-            end do
-        end do
-        !     Print earlier output from platforms with 32 and 64 bit floating point
-        !     arithemtic followed by the output from this computer
-        write( stdout, '(A)') ''
-        write( stdout, '(A)') '     hstcyl *** TEST RUN *** '
-        write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
-        write( stdout, '(A)') '     ierror = 0,  PERTRB =-4.4311E-4'
-        write( stdout, '(A)') '     discretization error = 7.5280E-5 '
-        write( stdout, '(A)') '     The output from your computer is: '
-        write( stdout, '(A,I3,A,1pe15.6)') '     ierror =', ierror, ' PERTRB = ', pertrb
-        write( stdout, '(A,1pe15.6)') '     discretization error = ', discretization_error
-
-    end subroutine test_hstcyl
-    !
-    !*****************************************************************************************
-    !
-    subroutine hstcyl( a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
-        bdd, elmbda, f, idimf, pertrb, ierror )
+    subroutine hstcyl(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
+        bdd, elmbda, f, idimf, pertrb, ierror)
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
