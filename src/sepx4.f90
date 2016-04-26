@@ -499,13 +499,16 @@ contains
         type(FishpackWorkspace) :: workspace
         !-----------------------------------------------
 
-        !     check input parameters
+        !
+        !==> check input parameters
         !
         call c4kprm( iorder, a, b, m, mbdcnd, c, d, n, nbdcnd, cofx, idmn, ierror)
 
-        if (ierror /= 0) return
+        if (ierror /= 0) then
+            return
+        end if
         !
-        !     compute minimum work space and check work space length input
+        !==> compute minimum work space and check work space length input
         !
         l = n + 1
         if (nbdcnd == 0) l = n
@@ -528,7 +531,10 @@ contains
 
 
                 ! Check if workspace allocation was sucessful
-                if (ierror == 20) return
+                if (ierror == 20) then
+                    return
+                end if
+
                 ierror = 0
                 !
                 !     set work space indices
@@ -638,32 +644,50 @@ contains
         !     and non-specified boundaries.
         !
         usol(2:m, 2:n) = dly**2*grhs(2:m, 2:n)
+
         if (kswx/=2 .and. kswx/=3) then
             usol(1, 2:n) = dly**2*grhs(1, 2:n)
         end if
+
         if (kswx/=2 .and. kswx/=5) then
             usol(k, 2:n) = dly**2*grhs(k, 2:n)
         end if
+
         if (kswy/=2 .and. kswy/=3) then
             usol(2:m, 1) = dly**2*grhs(2:m, 1)
         end if
+
         if (kswy/=2 .and. kswy/=5) then
             usol(2:m, l) = dly**2*grhs(2:m, l)
         end if
-        if (kswx/=2 .and. kswx/=3 .and. kswy/=2 .and. kswy/=3) usol(1, 1) &
-            = dly**2*grhs(1, 1)
-        if (kswx/=2 .and. kswx/=5 .and. kswy/=2 .and. kswy/=3) usol(k, 1) &
-            = dly**2*grhs(k, 1)
-        if (kswx/=2 .and. kswx/=3 .and. kswy/=2 .and. kswy/=5) usol(1, l) &
-            = dly**2*grhs(1, l)
-        if (kswx/=2 .and. kswx/=5 .and. kswy/=2 .and. kswy/=5) usol(k, l) &
-            = dly**2*grhs(k, l)
+
+        if (kswx/=2 .and. kswx/=3 .and. kswy/=2 .and. kswy/=3) then
+            usol(1, 1) = dly**2*grhs(1, 1)
+        end if
+
+        if (kswx/=2 .and. kswx/=5 .and. kswy/=2 .and. kswy/=3) then
+            usol(k, 1) = dly**2*grhs(k, 1)
+        end if
+
+
+        if (kswx/=2 .and. kswx/=3 .and. kswy/=2 .and. kswy/=5) then
+            usol(1, l) = dly**2*grhs(1, l)
+        end if
+
+        if (kswx/=2 .and. kswx/=5 .and. kswy/=2 .and. kswy/=5) then
+            usol(k, l) = dly**2*grhs(k, l)
+        end if
+
         i1 = 1
         !
-        !     set switches for periodic or non-periodic boundaries
+        !==> set switches for periodic or non-periodic boundaries
         !
-        mp = 1
-        if (kswx == 1) mp = 0
+        if (kswx == 1) then
+            mp = 0
+        else
+            mp = 1
+        end if
+
         np = nbdcnd
         !
         !     set dlx, dly and size of block tri-diagonal system generated
@@ -1052,21 +1076,28 @@ contains
         !     check if the boundary conditions are
         !     entirely periodic and/or mixed
         !
-        if (mbdcnd/=0.and.mbdcnd/=3.or.nbdcnd/=0.and.nbdcnd/=3)return
+        if (mbdcnd/=0.and.mbdcnd/=3.or.nbdcnd/=0.and.nbdcnd/=3) then
+            return
+        end if
+
         !
         !     check that mixed conditions are pure neuman
         !
         if (mbdcnd == 3) then
-            if (alpha/=0.0 .or. beta/=0.0) return
+            if (alpha/=0.0 .or. beta/=0.0) then
+                return
+            end if
         end if
         !
         !     check that non-derivative coefficient functions
         !     are zero
         !
         do i = is, ms
-            xi = ait + real(i - 1)*dlx
+            xi = ait + real(i - 1, kind=wp) * dlx
             call cofx(xi, ai, bi, ci)
-            if (ci == 0.0) cycle
+            if (ci == 0.0) then
+                cycle
+            end if
             return
         end do
         !
@@ -1113,7 +1144,7 @@ contains
         !     compute truncation error approximation over the entire mesh
         !
         do i = is, ms
-            xi = ait + real(i - 1)*dlx
+            xi = ait + real(i - 1, kind=wp) * dlx
             call cofx(xi, ai, bi, ci)
             do j = js, ns
                 !
@@ -1121,15 +1152,19 @@ contains
                 !
                 call sepdx(usol, idmn, i, j, uxxx, uxxxx)
                 call sepdy(usol, idmn, i, j, uyyy, uyyyy)
-                tx = ai*uxxxx/12.0 + bi*uxxx/6.0
-                ty = uyyyy/12.0
+                tx = ai*uxxxx/12 + bi*uxxx/6
+                ty = uyyyy/12
                 !
                 !     reset form of truncation if at boundary which is non-periodic
                 !
-                if (kswx/=1 .and.(i==1 .or. i==k)) tx = ai/3.0_wp * (uxxxx/4.0 &
-                    + uxxx/dlx)
-                if (kswy/=1.and.(j==1.or.j==l))ty=(uyyyy/4.0+uyyy/dly)/3.0
-                grhs(i, j) = grhs(i, j) + dly**2*(dlx**2*tx + dly**2*ty)
+                if (kswx/=1 .and.(i==1 .or. i==k)) then
+                    tx = (ai/3) * (uxxxx/4 + uxxx/dlx)
+                end if
+
+                if (kswy/=1.and.(j==1.or.j==l)) then
+                    ty = (uyyyy/4 + uyyy/dly)/3
+                    grhs(i, j) = grhs(i, j) + (dly**2) * ((dlx**2) * tx + (dly**2) * ty)
+                end if
             end do
         end do
         !

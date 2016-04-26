@@ -5,21 +5,25 @@ This Fortran project is a object-oriented programming (OOP) modernization of NCA
 
 Every common block, subroutine, and function is now encapsulated in a module. Most importantly, the potential memory leak in the derived type **fish**, now rebaptized as **FishpackWorkspace**, is resolved by replacing pointers with allocatable arrays. 
 
-This project is still a work in progress and every refactored solver passes their original rest run.
+This project is still a work in progress and every refactored solver passes their original unit test.
 
 -----------------------------------------------------------------------------
 
 
-# What is fishpack?
+## What is modern\_fishpack?
 
-A collection of Fortran programs and subroutines that solve second- and fourth-order finite difference approximations to separable elliptic Partial Differential Equations (PDEs). These include Helmholtz equations in cartesian, polar, cylindrical, and spherical coordinates, as well as more general separable elliptic equations. The solvers use the cyclic reduction algorithm. When the problem is singular, a least-squares solution is computed. Singularities induced by the coordinate system are handled, including at the origin r=0 in cylindrical coordinates, and at the poles in spherical coordinates.
+A collection of Fortran programs and subroutines that solve second- and fourth-order finite difference approximations to separable elliptic Partial Differential Equations (PDEs). 
 
-Test programs are provided for the 19 solvers. Each serves two purposes: as a template to guide you in writing your own codes utilizing the modern_fishpack solvers, and as a demonstration that you can correctly produce the executables. So far, only tgenbun.f90 and tpoistg.f90 demonstrate OOP usage.
+These include Helmholtz equations in cartesian, polar, cylindrical, and spherical coordinates, as well as more general separable elliptic equations. The solvers use the cyclic reduction algorithm. When the problem is singular, a least-squares solution is computed. Singularities induced by the coordinate system are handled, including at the origin r=0 in cylindrical coordinates, and at the poles in spherical coordinates.
+
+Test programs are provided for the 19 solvers. Each serves two purposes: as a template to guide you in writing your own codes utilizing the modern\_fishpack solvers, and as a demonstration that you can correctly produce the executables. 
+
+So far, only tgenbun.f90 and tpoistg.f90 demonstrate OOP usage.
 
 -----------------------------------------------------------------------------
 
 
-# TODO
+## TODO
 * Introduce interfaces to replace assumed-size arrays with assumed shape arrays. 
 * Replace all instances of **go to** statements with **exit**, **cycle** and **select case**
 * Implement object-oriented features to hide workspace arrays.

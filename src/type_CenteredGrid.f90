@@ -43,7 +43,7 @@ module type_CenteredGrid
 contains
 
 
-    subroutine create_centered_grid( this, x_interval, y_interval, nx, ny )
+    subroutine create_centered_grid(this, x_interval, y_interval, nx, ny )
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------

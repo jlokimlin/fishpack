@@ -58,7 +58,7 @@ module modern_fishpack_library
         sepx4
 
     use type_FishpackWorkspace, only: &
-    FishpackWorkspace
+        FishpackWorkspace
 
     use type_HelmholtzData, only: &
         HelmholtzData

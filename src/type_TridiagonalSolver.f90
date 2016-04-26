@@ -88,13 +88,13 @@ contains
         ! Invoke procedural solver
         associate( &
             nperod => this%Y_BOUNDARY_CONDITION, &
-            n => size( source, dim=2 ), &
+            n => size(source, dim=2 ), &
             mperod => this%X_BOUNDARY_CONDITION, &
-            m => size( this%subdiagonal ), &
+            m => size(this%subdiagonal ), &
             a => this%subdiagonal, &
             b => this%diagonal, &
             c => this%superdiagonal, &
-            idimy  => size( source, dim=1 ), &
+            idimy  => size(source, dim=1), &
             y => source, &
             ierror => local_error_flag &
             )
@@ -116,7 +116,7 @@ contains
                 case(3)
                     write( stderr, '(A)') 'Invalid rank for SOURCE_TERM'
                     write( stderr, '(A)') 'Fails to satisfy:'
-                    write( stderr, '(A)') 'size( SOURCE_TERM, dim=1) >= NX'
+                    write( stderr, '(A)') 'size(SOURCE_TERM, dim=1) >= NX'
                 case(4)
                     write( stderr, '(A)') 'Invalid boundary condition type in y'
                     write( stderr, '(A)') 'Fails to satisfy:'
@@ -144,8 +144,8 @@ contains
 
         ! Set solution
         associate( &
-            nx => size( solution, dim=1), &
-            ny => size( solution, dim=2) &
+            nx => size(solution, dim=1), &
+            ny => size(solution, dim=2) &
             )
             solution = source( 1:nx, 1:ny )
         end associate
@@ -177,13 +177,13 @@ contains
         ! Invoke procedural solver
         associate( &
             nperod => this%Y_BOUNDARY_CONDITION, &
-            n => size( source, dim=2), &
+            n => size(source, dim=2), &
             mperod => this%X_BOUNDARY_CONDITION, &
-            m => size( this%subdiagonal ), &
+            m => size(this%subdiagonal ), &
             a => this%subdiagonal, &
             b => this%diagonal, &
             c => this%superdiagonal, &
-            idimy => size( source, dim=1 ), &
+            idimy => size(source, dim=1), &
             y => source, &
             ierror => local_error_flag &
             )
@@ -205,7 +205,7 @@ contains
                 case(3)
                     write( stderr, '(A)') 'Invalid rank for SOURCE_TERM'
                     write( stderr, '(A)') 'Fails to satisfy:'
-                    write( stderr, '(A)') 'size( SOURCE_TERM, dim=1) >= NX'
+                    write( stderr, '(A)') 'size(SOURCE_TERM, dim=1) >= NX'
                 case(4)
                     write( stderr, '(A)') 'Invalid boundary condition type in y'
                     write( stderr, '(A)') 'Fails to satisfy:'
@@ -233,8 +233,8 @@ contains
 
         ! set solution
         associate( &
-            nx => size( solution, dim=1 ), &
-            ny => size( solution, dim=2 ) &
+            nx => size(solution, dim=1), &
+            ny => size(solution, dim=2 ) &
             )
             solution = source( 1:nx, 1:ny )
         end associate

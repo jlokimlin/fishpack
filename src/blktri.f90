@@ -434,12 +434,14 @@ contains
             iwd = iw3 + m
             iww = iwd + m
             iwu = iww + m
-            call compb (nl, ierror, an, bn, cn, w, wc, w(iwah), w(iwbh))
+            call compb(nl, ierror, an, bn, cn, w, wc, w(iwah), w(iwbh))
             return
         end if
 
         ! *** important to reset nm for np = 0
-        if (npp == 0) nm = n - 1
+        if (npp == 0) then
+            nm = n - 1
+        end if
 
         if (mp /= 0) then
             call blktr1(nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, &
@@ -703,18 +705,18 @@ contains
 end subroutine blktr1
 
 
-function bsrh(xll, xrr, iz, c, a, bh, f, sgn) result(return_value)
+function bsrh(xll, xrr, iz, c, a, bh, f, sgn) result (return_value)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    real (wp), intent (in)     :: xll
-    real (wp), intent (in)     :: xrr
+    real (wp),    intent (in)  :: xll
+    real (wp),    intent (in)  :: xrr
     integer (ip), intent (in)  :: iz
-    real (wp), intent (in)     :: c(*)
-    real (wp), intent (in)     :: a(*)
-    real (wp), intent (in)     :: bh(*)
+    real (wp),    intent (in)  :: c(*)
+    real (wp),    intent (in)  :: a(*)
+    real (wp),    intent (in)  :: bh(*)
     procedure (comf_interface) :: f
-    real (wp), intent (in)     :: sgn
+    real (wp),    intent (in)  :: sgn
     real (wp)                  :: return_value
     !-----------------------------------------------
     ! Dictionary: local variables

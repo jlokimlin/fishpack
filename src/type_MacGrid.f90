@@ -151,7 +151,7 @@ module type_MacGrid
 contains
 
 
-    subroutine create_mac_grid( this, x_interval, y_interval, nx, ny )
+    subroutine create_mac_grid(this, x_interval, y_interval, nx, ny )
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
@@ -271,7 +271,7 @@ contains
     end subroutine destroy_mac_grid
 
 
-    subroutine print_to_unformatted_binary_files( this, header )
+    subroutine print_to_unformatted_binary_files(this, header )
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------

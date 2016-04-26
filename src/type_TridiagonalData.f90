@@ -52,7 +52,7 @@ module type_TridiagonalData
 
 
     abstract interface
-        subroutine proc_interface( this, grid_type )
+        subroutine proc_interface(this, grid_type )
             import :: TridiagonalData, Grid, wp
             !--------------------------------------------------------------------------------
             ! Dictionary: calling arguments
@@ -67,7 +67,7 @@ module type_TridiagonalData
 contains
 
 
-    subroutine create_tridiagonal_data( this, nx, x_type, y_type, proc )
+    subroutine create_tridiagonal_data(this, nx, x_type, y_type, proc )
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------

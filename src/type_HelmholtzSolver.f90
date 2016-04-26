@@ -32,7 +32,7 @@ module type_HelmholtzSolver
     public :: HelmholtzSolver
 
     ! Declare derived data type
-    type, extends( HelmholtzData ), public ::  HelmholtzSolver
+    type, extends (HelmholtzData), public ::  HelmholtzSolver
         !---------------------------------------------------------------------------------
         ! Class variables
         !---------------------------------------------------------------------------------
@@ -66,50 +66,52 @@ contains
         !--------------------------------------------------------------------------------
         class (HelmholtzSolver), intent (in out) :: this
         real (wp),               intent (in)     :: helmholtz_constant
-        real (wp), contiguous,   intent (in out) :: source_term(:,:)
-        real (wp), contiguous,   intent (out)    :: solution(:,:)
-        real (wp), optional,     intent (out)    :: perturbation
+        real (wp),               intent (in out) :: source_term(:,:)
+        real (wp),               intent (out)    :: solution(:,:)
+        real (wp),    optional,  intent (out)    :: perturbation
         integer (ip), optional,  intent (out)    :: error_flag
         !--------------------------------------------------------------------------------
         ! Dictionary: local variables
         !--------------------------------------------------------------------------------
-        integer (ip)  :: local_error_flag
-        real (wp)     :: local_perturbation
+        integer (ip)  :: error_flag_op
+        real (wp)     :: perturbation_op
         !--------------------------------------------------------------------------------
 
         ! Check if object is usable
-        if ( .not.this%initialized ) then
+        if (this%initialized .eqv. .false.) then
             error stop 'uninitialized object in SOLVE_2D_HELMHOLTZ_CENTERED!'
         end if
 
-        ! Call procedural solver
+        !
+        !==> Call procedural solver
+        !
         associate ( &
             a => this%domain%A, &
             b => this%domain%B, &
-            m => size( solution, dim = 1) - 1, &
+            m => size(solution, dim=1) - 1, &
             mbdcnd => this%Y_BOUNDARY_CONDITION_TYPE, &
             bda => this%west, &
             bdb => this%east, &
             c => this%domain%C, &
             d => this%domain%D, &
-            n => size( solution, dim = 2) - 1, &
+            n => size(solution, dim=2) - 1, &
             nbdcnd => this%X_BOUNDARY_CONDITION_TYPE, &
             bdc => this%south, &
             bdd => this%north, &
             elmbda => helmholtz_constant, &
             f => source_term, &
-            idimf => size( source_term, dim = 1 ), &
-            pertrb => local_perturbation, &
-            ierror => local_error_flag &
+            idimf => size(source_term, dim=1), &
+            pertrb => perturbation_op, &
+            ierror => error_flag_op &
             )
-            call hwscrt( a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
-                elmbda, f, idimf, pertrb, ierror )
+            call hwscrt(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
+                elmbda, f, idimf, pertrb, ierror)
         end associate
 
         ! Address the error flag
-        if ( local_error_flag /= 0 ) then
+        if ( error_flag_op /= 0 ) then
             write( stderr, '(A)') 'ERROR: SOLVE_2D_HELMHOLTZ_CENTERED (hwscrt)'
-            select case (local_error_flag)
+            select case (error_flag_op)
                 case(1)
                     write( stderr, '(A)') 'Invalid X_INTERVAL'
                     write( stderr, '(A)') 'Fails to satisfy:'
@@ -137,7 +139,7 @@ contains
                 case(7)
                     write( stderr, '(A)') 'Invalid rank for SOURCE_TERM'
                     write( stderr, '(A)') 'Fails to satisfy:'
-                    write( stderr, '(A)') 'size( SOURCE_TERM, dim = 1) >= NX + 1'
+                    write( stderr, '(A)') 'size(SOURCE_TERM, dim=1) >= NX + 1'
                 case(8)
                     write( stderr, '(A)') 'Insufficient number of horizontally staggered grid points'
                     write( stderr, '(A)') 'Fails to satisfy:'
@@ -152,15 +154,21 @@ contains
 
         ! set solution
         associate ( &
-            nx => size( solution, dim = 1) - 1, &
-            ny => size( solution, dim = 2) - 1 &
+            nx => size(solution, dim=1) - 1, &
+            ny => size(solution, dim=2) - 1 &
             )
-            solution = source_term( 1:nx + 1, 1:ny + 1 )
+            solution = source_term(1:nx + 1, 1:ny + 1)
         end associate
 
-        ! Check optional argument
-        if ( present (perturbation) ) then
-            perturbation = local_perturbation
+        !
+        !==> Check optional arguments
+        !
+        if (present(perturbation)) then
+            perturbation = perturbation_op
+        end if
+
+        if (present(error_flag)) then
+            error_flag = error_flag_op
         end if
 
     end subroutine solve_2d_helmholtz_centered
@@ -183,48 +191,51 @@ contains
         real (wp),               intent (in)     :: helmholtz_constant
         real (wp), contiguous,   intent (in out) :: source_term(:,:)
         real (wp), contiguous,   intent (out)    :: solution(:,:)
-        real (wp), optional,     intent (out)    :: perturbation
+        real (wp),    optional,  intent (out)    :: perturbation
         integer (ip), optional,  intent (out)    :: error_flag
         !--------------------------------------------------------------------------------
         ! Dictionary: local variables
         !--------------------------------------------------------------------------------
-        integer (ip) :: local_error_flag
-        real (wp)    :: local_perturbation
+        integer (ip) :: error_flag_op
+        real (wp)    :: perturbation_op
         !--------------------------------------------------------------------------------
 
         ! Check if object is usable
-        if ( .not.this%initialized ) then
+        if (this%initialized .eqv. .false.) then
             error stop 'uninitialized object in SOLVE_2D_HELMHOLTZ_STAGGERED!'
         end if
 
-        ! Call procedural solver
+        !
+        !==> Call procedural solver
+        !
         associate ( &
             a => this%domain%A, &
             b => this%domain%B, &
-            m => size( this%south ), &
+            m => size(this%south ), &
             mbdcnd => this%X_BOUNDARY_CONDITION_TYPE, &
             bda => this%west, &
             bdb => this%east, &
             c => this%domain%C, &
             d => this%domain%D, &
-            n => size( this%west ), &
+            n => size(this%west ), &
             nbdcnd => this%Y_BOUNDARY_CONDITION_TYPE, &
             bdc => this%south, &
             bdd => this%north, &
             elmbda => helmholtz_constant, &
             f => source_term, &
-            idimf => size( source_term, dim = 1 ), &
-            pertrb => local_perturbation, &
-            ierror => local_error_flag &
+            idimf => size(source_term, dim=1), &
+            pertrb => perturbation_op, &
+            ierror => error_flag_op &
             )
-            call hstcrt( a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
-                elmbda, f, idimf, pertrb, ierror )
+            call hstcrt(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
+                elmbda, f, idimf, pertrb, ierror)
         end associate
 
         ! Address the error flag
-        if ( local_error_flag /= 0 ) then
-            write( stderr, '(A)') 'ERROR: SOLVE_2D_HELMHOLTZ_STAGGERED (hstcrt)'
-            select case (local_error_flag)
+        if (error_flag_op /= 0) then
+            write( stderr, '(A)') 'TYPE (HelmholtzSolver): '&
+                //' in SOLVE_2D_HELMHOLTZ_STAGGERED (hstcrt)'
+            select case (error_flag_op)
                 case(1)
                     write( stderr, '(A)') 'Invalid X_INTERVAL'
                     write( stderr, '(A)') 'Fails to satisfy:'
@@ -252,7 +263,7 @@ contains
                 case(7)
                     write( stderr, '(A)') 'Invalid rank for SOURCE_TERM'
                     write( stderr, '(A)') 'Fails to satisfy:'
-                    write( stderr, '(A)') 'size( SOURCE_TERM, dim = 1) >= NX + 1'
+                    write( stderr, '(A)') 'size(SOURCE_TERM, dim=1) >= NX + 1'
                 case(8)
                     write( stderr, '(A)') 'Insufficient number of horizontally staggered grid points'
                     write( stderr, '(A)') 'Fails to satisfy:'
@@ -267,22 +278,25 @@ contains
 
         ! set solution
         associate ( &
-            nx => size( solution, dim = 1), &
-            ny => size( solution, dim = 2) &
+            nx => size(solution, dim=1), &
+            ny => size(solution, dim=2) &
             )
-            solution = source_term( 1:nx, 1:ny )
+            solution = source_term(1:nx, 1:ny)
         end associate
 
-        ! Check optional arguments
-        if ( present (perturbation) ) then
-            perturbation = local_perturbation
+        !
+        !==> Check optional arguments
+        !
+        if (present(perturbation)) then
+            perturbation = perturbation_op
         end if
 
-        if ( present (error_flag) ) then
-            error_flag = local_error_flag
+        if (present(error_flag)) then
+            error_flag = error_flag_op
         end if
 
     end subroutine solve_2d_helmholtz_staggered
+
 
 
     subroutine finalize_helmholtz_solver( this )
@@ -335,7 +349,7 @@ contains
         integer (ip)            :: i, j    !! Counters
         integer (ip), parameter :: NX = 40 !! Number of horizontally staggered grid poins
         integer (ip), parameter :: NY = 80 !! Number of vertically staggered grid points
-        real (wp),    parameter :: PI = acos( -1.0_wp )
+        real (wp),    parameter :: PI = acos(-1.0_wp)
         real (wp)               :: approximate_solution( NX + 1, NY + 1 )
         real (wp)               :: source( NX + 5, NY + 2 )
         real (wp)               :: discretization_error
@@ -398,12 +412,12 @@ contains
 
 
             ! generate boundary data
-            call helmholtz_solver%assign_boundary_data( centered_grid )
+            call helmholtz_solver%assign_boundary_data(centered_grid)
 
 
             ! Set source, i.e., right side of helmholtz equation
             f(1, :NY + 1) = 0.0_wp
-                        do j = 1, NY + 1
+            do j = 1, NY + 1
                 do i = 2, NX + 1
                     f(i, j) = ( 2.0_wp  - ( 4.0_wp + PI_SQUARED/4.0_wp ) * ( x(i)**2 )) * cos( ( y(j) + 1.0_wp) * HALF_PI )
                 end do
@@ -411,7 +425,7 @@ contains
 
 
             ! Solve helmholtz equation
-            call helmholtz_solver%solve_2d_helmholtz_centered( HELMHOLTZ_CONSTANT, f, u, error_flag = error_flag )
+            call helmholtz_solver%solve_2d_helmholtz_centered(HELMHOLTZ_CONSTANT, f, u, error_flag = error_flag )
 
 
             ! Compute discretization error
@@ -515,7 +529,7 @@ contains
         integer (ip)            :: i, j     !! Counters
         integer (ip), parameter :: NX = 48  !! Number of horizontally staggered grid poins
         integer (ip), parameter :: NY = 53  !! Number of vertically staggered grid points
-        real (wp),    parameter :: PI = acos( -1.0_wp )
+        real (wp),    parameter :: PI = acos(-1.0_wp)
         real (wp)               :: approximate_solution( NX, NY )
         real (wp)               :: source( NX + 2, NY )
         real (wp)               :: discretization_error
@@ -622,7 +636,7 @@ contains
     contains
 
 
-        subroutine func( solver, staggered_grid )
+        subroutine func(solver, staggered_grid)
             !
             ! Purpose:
             !

@@ -465,7 +465,7 @@ contains
         ierror = 0
 
         ! Check input arguments
-        associate( pi => acos( -1.0_wp ))
+        associate( pi => acos(-1.0_wp))
             if (a<0. .or. b>pi) ierror = 1
             if (a >= b) ierror = 2
             if (mbdcnd<=0 .or. mbdcnd>9) ierror = 3

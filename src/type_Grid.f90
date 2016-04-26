@@ -57,7 +57,7 @@ module type_Grid
 contains
 
 
-    subroutine create_grid( this, x_interval, y_interval, nx, ny )
+    subroutine create_grid(this, x_interval, y_interval, nx, ny )
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
@@ -124,7 +124,7 @@ contains
     end subroutine destroy_grid
 
 
-    subroutine get_discretization_mesh( this, A, B, C, D, nx, ny )
+    subroutine get_discretization_mesh(this, A, B, C, D, nx, ny )
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
@@ -224,7 +224,7 @@ contains
     end subroutine compute_one_dimensional_grid
 
 
-    subroutine get_centered_grids( this, A, C, nx, ny, x, y )
+    subroutine get_centered_grids(this, A, C, nx, ny, x, y )
         ! Remark:
         ! The subroutine "get_discretization_mesh" must be called first to initialize dx and dy
         !
@@ -256,7 +256,7 @@ contains
     end subroutine get_centered_grids
 
 
-    subroutine get_staggered_grids( this, A, C, nx, ny, x, y )
+    subroutine get_staggered_grids(this, A, C, nx, ny, x, y )
         ! Remark:
         ! The subroutine "get_discretization_mesh" must be called first to initialize dx and dy
         !

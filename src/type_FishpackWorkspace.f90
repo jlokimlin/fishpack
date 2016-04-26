@@ -74,8 +74,10 @@ module type_FishpackWorkspace
 contains
 
 
-    subroutine create_fishpack_workspace( this, irwk, icwk, ierror )
+    subroutine create_fishpack_workspace(this, irwk, icwk, ierror)
+        !
         ! Remark:
+        !
         ! ierror is set to 20 if the dynamic allocation is unsuccessful
         ! (e.g., this would happen if m,n are too large for the computers memory
         !
@@ -95,19 +97,27 @@ contains
         ! Ensure that object is usable
         call this%destroy()
 
-        ! allocate irwk words of real work space
+        !
+        !==> allocate irwk words of real work space
+        !
         if (irwk > 0) then
             allocate(this%real_workspace(irwk), stat=allocation_status)
-            !  Check if allocation was successful
+            !
+            !==> Check if allocation was successful
+            !
             if (allocation_status /= 0 ) then
                 error stop 'Failed to allocate real_workspace array'
             end if
         end if
 
-        ! allocate icwk words of complex work space
+        !
+        !==> allocate icwk words of complex work space
+        !
         if (icwk > 0) then
             allocate(this%complex_workspace(icwk), stat=allocation_status)
-            !  Check if allocation was successful
+            !
+            !==> Check if allocation was successful
+            !
             if (allocation_status /= 0 ) then
                 error stop 'Failed to allocate complex_workspace array'
             end if
@@ -124,7 +134,7 @@ contains
     end subroutine create_fishpack_workspace
 
 
-    subroutine get_block_tridiagonal_workpace_dimensions( n, m, irwk, icwk)
+    subroutine get_block_tridiagonal_workpace_dimensions(n, m, irwk, icwk)
         !
         ! Purpose:
         !
@@ -160,7 +170,7 @@ contains
     end subroutine get_block_tridiagonal_workpace_dimensions
 
 
-    subroutine get_genbun_workspace_dimensions( n, m, irwk )
+    subroutine get_genbun_workspace_dimensions(n, m, irwk)
         !
         ! Purpose:
         !
@@ -179,9 +189,11 @@ contains
         integer (ip) :: log2n
         !--------------------------------------------------------------------------------
 
-        !       compute nearest integer greater than or equal to
-        !       log base 2 of n+1, i.e., log2n is smallest integer
-        !       such that 2**log2n >= n+1
+        !
+        !==> compute nearest integer greater than or equal to
+        !    log base 2 of n+1, i.e., log2n is smallest integer
+        !    such that 2**log2n >= n+1
+        !
         log2n = 1
         do
             log2n = log2n+1
@@ -193,7 +205,7 @@ contains
     end subroutine get_genbun_workspace_dimensions
 
 
-    subroutine destroy_fishpack_workspace( this )
+    subroutine destroy_fishpack_workspace(this)
         !
         ! Purpose:
         !
@@ -206,16 +218,25 @@ contains
         class (FishpackWorkspace), intent (in out) :: this
         !--------------------------------------------------------------------------------
 
-        ! Free dynamically allocated real workspace array
-        if (allocated(this%real_workspace)) deallocate( this%real_workspace )
+        !
+        !==> Free dynamically allocated real workspace array
+        !
+        if (allocated(this%real_workspace)) then
+            deallocate( this%real_workspace )
+        end if
 
-        ! Release dynamically allocated complex workspace array
-        if (allocated(this%complex_workspace)) deallocate( this%complex_workspace )
+        !
+        !==> Release dynamically allocated complex workspace array
+        !
+        if (allocated(this%complex_workspace)) then
+            deallocate( this%complex_workspace )
+        end if
 
     end subroutine destroy_fishpack_workspace
 
 
-    subroutine finalize_fishpack_workspace( this )
+
+    subroutine finalize_fishpack_workspace(this)
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------

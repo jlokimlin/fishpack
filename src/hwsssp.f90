@@ -446,7 +446,7 @@ contains
         ierror = 0
 
         ! Check if input values are valid
-        associate( pi => acos( -1.0_wp ) )
+        associate( pi => acos(-1.0_wp) )
             associate( two_pi => 2.0_wp * pi)
                 if (ts<0. .or. tf>pi) ierror = 1
                 if (ts >= tf) ierror = 2

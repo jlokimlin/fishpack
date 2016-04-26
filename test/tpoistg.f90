@@ -156,7 +156,7 @@
 !        u(x, y) = y**4 * cos(x) .
 !
 !
-!     from dimension statement we get that size(f, dim = 1) = 42
+!     from dimension statement we get that size(f, dim=1) = 42
 !
 program tpoistg
 
@@ -183,7 +183,7 @@ program tpoistg
     integer (ip), parameter  :: NY = 20 !! number of vertically staggered grid points
     integer (ip)             :: i, j  !! counters
     integer (ip)             :: error_flag
-    real (wp),    parameter  :: PI = acos( -1.0_wp )
+    real (wp),    parameter  :: PI = acos(-1.0_wp)
     real (wp)                :: approximate_solution( NX, NY )
     real (wp)                :: source( NX, NY )
     real (wp)                :: discretization_error
@@ -307,7 +307,7 @@ contains
                         b => solver%diagonal, &
                         c => solver%superdiagonal, &
                         x => staggered_grid%x, &
-                        pi => acos( -1.0_wp ) &
+                        pi => acos(-1.0_wp) &
                         )
                         a(1) = 0.0_wp
                         b(1) = -s * cos((-pi/2.0_wp) + dx)/cos(x(1))

@@ -1357,7 +1357,7 @@ pure subroutine cmpcsg(n, ijump, fnum, fden, a)
     ! Dictionary: local variables
     !-----------------------------------------------
     integer (ip) :: k3, k4, k, k1, k5, i, k2, np1
-    real (wp), parameter :: pi = acos( -1.0_wp )
+    real (wp), parameter :: pi = acos(-1.0_wp)
     real (wp) :: pibyn, x, y
     !-----------------------------------------------
 

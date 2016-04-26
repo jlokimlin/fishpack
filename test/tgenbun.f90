@@ -162,7 +162,7 @@ program tgenbun
     integer (ip), parameter  :: NY = 40 !! number of vertically staggered grid points
     integer (ip)             :: i, j !! counter
     integer (ip)             :: error_flag
-    real (wp),    parameter  :: PI = acos( -1.0_wp )
+    real (wp),    parameter  :: PI = acos(-1.0_wp)
     real (wp)                :: approximate_solution(NX, NY)
     real (wp)                :: source(NX + 2, NY)
     real (wp)                :: discretization_error

@@ -508,7 +508,7 @@ subroutine pos3d1(lp, l, mp, m, n, a, b, c, ldimf, mdimf, f, xrt, &
     ! Dictionary: local variables
     !-----------------------------------------------
     integer (ip)         :: lr, mr, nr, lrdel, i, mrdel, j, ifwrd, is, k
-    real (wp), parameter :: PI = acos( -1.0_wp )
+    real (wp), parameter :: PI = acos(-1.0_wp)
     real (wp)            :: scalx, dx, di, scaly, dy, dj
     !-----------------------------------------------
 

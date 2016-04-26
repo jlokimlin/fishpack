@@ -44,7 +44,7 @@ module type_StaggeredGrid
 contains
 
 
-    subroutine create_staggered_grid( this, x_interval, y_interval, nx, ny )
+    subroutine create_staggered_grid(this, x_interval, y_interval, nx, ny )
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------

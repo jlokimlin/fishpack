@@ -1,3 +1,4 @@
+
 !
 ! Purpose:
 !
@@ -80,7 +81,7 @@ module type_HelmholtzData
 
 
     abstract interface
-        subroutine proc_interface( this, grid_type )
+        subroutine proc_interface(this, grid_type )
             import :: HelmholtzData, Grid, wp
             !--------------------------------------------------------------------------------
             ! Dictionary: calling arguments
@@ -95,7 +96,7 @@ module type_HelmholtzData
 contains
 
 
-    subroutine create_helmholtz_data( this, nx, ny, x_type, y_type, rectangular_domain, func )
+    subroutine create_helmholtz_data(this, nx, ny, x_type, y_type, rectangular_domain, func )
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
@@ -130,7 +131,6 @@ contains
         this%east = 0.0_wp
         this%south = 0.0_wp
         this%north = 0.0_wp
-
 
         ! Set the boundary condition types
         associate( &
@@ -250,8 +250,9 @@ contains
         this%Y_BOUNDARY_CONDITION_TYPE = -1
 
         ! Nullify pointer
-        if (associated(this%assign_boundary_data)) nullify( this%assign_boundary_data )
-
+        if (associated(this%assign_boundary_data)) then
+            nullify( this%assign_boundary_data )
+        end if
         ! Reset status
         !
         this%initialized = .false.

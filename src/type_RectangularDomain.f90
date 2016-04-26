@@ -39,7 +39,7 @@ module type_RectangularDomain
 contains
 
 
-    subroutine create_rectangular_domain( this, x_interval, y_interval )
+    subroutine create_rectangular_domain(this, x_interval, y_interval )
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
@@ -89,7 +89,7 @@ contains
     end subroutine destroy_rectangular_domain
 
 
-    subroutine copy_rectangular_domain( this, rectangle_to_be_copied )
+    subroutine copy_rectangular_domain(this, rectangle_to_be_copied )
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------

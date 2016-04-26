@@ -63,7 +63,7 @@ program thstcsp
     !
     idimf = 47
     a = 0.0_wp
-    b = acos( -1.0_wp )
+    b = acos(-1.0_wp)
     !
     !
     m = 45
