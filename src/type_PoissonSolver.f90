@@ -14,6 +14,7 @@ module type_PoissonSolver
     private
     public :: PoissonSolver
 
+
     ! Declare derived data type
     type, extends (HelmholtzSolver), public :: PoissonSolver
         !---------------------------------------------------------------------------------
@@ -23,14 +24,16 @@ module type_PoissonSolver
         !---------------------------------------------------------------------------------
         ! Class methods
         !---------------------------------------------------------------------------------
-        procedure, non_overridable, public :: solve_2d_poisson_centered
-        procedure, non_overridable, public :: solve_2d_poisson_staggered
-        final                              :: finalize_poisson_solver
+        procedure, public :: solve_2d_poisson_centered
+        procedure, public :: solve_2d_poisson_staggered
+        final             :: finalize_poisson_solver
         !---------------------------------------------------------------------------------
     end type PoissonSolver
 
 
+
 contains
+
 
 
     subroutine solve_2d_poisson_centered(this, source_term, solution)
@@ -38,73 +41,70 @@ contains
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
-        class (PoissonSolver),  intent (in out) :: this
-        real (wp),              intent (in out) :: source_term(:,:)
-        real (wp),              intent (out)    :: solution(:,:)
+        class (PoissonSolver), intent (in out) :: this
+        real (wp),             intent (in out) :: source_term(:,:)
+        real (wp),             intent (out)    :: solution(:,:)
+        !--------------------------------------------------------------------------------
+        real (wp), parameter :: HELMHOLTZ_CONSTANT = nearest(1.0_wp, 1.0_wp)-nearest(1.0_wp, -1.0_wp)
         !--------------------------------------------------------------------------------
 
         ! Check if object is usable
         if (this%initialized .eqv. .false.) then
-            error stop 'TYPE (PoissonSolver): '&
-                //'uninitialized object in SOLVE_2D_POISSON_CENTERED!'
+            error stop 'Uninitialized object of class (PoissonSolver) '&
+                //'in solve_2d_poisson_centered'
         end if
 
-        ! Solve poisson's equation
-        associate( helmholtz_constant => 0.0_wp )
-            call this%solve_2d_helmholtz_centered(helmholtz_constant, source_term, solution)
+        !
+        !==> Solve poisson's equation on centered grid
+        !
+        associate( &
+            elmbda => HELMHOLTZ_CONSTANT, &
+            rhs => source_term, &
+            f => solution &
+            )
+            call this%solve_2d_helmholtz_centered(elmbda, rhs, f)
         end associate
 
     end subroutine solve_2d_poisson_centered
 
 
 
-    subroutine solve_2d_poisson_staggered(this, source_term, solution, perturbation, error_flag)
+    subroutine solve_2d_poisson_staggered(this, source_term, solution)
         !
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
-        class (PoissonSolver),  intent (in out) :: this
-        real (wp),              intent (in out) :: source_term(:,:)
-        real (wp),              intent (out)    :: solution(:,:)
-        real (wp),    optional, intent (out)    :: perturbation
-        integer (ip), optional, intent (out)    :: error_flag
+        class (PoissonSolver), intent (in out) :: this
+        real (wp),             intent (in out) :: source_term(:,:)
+        real (wp),             intent (out)    :: solution(:,:)
         !--------------------------------------------------------------------------------
         ! Dictionary: local variables
         !--------------------------------------------------------------------------------
-        integer (ip) :: error_flag_op
-        real (wp)    :: perturbation_op
+        real (wp), parameter :: HELMHOLTZ_CONSTANT = nearest(1.0_wp, 1.0_wp)-nearest(1.0_wp, -1.0_wp)
         !--------------------------------------------------------------------------------
 
         ! Check if object is usable
         if (this%initialized .eqv. .false.) then
-            error stop 'TYPE (PoissonSolver): '&
-                //'uninitialized object in SOLVE_2D_POISSON_STAGGERED!'
+            error stop 'Uninitialized object of class (PoissonSolver) '&
+                //' in solve_2d_poisson_staggered'
         end if
 
         !
-        !==> Solve poisson's equation
+        !==> Solve poisson's equation on staggered grid
         !
-        associate( helmholtz_constant => 0.0_wp )
-            call this%solve_2d_helmholtz_staggered( &
-                helmholtz_constant, source_term, solution, perturbation_op, error_flag_op)
+        associate( &
+            elmbda => HELMHOLTZ_CONSTANT, &
+            rhs => source_term, &
+            f => solution &
+            )
+            call this%solve_2d_helmholtz_staggered(elmbda, rhs, f)
         end associate
-
-        !
-        !==> Address optional arguments
-        !
-        if (present(perturbation)) then
-            perturbation = perturbation_op
-        end if
-
-        if (present(error_flag)) then
-            error_flag = error_flag_op
-        end if
 
     end subroutine solve_2d_poisson_staggered
 
 
 
-    subroutine finalize_poisson_solver( this )
+    subroutine finalize_poisson_solver(this)
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------

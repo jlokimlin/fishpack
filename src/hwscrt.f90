@@ -358,38 +358,79 @@ contains
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer (ip)             :: irwk
         type (FishpackWorkspace) :: workspace
+        integer (ip)             :: irwk
+        real (wp), parameter     :: ZERO = nearest(1.0_wp, 1.0_wp)-nearest(1.0_wp, -1.0_wp)
         !-----------------------------------------------
 
-        !! Check for invalid parameters.
-        ierror = 0
-        if (a >= b) ierror = 1
-        if (mbdcnd<0 .or. mbdcnd>4) ierror = 2
-        if (c >= d) ierror = 3
-        if (n <= 3) ierror = 4
-        if (nbdcnd<0 .or. nbdcnd>4) ierror = 5
-        if (idimf < m + 1) ierror = 7
-        if (m <= 3) ierror = 8
-        if (ierror /= 0) return
+        !
+        !==>  Check validity of input parameters.
+        !
 
-        ! Estimate real workspace size (generous estimate)
+        ! Initialize error flag
+        ierror = 0
+
+        if ( (a - b) >= ZERO ) then
+            ierror = 1
+        end if
+
+        if (mbdcnd < 0 .or. mbdcnd > 4) then
+            ierror = 2
+        end if
+
+        if ((c - d) >= ZERO ) then
+            ierror = 3
+        end if
+
+        if (n <= 3) then
+            ierror = 4
+        end if
+
+        if (nbdcnd < 0 .or. nbdcnd > 4) then
+            ierror = 5
+        end if
+
+        if (idimf < m + 1) then
+            ierror = 7
+        end if
+
+        if (m <= 3) then
+            ierror = 8
+        end if
+
+        if (ierror /= 0) then
+            return
+        end if
+
+        !
+        !==> Estimate real workspace size (generous estimate)
+        !
         associate( int_arg => real( n + 1, kind=wp ) / log(2.0_wp) )
             irwk = 4 * ( n + 1) + (13 + int( int_arg, kind=ip )) *(m + 1)
         end associate
 
-        ! create real workspace
+        !
+        !==> Allocate memory
+        !
         associate( icwk => 0 )
-            call workspace%create( irwk, icwk, ierror )
+
+            call workspace%create(irwk, icwk, ierror)
+
         end associate
 
-        ! Solve system
+        !
+        !==> Solve system
+        !
         associate( rew => workspace%real_workspace )
+
             call hwscrtt( a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
                 elmbda, f, idimf, pertrb, ierror, rew )
+
         end associate
 
-        ! Release memory
+        !
+        !==>  Release memory
+        !
         call workspace%destroy()
 
     end subroutine hwscrt
@@ -424,12 +465,19 @@ contains
         integer (ip) :: nperod, mperod, np, np1, mp, mp1, nstart, nstop, nskip
         integer (ip) :: nunk, mstart, mstop, mskip, j, munk, id2, id3, id4, msp1
         integer (ip) :: mstm1, nsp1, nstm1, ierr1
-        real (wp)    :: deltax, twdelx, delxsq, deltay, twdely, delysq, s, st2, a1, a2, s1
+        real (wp)    :: deltax, twdelx, delxsq, deltay
+        real (wp)    :: twdely, delysq, s, st2, a1, a2, s1
+        real (wp), parameter :: ZERO = nearest(1.0_wp, 1.0_wp)-nearest(1.0_wp, -1.0_wp)
         !-----------------------------------------------
 
         nperod = nbdcnd
-        mperod = 0
-        if (mbdcnd > 0) mperod = 1
+
+        if (mbdcnd > 0) then
+            mperod = 1
+        else
+            mperod = 0
+        end if
+
         deltax = (b - a)/m
         twdelx = 2.0_wp/deltax
         delxsq = 1.0_wp/deltax**2
@@ -538,8 +586,8 @@ contains
     w(id3+1) = st2
 135 continue
     pertrb = 0.0_wp
-    if ( elmbda >= 0.0_wp ) then
-        if ( elmbda /= 0.0_wp ) then
+    if ( elmbda >= ZERO ) then
+        if ( elmbda /= ZERO ) then
             ierror = 6
         else
             if ((nbdcnd==0 .or. nbdcnd==3).and.(mbdcnd==0 .or. mbdcnd ==3)) then

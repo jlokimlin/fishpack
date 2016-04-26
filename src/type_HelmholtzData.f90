@@ -81,7 +81,7 @@ module type_HelmholtzData
 
 
     abstract interface
-        subroutine proc_interface(this, grid_type )
+        subroutine proc_interface(this, grid_type)
             import :: HelmholtzData, Grid, wp
             !--------------------------------------------------------------------------------
             ! Dictionary: calling arguments
@@ -96,7 +96,7 @@ module type_HelmholtzData
 contains
 
 
-    subroutine create_helmholtz_data(this, nx, ny, x_type, y_type, rectangular_domain, func )
+    subroutine create_helmholtz_data(this, nx, ny, x_type, y_type, rectangular_domain, func)
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
@@ -112,7 +112,9 @@ contains
         ! Ensure that object is usable
         call this%destroy()
 
-        ! Allocate memory
+        !
+        !==> Allocate memory
+        !
         allocate ( &
             this%west(ny), &
             this%east(ny), &
@@ -122,8 +124,8 @@ contains
 
         ! Check allocation status
         if ( allocate_status /= 0 ) then
-            error stop 'TYPE (HelmholtzData): '&
-                //'Allocation failed in CREATE_HELMHOLTZ_DATA'
+            error stop 'Object of class (HelmholtzData): '&
+                //'Allocation failed in create_helmholtz_data'
         end if
 
         ! Initialize values to zero
@@ -132,30 +134,35 @@ contains
         this%south = 0.0_wp
         this%north = 0.0_wp
 
-        ! Set the boundary condition types
+        !
+        !==> Set the boundary condition types
+        !
         associate( &
             x => this%X_BOUNDARY_CONDITION_TYPE, &
             y => this%Y_BOUNDARY_CONDITION_TYPE &
             )
 
             ! Set horizontal boundary conditions
-            if ( present( x_type ) ) then
-                call this%get_boundary_condition_type( x_type, x )
+            if (present(x_type)) then
+                call this%get_boundary_condition_type( x_type, x)
             end if
 
             ! Set vertical boundary conditions
-            if ( present( y_type ) ) then
-                call this%get_boundary_condition_type( y_type, y )
+            if (present(y_type)) then
+                call this%get_boundary_condition_type(y_type, y)
             end if
         end associate
 
-        ! Set rectangular domain
-        if ( present ( rectangular_domain ) ) then
+        !
+        !==> Set rectangular domain
+        !
+        if (present(rectangular_domain)) then
             this%domain = rectangular_domain
         end if
 
-
-        ! Associate pointer
+        !
+        !==> Assign pointer
+        !
         if (present(func)) then
             this%assign_boundary_data => func
         end if
@@ -166,15 +173,17 @@ contains
     end subroutine create_helmholtz_data
 
 
-    subroutine destroy_helmholtz_data( this )
+    subroutine destroy_helmholtz_data(this)
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
         class (HelmholtzData), intent (in out)   :: this
         !--------------------------------------------------------------------------------
 
-        ! Check if object is already usable
-        if (this%initialized .eqv. .false. ) return
+        ! Check flag
+        if (this%initialized .eqv. .false. ) then
+            return
+        end if
 
         ! Deallocate west component
         if ( allocated( this%west ) ) then
@@ -185,8 +194,8 @@ contains
                 errmsg = error_message )
 
             ! Check deallocation status
-            if ( deallocate_status /=0 ) then
-                write( stderr, '(A)' ) 'TYPE (HelmholtzData)'
+            if ( deallocate_status /= 0 ) then
+                write( stderr, '(A)' ) 'Object of class (HelmholtzData)'
                 write( stderr, '(A)' ) 'Deallocating WEST failed in DESTROY_HELMHOLTZ_DATA'
                 write( stderr, '(A)' ) trim( error_message )
             end if
@@ -201,10 +210,10 @@ contains
                 errmsg = error_message )
 
             ! Check deallocation status
-            if ( deallocate_status /=0 ) then
-                write( stderr, '(A)' ) 'TYPE (HelmholtzData)'
-                write( stderr, '(A)' ) 'Deallocating EAST failed in DESTROY_HELMHOLTZ_DATA'
-                write( stderr, '(A)' ) trim( error_message )
+            if ( deallocate_status /= 0 ) then
+                write( stderr, '(A)' ) 'Object of class (HelmholtzData)'
+                write( stderr, '(A)' ) 'Deallocating east failed in destroy_helmholtz_data'
+                write( stderr, '(a)' ) trim( error_message )
             end if
         end if
 
@@ -218,9 +227,9 @@ contains
 
             ! Check deallocation status
             if ( deallocate_status /=0 ) then
-                write( stderr, '(A)' ) 'TYPE (HelmholtzData)'
-                write( stderr, '(A)' ) 'Deallocating SOUTH failed in DESTROY_HELMHOLTZ_DATA'
-                write( stderr, '(A)' ) trim( error_message )
+                write( stderr, '(A)' ) 'Object of class (HelmholtzData)'
+                write( stderr, '(A)' ) 'Deallocating south failed in destroy_helmholtz_data'
+                write( stderr, '(a)' ) trim( error_message )
             end if
         end if
 
@@ -234,8 +243,8 @@ contains
 
             ! Check deallocation status
             if ( deallocate_status /=0 ) then
-                write( stderr, '(A)' ) 'TYPE (HelmholtzData)'
-                write( stderr, '(A)' ) 'Deallocating NORTH failed in DESTROY_HELMHOLTZ_DATA'
+                write( stderr, '(A)' ) 'Object of class (HelmholtzData)'
+                write( stderr, '(A)' ) 'Deallocating north failed in destroy_helmholtz_data'
                 write( stderr, '(A)' ) trim( error_message )
             end if
         end if
@@ -249,7 +258,9 @@ contains
         this%X_BOUNDARY_CONDITION_TYPE = -1
         this%Y_BOUNDARY_CONDITION_TYPE = -1
 
-        ! Nullify pointer
+        !
+        !==> Nullify pointer
+        !
         if (associated(this%assign_boundary_data)) then
             nullify( this%assign_boundary_data )
         end if
@@ -260,7 +271,7 @@ contains
     end subroutine destroy_helmholtz_data
 
 
-    subroutine get_boundary_condition_type( type, return_value )
+    subroutine get_boundary_condition_type(type, return_value)
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
@@ -284,7 +295,7 @@ contains
                 return_value = type
             case default
                 ! handle invalid boundary type
-                write( stderr, '(A)' ) 'TYPE (HelmholtzData)'
+                write( stderr, '(A)' ) 'Object of class (HelmholtzData)'
                 write( stderr, '(A,I4)' ) 'invalid calling argument type = ', type
                 write( stderr, '(A)' ) 'must be either 0, 1, ..., 4'
         end select
@@ -292,7 +303,7 @@ contains
     end subroutine get_boundary_condition_type
 
 
-    subroutine finalize_helmholtz_data( this )
+    subroutine finalize_helmholtz_data(this)
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------

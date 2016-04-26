@@ -93,7 +93,7 @@ contains
             deallocate ( this%x, stat=deallocate_status )
             ! Check deallocation status
             if ( deallocate_status /= 0 ) then
-                error stop 'TYPE (CenteredGrid): '&
+                error stop 'Object of class (CenteredGrid): '&
                     //'Deallocating X failed in DESTROY_CENTERED_GRID'
             end if
         end if
@@ -104,7 +104,7 @@ contains
             deallocate ( this%y, stat=deallocate_status )
             ! Check deallocation status
             if ( deallocate_status /= 0 ) then
-                error stop 'TYPE (CenteredGrid): '&
+                error stop 'Object of class (CenteredGrid): '&
                     //'Deallocating Y failed in DESTROY_CENTERED_GRID'
             end if
         end if

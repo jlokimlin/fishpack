@@ -348,38 +348,78 @@ contains
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer (ip)             :: irwk, icwk
         type (FishpackWorkspace) :: workspace
+        integer (ip)             :: irwk, icwk
+        real (wp), parameter     :: ZERO = nearest(1.0_wp, 1.0_wp)-nearest(1.0_wp, -1.0_wp)
         !-----------------------------------------------
+
         !
-        !     check for invalid parameters.
+        !==> Check validity of input arguments
         !
+
+        ! Initialize error flag
         ierror = 0
-        if (a >= b) ierror = 1
-        if (mbdcnd<0 .or. mbdcnd>4) ierror = 2
-        if (c >= d) ierror = 3
-        if (n <= 2) ierror = 4
-        if (nbdcnd < 0 .or. nbdcnd > 4) ierror = 5
-        if (idimf < m) ierror = 7
-        if (m <= 2) ierror = 8
-        if (ierror /= 0) return
+
+        if ((a-b) >= ZERO) then
+            ierror = 1
+        end if
+
+        if (mbdcnd < 0 .or. mbdcnd > 4) then
+            ierror = 2
+        end if
+
+        if ((c-d) >= ZERO) then
+            ierror = 3
+        end if
+
+        if (n <= 2) then
+            ierror = 4
+        end if
+
+
+        if (nbdcnd < 0 .or. nbdcnd > 4) then
+            ierror = 5
+        end if
+
+        if (idimf < m) then
+            ierror = 7
+        end if
+
+        if (m <= 2) then
+            ierror = 8
+        end if
+
+        if (ierror /= 0) then
+            return
+        end if
+
+        !
+        !==> Allocate memory
+        !
 
         ! compute required real work space
         call workspace%get_genbun_workspace_dimensions(n, m, irwk)
+
         irwk = irwk + 3 * m
 
         ! Create real workspace
         associate( icwk => 0 )
+
             call workspace%create( irwk, icwk, ierror )
+
         end associate
 
-        ! Solve system
+        !
+        !==> Solve system
+        !
         associate( rew => workspace%real_workspace )
             call hstcrtt(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
                 elmbda, f, idimf, pertrb, ierror, rew)
         end associate
 
-        ! Release memory
+        !
+        !==> Release memory
+        !
         call workspace%destroy()
 
     end subroutine hstcrt
@@ -412,19 +452,26 @@ contains
         ! Dictionary: local variables
         !-----------------------------------------------
         integer (ip) :: nperod, mperod, np, mp, id2, id3, id4, j, ierr1
-        real (wp)    :: deltax, twdelx, delxsq, deltay, twdely, delysq, twdysq, s, st2
+        real (wp)    :: deltax, twdelx, delxsq, deltay
+        real (wp)    :: twdely, delysq, twdysq, s, st2
+        real (wp), parameter :: ZERO = nearest(1.0_wp, 1.0_wp)-nearest(1.0_wp, -1.0_wp)
         !-----------------------------------------------
 
         nperod = nbdcnd
-        mperod = 0
-        if (mbdcnd > 0) mperod = 1
+
+        if (mbdcnd > 0) then
+            mperod = 1
+        else
+            mperod = 0
+        end if
+
         deltax = (b - a)/m
-        twdelx = 1./deltax
-        delxsq = 2./deltax**2
+        twdelx = 1.0_wp/deltax
+        delxsq = 2.0_wp/deltax**2
         deltay = (d - c)/n
-        twdely = 1./deltay
+        twdely = 1.0_wp/deltay
         delysq = deltay**2
-        twdysq = 2./delysq
+        twdysq = 2.0_wp/delysq
         np = nbdcnd + 1
         mp = mbdcnd + 1
         !
@@ -434,7 +481,7 @@ contains
         id3 = id2 + m
         id4 = id3 + m
         s = (deltay/deltax)**2
-        st2 = 2.*s
+        st2 = 2.0_wp*s
         w(:m) = s
         w(id2+1:m+id2) = (-st2) + elmbda*delysq
         w(id3+1:m+id3) = s
@@ -475,12 +522,12 @@ contains
 121 continue
     f(:m, :n) = f(:m, :n)*delysq
     if (mperod /= 0) then
-        w(1) = 0.
-        w(id4) = 0.
+        w(1) = 0.0_wp
+        w(id4) = 0.0_wp
     end if
-    pertrb = 0.
-    if (elmbda >= 0.) then
-        if (elmbda /= 0.) then
+    pertrb = ZERO
+    if (elmbda >= ZERO) then
+        if (elmbda /= ZERO) then
             ierror = 6
         else
             go to (127, 133, 133, 127, 133) mp
@@ -491,11 +538,12 @@ contains
     !     will exist.
     !
 128 continue
-    s = 0.
+    s = 0.0_wp
     do j = 1, n
         s = s + sum(f(:m, j))
     end do
-    pertrb = s/real(m*n)
+
+    pertrb = s/(m*n)
     f(:m, :n) = f(:m, :n) - pertrb
     pertrb = pertrb/delysq
 !

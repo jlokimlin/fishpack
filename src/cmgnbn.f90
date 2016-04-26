@@ -1232,14 +1232,16 @@ subroutine cmposp(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer (ip) :: mr, nr, nrm1, j, nrmj, nrpj, i, ipstor, lh
+    integer (ip) :: mr, nr, nrm1, j, nrmj, nrpj, i, lh
+    real (wp)    :: ipstor
     complex (wp) :: s, t
     !-----------------------------------------------
 
     mr = m
     nr = (n + 1)/2
     nrm1 = nr - 1
-    if (2*nr == n) then
+
+    if ((2*nr) == n) then
         !
         !     even number of unknowns
         !
@@ -1253,13 +1255,19 @@ subroutine cmposp(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
                 q(i, nrpj) = t
             end do
         end do
+
         q(:mr, nr) = 2.0_wp * q(:mr, nr)
         q(:mr, n) = 2.0_wp * q(:mr, n)
+
         call cmposd (mr, nrm1, 1, a, bb, c, q, idimq, b, w, d, tcos, p)
+
         ipstor = real(w(1))
-        call cmposn(mr, nr + 1, 1, 1, a, bb, c, q(1, nr), idimq, b, b2 &
-            , b3, w, w2, w3, d, tcos, p)
-        ipstor = max(ipstor, int(real(w(1))))
+
+        call cmposn(mr, nr + 1, 1, 1, a, bb, c, q(1, nr), idimq, b, b2, &
+            b3, w, w2, w3, d, tcos, p)
+
+        ipstor = max(ipstor, real(w(1)))
+
         do j = 1, nrm1
             nrmj = nr - j
             nrpj = nr + j
@@ -1270,9 +1278,12 @@ subroutine cmposp(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
                 q(i, nrpj) = t
             end do
         end do
+
         q(:mr, nr) = 0.5_wp * q(:mr, nr)
         q(:mr, n) = 0.5_wp * q(:mr, n)
+
     else
+
         do j = 1, nrm1
             nrpj = n + 1 - j
             do i = 1, mr
@@ -1282,8 +1293,10 @@ subroutine cmposp(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
                 q(i, nrpj) = t
             end do
         end do
+
         q(:mr, nr) = 2.0_wp * q(:mr, nr)
         lh = nrm1/2
+
         do j = 1, lh
             nrmj = nr - j
             do i = 1, mr
@@ -1292,11 +1305,16 @@ subroutine cmposp(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
                 q(i, nrmj) = s
             end do
         end do
-        call cmposd (mr, nrm1, 2, a, bb, c, q, idimq, b, w, d, tcos, p)
+
+        call cmposd(mr, nrm1, 2, a, bb, c, q, idimq, b, w, d, tcos, p)
+
         ipstor = real(w(1))
-        call cmposn(mr, nr, 2, 1, a, bb, c, q(1, nr), idimq, b, b2, b3 &
-            , w, w2, w3, d, tcos, p)
-        ipstor = max(ipstor, int(real(w(1))))
+
+        call cmposn(mr, nr, 2, 1, a, bb, c, q(1, nr), idimq, b, b2, b3, &
+             w, w2, w3, d, tcos, p)
+
+        ipstor = max(ipstor, real(w(1)))
+
         do j = 1, nrm1
             nrpj = nr + j
             do i = 1, mr
@@ -1306,7 +1324,9 @@ subroutine cmposp(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
                 q(i, j) = s
             end do
         end do
+
         q(:mr, nr) = 0.5_wp * q(:mr, nr)
+
         do j = 1, lh
             nrmj = nr - j
             do i = 1, mr
@@ -1316,7 +1336,8 @@ subroutine cmposp(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
             end do
         end do
     end if
-    w(1) = cmplx(real(ipstor), 0.)
+
+    w(1) = cmplx(ipstor, 0.0_wp, kind=wp)
 
 end subroutine cmposp
 
@@ -1356,9 +1377,9 @@ pure subroutine cmpcsg(n, ijump, fnum, fden, a)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer (ip) :: k3, k4, k, k1, k5, i, k2, np1
+    integer (ip)         :: k3, k4, k, k1, k5, i, k2, np1
     real (wp), parameter :: pi = acos(-1.0_wp)
-    real (wp) :: pibyn, x, y
+    real (wp)            :: pibyn, x, y
     !-----------------------------------------------
 
     if (n /= 0) then
@@ -1372,15 +1393,15 @@ pure subroutine cmpcsg(n, ijump, fnum, fden, a)
                 do i = 1, k4
                     x = k1 + i
                     k2 = k5 + i
-                    a(k2) = cmplx((-2.0_wp * cos(x*pibyn)), 0.)
+                    a(k2) = cmplx((-2.0_wp * cos(x*pibyn)), 0.0_wp, kind=wp)
                 end do
             end do
         else
             np1 = n + 1
-            y = pi/(real(n) + fden)
+            y = pi/(real(n, kind=wp) + fden)
             do i = 1, n
-                x = real(np1 - i) - fnum
-                a(i) = cmplx(2.0_wp * cos(x*y), 0.)
+                x = real(np1 - i, kind=wp) - fnum
+                a(i) = cmplx(2.0_wp * cos(x*y), 0.0_wp, kind=wp)
             end do
         end if
     end if
