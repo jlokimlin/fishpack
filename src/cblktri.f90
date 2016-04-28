@@ -275,7 +275,7 @@ contains
         !
         ! PORTABILITY
         !                        THE APPROXIMATE MACHINE ACCURACY IS COMPUTED
-        !                        IN FUNCTION EPMACH
+        !                        by calling the intrinsic function epsilon
         !
         ! REFERENCES             SWARZTRAUBER, P. AND R. SWEET, 'EFFICIENT
         !                        FORTRAN SUBPROGRAMS FOR THE SOLUTION OF
@@ -380,7 +380,8 @@ contains
                                     rew => w%real_workspace, &
                                     cxw => w%complex_workspace &
                                     )
-                                    call cblkt1 (nl, an, bn, cn, m, am, bm, cm, idimy, y, rew, cxw, &
+                                    call cblkt1(nl, an, bn, cn, m, am, bm, cm, &
+                                        idimy, y, rew, cxw, &
                                         cxw(iw1), cxw(iw2), cxw(iw3), cxw(iwd), cxw(iww), &
                                         cxw(iwu), proc, cproc)
                                 end associate
@@ -389,7 +390,8 @@ contains
                                     rew => w%real_workspace, &
                                     cxw => w%complex_workspace &
                                     )
-                                    call cblkt1 (nl, an, bn, cn, m, am, bm, cm, idimy, y, rew, cxw, &
+                                    call cblkt1 (nl, an, bn, cn, m, am, bm, cm, &
+                                        idimy, y, rew, cxw, &
                                         cxw(iw1), cxw(iw2), cxw(iw3), cxw(iwd), cxw(iww), &
                                         cxw(iwu), procp, cprocp)
                                 end associate
@@ -401,6 +403,8 @@ contains
         end if
 
     end subroutine cblktri
+
+
 
     subroutine cblkt1(n, an, bn, cn, m, am, bm, cm, idimy, y, b, bc, &
         w1, w2, w3, wd, ww, wu, prdct, cprdct)
@@ -643,20 +647,22 @@ contains
 
 end subroutine cblkt1
 
-function cbsrh (xll, xrr, iz, c, a, bh, f, sgn) result( return_value )
+
+
+function cbsrh(xll, xrr, iz, c, a, bh, f, sgn) result(return_value)
 
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer (ip) :: iz
+    integer (ip)           :: iz
     real (wp), intent (in) :: xll
     real (wp), intent (in) :: xrr
-    real (wp) :: f
+    real (wp)              :: f
     real (wp), intent (in) :: sgn
-    real (wp) :: c(*)
-    real (wp) :: a(*)
-    real (wp) :: bh(*)
-    real (wp) :: return_value
+    real (wp)              :: c(*)
+    real (wp)              :: a(*)
+    real (wp)              :: bh(*)
+    real (wp)              :: return_value
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -665,36 +671,53 @@ function cbsrh (xll, xrr, iz, c, a, bh, f, sgn) result( return_value )
 
     xl = xll
     xr = xrr
-    dx = 0.5*abs(xr - xl)
-    x = 0.5*(xl + xr)
+    dx = 0.5_wp*abs(xr - xl)
+    x = 0.5_wp*(xl + xr)
     r1 = sgn*f(x, iz, c, a, bh)
-    if (r1 >= 0.) then
-        if (r1 == 0.) go to 105
+
+    if (r1 >= 0.0_wp) then
+        if (r1 == 0.0_wp) then
+            return_value = 0.5_wp*(xl + xr)
+            return
+        end if
         xr = x
     else
         xl = x
     end if
-    dx = 0.5*dx
-    do while(dx - cnv > 0.)
-        x = 0.5*(xl + xr)
+
+    dx = 0.5_wp * dx
+
+    do while (dx - cnv > 0.0_wp)
+
+        x = 0.5_wp*(xl + xr)
         r1 = sgn*f(x, iz, c, a, bh)
-        if (r1 >= 0.) then
-            if (r1 == 0.) go to 105
+
+        if (r1 >= 0.0_wp) then
+            if (r1 == 0.0_wp) then
+                return_value = 0.5_wp*(xl + xr)
+                return
+            end if
             xr = x
         else
             xl = x
         end if
-        dx = 0.5*dx
+        dx = 0.5_wp*dx
     end do
-105 continue
 
-    return_value = 0.5*(xl + xr)
+    return_value = 0.5_wp*(xl + xr)
 
 end function cbsrh
 
 
 subroutine ccompb(n, ierror, an, bn, cn, b, bc, ah, bh)
-    !real epmach
+    !
+    ! Purpose:
+    !
+    ! ccompb computes the roots of the b polynomials using subroutine
+    ! ctevls which is a modification the eispack program tqlrat.
+    ! ierror is set to 4 if either ctevls fails or if a(j+1)*c(j) is
+    ! less than zero for some j.  ah, bh are temporary work arrays.
+    !
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
@@ -710,52 +733,71 @@ subroutine ccompb(n, ierror, an, bn, cn, b, bc, ah, bh)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer (ip) :: j, if, kdo, l, ir, i2, i4, ipl, ifd, i, ib, nb, js, jf &
-        , ls, lh, nmp, l1, l2, j2, j1, n2m2
-    real (wp) :: dum, bnorm, arg, d1, d2, d3
+    integer (ip) :: j, if_rename, kdo, l, ir, i2, i4
+    integer (ip) ::  ipl, ifd, i, ib, nb, js, jf
+    integer (ip) ::  ls, lh, nmp, l1, l2, j2, j1, n2m2
+    real (wp)    :: dum, bnorm, arg, d1, d2, d3
     !-----------------------------------------------
-    !
-    !     ccompb computes the roots of the b polynomials using subroutine
-    !     ctevls which is a modification the eispack program tqlrat.
-    !     ierror is set to 4 if either ctevls fails or if a(j+1)*c(j) is
-    !     less than zero for some j.  ah, bh are temporary work arrays.
-    !
 
-    eps = epsilon(1.0)
+
+    eps = epsilon(1.0_wp)
     bnorm = abs(bn(1))
+
     do j = 2, nm
         bnorm = max(bnorm, abs(bn(j)))
         arg = an(j)*cn(j-1)
-        if (arg < 0.) go to 119
+        if (arg < 0.0_wp) then
+            ierror = 5
+            return
+        end if
         b(j) = sign(sqrt(arg), an(j))
     end do
+
     cnv = eps*bnorm
-    if = 2**k
+    if_rename = 2**k
     kdo = k - 1
-    l108: do l = 1, kdo
+
+    outer_loop: do l = 1, kdo
+
         ir = l - 1
         i2 = 2**ir
         i4 = i2 + i2
         ipl = i4 - 1
-        ifd = if - i4
+        ifd = if_rename - i4
+
         do i = i4, ifd, i4
+
             call cindxb(i, l, ib, nb)
-            if (nb <= 0) cycle  l108
+
+            if (nb <= 0) then
+                cycle outer_loop
+            end if
+
             js = i - ipl
             jf = js + nb - 1
             ls = 0
             bh(:jf-js+1) = bn(js:jf)
             ah(:jf-js+1) = b(js:jf)
-            call ctevls (nb, bh, ah, ierror)
-            if (ierror /= 0) go to 118
+
+            call ctevls(nb, bh, ah, ierror)
+
+            if (ierror /= 0) then
+                ierror = 4
+                return
+            end if
+
             lh = ib - 1
+
             if (nb > 0) then
                 b(lh+1:nb+lh) = -bh(:nb)
                 lh = nb + lh
             end if
+
         end do
-    end do l108
+    end do outer_loop
+
     b(:nm) = -bn(:nm)
+
     if (npp == 0) then
         nmp = nm + 1
         nb = nm + nmp
@@ -763,45 +805,61 @@ subroutine ccompb(n, ierror, an, bn, cn, b, bc, ah, bh)
             l1 = mod(j - 1, nmp) + 1
             l2 = mod(j + nm - 1, nmp) + 1
             arg = an(l1)*cn(l2)
-            if (arg < 0.) go to 119
+
+            if (arg < 0.0_wp) then
+                ierror = 5
+                return
+            end if
+
             bh(j) = sign(sqrt(arg), (-an(l1)))
             ah(j) = -bn(l1)
         end do
+
         call ctevls (nb, ah, bh, ierror)
-        if (ierror /= 0) go to 118
-        call cindxb(if, k - 1, j2, lh)
-        call cindxb(if/2, k - 1, j1, lh)
+
+        if (ierror /= 0) then
+            ierror = 4
+            return
+        end if
+
+        call cindxb(if_rename, k - 1, j2, lh)
+        call cindxb(if_rename/2, k - 1, j1, lh)
+
         j2 = j2 + 1
         lh = j2
         n2m2 = j2 + nm + nm - 2
+
 114 continue
+
     d1 = abs(b(j1)-b(j2-1))
     d2 = abs(b(j1)-b(j2))
     d3 = abs(b(j1)-b(j2+1))
-    if (d2>=d1 .or. d2>=d3) then
+
+    if (d2 >= d1 .or. d2 >= d3) then
         b(lh) = b(j2)
         j2 = j2 + 1
         lh = lh + 1
-        if (j2 - n2m2 <= 0) go to 114
+        if (j2 - n2m2 <= 0) then
+            go to 114
+        end if
     else
         j2 = j2 + 1
         j1 = j1 + 1
-        if (j2 - n2m2 <= 0) go to 114
+        if (j2 - n2m2 <= 0) then
+            go to 114
+        end if
     end if
-    b(lh) = b(n2m2+1)
-    call cindxb(if, k - 1, j1, j2)
-    j2 = j1 + nmp + nmp
-    !call cppadd (nm + 1, ierror, an, cn, b(j1), bc(j1), b(j2))
-    call cppadd (nm + 1, ierror, an, cn, cmplx(b(j1:j1)), real(bc(j1:j1)), b(j2))
 
+    b(lh) = b(n2m2+1)
+
+    call cindxb(if_rename, k - 1, j1, j2)
+
+    j2 = j1 + nmp + nmp
+
+    call cppadd(nm + 1, ierror, an, cn, cmplx(b(j1:j1)), real(bc(j1:j1)), b(j2))
 
 end if
-return
-118 continue
-    ierror = 4
-    return
-119 continue
-    ierror = 5
+
 
 end subroutine ccompb
 
@@ -1109,7 +1167,9 @@ subroutine cindxb(i, ir, idx, idp)
     idp = 0
     if (ir >= 0) then
         if (ir <= 0) then
-            if (i - nm > 0) go to 107
+            if (i - nm > 0) then
+                return
+            end if
             idx = i
             idp = 1
             return
@@ -1127,7 +1187,6 @@ subroutine cindxb(i, ir, idx, idp)
             idp = nm + ipl - i + 1
         end if
     end if
-107 continue
 
 end subroutine cindxb
 
@@ -1497,7 +1556,7 @@ subroutine procp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, u, w)
     ! Dictionary: local variables
     !-----------------------------------------------
     integer (ip) :: j, mm, mm2, id, ibr, m1, m2, ia, k
-    real (wp) :: rt
+    real (wp)    :: rt
     complex (wp) :: den, ym, v, bh, am
     !-----------------------------------------------
 
@@ -1597,10 +1656,10 @@ subroutine ctevls(n, d, e2, ierr)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer (ip), intent (in) :: n
-    integer (ip), intent (out) :: ierr
-    real (wp), intent (in out) :: d(n)
-    real (wp), intent (in out) :: e2(n)
+    integer (ip), intent (in)     :: n
+    integer (ip), intent (out)    :: ierr
+    real (wp),    intent (in out) :: d(n)
+    real (wp),    intent (in out) :: e2(n)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -1645,67 +1704,79 @@ subroutine ctevls(n, d, e2, ierr)
     !     applied mathematics division, argonne national laboratory
     !
     !
-    !     ********** machep is a machine dependent parameter specifying
-    !                the relative precision of floating point arithmetic.
+    !     machep is a machine dependent parameter specifying
+    !     the relative precision of floating point arithmetic.
     !
-    !                **********
     !
     ierr = 0
     if (n /= 1) then
-        !
+
         e2(:n-1) = e2(2:n)*e2(2:n)
-        !
-        f = 0.0
-        b = 0.0
-        e2(n) = 0.0
-        !
+        f = 0.0_wp
+        b = 0.0_wp
+        e2(n) = 0.0_wp
+
         do l = 1, n
             j = 0
             h = eps*(abs(d(l))+sqrt(e2(l)))
+
             if (b <= h) then
                 b = h
                 c = b*b
             end if
             !
-            !     ********** look for small squared sub-diagonal element **********
+            !==> look for small squared sub-diagonal element
             !
             do m = l, n
-                if (e2(m) > c) cycle
+                if (e2(m) > c) then
+                    cycle
+                end if
                 exit
             !
-            !     ********** e2(n) is always zero, so there is no exit
-            !                through the bottom of the loop **********
+            !==> 2(n) is always zero, so there is no exit
+            !    through the bottom of the loop
             !
             end do
-            !
+
             if (m /= l) then
+
 105         continue
-            if (j == 30) go to 114
+
+            if (j == 30) then
+                !
+                !==> set error -- no convergence to an
+                !    eigenvalue after 30 iterations
+                !
+                ierr = l
+                return
+            end if
+
             j = j + 1
             !
-            !     ********** form shift **********
+            !==> form shift
             !
             l1 = l + 1
             s = sqrt(e2(l))
             g = d(l)
-            p = (d(l1)-g)/(2.0*s)
-            r = sqrt(p*p + 1.0)
+            p = (d(l1)-g)/(2.0_wp*s)
+            r = sqrt(p**2 + 1.0_wp)
             d(l) = s/(p + sign(r, p))
             h = g - d(l)
-            !
             d(l1:n) = d(l1:n) - h
-            !
             f = f + h
             !
-            !     ********** rational ql transformation **********
+            !==> rational ql transformation
             !
             g = d(m)
-            if (g == 0.0) g = b
+            if (g == 0.0_wp) then
+                g = b
+            end if
+
             h = g
-            s = 0.0
+            s = 0.0_wp
             mml = m - l
             !
-            !     ********** for i=m-1 step -1 until l do -- **********
+            !==> for i=m-1 step -1 until l do --
             !
             do ii = 1, mml
                 i = m - ii
@@ -1715,32 +1786,49 @@ subroutine ctevls(n, d, e2, ierr)
                 s = e2(i)/r
                 d(i+1) = h + s*(h + d(i))
                 g = d(i) - e2(i)/g
-                if (g == 0.0) g = b
+
+                if (g == 0.0_wp) then
+                    g = b
+                end if
+
                 h = g*p/r
             end do
-            !
+
             e2(l) = s*g
             d(l) = h
             !
-            !     ********** guard against underflowed h **********
+            !==>  guard against underflowed h
             !
-            if (h == 0.0) go to 108
-            if (abs(e2(l)) <= abs(c/h)) go to 108
+            if (h == 0.0_wp) then
+                go to 108
+            end if
+
+            if (abs(e2(l)) <= abs(c/h)) then
+                go to 108
+            end if
+
             e2(l) = h*e2(l)
-            if (e2(l) /= 0.0) go to 105
+
+            if (e2(l) /= 0.0_wp) then
+                go to 105
+            end if
         end if
+
 108 continue
+
     p = d(l) + f
     !
-    !     ********** order eigenvalues **********
+    !==> order eigenvalues
     !
     if (l /= 1) then
         !
-        !     ********** for i=l step -1 until 2 do -- **********
+        !==> for i=l step -1 until 2 do
         !
         do ii = 2, l
             i = l + 2 - ii
-            if (p >= d(i-1)) go to 111
+            if (p >= d(i-1)) then
+                go to 111
+            end if
             d(i) = d(i-1)
         end do
     end if
@@ -1749,25 +1837,20 @@ subroutine ctevls(n, d, e2, ierr)
 111 continue
     d(i) = p
 end do
-!
-if (abs(d(n)) >= abs(d(1))) go to 115
+
+if (abs(d(n)) >= abs(d(1))) then
+    return
+end if
+
 nhalf = n/2
+
 do i = 1, nhalf
     ntop = n - i
     dhold = d(i)
     d(i) = d(ntop+1)
     d(ntop+1) = dhold
 end do
-go to 115
-!
-!     ********** set error -- no convergence to an
-!                eigenvalue after 30 iterations **********
-!
-114 continue
-    ierr = l
 end if
-115 continue
-    return
 
 end subroutine ctevls
 
