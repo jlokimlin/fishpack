@@ -84,14 +84,13 @@ module module_sepaux
     !---------------------------------------------------------------------------------
     ! Dictionary: global variables shared with sepeli.f90 and sepx4.f90
     !---------------------------------------------------------------------------------
-    integer (ip), save, public :: kswx, kswy, k, l, mit, nit, is, ms, js, ns
-    real (wp),    save, public :: ait, bit, cit, dit
-    real (wp),    save, public :: dlx, dly, tdlx3, tdly3, dlx4, dly4
+    integer (ip), public :: kswx, kswy, k, l, mit, nit, is, ms, js, ns
+    real (wp),    public :: ait, bit, cit, dit
+    real (wp),    public :: dlx, dly, tdlx3, tdly3, dlx4, dly4
     !---------------------------------------------------------------------------------
 
     interface
-
-        pure subroutine get_coefficients( grid, a, b, c)
+        pure subroutine get_coefficients(grid, a, b, c)
             import :: wp
             !-----------------------------------------------
             ! Dictionary: calling arguments
@@ -102,7 +101,6 @@ module module_sepaux
             real (wp), intent (out) :: c
             !-----------------------------------------------
         end subroutine get_coefficients
-
     end interface
 
 
@@ -138,8 +136,8 @@ contains
         !
         !     compute weighted inner products
         !
-        ute = 0.0
-        ete = 0.0
+        ute = 0.0_wp
+        ete = 0.0_wp
         do i = is, ms
             ii = i - is + 1
             ete = ete + sum(zm(ii)*zn(:ns-js+1))
@@ -155,6 +153,7 @@ contains
         usol(istr:ifnl, jstr:jfnl) = usol(istr:ifnl, jstr:jfnl) - pertrb
 
     end subroutine seport
+
 
 
     subroutine sepmin(usol, idmn, zn, zm, pertb)
@@ -237,6 +236,7 @@ contains
         v = a(1)
         u(1) = c(n)/b(1)
         nm2 = n - 2
+
         do j = 2, nm2
             den = b(j) - c(j-1)*d(j-1)
             d(j) = a(j+1)/den
@@ -244,6 +244,7 @@ contains
             bn = bn - v*u(j-1)
             v = -v*d(j-1)
         end do
+
         den = b(n-1) - c(n-2)*d(n-2)
         d(n-1) = (a(n)-c(n-2)*u(n-2))/den
         an = c(n-1) - v*d(n-2)
@@ -255,6 +256,7 @@ contains
         z(n) = 1.0_wp
         z(n-1) = -d(n-1)
         nm1 = n - 1
+
         do j = 2, nm1
             k = n - j
             z(k) = (-d(k)*z(k+1)) - u(k)*z(n)
@@ -319,7 +321,7 @@ contains
                     dlx4
                 return
             end if
-        else if (i>2 .and. i<k-1) then
+        else if (i > 2 .and. i < k-1) then
             !
             !     compute partial derivative approximations on the interior
             !
@@ -385,17 +387,21 @@ contains
         !
         if (j == 1) then
             if (kswy /= 1) then
-                uyyy = ((-5.0_wp * u(i, 1))+18.0_wp * u(i, 2)-24.0_wp * u(i, 3)+14.0_wp * u(i, 4)- &
+                uyyy = ((-5.0_wp * u(i, 1))+18.0_wp * u(i, 2) &
+                    -24.0_wp * u(i, 3)+14.0_wp * u(i, 4)- &
                     3.0_wp * u(i, 5))/tdly3
-                uyyyy = (3.0_wp * u(i, 1)-14.0_wp * u(i, 2)+26.0_wp * u(i, 3)-24.0_wp * u(i, 4)+11.0 &
+                uyyyy = (3.0_wp * u(i, 1)-14.0_wp * u(i, 2) &
+                    +26.0_wp * u(i, 3)-24.0_wp * u(i, 4)+11.0 &
                     *u(i, 5)-2.0_wp * u(i, 6))/dly4
                 return
             else
                 !
                 !     periodic at x=a
                 !
-                uyyy = ((-u(i, l-2))+2.0_wp * u(i, l-1)-2.0_wp * u(i, 2)+u(i, 3))/tdly3
-                uyyyy = (u(i, l-2)-4.0_wp * u(i, l-1)+6.0_wp * u(i, 1)-4.0_wp * u(i, 2)+u(i, 3)) &
+                uyyy = ((-u(i, l-2))+2.0_wp * u(i, l-1) &
+                    -2.0_wp * u(i, 2)+u(i, 3))/tdly3
+                uyyyy = (u(i, l-2)-4.0_wp * u(i, l-1) &
+                    +6.0_wp * u(i, 1)-4.0_wp * u(i, 2)+u(i, 3)) &
                     /dly4
                 return
             end if
@@ -404,26 +410,32 @@ contains
         !
         else if (j == 2) then
             if (kswy /= 1) then
-                uyyy = ((-3.0_wp * u(i, 1))+10.0_wp * u(i, 2)-12.0_wp * u(i, 3)+6.0_wp * u(i, 4)-u(i &
+                uyyy = ((-3.0_wp * u(i, 1))+10.0_wp * u(i, 2) &
+                    -12.0_wp * u(i, 3)+6.0_wp * u(i, 4)-u(i &
                     , 5))/tdly3
-                uyyyy = (2.0_wp * u(i, 1)-9.0_wp * u(i, 2)+16.0_wp * u(i, 3)-14.0_wp * u(i, 4)+6.0_wp * u &
+                uyyyy = (2.0_wp * u(i, 1)-9.0_wp * u(i, 2) &
+                    +16.0_wp * u(i, 3)-14.0_wp * u(i, 4)+6.0_wp * u &
                     (i, 5)-u(i, 6))/dly4
                 return
             else
                 !
                 !     periodic at y=c+dly
                 !
-                uyyy = ((-u(i, l-1))+2.0_wp * u(i, 1)-2.0_wp * u(i, 3)+u(i, 4))/tdly3
-                uyyyy = (u(i, l-1)-4.0_wp * u(i, 1)+6.0_wp * u(i, 2)-4.0_wp * u(i, 3)+u(i, 4))/ &
+                uyyy = ((-u(i, l-1))+2.0_wp * u(i, 1) &
+                    -2.0_wp * u(i, 3)+u(i, 4))/tdly3
+                uyyyy = (u(i, l-1)-4.0_wp * u(i, 1) &
+                    +6.0_wp * u(i, 2)-4.0_wp * u(i, 3)+u(i, 4))/ &
                     dly4
                 return
             end if
         !
         !     compute partial derivative approximations on the interior
         !
-        else if (j>2 .and. j<l-1) then
-            uyyy = ((-u(i, j-2))+2.0_wp * u(i, j-1)-2.0_wp * u(i, j+1)+u(i, j+2))/tdly3
-            uyyyy = (u(i, j-2)-4.0_wp * u(i, j-1)+6.0_wp * u(i, j)-4.0_wp * u(i, j+1)+u(i, j+2) &
+        else if (j > 2 .and. j < l-1) then
+            uyyy = ((-u(i, j-2))+2.0_wp * u(i, j-1) &
+                -2.0_wp * u(i, j+1)+u(i, j+2))/tdly3
+            uyyyy = (u(i, j-2)-4.0_wp * u(i, j-1) &
+                +6.0_wp * u(i, j)-4.0_wp * u(i, j+1)+u(i, j+2) &
                 )/dly4
             return
         else if (j == l - 1) then
@@ -431,17 +443,21 @@ contains
             !     compute partial derivative approximations at y=d-dly
             !
             if (kswy /= 1) then
-                uyyy = (u(i, l-4)-6.0_wp * u(i, l-3)+12.0_wp * u(i, l-2)-10.0_wp * u(i, l-1)+ &
+                uyyy = (u(i, l-4)-6.0_wp * u(i, l-3) &
+                    + 12.0_wp * u(i, l-2)-10.0_wp * u(i, l-1)+ &
                     3.0_wp * u(i, l))/tdly3
-                uyyyy = ((-u(i, l-5))+6.0_wp * u(i, l-4)-14.0_wp * u(i, l-3)+16.0_wp * u(i, l-2 &
+                uyyyy = ((-u(i, l-5))+6.0_wp * u(i, l-4) &
+                    -14.0_wp * u(i, l-3)+16.0_wp * u(i, l-2 &
                     )-9.0_wp * u(i, l-1)+2.0_wp * u(i, l))/dly4
                 return
             else
                 !
                 !     periodic at y=d-dly
                 !
-                uyyy = ((-u(i, l-3))+2.0_wp * u(i, l-2)-2.0_wp * u(i, 1)+u(i, 2))/tdly3
-                uyyyy = (u(i, l-3)-4.0_wp * u(i, l-2)+6.0_wp * u(i, l-1)-4.0_wp * u(i, 1)+u(i, 2 &
+                uyyy = ((-u(i, l-3))+2.0_wp * u(i, l-2) &
+                    -2.0_wp * u(i, 1)+u(i, 2))/tdly3
+                uyyyy = (u(i, l-3)-4.0_wp * u(i, l-2) &
+                    +6.0_wp * u(i, l-1)-4.0_wp * u(i, 1)+u(i, 2 &
                     ))/dly4
                 return
             end if
@@ -449,9 +465,11 @@ contains
             !
             !     compute partial derivative approximations at y=d
             !
-            uyyy = -(3.0_wp * u(i, l-4)-14.0_wp * u(i, l-3)+24.0_wp * u(i, l-2)-18.0_wp * u(i, l-1) &
+            uyyy = -(3.0_wp * u(i, l-4)-14.0_wp * u(i, l-3) &
+                +24.0_wp * u(i, l-2)-18.0_wp * u(i, l-1) &
                 +5.0_wp * u(i, l))/tdly3
-            uyyyy = ((-2.0_wp * u(i, l-5))+11.0_wp * u(i, l-4)-24.0_wp * u(i, l-3)+26.0_wp * u(i, l &
+            uyyyy = ((-2.0_wp * u(i, l-5))+11.0_wp * u(i, l-4) &
+                -24.0_wp * u(i, l-3)+26.0_wp * u(i, l &
                 -2)-14.0_wp * u(i, l-1)+3.0_wp * u(i, l))/dly4
             return
         end if

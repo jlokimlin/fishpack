@@ -908,9 +908,7 @@ contains
     !
     !     wsave   contains initialization calculations which must not be
     !             destroyed between calls of subroutine cfftf or cfftb
-    ! **********************************************************************
-
-
+    !
     subroutine ezfftf(n, r, azero, a, b, wsave)
         !-----------------------------------------------
         ! Dictionary: calling arguments
@@ -933,22 +931,29 @@ contains
                 azero = r(1)
                 return
             end if
-            azero = 0.5*(r(1)+r(2))
-            a(1) = 0.5*(r(1)-r(2))
+            azero = 0.5_wp*(r(1)+r(2))
+            a(1) = 0.5_wp*(r(1)-r(2))
             return
         end if
+
         wsave(:n) = r(:n)
-        call rfftf (n, wsave, wsave(n+1))
-        cf = 2./n
+
+        call rfftf(n, wsave, wsave(n+1))
+
+        cf = 2.0_wp/n
         cfm = -cf
-        azero = 0.5*cf*wsave(1)
+        azero = 0.5_wp*cf*wsave(1)
         ns2 = (n + 1)/2
         ns2m = ns2 - 1
         a(:ns2m) = cf*wsave(2:ns2m*2:2)
         b(:ns2m) = cfm*wsave(3:ns2m*2+1:2)
-        if (mod(n, 2) == 1) return
-        a(ns2) = 0.5*cf*wsave(n)
-        b(ns2) = 0.
+
+        if (mod(n, 2) == 1) then
+            return
+        end if
+
+        a(ns2) = 0.5_wp*cf*wsave(n)
+        b(ns2) = 0.0_wp
 
     end subroutine ezfftf
 
@@ -1114,7 +1119,7 @@ subroutine costi(n, wsave)
         wsave(k) = 2.0_wp * sin(fk*dt)
         wsave(kc) = 2.0_wp * cos(fk*dt)
     end do
-    call rffti (nm1, wsave(n+1))
+    call rffti(nm1, wsave(n+1))
 
 end subroutine costi
 
@@ -1164,7 +1169,7 @@ subroutine cost(n, x, wsave)
         end do
         modn = mod(n, 2)
         if (modn /= 0) x(ns2+1) = x(ns2+1) + x(ns2+1)
-        call rfftf (nm1, x, wsave(n+1))
+        call rfftf(nm1, x, wsave(n+1))
         xim2 = x(2)
         x(2) = c1
         do i = 4, n, 2
@@ -1202,7 +1207,7 @@ subroutine sinti(n, wsave)
         end do
     end associate
 
-    call rffti (np1, wsave(ns2+1))
+    call rffti(np1, wsave(ns2+1))
 
 end subroutine sinti
 
@@ -1308,7 +1313,7 @@ subroutine cosqi(n, wsave)
         end do
     end associate
 
-    call rffti (n, wsave(n+1))
+    call rffti(n, wsave(n+1))
 
 end subroutine cosqi
 
@@ -1358,20 +1363,31 @@ subroutine cosqf1(n, x, w, xh)
 
     ns2 = (n + 1)/2
     np2 = n + 2
+
     do k = 2, ns2
         kc = np2 - k
         xh(k) = x(k) + x(kc)
         xh(kc) = x(k) - x(kc)
     end do
+
     modn = mod(n, 2)
-    if (modn == 0) xh(ns2+1) = x(ns2+1) + x(ns2+1)
+
+    if (modn == 0) then
+        xh(ns2+1) = x(ns2+1) + x(ns2+1)
+    end if
+
     do k = 2, ns2
         kc = np2 - k
         x(k) = w(k-1)*xh(kc) + w(kc-1)*xh(k)
         x(kc) = w(k-1)*xh(k) - w(kc-1)*xh(kc)
     end do
-    if (modn == 0) x(ns2+1) = w(ns2)*xh(ns2+1)
-    call rfftf (n, x, xh)
+
+    if (modn == 0) then
+        x(ns2+1) = w(ns2)*xh(ns2+1)
+    end if
+
+    call rfftf(n, x, xh)
+
     do i = 3, n, 2
         xim1 = x(i-1) - x(i)
         x(i) = x(i-1) + x(i)
@@ -1422,31 +1438,45 @@ subroutine cosqb1(n, x, w, xh)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: ns2, np2, i, modn, k, kc
+    integer   :: ns2, np2, i, modn, k, kc
     real (wp) :: xim1
     !-----------------------------------------------
+
     ns2 = (n + 1)/2
     np2 = n + 2
+
     do i = 3, n, 2
         xim1 = x(i-1) + x(i)
         x(i) = x(i) - x(i-1)
         x(i-1) = xim1
     end do
+
     x(1) = x(1) + x(1)
+
     modn = mod(n, 2)
-    if (modn == 0) x(n) = x(n) + x(n)
-    call rfftb (n, x, xh)
+
+    if (modn == 0) then
+        x(n) = x(n) + x(n)
+    end if
+
+    call rfftb(n, x, xh)
+
     do k = 2, ns2
         kc = np2 - k
         xh(k) = w(k-1)*x(kc) + w(kc-1)*x(k)
         xh(kc) = w(k-1)*x(k) - w(kc-1)*x(kc)
     end do
-    if (modn == 0) x(ns2+1) = w(ns2)*(x(ns2+1)+x(ns2+1))
+
+    if (modn == 0) then
+        x(ns2+1) = w(ns2)*(x(ns2+1)+x(ns2+1))
+    end if
+
     do k = 2, ns2
         kc = np2 - k
         x(k) = xh(k) + xh(kc)
         x(kc) = xh(k) - xh(kc)
     end do
+
     x(1) = x(1) + x(1)
 
 end subroutine cosqb1
@@ -1460,7 +1490,7 @@ subroutine sinqi(n, wsave)
     real (wp) :: wsave(*)
     !-----------------------------------------------
 
-    call cosqi (n, wsave)
+    call cosqi(n, wsave)
 
 end subroutine sinqi
 
@@ -1479,15 +1509,21 @@ subroutine sinqf(n, x, wsave)
     real (wp) :: xhold
     !-----------------------------------------------
     !
-    if (n == 1) return
+    if (n == 1) then
+        return
+    end if
+
     ns2 = n/2
+
     do k = 1, ns2
         kc = n - k
         xhold = x(k)
         x(k) = x(kc+1)
         x(kc+1) = xhold
     end do
+
     call cosqf (n, x, wsave)
+
     x(2:n:2) = -x(2:n:2)
 
 end subroutine sinqf
@@ -1511,9 +1547,12 @@ subroutine sinqb(n, x, wsave)
         x(1) = 4.0_wp * x(1)
         return
     end if
+
     ns2 = n/2
     x(2:n:2) = -x(2:n:2)
+
     call cosqb (n, x, wsave)
+
     do k = 1, ns2
         kc = n - k
         xhold = x(k)
@@ -1532,7 +1571,9 @@ subroutine cffti(n, wsave)
     real (wp) :: wsave(*)
     !-----------------------------------------------
 
-    if (n == 1) return
+    if (n == 1) then
+        return
+    end if
 
     associate( iw1 => 2*n + 1 )
         associate( iw2 => iw1 + 2*n )
@@ -1564,27 +1605,41 @@ subroutine cffti1(n, wa, ifac)
     nl = n
     nf = 0
     j = 0
+
 101 continue
+
     j = j + 1
+
     if (j - 4 <= 0) then
         ntry = ntryh(j)
     else
         ntry = ntry + 2
     end if
+
 104 continue
+
     nq = nl/ntry
     nr = nl - ntry*nq
-    if (nr /= 0) go to 101
+
+    if (nr /= 0) then
+        go to 101
+    end if
+
     nf = nf + 1
     ifac(nf+2) = ntry
     nl = nq
+
     if (ntry == 2) then
         if (nf /= 1) then
             ifac(nf+2:4:(-1)) = ifac(nf+1:3:(-1))
             ifac(3) = 2
         end if
     end if
-    if (nl /= 1) go to 104
+
+    if (nl /= 1) then
+        go to 104
+    end if
+
     ifac(1) = n
     ifac(2) = nf
     argh = two_pi/n
@@ -1599,19 +1654,23 @@ subroutine cffti1(n, wa, ifac)
         ipm = ip - 1
         do j = 1, ipm
             i1 = i
-            wa(i-1) = 1.
-            wa(i) = 0.
+            wa(i-1) = 1.0_wp
+            wa(i) = 0.0_wp
             ld = ld + l1
-            fi = 0.
-            argld = real(ld)*argh
+            fi = 0.0_wp
+            argld = real(ld, kind=wp)*argh
             do ii = 4, idot, 2
                 i = i + 2
-                fi = fi + 1.
+                fi = fi + 1.0_wp
                 arg = fi*argld
                 wa(i-1) = cos(arg)
                 wa(i) = sin(arg)
             end do
-            if (ip <= 5) cycle
+
+            if (ip <= 5) then
+                cycle
+            end if
+
             wa(i1-1) = wa(i-1)
             wa(i1) = wa(i)
         end do
@@ -1630,7 +1689,10 @@ subroutine cfftb(n, c, wsave)
     real (wp) :: wsave(*)
     !-----------------------------------------------
 
-    if (n == 1) return
+    if (n == 1) then
+        return
+    end if
+
     associate (iw1 => 2*n + 1 )
         associate( iw2 => iw1 + 2*n )
             call cfftb1 (n, c, wsave, wsave(iw1), wsave(iw2))
@@ -1653,7 +1715,8 @@ subroutine cfftb1(n, c, ch, wa, ifac)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: nf, na, l1, iw, k1, ip, l2, ido, idot, idl1, ix2, ix3, ix4, nac, n2
+    integer :: nf, na, l1, iw, k1, ip, l2, ido
+    integer :: idot, idl1, ix2, ix3, ix4, nac, n2
     !-----------------------------------------------
 
     nf = ifac(2)
@@ -1670,26 +1733,26 @@ subroutine cfftb1(n, c, ch, wa, ifac)
             ix2 = iw + idot
             ix3 = ix2 + idot
             if (na == 0) then
-                call passb4 (idot, l1, c, ch, wa(iw), wa(ix2), wa(ix3))
+                call passb4(idot, l1, c, ch, wa(iw), wa(ix2), wa(ix3))
             else
-                call passb4 (idot, l1, ch, c, wa(iw), wa(ix2), wa(ix3))
+                call passb4(idot, l1, ch, c, wa(iw), wa(ix2), wa(ix3))
             end if
             na = 1 - na
         else
             if (ip == 2) then
                 if (na == 0) then
-                    call passb2 (idot, l1, c, ch, wa(iw))
+                    call passb2(idot, l1, c, ch, wa(iw))
                 else
-                    call passb2 (idot, l1, ch, c, wa(iw))
+                    call passb2(idot, l1, ch, c, wa(iw))
                 end if
                 na = 1 - na
             else
                 if (ip == 3) then
                     ix2 = iw + idot
                     if (na == 0) then
-                        call passb3 (idot, l1, c, ch, wa(iw), wa(ix2))
+                        call passb3(idot, l1, c, ch, wa(iw), wa(ix2))
                     else
-                        call passb3 (idot, l1, ch, c, wa(iw), wa(ix2))
+                        call passb3(idot, l1, ch, c, wa(iw), wa(ix2))
                     end if
                     na = 1 - na
                 else
@@ -1698,22 +1761,24 @@ subroutine cfftb1(n, c, ch, wa, ifac)
                         ix3 = ix2 + idot
                         ix4 = ix3 + idot
                         if (na == 0) then
-                            call passb5 (idot, l1, c, ch, wa(iw), wa(ix2), &
+                            call passb5(idot, l1, c, ch, wa(iw), wa(ix2), &
                                 wa(ix3), wa(ix4))
                         else
-                            call passb5 (idot, l1, ch, c, wa(iw), wa(ix2), &
+                            call passb5(idot, l1, ch, c, wa(iw), wa(ix2), &
                                 wa(ix3), wa(ix4))
                         end if
                         na = 1 - na
                     else
                         if (na == 0) then
-                            call passb (nac, idot, ip, l1, idl1, c, c, c, ch &
-                                , ch, wa(iw))
+                            call passb(nac, idot, ip, l1, idl1, c, c, c, ch, &
+                                ch, wa(iw))
                         else
-                            call passb (nac, idot, ip, l1, idl1, ch, ch, ch &
-                                , c, c, wa(iw))
+                            call passb(nac, idot, ip, l1, idl1, ch, ch, ch, &
+                                c, c, wa(iw))
                         end if
-                        if (nac /= 0) na = 1 - na
+                        if (nac /= 0) then
+                            na = 1 - na
+                        end if
                     end if
                 end if
             end if
@@ -1721,7 +1786,11 @@ subroutine cfftb1(n, c, ch, wa, ifac)
         l1 = l2
         iw = iw + (ip - 1)*idot
     end do
-    if (na == 0) return
+
+    if (na == 0) then
+        return
+    end if
+
     n2 = n + n
     c(:n2) = ch(:n2)
 
@@ -1743,6 +1812,7 @@ pure subroutine passb2(ido, l1, cc, ch, wa1)
     integer :: k, i
     real (wp) :: tr2, ti2
     !-----------------------------------------------
+
     if (ido <= 2) then
         ch(1,:, 1) = cc(1, 1,:) + cc(1, 2,:)
         ch(1,:, 2) = cc(1, 1,:) - cc(1, 2,:)
@@ -1750,6 +1820,7 @@ pure subroutine passb2(ido, l1, cc, ch, wa1)
         ch(2,:, 2) = cc(2, 1,:) - cc(2, 2,:)
         return
     end if
+
     do k = 1, l1
         do i = 2, ido, 2
             ch(i-1, k, 1) = cc(i-1, 1, k) + cc(i-1, 2, k)
@@ -1838,9 +1909,11 @@ pure subroutine passb4(ido, l1, cc, ch, wa1, wa2, wa3)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: k, i
-    real (wp) ::ti1, ti2, tr4, ti3, tr1, tr2, ti4, tr3, cr3, ci3, cr2, cr4, ci2, ci4
+    integer   :: k, i
+    real (wp) :: ti1, ti2, tr4, ti3, tr1, tr2, ti4
+    real (wp) :: tr3, cr3, ci3, cr2, cr4, ci2, ci4
     !-----------------------------------------------
+
     if (ido == 2) then
         do k = 1, l1
             ti1 = cc(2, 1, k) - cc(2, 3, k)
@@ -2009,15 +2082,17 @@ subroutine passb(nac, ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: idot, nt, ipp2, ipph, idp, j, jc, k, i, idl, inc, l, lc, idlj, idij, idj
+    integer   :: idot, nt, ipp2, ipph, idp, j, jc, k
+    integer   :: i, idl, inc, l, lc, idlj, idij, idj
     real (wp) :: war, wai
     !-----------------------------------------------
+
     idot = ido/2
     nt = ip*idl1
     ipp2 = ip + 2
     ipph = (ip + 1)/2
     idp = ip*ido
-    !
+
     if (ido >= l1) then
         do j = 2, ipph
             jc = ipp2 - j
@@ -2033,8 +2108,10 @@ subroutine passb(nac, ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
         end do
         ch(:,:, 1) = cc(:, 1,:)
     end if
+
     idl = 2 - ido
     inc = 0
+
     do l = 2, ipph
         lc = ipp2 - l
         idl = idl + ido
@@ -2052,9 +2129,11 @@ subroutine passb(nac, ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
             c2(:, lc) = c2(:, lc) + wai*ch2(:, jc)
         end do
     end do
+
     do j = 2, ipph
         ch2(:, 1) = ch2(:, 1) + ch2(:, j)
     end do
+
     do j = 2, ipph
         jc = ipp2 - j
         ch2(:idl1-1:2, j) = c2(:idl1-1:2, j) - c2(2:idl1:2, jc)
@@ -2062,12 +2141,18 @@ subroutine passb(nac, ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
         ch2(2:idl1:2, j) = c2(2:idl1:2, j) + c2(:idl1-1:2, jc)
         ch2(2:idl1:2, jc) = c2(2:idl1:2, j) - c2(:idl1-1:2, jc)
     end do
+
     nac = 1
-    if (ido == 2) return
+
+    if (ido == 2) then
+        return
+    end if
+
     nac = 0
     c2(:, 1) = ch2(:, 1)
     c1(1,:, 2:ip) = ch(1,:, 2:ip)
     c1(2,:, 2:ip) = ch(2,:, 2:ip)
+
     if (idot <= l1) then
         idij = 0
         do j = 2, ip
@@ -2104,7 +2189,9 @@ subroutine cfftf(n, c, wsave)
     real (wp) :: wsave(*)
     !-----------------------------------------------
 
-    if (n == 1) return
+    if (n == 1) then
+        return
+    end if
 
     associate( iw1 => 2*n + 1 )
         associate( iw2 => iw1 + 2*n )
@@ -2128,12 +2215,15 @@ subroutine cfftf1(n, c, ch, wa, ifac)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer:: nf, na, l1, iw, k1, ip, l2, ido, idot, idl1, ix2, ix3, ix4, nac, n2
+    integer :: nf, na, l1, iw, k1, ip, l2, ido
+    integer :: idot, idl1, ix2, ix3, ix4, nac, n2
     !-----------------------------------------------
+
     nf = ifac(2)
     na = 0
     l1 = 1
     iw = 1
+
     do k1 = 1, nf
         ip = ifac(k1+2)
         l2 = ip*l1
@@ -2195,7 +2285,11 @@ subroutine cfftf1(n, c, ch, wa, ifac)
         l1 = l2
         iw = iw + (ip - 1)*idot
     end do
-    if (na == 0) return
+
+    if (na == 0) then
+        return
+    end if
+
     n2 = n + n
     c(:n2) = ch(:n2)
 
@@ -2214,9 +2308,10 @@ pure subroutine passf2(ido, l1, cc, ch, wa1)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: k, i
+    integer   :: k, i
     real (wp) :: tr2, ti2
     !-----------------------------------------------
+
     if (ido <= 2) then
         ch(1,:, 1) = cc(1, 1,:) + cc(1, 2,:)
         ch(1,:, 2) = cc(1, 1,:) - cc(1, 2,:)
@@ -2224,6 +2319,7 @@ pure subroutine passf2(ido, l1, cc, ch, wa1)
         ch(2,:, 2) = cc(2, 1,:) - cc(2, 2,:)
         return
     end if
+
     do k = 1, l1
         do i = 2, ido, 2
             ch(i-1, k, 1) = cc(i-1, 1, k) + cc(i-1, 2, k)
@@ -2312,8 +2408,9 @@ pure subroutine passf4(ido, l1, cc, ch, wa1, wa2, wa3)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: k, i
-    real (wp) ::ti1, ti2, tr4, ti3, tr1, tr2, ti4, tr3, cr3, ci3, cr2, cr4, ci2, ci4
+    integer   :: k, i
+    real (wp) :: ti1, ti2, tr4, ti3, tr1, tr2, ti4
+    real (wp) :: tr3, cr3, ci3, cr2, cr4, ci2, ci4
     !-----------------------------------------------
     if (ido == 2) then
         do k = 1, l1
@@ -2461,7 +2558,7 @@ pure subroutine passf5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
             ch(i, k, 5) = wa4(i-1)*di5 - wa4(i)*dr5
         end do
     end do
-    return
+
 end subroutine passf5
 
 
@@ -2493,7 +2590,7 @@ subroutine passf(nac, ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
     ipp2 = ip + 2
     ipph = (ip + 1)/2
     idp = ip*ido
-    !
+
     if (ido >= l1) then
         do j = 2, ipph
             jc = ipp2 - j
@@ -2509,8 +2606,10 @@ subroutine passf(nac, ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
         end do
         ch(:,:, 1) = cc(:, 1,:)
     end if
+
     idl = 2 - ido
     inc = 0
+
     do l = 2, ipph
         lc = ipp2 - l
         idl = idl + ido
@@ -2521,16 +2620,20 @@ subroutine passf(nac, ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
         do j = 3, ipph
             jc = ipp2 - j
             idlj = idlj + inc
-            if (idlj > idp) idlj = idlj - idp
+            if (idlj > idp) then
+                idlj = idlj - idp
+            end if
             war = wa(idlj-1)
             wai = wa(idlj)
             c2(:, l) = c2(:, l) + war*ch2(:, j)
             c2(:, lc) = c2(:, lc) - wai*ch2(:, jc)
         end do
     end do
+
     do j = 2, ipph
         ch2(:, 1) = ch2(:, 1) + ch2(:, j)
     end do
+
     do j = 2, ipph
         jc = ipp2 - j
         ch2(:idl1-1:2, j) = c2(:idl1-1:2, j) - c2(2:idl1:2, jc)
@@ -2538,12 +2641,18 @@ subroutine passf(nac, ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
         ch2(2:idl1:2, j) = c2(2:idl1:2, j) + c2(:idl1-1:2, jc)
         ch2(2:idl1:2, jc) = c2(2:idl1:2, j) - c2(:idl1-1:2, jc)
     end do
+
     nac = 1
-    if (ido == 2) return
+
+    if (ido == 2) then
+        return
+    end if
+
     nac = 0
     c2(:, 1) = ch2(:, 1)
     c1(1,:, 2:ip) = ch(1,:, 2:ip)
     c1(2,:, 2:ip) = ch(2,:, 2:ip)
+
     if (idot <= l1) then
         idij = 0
         do j = 2, ip
@@ -2579,8 +2688,11 @@ subroutine rffti(n, wsave)
     real (wp) :: wsave(*)
     !-----------------------------------------------
     !
-    if (n == 1) return
-    call rffti1 (n, wsave(n+1), wsave(2*n+1))
+    if (n == 1) then
+        return
+    end if
+
+    call rffti1(n, wsave(n+1), wsave(2*n+1))
 
 end subroutine rffti
 
@@ -2608,32 +2720,48 @@ subroutine rffti1(n, wa, ifac)
     j = 0
 101 continue
     j = j + 1
+
     if (j - 4 <= 0) then
         ntry = ntryh(j)
     else
         ntry = ntry + 2
     end if
+
 104 continue
+
     nq = nl/ntry
     nr = nl - ntry*nq
-    if (nr /= 0) go to 101
+
+    if (nr /= 0) then
+        go to 101
+    end if
+
     nf = nf + 1
     ifac(nf+2) = ntry
     nl = nq
+
     if (ntry == 2) then
         if (nf /= 1) then
             ifac(nf+2:4:(-1)) = ifac(nf+1:3:(-1))
             ifac(3) = 2
         end if
     end if
-    if (nl /= 1) go to 104
+
+    if (nl /= 1) then
+        go to 104
+    end if
+
     ifac(1) = n
     ifac(2) = nf
     argh = two_pi/n
     is = 0
     nfm1 = nf - 1
     l1 = 1
-    if (nfm1 == 0) return
+
+    if (nfm1 == 0) then
+        return
+    end if
+
     do k1 = 1, nfm1
         ip = ifac(k1+2)
         ld = 0
@@ -2643,8 +2771,8 @@ subroutine rffti1(n, wa, ifac)
         do j = 1, ipm
             ld = ld + l1
             i = is
-            argld = real(ld)*argh
-            fi = 0.
+            argld = real(ld, kind=wp)*argh
+            fi = 0.0_wp
             do ii = 3, ido, 2
                 i = i + 2
                 fi = fi + 1.
@@ -2669,9 +2797,11 @@ subroutine rfftb(n, r, wsave)
     real (wp) :: wsave(*)
     !-----------------------------------------------
 
-    if (n == 1) return
+    if (n == 1) then
+        return
+    end if
 
-    call rfftb1 (n, r, wsave, wsave(n+1), wsave(2*n+1))
+    call rfftb1(n, r, wsave, wsave(n+1), wsave(2*n+1))
 
 end subroutine rfftb
 
@@ -2753,7 +2883,11 @@ subroutine rfftb1(n, c, ch, wa, ifac)
         l1 = l2
         iw = iw + (ip - 1)*ido
     end do
-    if (na == 0) return
+
+    if (na == 0) then
+        return
+    end if
+
     c(:n) = ch(:n)
 
 end subroutine rfftb1
@@ -2774,8 +2908,10 @@ pure subroutine radb2(ido, l1, cc, ch, wa1)
     integer :: k, idp2, i, ic
     real (wp) :: tr2, ti2
     !-----------------------------------------------
+
     ch(1,:, 1) = cc(1, 1,:) + cc(ido, 2,:)
     ch(1,:, 2) = cc(1, 1,:) - cc(ido, 2,:)
+
     if (ido - 2 >= 0) then
         if (ido - 2 /= 0) then
             idp2 = ido + 2
@@ -2790,7 +2926,9 @@ pure subroutine radb2(ido, l1, cc, ch, wa1)
                     ch(i, k, 2) = wa1(i-2)*ti2 + wa1(i-1)*tr2
                 end do
             end do
-            if (mod(ido, 2) == 1) return
+            if (mod(ido, 2) == 1) then
+                return
+            end if
         end if
         ch(ido,:, 1) = cc(ido, 1,:) + cc(ido, 1,:)
         ch(ido,:, 2) = -(cc(1, 2,:)+cc(1, 2,:))
@@ -2826,7 +2964,11 @@ pure subroutine radb3(ido, l1, cc, ch, wa1, wa2)
         ch(1, k, 2) = cr2 - ci3
         ch(1, k, 3) = cr2 + ci3
     end do
-    if (ido == 1) return
+
+    if (ido == 1) then
+        return
+    end if
+
     idp2 = ido + 2
     do k = 1, l1
         do i = 3, ido, 2
@@ -2849,7 +2991,7 @@ pure subroutine radb3(ido, l1, cc, ch, wa1, wa2)
             ch(i, k, 3) = wa2(i-2)*di3 + wa2(i-1)*dr3
         end do
     end do
-    return
+
 end subroutine radb3
 
 
@@ -2913,7 +3055,9 @@ pure subroutine radb4(ido, l1, cc, ch, wa1, wa2, wa3)
                     ch(i, k, 4) = wa3(i-2)*ci4 + wa3(i-1)*cr4
                 end do
             end do
-            if (mod(ido, 2) == 1) return
+            if (mod(ido, 2) == 1) then
+                return
+            end if
         end if
         do k = 1, l1
             ti1 = cc(1, 2, k) + cc(1, 4, k)
@@ -2926,7 +3070,7 @@ pure subroutine radb4(ido, l1, cc, ch, wa1, wa2, wa3)
             ch(ido, k, 4) = -sqrt2*(tr1 + ti1)
         end do
     end if
-    return
+
 end subroutine radb4
 
 
@@ -3013,7 +3157,7 @@ pure subroutine radb5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
             ch(i, k, 5) = wa4(i-2)*di5 + wa4(i-1)*dr5
         end do
     end do
-    return
+
 end subroutine radb5
 
 
@@ -3172,8 +3316,10 @@ subroutine rfftf(n, r, wsave)
     real (wp) :: r(*)
     real (wp) :: wsave(*)
     !-----------------------------------------------
-    !
-    if (n == 1) return
+
+    if (n == 1) then
+        return
+    end if
 
     call rfftf1 (n, r, wsave, wsave(n+1), wsave(2*n+1))
 
@@ -3471,8 +3617,13 @@ subroutine radf5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
         ch(ido, 4, k) = cc(1, k, 1) + tr12*cr2 + tr11*cr3
         ch(1, 5, k) = ti12*ci5 - ti11*ci4
     end do
-    if (ido == 1) return
+
+    if (ido == 1) then
+        return
+    end if
+
     idp2 = ido + 2
+
     do k = 1, l1
         do i = 3, ido, 2
             ic = idp2 - i
@@ -3621,18 +3772,25 @@ subroutine radfg(ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
             ch2(:, lc) = ch2(:, lc) + ai2*c2(:, jc)
         end do
     end do
+
     do j = 2, ipph
         ch2(:, 1) = ch2(:, 1) + c2(:, j)
     end do
-    !
+
     if (ido >= l1) then
         cc(:, 1,:) = ch(:,:, 1)
     else
         cc(:, 1,:) = ch(:,:, 1)
     end if
+
     cc(ido, 2:(ipph-1)*2:2,:) = transpose(ch(1,:, 2:ipph))
+
     cc(1, 3:ipph*2-1:2,:) = transpose(ch(1,:, ipp2-2:ipp2-ipph:(-1)))
-    if (ido == 1) return
+
+    if (ido == 1) then
+        return
+    end if
+
     if (nbd >= l1) then
         cc(2:ido-1:2, 3:ipph*2-1:2,:) = reshape(source = ch(2:ido-1:2,:, &
             2:ipph)+ch(2:ido-1:2,:, ipp2-2:ipp2-ipph:(-1)), shape = [(ido &
@@ -3672,5 +3830,5 @@ end module module_fftpack
 ! december  1979    version 3.1
 ! february  1985    documentation upgrade
 ! november  1988    version 3.2, fortran 77 changes
-! june 2004 2004    fortran 90 updates
+! june      2004    fortran 90 updates
 !-----------------------------------------------------------------------

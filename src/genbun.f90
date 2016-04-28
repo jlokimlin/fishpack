@@ -26,7 +26,7 @@ module module_genbun
 contains
 
 
-    subroutine genbun( nperod, n, mperod, m, a, b, c, idimy, y, ierror)
+    subroutine genbun(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
         !
         !     file genbun.f
         !
@@ -1251,7 +1251,8 @@ subroutine poisp2(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
     !-----------------------------------------------
     ! dictionary: local variables
     !-----------------------------------------------
-    integer (ip) :: mr, nr, nrm1, j, nrmj, nrpj, i, ipstor, lh
+    integer (ip) :: mr, nr, nrm1, j, nrmj, nrpj, i, lh
+    real (wp)    :: ipstor
     real (wp)    ::  s, t
     !-----------------------------------------------
     !
@@ -1275,25 +1276,31 @@ subroutine poisp2(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
                 q(i, nrpj) = t
             end do
         end do
-        q(:mr, nr) = 2.*q(:mr, nr)
-        q(:mr, n) = 2.*q(:mr, n)
-        call poisd2 (mr, nrm1, 1, a, bb, c, q, idimq, b, w, d, tcos, p)
+
+        q(:mr, nr) = 2.0_wp * q(:mr, nr)
+        q(:mr, n) = 2.0_wp * q(:mr, n)
+
+        call poisd2(mr, nrm1, 1, a, bb, c, q, idimq, b, w, d, tcos, p)
+
         ipstor = w(1)
-        call poisn2(mr, nr + 1, 1, 1, a, bb, c, q(1, nr), idimq, b, b2 &
-            , b3, w, w2, w3, d, tcos, p)
-        ipstor = max(ipstor, int(w(1)))
+
+        call poisn2(mr, nr + 1, 1, 1, a, bb, c, q(1, nr), idimq, b, b2, &
+            b3, w, w2, w3, d, tcos, p)
+
+        ipstor = max(ipstor, w(1))
+
         do j = 1, nrm1
             nrmj = nr - j
             nrpj = nr + j
             do i = 1, mr
-                s = 0.5*(q(i, nrpj)+q(i, nrmj))
-                t = 0.5*(q(i, nrpj)-q(i, nrmj))
+                s = 0.5_wp*(q(i, nrpj)+q(i, nrmj))
+                t = 0.5_wp*(q(i, nrpj)-q(i, nrmj))
                 q(i, nrmj) = s
                 q(i, nrpj) = t
             end do
         end do
-        q(:mr, nr) = 0.5*q(:mr, nr)
-        q(:mr, n) = 0.5*q(:mr, n)
+        q(:mr, nr) = 0.5_wp*q(:mr, nr)
+        q(:mr, n) = 0.5_wp*q(:mr, n)
     else
         do j = 1, nrm1
             nrpj = n + 1 - j
@@ -1304,7 +1311,7 @@ subroutine poisp2(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
                 q(i, nrpj) = t
             end do
         end do
-        q(:mr, nr) = 2.*q(:mr, nr)
+        q(:mr, nr) = 2.0_wp*q(:mr, nr)
         lh = nrm1/2
         do j = 1, lh
             nrmj = nr - j
@@ -1314,21 +1321,26 @@ subroutine poisp2(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
                 q(i, nrmj) = s
             end do
         end do
-        call poisd2 (mr, nrm1, 2, a, bb, c, q, idimq, b, w, d, tcos, p)
+
+        call poisd2(mr, nrm1, 2, a, bb, c, q, idimq, b, w, d, tcos, p)
+
         ipstor = w(1)
-        call poisn2(mr, nr, 2, 1, a, bb, c, q(1, nr), idimq, b, b2, b3 &
-            , w, w2, w3, d, tcos, p)
-        ipstor = max(ipstor, int(w(1)))
+
+        call poisn2(mr, nr, 2, 1, a, bb, c, q(1, nr), idimq, b, b2, b3, &
+            w, w2, w3, d, tcos, p)
+
+        ipstor = max(ipstor, w(1))
+
         do j = 1, nrm1
             nrpj = nr + j
             do i = 1, mr
-                s = 0.5*(q(i, nrpj)+q(i, j))
-                t = 0.5*(q(i, nrpj)-q(i, j))
+                s = 0.5_wp*(q(i, nrpj)+q(i, j))
+                t = 0.5_wp*(q(i, nrpj)-q(i, j))
                 q(i, nrpj) = t
                 q(i, j) = s
             end do
         end do
-        q(:mr, nr) = 0.5*q(:mr, nr)
+        q(:mr, nr) = 0.5_wp*q(:mr, nr)
         do j = 1, lh
             nrmj = nr - j
             do i = 1, mr
@@ -1338,6 +1350,7 @@ subroutine poisp2(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
             end do
         end do
     end if
+
     w(1) = ipstor
 
 end subroutine poisp2

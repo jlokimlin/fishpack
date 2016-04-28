@@ -84,7 +84,7 @@ program tsepx4
         usol(i, ny) = ue(x, d)
         call get_coefficients_in_x_direction(x, af, bf, cf)
         do j = 1, ny
-            y = c + real(j - 1)*dly
+            y = c + real(j - 1, kind=wp)*dly
             !
             !     set right hand side
             !
@@ -115,7 +115,7 @@ program tsepx4
     !
     iorder = 2
 
-    call sepx4( iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta, c, d, &
+    call sepx4(iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta, c, d, &
         n, nbdcnd, dum, dum, get_coefficients_in_x_direction, grhs, usol, idmn, pertrb, ierror)
     !
     !     compute second order discretization error(relative)
@@ -128,7 +128,7 @@ program tsepx4
         usol(i, ny) = ue(x, d)
         call get_coefficients_in_x_direction(x, af, bf, cf)
         do j = 1, ny
-            y = c + real(j - 1)*dly
+            y = c + real(j - 1, kind=wp)*dly
             err = max(err, abs((usol(i, j)-ue(x, y))/ue(x, y)))
             !
             !     reset right hand side in grhs for fourth order approximation call
@@ -142,11 +142,12 @@ program tsepx4
     !
     iorder = 4
     call sepx4(iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta, c, d, &
-        n, nbdcnd, dum, dum, get_coefficients_in_x_direction, grhs, usol, idmn, pertrb, ierror)
+        n, nbdcnd, dum, dum, get_coefficients_in_x_direction, &
+        grhs, usol, idmn, pertrb, ierror)
     !
     !     compute fourth order discretization error(relative)
     !
-    err = 0.0
+    err = 0.0_wp
     do j = 1, ny
         y = c + real(j - 1, kind=wp)*dly
         do i = 1, nx
@@ -171,7 +172,7 @@ program tsepx4
 contains
 
 
-    pure function ue(s, t) result( return_value )
+    pure function ue(s, t) result (return_value)
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
@@ -184,7 +185,7 @@ contains
     end function ue
 
 
-    pure function uxe(s, t) result( return_value )
+    pure function uxe(s, t) result (return_value)
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
@@ -197,7 +198,7 @@ contains
     end function uxe
 
 
-    pure function uxxe(s, t) result( return_value )
+    pure function uxxe(s, t) result (return_value)
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
@@ -210,7 +211,7 @@ contains
     end function uxxe
 
 
-    pure function uye(s, t) result( return_value )
+    pure function uye(s, t) result (return_value)
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
@@ -224,7 +225,7 @@ contains
     end function uye
 
 
-    pure function uyye(s, t) result( return_value )
+    pure function uyye(s, t) result (return_value)
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------

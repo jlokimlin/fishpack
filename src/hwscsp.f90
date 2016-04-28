@@ -456,409 +456,524 @@ contains
         !                        FORTRAN SUBPROGRAMS FOR THE SOLUTION OF
         !                        ELLIPTIC EQUATIONS"
         !                          NCAR TN/IA-109, JULY, 1975, 138 PP.
-        !***********************************************************************
-        type (FishpackWorkspace) :: w
+        !
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer  :: INTL
-        integer  :: M
-        integer  :: MBDCND
-        integer  :: N
-        integer  :: NBDCND
-        integer  :: IDIMF
-        integer  :: ierror
-        real  :: TS
-        real  :: TF
-        real  :: RS
-        real  :: RF
-        real  :: ELMBDA
-        real  :: PERTRB
-        real  :: BDTS(*)
-        real  :: BDTF(*)
-        real  :: BDRS(*)
-        real  :: BDRF(*)
-        real  :: F(IDIMF, *)
+        integer (ip), intent (in)     :: intl
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: mbdcnd
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: nbdcnd
+        integer (ip), intent (in)     :: idimf
+        integer (ip), intent (out)    :: ierror
+        real (wp),    intent (in)     :: ts
+        real (wp),    intent (in)     :: tf
+        real (wp),    intent (in)     :: rs
+        real (wp),    intent (in)     :: rf
+        real (wp),    intent (in)     :: elmbda
+        real (wp),    intent (out)    :: pertrb
+        real (wp),    intent (in)     :: bdts(*)
+        real (wp),    intent (in)     :: bdtf(*)
+        real (wp),    intent (in)     :: bdrs(*)
+        real (wp),    intent (in)     :: bdrf(*)
+        real (wp),    intent (in out) :: f(idimf, *)
+        class (fishpackworkspace)     :: w
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer :: I1, I2, I3, I4, I5, I6, I7, I8, I9, I10, NCK, L, K, NP &
-            , IRWK, ICWK, NP1, MP1
-        real :: PI
-
-        save I1, I2, I3, I4, I5, I6, I7, I8, I9, I10
+        integer (ip), save   :: i1, i2, i3, i4, i5, i6, i7, i8, i9, i10
+        integer (ip)         :: nck, l, k, np, irwk, icwk, np1, mp1
+        real (wp), parameter :: PI = acos(-1.0_wp)
         !-----------------------------------------------
-        pi = acos( -1.0 )
+
+        ! Initialize error flag
         ierror = 0
-        if (TS<0. .or. TF>PI) ierror = 1
-        if (TS >= TF) ierror = 2
-        if (M < 5) ierror = 3
-        if (MBDCND<1 .or. MBDCND>9) ierror = 4
-        if (RS < 0.) ierror = 5
-        if (RS >= RF) ierror = 6
-        if (N < 5) ierror = 7
-        if (NBDCND<1 .or. NBDCND>6) ierror = 8
-        if (ELMBDA > 0.) ierror = 9
-        if (IDIMF < M + 1) ierror = 10
-        if (ELMBDA/=0. .and. MBDCND>=5) ierror = 11
-        if (ELMBDA/=0. .and. (NBDCND==5 .or. NBDCND==6)) ierror = 12
-        if((MBDCND==5.or.MBDCND==6.or.MBDCND==9).and.TS/=0.)ierror=13
-        if (MBDCND>=7 .and. TF/=PI) ierror = 14
-        if(TS==0..and.(MBDCND==4.or.MBDCND==8.or.MBDCND==3))ierror=15
-        if(TF==PI.and.(MBDCND==2.or.MBDCND==3.or.MBDCND==6))ierror=16
-        if (NBDCND>=5 .and. RS/=0.) ierror = 17
-        if (NBDCND>=5 .and. (MBDCND==1 .or. MBDCND==2 .or. MBDCND==5 .or. &
-            MBDCND==7)) ierror = 18
-        if (ierror/=0 .and. ierror/=9) return
-        NCK = N
-        go to (101, 103, 102, 103, 101, 103) NBDCND
-101 continue
-    NCK = NCK - 1
-    go to 103
-102 continue
-    NCK = NCK + 1
-103 continue
-    L = 2
-    K = 1
-    L = L + L
-    K = K + 1
-    do while(NCK - L > 0)
-        L = L + L
-        K = K + 1
-    end do
-    L = L + L
 
-    if (INTL == 0) then
-        !          compute blktri work space lengths
-        NP = NBDCND
-        call w%get_block_tridiagonal_workpace_dimensions (N, M, IRWK, ICWK)
-        NP1 = N + 1
-        MP1 = M + 1
-        I1 = (K - 2)*L + K + max(2*N, 6*M) + 13
-        I2 = I1 + NP1
-        I3 = I2 + NP1
-        I4 = I3 + NP1
-        I5 = I4 + NP1
-        I6 = I5 + NP1
-        I7 = I6 + MP1
-        I8 = I7 + MP1
-        I9 = I8 + MP1
-        I10 = I9 + MP1
-        !          set real and complex work space requirements
-        IRWK = I10 + MP1
-        ICWK = ICWK + 3*M
-        !          allocate work space
-        call w%create( irwk, icwk, ierror )
-        !          return if allocation fails
-        if (ierror == 20) return
-    end if
-
-    associate( &
-        rew => w%real_workspace, &
-        cxw => w%complex_workspace &
-        )
-        call hwscs1 (intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, nbdcnd, bdrs, &
-            bdrf, elmbda, f, idimf, pertrb, rew, cxw, rew(i1), rew(i2), &
-            rew(i3), rew(i4), rew(i5), rew(i6), rew(i7), rew(i8), &
-            rew(i9), rew(i10), ierror)
-    end associate
-
-end subroutine hwscsp
-
-
-subroutine hwscs1(intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, &
-    nbdcnd, bdrs, bdrf, elmbda, f, idimf, pertrb, w, wc, s, an, bn &
-    , cn, r, am, bm, cm, sint, bmh, ierror)
-    !-----------------------------------------------
-    ! Dictionary: calling arguments
-    !-----------------------------------------------
-    integer , intent (in) :: INTL
-    integer , intent (in) :: M
-    integer , intent (in) :: MBDCND
-    integer , intent (in) :: N
-    integer , intent (in) :: NBDCND
-    integer  :: IDIMF
-    integer  :: ierror
-    real , intent (in) :: TS
-    real , intent (in) :: TF
-    real , intent (in) :: RS
-    real , intent (in) :: RF
-    real , intent (in) :: ELMBDA
-    real , intent (out) :: PERTRB
-    real , intent (in) :: BDTS(*)
-    real , intent (in) :: BDTF(*)
-    real , intent (in) :: BDRS(*)
-    real , intent (in) :: BDRF(*)
-    real  :: F(IDIMF, *)
-    real  :: W(*)
-    real , intent (in out) :: S(*)
-    real  :: AN(*)
-    real  :: BN(*)
-    real  :: CN(*)
-    real , intent (in out) :: R(*)
-    real  :: AM(*)
-    real  :: BM(*)
-    real  :: CM(*)
-    real , intent (in out) :: SINT(*)
-    real , intent (in out) :: BMH(*)
-    complex  :: WC(*)
-    !-----------------------------------------------
-    ! Dictionary: local variables
-    !-----------------------------------------------
-    integer :: MP1, I, NP1, J, MP, NP, ITS, ITF, ITSP, ITFM, ICTR, JRS &
-        , L, JRF, JRSP, JRFM, MUNK, NUNK, ISING, IFLG
-    real :: PI, DUM, EPS, DTH, TDT, HDTH, SDTS, THETA, T1, DR, HDR, &
-        TDR, DR2, CZR, AT, CT, WTS, WTF, AR, WTNM, YPS, CR, WRS, WRF, &
-        WRZ, summation, R2, HNE, YHLD, RS2, RF2, RSQ, XP, YPH, XPS
-
-    !-----------------------------------------------
-    pi = acos( -1.0 )
-    EPS = epsilon(DUM)
-    MP1 = M + 1
-    DTH = (TF - TS)/real(M)
-    TDT = DTH + DTH
-    HDTH = DTH/2.
-    SDTS = 1./(DTH*DTH)
-    do I = 1, MP1
-        THETA = TS + real(I - 1)*DTH
-        SINT(I) = SIN(THETA)
-        if (SINT(I) == 0.) cycle
-        T1 = SDTS/SINT(I)
-        AM(I) = T1*SIN(THETA - HDTH)
-        CM(I) = T1*SIN(THETA + HDTH)
-        BM(I) = -(AM(I)+CM(I))
-    end do
-    NP1 = N + 1
-    DR = (RF - RS)/real(N)
-    HDR = DR/2.
-    TDR = DR + DR
-    DR2 = DR*DR
-    CZR = 6.*DTH/(DR2*(COS(TS) - COS(TF)))
-    do J = 1, NP1
-        R(J) = RS + real(J - 1)*DR
-        AN(J) = (R(J)-HDR)**2/DR2
-        CN(J) = (R(J)+HDR)**2/DR2
-        BN(J) = -(AN(J)+CN(J))
-    end do
-    MP = 1
-    NP = 1
-    !
-    ! BOUNDARY CONDITION AT PHI=PS
-    !
-    go to (104, 104, 105, 105, 106, 106, 104, 105, 106) MBDCND
-104 continue
-    AT = AM(2)
-    ITS = 2
-    go to 107
-105 continue
-    AT = AM(1)
-    ITS = 1
-    CM(1) = CM(1) + AM(1)
-    go to 107
-106 continue
-    ITS = 1
-    BM(1) = -4.*SDTS
-    CM(1) = -BM(1)
-!
-! BOUNDARY CONDITION AT PHI=PF
-!
-107 continue
-    go to (108, 109, 109, 108, 108, 109, 110, 110, 110) MBDCND
-108 continue
-    CT = CM(M)
-    ITF = M
-    go to 111
-109 continue
-    CT = CM(M+1)
-    AM(M+1) = AM(M+1) + CM(M+1)
-    ITF = M + 1
-    go to 111
-110 continue
-    ITF = M + 1
-    AM(M+1) = 4.*SDTS
-    BM(M+1) = -AM(M+1)
-111 continue
-    WTS = SINT(ITS+1)*AM(ITS+1)/CM(ITS)
-    WTF = SINT(ITF-1)*CM(ITF-1)/AM(ITF)
-    ITSP = ITS + 1
-    ITFM = ITF - 1
-    !
-    ! BOUNDARY CONDITION AT R=RS
-    !
-    ICTR = 0
-    select case (NBDCND)
-        case default
-            AR = AN(2)
-            JRS = 2
-        case (3:4)
-            AR = AN(1)
-            JRS = 1
-            CN(1) = CN(1) + AN(1)
-        case (5:6)
-            JRS = 2
-            ICTR = 1
-            S(N) = AN(N)/BN(N)
-            do J = 3, N
-                L = N - J + 2
-                S(L) = AN(L)/(BN(L)-CN(L)*S(L+1))
-            end do
-            S(2) = -S(2)
-            do J = 3, N
-                S(J) = -S(J)*S(J-1)
-            end do
-            WTNM = WTS + WTF
-            do I = ITSP, ITFM
-                WTNM = WTNM + SINT(I)
-            end do
-            YPS = CZR*WTNM*(S(2)-1.)
-    end select
-!
-! BOUNDARY CONDITION AT R=RF
-!
-118 continue
-    go to (119, 120, 120, 119, 119, 120) NBDCND
-119 continue
-    CR = CN(N)
-    JRF = N
-    go to 121
-120 continue
-    CR = CN(N+1)
-    AN(N+1) = AN(N+1) + CN(N+1)
-    JRF = N + 1
-121 continue
-    WRS = AN(JRS+1)*R(JRS)**2/CN(JRS)
-    WRF = CN(JRF-1)*R(JRF)**2/AN(JRF)
-    WRZ = AN(JRS)/CZR
-    JRSP = JRS + 1
-    JRFM = JRF - 1
-    MUNK = ITF - ITS + 1
-    NUNK = JRF - JRS + 1
-    BMH(ITS:ITF) = BM(ITS:ITF)
-    ISING = 0
-    go to (132, 132, 123, 132, 132, 123) NBDCND
-123 continue
-    go to (132, 132, 124, 132, 132, 124, 132, 124, 124) MBDCND
-124 continue
-    if (ELMBDA >= 0.) then
-        ISING = 1
-        summation = WTS*WRS + WTS*WRF + WTF*WRS + WTF*WRF
-        if (ICTR /= 0) then
-            summation = summation + WRZ
+        if (ts < 0.0_wp .or. tf > PI) then
+            ierror = 1
         end if
-        do J = JRSP, JRFM
-            R2 = R(J)**2
-            do I = ITSP, ITFM
-                summation = summation + R2*SINT(I)
-            end do
-        end do
-        do J = JRSP, JRFM
-            summation = summation + (WTS + WTF)*R(J)**2
-        end do
-        do I = ITSP, ITFM
-            summation = summation + (WRS + WRF)*SINT(I)
-        end do
-        HNE = summation
-    end if
-132 continue
-    go to (133, 133, 133, 133, 134, 134, 133, 133, 134) MBDCND
-133 continue
-    BM(ITS) = BMH(ITS) + ELMBDA/SINT(ITS)**2
-134 continue
-    go to (135, 135, 135, 135, 135, 135, 136, 136, 136) MBDCND
-135 continue
-    BM(ITF) = BMH(ITF) + ELMBDA/SINT(ITF)**2
-136 continue
-    BM(ITSP:ITFM) = BMH(ITSP:ITFM) + ELMBDA/SINT(ITSP:ITFM)**2
-    go to (138, 138, 140, 140, 142, 142, 138, 140, 142) MBDCND
-138 continue
-    F(2, JRS:JRF) = F(2, JRS:JRF) - AT*F(1, JRS:JRF)/R(JRS:JRF)**2
-    go to 142
-140 continue
-    F(1, JRS:JRF) = F(1, JRS:JRF) + TDT*BDTS(JRS:JRF)*AT/R(JRS:JRF)**2
-142 continue
-    go to (143, 145, 145, 143, 143, 145, 147, 147, 147) MBDCND
-143 continue
-    F(M, JRS:JRF) = F(M, JRS:JRF) - CT*F(M+1, JRS:JRF)/R(JRS:JRF)**2
-    go to 147
-145 continue
-    F(M+1, JRS:JRF)=F(M+1, JRS:JRF)-TDT*BDTF(JRS:JRF)*CT/R(JRS:JRF)**2
-147 continue
-    select case (NBDCND)
-        case default
-            if (MBDCND - 3 /= 0) go to 155
-            YHLD = F(ITS, 1) - CZR/TDT*(SIN(TF)*BDTF(2)-SIN(TS)*BDTS(2))
-            F(:MP1, 1) = YHLD
-        case (1:2)
-            RS2 = (RS + DR)**2
-            F(ITS:ITF, 2) = F(ITS:ITF, 2) - AR*F(ITS:ITF, 1)/RS2
-        case (3:4)
-            F(ITS:ITF, 1) = F(ITS:ITF, 1) + TDR*BDRS(ITS:ITF)*AR/RS**2
-    end select
-155 continue
-    go to (156, 158, 158, 156, 156, 158) NBDCND
-156 continue
-    RF2 = (RF - DR)**2
-    F(ITS:ITF, N) = F(ITS:ITF, N) - CR*F(ITS:ITF, N+1)/RF2
-    go to 160
-158 continue
-    F(ITS:ITF, N+1) = F(ITS:ITF, N+1) - TDR*BDRF(ITS:ITF)*CR/RF**2
-160 continue
-    PERTRB = 0.
-    if (ISING /= 0) then
-        summation = WTS*WRS*F(ITS, JRS) + WTS*WRF*F(ITS, JRF) + WTF*WRS*F(ITF, &
-            JRS) + WTF*WRF*F(ITF, JRF)
-        if (ICTR /= 0) then
-            summation = summation + WRZ*F(ITS, 1)
-        end if
-        do J = JRSP, JRFM
-            R2 = R(J)**2
-            do I = ITSP, ITFM
-                summation = summation + R2*SINT(I)*F(I, J)
-            end do
-        end do
-        summation = summation + DOT_PRODUCT(R(JRSP:JRFM)**2, WTS*F(ITS, JRSP:JRFM)+ &
-            WTF*F(ITF, JRSP:JRFM))
-        summation = summation + DOT_PRODUCT(SINT(ITSP:ITFM), WRS*F(ITSP:ITFM, JRS)+ &
-            WRF*F(ITSP:ITFM, JRF))
-        PERTRB = summation/HNE
-        F(:MP1, :NP1) = F(:MP1, :NP1) - PERTRB
-    end if
-    do J = JRS, JRF
-        RSQ = R(J)**2
-        F(ITS:ITF, J) = RSQ*F(ITS:ITF, J)
-    end do
-    IFLG = INTL
-    call blktriI (IFLG, NP, NUNK, AN(JRS), BN(JRS), CN(JRS), MP, MUNK &
-        , AM(ITS), BM(ITS), CM(ITS), IDIMF, F(ITS, JRS), ierror, W, WC)
-    IFLG = IFLG + 1
-    do while(IFLG - 1 == 0)
-        call blktriI (IFLG, NP, NUNK, AN(JRS), BN(JRS), CN(JRS), MP, &
-            MUNK, AM(ITS), BM(ITS), CM(ITS), IDIMF, F(ITS, JRS), ierror, &
-            W, WC)
-        IFLG = IFLG + 1
-    end do
-    if (NBDCND == 0) then
-        F(:MP1, JRF+1) = F(:MP1, JRS)
-    end if
-    if (MBDCND == 0) then
-        F(ITF+1, :NP1) = F(ITS, :NP1)
-    end if
-    XP = 0.
-    if (ICTR /= 0) then
-        if (ISING == 0) then
-            summation = WTS*F(ITS, 2) + WTF*F(ITF, 2)
-            summation = summation + DOT_PRODUCT(SINT(ITSP:ITFM), F(ITSP:ITFM, 2))
-            YPH = CZR*summation
-            XP = (F(ITS, 1)-YPH)/YPS
-            do J = JRS, JRF
-                XPS = XP*S(J)
-                F(ITS:ITF, J) = F(ITS:ITF, J) + XPS
-            end do
-        end if
-        F(:MP1, 1) = XP
-    end if
 
-end subroutine HWSCS1
+        if (ts >= tf) then
+            ierror = 2
+        end if
+
+        if (m < 5) then
+            ierror = 3
+        end if
+
+        if (mbdcnd < 1 .or. mbdcnd > 9) then
+            ierror = 4
+        end if
+
+        if (rs < 0.0_wp) then
+            ierror = 5
+        end if
+
+        if (rs >= rf) then
+            ierror = 6
+        end if
+
+        if (n < 5) then
+            ierror = 7
+        end if
+
+        if (nbdcnd < 1 .or. nbdcnd > 6) then
+            ierror = 8
+        end if
+
+        if (elmbda > 0.0_wp) then
+            ierror = 9
+        end if
+
+        if (idimf < m + 1) then
+            ierror = 10
+        end if
+
+        if (elmbda /= 0.0_wp .and. mbdcnd >= 5) then
+            ierror = 11
+        end if
+
+        if (elmbda /= 0.0_wp .and. (nbdcnd == 5 .or. nbdcnd == 6)) then
+            ierror = 12
+        end if
+
+        if ((mbdcnd == 5 .or. mbdcnd == 6 .or. mbdcnd == 9) .and. ts /= 0.0_wp) then
+            ierror=13
+        end if
+
+        if (mbdcnd >= 7 .and. tf /= PI) then
+            ierror = 14
+        end if
+
+        if (ts == 0.0_wp .and. (mbdcnd == 4.or.mbdcnd == 8 .or. mbdcnd == 3)) then
+            ierror = 15
+        end if
+
+        if (tf == PI .and. (mbdcnd == 2 .or. mbdcnd == 3 .or. mbdcnd == 6)) then
+            ierror = 16
+        end if
+
+        if (nbdcnd >= 5 .and. rs /= 0.0_wp) then
+            ierror = 17
+        end if
+
+        if ( &
+            (nbdcnd >= 5) &
+            .and. &
+            (mbdcnd == 1 .or. mbdcnd == 2 .or. mbdcnd == 5 .or. mbdcnd == 7) &
+            ) then
+            ierror = 18
+        end if
+
+        if (ierror /= 0 .and. ierror /= 9) then
+            return
+        end if
+
+        nck = n
+
+        select case (nbdcnd)
+            case (1, 5)
+                nck = nck - 1
+            case (3)
+                nck = nck + 1
+        end select
+
+        l = 2
+        k = 1
+        l = l + l
+        k = k + 1
+
+        do while (nck - l > 0)
+            l = l + l
+            k = k + 1
+        end do
+
+        l = l + l
+
+        if (intl == 0) then
+            !
+            !==> Compute blktri work space lengths
+            !
+            np = nbdcnd
+
+            call w%get_block_tridiagonal_workpace_dimensions (N, M, IRWK, ICWK)
+
+            np1 = n + 1
+            mp1 = m + 1
+            i1 = (k - 2)*l + k + max(2*n, 6*m) + 13
+            i2 = i1 + np1
+            i3 = i2 + np1
+            i4 = i3 + np1
+            i5 = i4 + np1
+            i6 = i5 + np1
+            i7 = i6 + mp1
+            i8 = i7 + mp1
+            i9 = i8 + mp1
+            i10 = i9 + mp1
+            !
+            !==> Set real and complex work space requirements
+            !
+            irwk = i10 + mp1
+            icwk = icwk + 3*m
+            !
+            !==> Allocate memory
+            !
+            call w%create(irwk, icwk, ierror)
+            !
+            !==> return if allocation fails
+            !
+            if (ierror == 20) then
+                return
+            end if
+        end if
+
+        associate( &
+            rew => w%real_workspace, &
+            cxw => w%complex_workspace &
+            )
+            call hwscs1(intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, nbdcnd, bdrs, &
+                bdrf, elmbda, f, idimf, pertrb, rew, cxw, rew(i1), rew(i2), &
+                rew(i3), rew(i4), rew(i5), rew(i6), rew(i7), rew(i8), &
+                rew(i9), rew(i10), ierror)
+        end associate
+
+    end subroutine hwscsp
+
+
+    subroutine hwscs1(intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, &
+        nbdcnd, bdrs, bdrf, elmbda, f, idimf, pertrb, w, wc, s, an, bn &
+        , cn, r, am, bm, cm, sint, bmh, ierror)
+        !-----------------------------------------------
+        ! Dictionary: calling arguments
+        !-----------------------------------------------
+        integer (ip), intent (in) :: intl
+        integer (ip), intent (in) :: m
+        integer (ip), intent (in) :: mbdcnd
+        integer (ip), intent (in) :: n
+        integer (ip), intent (in) :: nbdcnd
+        integer (ip), intent (in) :: idimf
+        integer (ip), intent (out) :: ierror
+        real (wp),    intent (in) :: ts
+        real (wp),    intent (in) :: tf
+        real (wp),    intent (in) :: rs
+        real (wp),    intent (in) :: rf
+        real (wp),    intent (in) :: elmbda
+        real (wp),    intent (out) :: pertrb
+        real (wp),    intent (in) :: bdts(*)
+        real (wp),    intent (in) :: bdtf(*)
+        real (wp),    intent (in) :: bdrs(*)
+        real (wp),    intent (in) :: bdrf(*)
+        real (wp),    intent (in out) :: f(idimf, *)
+        real (wp) :: w(*)
+        real (wp), intent (in out) :: s(*)
+        real (wp) :: an(*)
+        real (wp) :: bn(*)
+        real (wp) :: cn(*)
+        real (wp), intent (in out) :: r(*)
+        real (wp) :: am(*)
+        real (wp) :: bm(*)
+        real (wp) :: cm(*)
+        real (wp), intent (in out) :: sint(*)
+        real (wp), intent (in out) :: bmh(*)
+        complex (wp) :: wc(*)
+        !-----------------------------------------------
+        ! Dictionary: local variables
+        !-----------------------------------------------
+        integer (ip)         :: hack_counter, mp1, i, np1, j, mp, np
+        integer (ip)         :: its, itf, itsp, itfm, ictr, jrs
+        integer (ip)         :: l, jrf, jrsp, jrfm, munk, nunk, ising, iflg
+        real (wp)            :: dum, eps, dth, tdt, hdth, sdts
+        real (wp)            :: theta, t1, dr, hdr
+        real (wp)            :: tdr, dr2, czr, at, ct, wts, wtf
+        real (wp)            :: ar, wtnm, yps, cr, wrs, wrf
+        real (wp)            :: wrz, summation, r2, hne, yhld
+        real (wp)            :: rs2, rf2, rsq, xp, yph, xps
+        !-----------------------------------------------
+
+        eps = epsilon(dum)
+        mp1 = m + 1
+        dth = (tf - ts)/m
+        tdt = dth + dth
+        hdth = dth/2
+        sdts = 1.0_wp/(dth**2)
+
+        do i = 1, mp1
+            theta = ts + real(i - 1, kind=wp)*dth
+            sint(i) = sin(theta)
+            if (sint(i) == 0.0_wp) then
+                cycle
+            end if
+            t1 = sdts/sint(i)
+            am(i) = t1*sin(theta - hdth)
+            cm(i) = t1*sin(theta + hdth)
+            bm(i) = -(am(i)+cm(i))
+        end do
+
+        np1 = n + 1
+        dr = (rf - rs)/n
+        hdr = dr/2
+        tdr = dr + dr
+        dr2 = dr**2
+        czr = 6.0_wp*dth/(dr2*(cos(ts) - cos(tf)))
+
+        do j = 1, np1
+            r(j) = rs + real(j - 1, kind=wp)*dr
+            an(j) = (r(j)-hdr)**2/dr2
+            cn(j) = (r(j)+hdr)**2/dr2
+            bn(j) = -(an(j)+cn(j))
+        end do
+
+        mp = 1
+        np = 1
+
+        !
+        !==> Boundary condition at phi=ps
+        !
+        select case (mbdcnd)
+            case (1:2,7)
+                at = am(2)
+                its = 2
+            case (3:4,8)
+                at = am(1)
+                its = 1
+                cm(1) = cm(1) + am(1)
+            case (5:6,9)
+                its = 1
+                bm(1) = -4.0_wp*sdts
+                cm(1) = -bm(1)
+        end select
+
+        !
+        !==> Boundary condition at phi=pf
+        !
+        select case (mbdcnd)
+            case (1,4:5)
+                ct = cm(m)
+                itf = m
+            case (2:3,6)
+                ct = cm(m+1)
+                am(m+1) = am(m+1) + cm(m+1)
+                itf = m + 1
+            case (7:9)
+                itf = m + 1
+                am(m+1) = 4.0_wp*sdts
+                bm(m+1) = -am(m+1)
+        end select
+
+        wts = sint(its+1)*am(its+1)/cm(its)
+        wtf = sint(itf-1)*cm(itf-1)/am(itf)
+        itsp = its + 1
+        itfm = itf - 1
+        !
+        ! Boundary condition at r=rs
+        !
+        ictr = 0
+        select case (nbdcnd)
+            case default
+                ar = an(2)
+                jrs = 2
+            case (3:4)
+                ar = an(1)
+                jrs = 1
+                cn(1) = cn(1) + an(1)
+            case (5:6)
+                jrs = 2
+                ictr = 1
+                s(n) = an(n)/bn(n)
+                do j = 3, n
+                    l = n - j + 2
+                    s(l) = an(l)/(bn(l)-cn(l)*s(l+1))
+                end do
+                s(2) = -s(2)
+                do j = 3, n
+                    s(j) = -s(j)*s(j-1)
+                end do
+                wtnm = wts + wtf
+                do i = itsp, itfm
+                    wtnm = wtnm + sint(i)
+                end do
+                yps = czr*wtnm*(s(2)-1.0_wp)
+        end select
+
+        !
+        !==> Boundary condition at r=rf
+        !
+        select case (nbdcnd)
+            case (1,4:5)
+                cr = cn(n)
+                jrf = n
+            case (2:3,6)
+                cr = cn(n+1)
+                an(n+1) = an(n+1) + cn(n+1)
+                jrf = n + 1
+        end select
+
+        wrs = an(jrs+1)*r(jrs)**2/cn(jrs)
+        wrf = cn(jrf-1)*r(jrf)**2/an(jrf)
+        wrz = an(jrs)/czr
+        jrsp = jrs + 1
+        jrfm = jrf - 1
+        munk = itf - its + 1
+        nunk = jrf - jrs + 1
+        bmh(its:itf) = bm(its:itf)
+        ising = 0
+
+        if  (nbdcnd == 3 .or. nbdcnd == 6 ) then
+            select case (mbdcnd)
+                case (3,6,8:9)
+                    if (elmbda >= 0.0_wp) then
+                        ising = 1
+                        summation = wts*wrs + wts*wrf + wtf*wrs + wtf*wrf
+                        if (ictr /= 0) then
+                            summation = summation + wrz
+                        end if
+                        do j = jrsp, jrfm
+                            r2 = r(j)**2
+                            do i = itsp, itfm
+                                summation = summation + r2*sint(i)
+                            end do
+                        end do
+                        do j = jrsp, jrfm
+                            summation = summation + (wts + wtf)*r(j)**2
+                        end do
+                        do i = itsp, itfm
+                            summation = summation + (wrs + wrf)*sint(i)
+                        end do
+                        hne = summation
+                    end if
+            end select
+        end if
+
+        select case (mbdcnd)
+            case (1:4, 7:8)
+                bm(its) = bmh(its) + elmbda/sint(its)**2
+        end select
+
+        select case (mbdcnd)
+            case (1:6)
+                bm(itf) = bmh(itf) + elmbda/sint(itf)**2
+        end select
+
+        bm(itsp:itfm) = bmh(itsp:itfm) + elmbda/sint(itsp:itfm)**2
+
+        select case (mbdcnd)
+            case (1:2, 7)
+                f(2, jrs:jrf) = f(2, jrs:jrf) - at*f(1, jrs:jrf)/r(jrs:jrf)**2
+            case (3:4, 8)
+                f(1, jrs:jrf) = f(1, jrs:jrf) + tdt*bdts(jrs:jrf)*at/r(jrs:jrf)**2
+        end select
+
+        select case (mbdcnd)
+            case (1, 4:5)
+                f(m, jrs:jrf) = f(m, jrs:jrf) - ct*f(m+1, jrs:jrf)/r(jrs:jrf)**2
+            case (2:3, 6)
+                f(m+1, jrs:jrf)=f(m+1, jrs:jrf)-tdt*bdtf(jrs:jrf)*ct/r(jrs:jrf)**2
+        end select
+
+        !
+        !==> GCC 5.1 doesn't support exit for the select case construct yet
+        !    only do loops are fully supported
+        !
+        dumb_hack: do hack_counter = 1, 1
+            select case (nbdcnd)
+                case default
+                    if (mbdcnd - 3 /= 0) then
+                        exit dumb_hack
+                    end if
+                    yhld = f(its, 1) - czr/tdt*(sin(tf)*bdtf(2)-sin(ts)*bdts(2))
+                    f(:mp1, 1) = yhld
+                case (1:2)
+                    rs2 = (rs + dr)**2
+                    f(its:itf, 2) = f(its:itf, 2) - ar*f(its:itf, 1)/rs2
+                case (3:4)
+                    f(its:itf, 1) = f(its:itf, 1) + tdr*bdrs(its:itf)*ar/rs**2
+            end select
+        end do dumb_hack
+
+        select case (nbdcnd)
+            case (1, 4:5)
+                rf2 = (rf - dr)**2
+                f(its:itf, n) = f(its:itf, n) - cr*f(its:itf, n+1)/rf2
+            case (2:3, 6)
+                f(its:itf, n+1) = f(its:itf, n+1) - tdr*bdrf(its:itf)*cr/rf**2
+        end select
+
+        pertrb = 0.0_wp
+
+        if (ising /= 0) then
+            summation = wts*wrs*f(its, jrs) + wts*wrf*f(its, jrf) + wtf*wrs*f(itf, &
+                jrs) + wtf*wrf*f(itf, jrf)
+
+            if (ictr /= 0) then
+                summation = summation + wrz*f(its, 1)
+            end if
+
+            do j = jrsp, jrfm
+                r2 = r(j)**2
+                do i = itsp, itfm
+                    summation = summation + r2*sint(i)*f(i, j)
+                end do
+            end do
+
+            summation = summation &
+                + dot_product(r(jrsp:jrfm)**2, wts*f(its, jrsp:jrfm)+ &
+                wtf*f(itf, jrsp:jrfm))
+
+            summation = summation &
+                + dot_product(sint(itsp:itfm), wrs*f(itsp:itfm, jrs)+ &
+                wrf*f(itsp:itfm, jrf))
+
+            pertrb = summation/hne
+
+            f(:mp1, :np1) = f(:mp1, :np1) - pertrb
+
+        end if
+
+        do j = jrs, jrf
+            rsq = r(j)**2
+            f(its:itf, j) = rsq*f(its:itf, j)
+        end do
+
+        iflg = intl
+
+        call blktrii(iflg, np, nunk, an(jrs), bn(jrs), cn(jrs), mp, munk, &
+            am(its), bm(its), cm(its), idimf, f(its, jrs), ierror, w, wc)
+
+        iflg = iflg + 1
+
+        do while(iflg - 1 == 0)
+            call blktrii(iflg, np, nunk, an(jrs), bn(jrs), cn(jrs), mp, &
+                munk, am(its), bm(its), cm(its), idimf, f(its, jrs), ierror, &
+                w, wc)
+            iflg = iflg + 1
+        end do
+
+        if (nbdcnd == 0) then
+            f(:mp1, jrf+1) = f(:mp1, jrs)
+        end if
+
+        if (mbdcnd == 0) then
+            f(itf+1, :np1) = f(its, :np1)
+        end if
+
+        xp = 0.0_wp
+
+        if (ictr /= 0) then
+            if (ising == 0) then
+                summation = wts*f(its, 2) + wtf*f(itf, 2)
+                summation = summation + dot_product(sint(itsp:itfm), f(itsp:itfm, 2))
+                yph = czr*summation
+                xp = (f(its, 1)-yph)/yps
+                do j = jrs, jrf
+                    xps = xp*s(j)
+                    f(its:itf, j) = f(its:itf, j) + xps
+                end do
+            end if
+            f(:mp1, 1) = xp
+        end if
+
+    end subroutine hwscs1
 
 end module module_hwscsp
 !
