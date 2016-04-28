@@ -729,25 +729,35 @@ function bsrh(xll, xrr, iz, c, a, bh, f, sgn) result (return_value)
     dx = 0.5_wp * abs(xr - xl)
     x = 0.5_wp * (xl + xr)
     r1 = sgn * f(x, iz, c, a, bh)
+
     if (r1 >= 0.0_wp) then
-        if (r1 == 0.) go to 105
+        if (r1 == 0.0_wp) then
+            return_value = 0.5_wp * (xl + xr)
+            return
+        end if
         xr = x
     else
         xl = x
     end if
+
     dx = 0.5_wp * dx
+
     do while(dx - cnv > 0.0_wp)
+
         x = 0.5_wp * (xl + xr)
         r1 = sgn * f(x, iz, c, a, bh)
+
         if (r1 >= 0.0_wp) then
-            if (r1 == 0.0_wp) go to 105
+            if (r1 == 0.0_wp) then
+                return_value = 0.5_wp * (xl + xr)
+                return
+            end if
             xr = x
         else
             xl = x
         end if
         dx = 0.5_wp * dx
     end do
-105 continue
 
     return_value = 0.5_wp * (xl + xr)
 
@@ -915,9 +925,8 @@ subroutine cprod(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, b, c, d, w, y)
     complex (wp) :: crt, den, y1, y2
     !-----------------------------------------------
 
-    do j = 1, m
-        y(j) = cmplx(x(j), 0.)
-    end do
+    y(1:m) = cmplx(x(1:m), 0.0_wp)
+
     mm = m - 1
     id = nd
     m1 = nm1
@@ -925,6 +934,7 @@ subroutine cprod(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, b, c, d, w, y)
     ia = na
 102 continue
     iflg = 0
+
     if (id > 0) then
         crt = bd(id)
         id = id - 1
@@ -940,17 +950,23 @@ subroutine cprod(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, b, c, d, w, y)
             w(k+1) = (y(k+1)-c(k+1)*w(k+2))/den
         end do
         den = b(1) - crt - c(1)*d(2)
-        if (abs(den) /= 0.) then
+
+        if (abs(den) /= 0.0_wp) then
             y(1) = (y(1)-c(1)*w(2))/den
         else
-            y(1) = (1., 0.)
+            y(1) = (1.0_wp, 0.0_wp)
         end if
+
         do j = 2, m
             y(j) = w(j) - d(j)*y(j-1)
         end do
+
     end if
+
     if (m1 <= 0) then
-        if (m2 <= 0) go to 121
+        if (m2 <= 0) then
+            go to 121
+        end if
         rt = bm2(m2)
         m2 = m2 - 1
     else
@@ -958,7 +974,7 @@ subroutine cprod(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, b, c, d, w, y)
             rt = bm1(m1)
             m1 = m1 - 1
         else
-            if (abs(bm1(m1)) - abs(bm2(m2)) > 0.) then
+            if (abs(bm1(m1)) - abs(bm2(m2)) > 0.0_wp) then
                 rt = bm1(m1)
                 m1 = m1 - 1
             else
@@ -967,7 +983,9 @@ subroutine cprod(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, b, c, d, w, y)
             end if
         end if
     end if
+
     y1 = (b(1)-rt)*y(1) + c(1)*y(2)
+
     if (mm - 2 >= 0) then
         do j = 2, mm
             y2 = a(j)*y(j-1) + (b(j)-rt)*y(j) + c(j)*y(j+1)
@@ -975,6 +993,7 @@ subroutine cprod(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, b, c, d, w, y)
             y1 = y2
         end do
     end if
+
     y(m) = a(m)*y(m-1) + (b(m)-rt)*y(m)
     y(m-1) = y1
     iflg = 1
@@ -989,10 +1008,13 @@ subroutine cprod(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, b, c, d, w, y)
         !
         y(:m) = rt*y(:m)
     end if
-    if (iflg > 0) go to 102
-    do j = 1, m
-        yy(j) = real(y(j))
-    end do
+
+    if (iflg > 0) then
+        go to 102
+    end if
+
+    yy(1:m) = real(y(1:m), kind=wp)
+
 
 end subroutine cprod
 
@@ -1044,9 +1066,7 @@ subroutine cprodp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, &
     complex (wp) :: v, den, bh, ym, am, y1, y2, yh, crt
     !-----------------------------------------------
 
-    do j = 1, m
-        y(j) = cmplx(x(j), 0.0_wp, kind=wp)
-    end do
+    y(1:m) = cmplx(x(1:m), 0.0_wp, kind=wp)
 
     mm = m - 1
     mm2 = m - 2
@@ -1054,14 +1074,17 @@ subroutine cprodp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, &
     m1 = nm1
     m2 = nm2
     ia = na
+
 102 continue
+
     iflg = 0
+
     if (id > 0) then
         crt = bd(id)
         id = id - 1
         iflg = 1
         !
-        ! begin solution to system
+        !==> begin solution to system
         !
         bh = b(m) - crt
         ym = y(m)
@@ -1070,6 +1093,7 @@ subroutine cprodp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, &
         u(1) = a(1)/den
         y(1) = y(1)/den
         v = cmplx(c(m), 0.0_wp, kind=wp)
+
         if (mm2 - 2 >= 0) then
             do j = 2, mm2
                 den = b(j) - crt - a(j)*d(j-1)
@@ -1081,6 +1105,7 @@ subroutine cprodp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, &
                 v = -v*d(j-1)
             end do
         end if
+
         den = b(m-1) - crt - a(m-1)*d(m-2)
         d(m-1) = (c(m-1)-a(m-1)*u(m-2))/den
         y(m-1) = (y(m-1)-a(m-1)*y(m-2))/den
@@ -1088,19 +1113,25 @@ subroutine cprodp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, &
         bh = bh - v*u(m-2)
         ym = ym - v*y(m-2)
         den = bh - am*d(m-1)
-        if (abs(den) /= 0.) then
+
+        if (abs(den) /= 0.0_wp) then
             y(m) = (ym - am*y(m-1))/den
         else
-            y(m) = (1., 0.)
+            y(m) = (1.0_wp, 0.0_wp)
         end if
+
         y(m-1) = y(m-1) - d(m-1)*y(m)
+
         do j = 2, mm
             k = m - j
             y(k) = y(k) - d(k)*y(k+1) - u(k)*y(m)
         end do
     end if
+
     if (m1 <= 0) then
-        if (m2 <= 0) go to 123
+        if (m2 <= 0) then
+            go to 123
+        end if
         rt = bm2(m2)
         m2 = m2 - 1
     else
@@ -1108,7 +1139,7 @@ subroutine cprodp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, &
             rt = bm1(m1)
             m1 = m1 - 1
         else
-            if (abs(bm1(m1)) - abs(bm2(m2)) > 0.) then
+            if (abs(bm1(m1)) - abs(bm2(m2)) > 0.0_wp) then
                 rt = bm1(m1)
                 m1 = m1 - 1
             else
@@ -1120,8 +1151,10 @@ subroutine cprodp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, &
             end if
         end if
     end if
+
     yh = y(1)
     y1 = (b(1)-rt)*y(1) + c(1)*y(2) + a(1)*y(m)
+
     if (mm - 2 >= 0) then
         do j = 2, mm
             y2 = a(j)*y(j-1) + (b(j)-rt)*y(j) + c(j)*y(j+1)
@@ -1129,26 +1162,35 @@ subroutine cprodp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, &
             y1 = y2
         end do
     end if
+
     y(m) = a(m)*y(m-1) + (b(m)-rt)*y(m) + c(m)*yh
     y(m-1) = y1
     iflg = 1
+
     go to 102
+
 123 continue
+
     if (ia > 0) then
         rt = aa(ia)
         ia = ia - 1
         iflg = 1
         !
-        ! scalar multiplication
+        !==> scalar multiplication
         !
         y(:m) = rt*y(:m)
     end if
-    if (iflg > 0) go to 102
-    do j = 1, m
-        yy(j) = real(y(j))
-    end do
+
+    if (iflg > 0) then
+        go to 102
+    end if
+
+    yy(1:m) = real(y(1:m), kind=wp)
+
 
 end subroutine cprodp
+
+
 
 pure subroutine indxa(i, ir, idxa, na)
     !-----------------------------------------------
@@ -1162,11 +1204,14 @@ pure subroutine indxa(i, ir, idxa, na)
 
     na = 2**ir
     idxa = i - na + 1
+
     if (i - nm > 0) then
         na = 0
     end if
 
 end subroutine indxa
+
+
 
 pure subroutine indxb(i, ir, idx, idp)
     !-----------------------------------------------
@@ -1187,7 +1232,9 @@ pure subroutine indxb(i, ir, idx, idp)
     idp = 0
     if (ir >= 0) then
         if (ir <= 0) then
-            if (i - nm > 0) go to 107
+            if (i - nm > 0) then
+                return
+            end if
             idx = i
             idp = 1
             return
@@ -1205,7 +1252,6 @@ pure subroutine indxb(i, ir, idx, idp)
             idp = nm + ipl - i + 1
         end if
     end if
-107 continue
 
 end subroutine indxb
 
@@ -1256,7 +1302,8 @@ subroutine ppadd(n, ierror, a, c, cbp, bp, bh)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer (ip) :: iz, izm, izm2, j, nt, modiz, is, if, ig, it, icv, i3, i2, nhalf
+    integer (ip) :: iz, izm, izm2, j, nt, modiz, is
+    integer (ip) :: if_rename, ig, it, icv, i3, i2, nhalf
     real (wp)    :: r4, r5, r6, scnv, xl, db, sgn, xr, xm, psg
     complex (wp) :: cx, fsg, hsg, dd, f, fp, fpp, cdis, r1, r2, r3
     !-----------------------------------------------
@@ -1265,63 +1312,97 @@ subroutine ppadd(n, ierror, a, c, cbp, bp, bh)
     iz = n
     izm = iz - 1
     izm2 = iz - 2
-    if (bp(n) - bp(1) <= 0.) then
-        if (bp(n) - bp(1) == 0.) go to 142
+
+    if (bp(n) - bp(1) <= 0.0_wp) then
+        if (bp(n) - bp(1) == 0.0_wp) then
+            ierror = 4
+            return
+        end if
         bh(:n) = bp(n:1:(-1))
     else
         bh(:n) = bp(:n)
     end if
+
     ncmplx = 0
     modiz = mod(iz, 2)
     is = 1
+
     if (modiz /= 0) then
-        if (a(1) < 0.) go to 110
-        if (a(1) == 0.) go to 142
-    end if
-    xl = bh(1)
-    db = bh(3) - bh(1)
-    xl = xl - db
-    r4 = psgf(xl, iz, c, a, bh)
-    do while(r4 <= 0.)
+        if (.not.(a(1) < 0.0_wp)) then
+            if (a(1) == 0.0_wp) then
+                ierror = 4
+                return
+            end if
+        end if
+
+        xl = bh(1)
+        db = bh(3) - bh(1)
         xl = xl - db
         r4 = psgf(xl, iz, c, a, bh)
-    end do
-    sgn = -1.
-    cbp(1) = cmplx(bsrh(xl, bh(1), iz, c, a, bh, psgf, sgn), 0.0_wp, kind=wp)
-    bp(1) = real(cbp(1))
-    is = 2
-110 continue
-    if = iz - 1
-    if (modiz /= 0) then
-        if (a(1) > 0.0_wp) go to 115
-        if (a(1) == 0.0_wp) go to 142
+
+        do while(r4 <= 0.0_wp)
+            xl = xl - db
+            r4 = psgf(xl, iz, c, a, bh)
+        end do
+
+        sgn = -1.0_wp
+        cbp(1) = cmplx(bsrh(xl, bh(1), iz, c, a, bh, psgf, sgn), 0.0_wp, kind=wp)
+        bp(1) = real(cbp(1), kind=wp)
+        is = 2
+
     end if
-    xr = bh(iz)
-    db = bh(iz) - bh(iz-2)
-    xr = xr + db
-    r5 = psgf(xr, iz, c, a, bh)
-    do while(r5 < 0.0_wp)
+
+    if_rename = iz - 1
+
+    if (modiz /= 0) then
+        if (.not.(a(1) > 0.0_wp)) then
+            if (a(1) == 0.0_wp) then
+                ierror = 4
+                return
+            end if
+        end if
+
+        xr = bh(iz)
+        db = bh(iz) - bh(iz-2)
         xr = xr + db
         r5 = psgf(xr, iz, c, a, bh)
-    end do
-    sgn = 1.
-    cbp(iz) = cmplx(bsrh(bh(iz), xr, iz, c, a, bh, psgf, sgn), 0.0_wp, kind=wp)
-    if = iz - 2
-115 continue
-    do ig = is, if, 2
+
+        do while (r5 < 0.0_wp)
+            xr = xr + db
+            r5 = psgf(xr, iz, c, a, bh)
+        end do
+
+        sgn = 1.0_wp
+        cbp(iz) = cmplx(bsrh(bh(iz), xr, iz, c, a, bh, psgf, sgn), 0.0_wp, kind=wp)
+        if_rename = iz - 2
+
+    end if
+
+    do ig = is, if_rename, 2
         xl = bh(ig)
         xr = bh(ig+1)
         sgn = -1.
         xm = bsrh(xl, xr, iz, c, a, bh, ppspf, sgn)
         psg = psgf(xm, iz, c, a, bh)
-        if (abs(psg) - eps <= 0.) go to 118
+
+        if (abs(psg) - eps <= 0.0_wp) then
+            go to 118
+        end if
+
         r6 = psg*ppsgf(xm, iz, c, a, bh)
-        if (r6 > 0.) go to 119
-        if (r6 == 0.) go to 118
-        sgn = 1.
+
+        if (r6 > 0.0_wp) then
+            go to 119
+        end if
+
+        if (r6 == 0.0_wp) then
+            go to 118
+        end if
+
+        sgn = 1.0_wp
         cbp(ig) = cmplx(bsrh(bh(ig), xm, iz, c, a, bh, psgf, sgn), 0.0_wp, kind=wp)
         !        bp(ig) = real(cbp(ig))
-        sgn = -1.
+        sgn = -1.0_wp
         cbp(ig+1) = cmplx(bsrh(xm, bh(ig+1), iz, c, a, bh, psgf, sgn), 0.0_wp, kind=wp)
         !        bp(ig) = real(cbp(ig))
         !        bp(ig+1) = real(cbp(ig+1))
@@ -1330,23 +1411,28 @@ subroutine ppadd(n, ierror, a, c, cbp, bp, bh)
     !     case of a multiple zero
     !
 118 continue
+
     cbp(ig) = cmplx(xm, 0.0_wp, kind=wp)
     cbp(ig+1) = cmplx(xm, 0.0_wp, kind=wp)
     !        bp(ig) = real(cbp(ig))
     !        bp(ig+1) = real(cbp(ig+1))
     cycle
 !
-!     case of a complex zero
+!==> case of a complex zero
 !
 119 continue
+
     it = 0
     icv = 0
     cx = cmplx(xm, 0.0_wp, kind=wp)
+
 120 continue
+
     fsg = (1.0_wp, 0.0_wp)
     hsg = (1.0_wp, 0.0_wp)
     fp = (0.0_wp, 0.0_wp)
     fpp = (0.0_wp, 0.0_wp)
+
     do j = 1, iz
         dd = 1./(cx - bh(j))
         fsg = fsg*a(j)*dd
@@ -1354,48 +1440,83 @@ subroutine ppadd(n, ierror, a, c, cbp, bp, bh)
         fp = fp + dd
         fpp = fpp - dd*dd
     end do
+
     if (modiz == 0) then
         f = (1.0_wp, 0.0_wp) - fsg - hsg
     else
         f = (1.0_wp, 0.0_wp) + fsg + hsg
     end if
+
     i3 = 0
+
     if (abs(fp) > 0.0_wp) then
         i3 = 1
         r3 = -f/fp
     end if
+
     i2 = 0
+
     if (abs(fpp) > 0.0_wp) then
+
         i2 = 1
         cdis = csqrt(fp**2 - 2.*f*fpp)
         r1 = cdis - fp
         r2 = (-fp) - cdis
-        if (abs(r1) - abs(r2) > 0.) then
+
+        if (abs(r1) - abs(r2) > 0.0_wp) then
             r1 = r1/fpp
         else
             r1 = r2/fpp
         end if
-        r2 = 2.*f/fpp/r1
-        if (abs(r2) < abs(r1)) r1 = r2
-        if (i3 <= 0) go to 133
-        if (abs(r3) < abs(r1)) r1 = r3
+
+        r2 = 2.0_wp*f/fpp/r1
+
+        if (abs(r2) < abs(r1)) then
+            r1 = r2
+        end if
+
+        if (i3 <= 0) then
+            go to 133
+        end if
+
+        if (abs(r3) < abs(r1)) then
+            r1 = r3
+        end if
+
         go to 133
     end if
+
     r1 = r3
+
 133 continue
+
     cx = cx + r1
     it = it + 1
-    if (it > 50) go to 142
-    if (abs(r1) > scnv) go to 120
-    if (icv > 0) go to 135
-    icv = 1
-    go to 120
-135 continue
+
+    if (it > 50) then
+        ierror = 4
+        return
+    end if
+
+    if (abs(r1) > scnv) then
+        go to 120
+    end if
+
+    if (.not.(icv > 0)) then
+        icv = 1
+        go to 120
+    end if
+
     cbp(ig) = cx
     cbp(ig+1) = conjg(cx)
 end do
-if (abs(cbp(n)) - abs(cbp(1)) <= 0.) then
-    if (abs(cbp(n)) - abs(cbp(1)) == 0.) go to 142
+
+if (abs(cbp(n)) - abs(cbp(1)) <= 0.0_wp) then
+    if (abs(cbp(n)) - abs(cbp(1)) == 0.0_wp) then
+        ierror = 4
+        return
+    end if
+
     nhalf = n/2
     do j = 1, nhalf
         nt = n - j
@@ -1404,19 +1525,20 @@ if (abs(cbp(n)) - abs(cbp(1)) <= 0.) then
         cbp(nt+1) = cx
     end do
 end if
+
 ncmplx = 1
+
 do j = 2, iz
-    if (aimag(cbp(j)) /= 0.) go to 143
+    if (aimag(cbp(j)) /= 0.0_wp) then
+        return
+    end if
 end do
+
 ncmplx = 0
-bp(1) = real(cbp(1))
-do j = 2, iz
-    bp(j) = real(cbp(j))
-end do
-go to 143
-142 continue
-    ierror = 4
-143 continue
+bp(1) = real(cbp(1), kind=wp)
+
+bp(2:iz) = real(cbp(2:iz))
+
 
 end subroutine ppadd
 
@@ -1469,7 +1591,9 @@ subroutine prod(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, w, u)
     m1 = nm1
     m2 = nm2
     ia = na
+
 102 continue
+
     if (ia > 0) then
         rt = aa(ia)
         if (nd == 0) rt = -rt
@@ -1479,64 +1603,96 @@ subroutine prod(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, w, u)
         !
         y(:m) = rt*w(:m)
     end if
-    if (id <= 0) go to 125
+    if (id <= 0) then
+        return
+    end if
+
     rt = bd(id)
     id = id - 1
-    if (id == 0) ibr = 1
+
+    if (id == 0) then
+        ibr = 1
+    end if
+
     !
-    ! begin solution to system
+    !==> begin solution to system
     !
     d(m) = a(m)/(b(m)-rt)
     w(m) = y(m)/(b(m)-rt)
+
     do j = 2, mm
         k = m - j
         den = b(k+1) - rt - c(k+1)*d(k+2)
         d(k+1) = a(k+1)/den
         w(k+1) = (y(k+1)-c(k+1)*w(k+2))/den
     end do
+
     den = b(1) - rt - c(1)*d(2)
-    w(1) = 1.
-    if (den /= 0.) then
+    w(1) = 1.0_wp
+
+    if (den /= 0.0_wp) then
         w(1) = (y(1)-c(1)*w(2))/den
     end if
+
     do j = 2, m
         w(j) = w(j) - d(j)*w(j-1)
     end do
-    if (na > 0) go to 102
+
+    if (na > 0) then
+        go to 102
+    end if
+
     go to 113
+
 111 continue
+
     y(:m) = w(:m)
     ibr = 1
     go to 102
+
 113 continue
+
     if (m1 <= 0) then
-        if (m2 <= 0) go to 111
+        if (m2 <= 0) then
+            go to 111
+        end if
     else
         if (m2 > 0) then
-            if (abs(bm1(m1)) - abs(bm2(m2)) <= 0.) go to 120
+            if (abs(bm1(m1)) - abs(bm2(m2)) <= 0.0_wp) then
+                go to 120
+            end if
         end if
         if (ibr <= 0) then
-            if (abs(bm1(m1)-bd(id)) - abs(bm1(m1)-rt) < 0.) go to 111
+            if (abs(bm1(m1)-bd(id)) - abs(bm1(m1)-rt) < 0.0_wp) then
+                go to 111
+            end if
         end if
         rt = rt - bm1(m1)
         m1 = m1 - 1
         go to 123
     end if
+
 120 continue
+
     if (ibr <= 0) then
-        if (abs(bm2(m2)-bd(id)) - abs(bm2(m2)-rt) < 0.) go to 111
+        if (abs(bm2(m2)-bd(id)) - abs(bm2(m2)-rt) < 0.0_wp) then
+            go to 111
+        end if
     end if
     rt = rt - bm2(m2)
     m2 = m2 - 1
+
 123 continue
+
     y(:m) = y(:m) + rt*w(:m)
+
     go to 102
-125 continue
 
 end subroutine prod
 
 
-subroutine prodp( nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, u, w)
+
+subroutine prodp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, u, w)
     !
     ! purpose:
     !
@@ -1597,19 +1753,31 @@ subroutine prodp( nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, u, w)
     m1 = nm1
     m2 = nm2
     ia = na
+
 102 continue
+
     if (ia > 0) then
         rt = aa(ia)
-        if (nd == 0) rt = -rt
+        if (nd == 0) then
+            rt = -rt
+        end if
         ia = ia - 1
         y(:m) = rt*w(:m)
     end if
-    if (id <= 0) go to 128
+
+    if (id <= 0) then
+        return
+    end if
+
     rt = bd(id)
     id = id - 1
-    if (id == 0) ibr = 1
+
+    if (id == 0) then
+        ibr = 1
+    end if
+
     !
-    ! begin solution to system
+    !==> begin solution to system
     !
     bh = b(m) - rt
     ym = y(m)
@@ -1618,6 +1786,7 @@ subroutine prodp( nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, u, w)
     u(1) = a(1)/den
     w(1) = y(1)/den
     v = c(m)
+
     if (mm2 - 2 >= 0) then
         do j = 2, mm2
             den = b(j) - rt - a(j)*d(j-1)
@@ -1629,6 +1798,7 @@ subroutine prodp( nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, u, w)
             v = -v*d(j-1)
         end do
     end if
+
     den = b(m-1) - rt - a(m-1)*d(m-2)
     d(m-1) = (c(m-1)-a(m-1)*u(m-2))/den
     w(m-1) = (y(m-1)-a(m-1)*w(m-2))/den
@@ -1636,46 +1806,70 @@ subroutine prodp( nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, u, w)
     bh = bh - v*u(m-2)
     ym = ym - v*w(m-2)
     den = bh - am*d(m-1)
-    if (den /= 0.) then
+
+    if (den /= 0.0_wp) then
         w(m) = (ym - am*w(m-1))/den
     else
-        w(m) = 1.
+        w(m) = 1.0_wp
     end if
+
     w(m-1) = w(m-1) - d(m-1)*w(m)
+
     do j = 2, mm
         k = m - j
         w(k) = w(k) - d(k)*w(k+1) - u(k)*w(m)
     end do
-    if (na > 0) go to 102
+
+    if (na > 0) then
+        go to 102
+    end if
+
     go to 116
+
 114 continue
+
     y(:m) = w(:m)
     ibr = 1
     go to 102
+
 116 continue
+
     if (m1 <= 0) then
-        if (m2 <= 0) go to 114
+        if (m2 <= 0) then
+            go to 114
+        end if
     else
         if (m2 > 0) then
-            if (abs(bm1(m1)) - abs(bm2(m2)) <= 0.) go to 123
+            if (abs(bm1(m1)) - abs(bm2(m2)) <= 0.0_wp) then
+                go to 123
+            end if
         end if
         if (ibr <= 0) then
-            if (abs(bm1(m1)-bd(id)) - abs(bm1(m1)-rt) < 0.) go to 114
+            if (abs(bm1(m1)-bd(id)) - abs(bm1(m1)-rt) < 0.0_wp) then
+                go to 114
+            end if
         end if
         rt = rt - bm1(m1)
         m1 = m1 - 1
         go to 126
     end if
+
 123 continue
+
     if (ibr <= 0) then
-        if (abs(bm2(m2)-bd(id)) - abs(bm2(m2)-rt) < 0.) go to 114
+        if (abs(bm2(m2)-bd(id)) - abs(bm2(m2)-rt) < 0.0_wp) then
+            go to 114
+        end if
     end if
+
     rt = rt - bm2(m2)
     m2 = m2 - 1
+
 126 continue
+
     y(:m) = y(:m) + rt*w(:m)
+
     go to 102
-128 continue
 
 end subroutine prodp
 
@@ -1719,10 +1913,8 @@ subroutine tevls(n, d, e2, ierr)
     !     applied mathematics division, argonne national laboratory
     !
     !
-    !     ********** eps is a machine dependent parameter specifying
-    !                the relative precision of floating point arithmetic.
-    !
-    !                **********
+    !     eps is a machine dependent parameter specifying
+    !     the relative precision of floating point arithmetic.
     !
     !-----------------------------------------------
     ! Dictionary: calling arguments
@@ -1739,14 +1931,14 @@ subroutine tevls(n, d, e2, ierr)
     !-----------------------------------------------
 
     ierr = 0
+
     if (n /= 1) then
-        !
+
         e2(:n-1) = e2(2:n)*e2(2:n)
-        !
-        f = 0.0
-        b = 0.0
-        e2(n) = 0.0
-        !
+        f = 0.0_wp
+        b = 0.0_wp
+        e2(n) = 0.0_wp
+
         do l = 1, n
             j = 0
             h = eps*(abs(d(l))+sqrt(e2(l)))
@@ -1755,45 +1947,51 @@ subroutine tevls(n, d, e2, ierr)
                 c = b*b
             end if
             !
-            !     ********** look for small squared sub-diagonal element **********
+            !==>  look for small squared sub-diagonal element
             !
             do m = l, n
-                if (e2(m) > c) cycle
+                if (e2(m) > c) then
+                    cycle
+                end if
                 exit
             !
-            !     ********** e2(n) is always zero, so there is no exit
-            !                through the bottom of the loop **********
+            !==> e2(n) is always zero, so there is no exit
+            !    through the bottom of the loop
             !
             end do
             !
             if (m /= l) then
 105         continue
-            if (j == 30) go to 114
+            if (j == 30) then
+                go to 114
+            end if
             j = j + 1
             !
-            !     ********** form shift **********
+            !==> form shift
             !
             l1 = l + 1
             s = sqrt(e2(l))
             g = d(l)
             p = (d(l1)-g)/(2.0*s)
-            r = sqrt(p*p + 1.0)
+            r = sqrt(p*p + 1.0_wp)
             d(l) = s/(p + sign(r, p))
             h = g - d(l)
-            !
             d(l1:n) = d(l1:n) - h
-            !
             f = f + h
             !
-            !     ********** rational ql transformation **********
+            !==> rational ql transformation
             !
             g = d(m)
-            if (g == 0.0) g = b
+
+            if (g == 0.0_wp) then
+                g = b
+            end if
+
             h = g
-            s = 0.0
+            s = 0.0_wp
             mml = m - l
             !
-            !     ********** for i=m-1 step -1 until l do -- **********
+            !==> for i=m-1 step -1 until l do
             !
             do ii = 1, mml
                 i = m - ii
@@ -1803,61 +2001,79 @@ subroutine tevls(n, d, e2, ierr)
                 s = e2(i)/r
                 d(i+1) = h + s*(h + d(i))
                 g = d(i) - e2(i)/g
-                if (g == 0.0) g = b
+
+                if (g == 0.0_wp) then
+                    g = b
+                end if
+
                 h = g*p/r
             end do
             !
             e2(l) = s*g
             d(l) = h
             !
-            !     ********** guard against underflowed h **********
+            !==> guard against underflowed h
             !
-            if (h == 0.0) go to 108
-            if (abs(e2(l)) <= abs(c/h)) go to 108
+            if (h == 0.0_wp) then
+                go to 108
+            end if
+
+            if (abs(e2(l)) <= abs(c/h)) then
+                go to 108
+            end if
+
             e2(l) = h*e2(l)
-            if (e2(l) /= 0.0) go to 105
+
+            if (e2(l) /= 0.0_wp) then
+                go to 105
+            end if
         end if
 108 continue
     p = d(l) + f
     !
-    !     ********** order eigenvalues **********
+    !==> order eigenvalues
     !
     if (l /= 1) then
         !
-        !     ********** for i=l step -1 until 2 do -- **********
+        !==> for i=l step -1 until 2 do
         !
         do ii = 2, l
             i = l + 2 - ii
-            if (p >= d(i-1)) go to 111
+            if (p >= d(i-1)) then
+                go to 111
+            end if
             d(i) = d(i-1)
         end do
     end if
-    !
+
     i = 1
 111 continue
     d(i) = p
 end do
-!
-if (abs(d(n)) >= abs(d(1))) go to 115
+
+if (abs(d(n)) >= abs(d(1))) then
+    return
+end if
+
 nhalf = n/2
+
 do i = 1, nhalf
     ntop = n - i
     dhold = d(i)
     d(i) = d(ntop+1)
     d(ntop+1) = dhold
 end do
-go to 115
+
+return
 !
-!     ********** set error -- no convergence to an
-!                eigenvalue after 30 iterations **********
+!==> set error -- no convergence to an
+!    eigenvalue after 30 iterations
 !
 114 continue
     ierr = l
 end if
-115 continue
-    return
 !
-!     ********** last card of tqlrat **********
+!==> last card of tqlrat
 !
 end subroutine tevls
 
