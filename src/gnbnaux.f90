@@ -87,7 +87,7 @@ contains
         ! Purpose:
         !
         !     this subroutine computes required cosine values in ascending
-        !     order.  when ijump .gt. 1 the routine computes values
+        !     order.  when ijump >= 1 the routine computes values
         !
         !        2*cos(j*pi/l) , j=1, 2, ..., l and j .ne. 0(mod n/ijump+1)
         !
@@ -150,6 +150,7 @@ contains
     end subroutine cosgen
 
 
+
     subroutine trix(idegbr, idegcr, m, a, b, c, y, tcos, d, w)
         !
         ! Purpose:
@@ -191,24 +192,26 @@ contains
                 w(:m) = y(:m)
                 y(:m) = xx*y(:m)
             end if
-            z = 1./(b(1)-x)
+            z = 1.0_wp/(b(1)-x)
             d(1) = c(1)*z
             y(1) = y(1)*z
             do i = 2, mm1
-                z = 1./(b(i)-x-a(i)*d(i-1))
+                z = 1.0_wp/(b(i)-x-a(i)*d(i-1))
                 d(i) = c(i)*z
                 y(i) = (y(i)-a(i)*y(i-1))*z
             end do
             z = b(m) - x - a(m)*d(mm1)
-            if (z == 0.) then
-                y(m) = 0.
+            if (z == 0.0_wp) then
+                y(m) = 0.0_wp
             else
                 y(m) = (y(m)-a(m)*y(mm1))/z
             end if
             do ip = 1, mm1
                 y(m-ip) = y(m-ip) - d(m-ip)*y(m+1-ip)
             end do
-            if (k /= l) cycle
+            if (k /= l) then
+                cycle
+            end if
             y(:m) = y(:m) + w(:m)
             lint = lint + 1
             l = (lint*ifb)/ifc
@@ -250,7 +253,6 @@ contains
         real (wp)    :: x, z, xx
         !-----------------------------------------------
 
-
         mm1 = m - 1
         k1 = k(1)
         k2 = k(2)
@@ -285,13 +287,13 @@ contains
                     w3(:m) = y3(:m)
                 end if
             end if
-            z = 1./(b(1)-x)
+            z = 1.0_wp/(b(1)-x)
             d(1) = c(1)*z
             y1(1) = y1(1)*z
             y2(1) = y2(1)*z
             y3(1) = y3(1)*z
             do i = 2, m
-                z = 1./(b(i)-x-a(i)*d(i-1))
+                z = 1.0_wp/(b(i)-x-a(i)*d(i-1))
                 d(i) = c(i)*z
                 y1(i) = (y1(i)-a(i)*y1(i-1))*z
                 y2(i) = (y2(i)-a(i)*y2(i-1))*z
@@ -302,7 +304,9 @@ contains
                 y2(m-ipp) = y2(m-ipp) - d(m-ipp)*y2(m+1-ipp)
                 y3(m-ipp) = y3(m-ipp) - d(m-ipp)*y3(m+1-ipp)
             end do
-            if (k2k3k4 == 0) cycle
+            if (k2k3k4 == 0) then
+                cycle
+            end if
             if (n == l1) then
                 i = lint1 + kint1
                 xx = x - tcos(i)
@@ -317,7 +321,9 @@ contains
                 lint2 = lint2 + 1
                 l2 = (lint2*if1)/if3
             end if
-            if (n /= l3) cycle
+            if (n /= l3) then
+                cycle
+            end if
             i = lint3 + kint3
             xx = x - tcos(i)
             y3(:m) = xx*y3(:m) + w3(:m)

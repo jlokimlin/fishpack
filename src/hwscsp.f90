@@ -647,36 +647,36 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: intl
-        integer (ip), intent (in) :: m
-        integer (ip), intent (in) :: mbdcnd
-        integer (ip), intent (in) :: n
-        integer (ip), intent (in) :: nbdcnd
-        integer (ip), intent (in) :: idimf
-        integer (ip), intent (out) :: ierror
-        real (wp),    intent (in) :: ts
-        real (wp),    intent (in) :: tf
-        real (wp),    intent (in) :: rs
-        real (wp),    intent (in) :: rf
-        real (wp),    intent (in) :: elmbda
-        real (wp),    intent (out) :: pertrb
-        real (wp),    intent (in) :: bdts(*)
-        real (wp),    intent (in) :: bdtf(*)
-        real (wp),    intent (in) :: bdrs(*)
-        real (wp),    intent (in) :: bdrf(*)
+        integer (ip), intent (in)     :: intl
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: mbdcnd
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: nbdcnd
+        integer (ip), intent (in)     :: idimf
+        integer (ip), intent (out)    :: ierror
+        real (wp),    intent (in)     :: ts
+        real (wp),    intent (in)     :: tf
+        real (wp),    intent (in)     :: rs
+        real (wp),    intent (in)     :: rf
+        real (wp),    intent (in)     :: elmbda
+        real (wp),    intent (out)    :: pertrb
+        real (wp),    intent (in)     :: bdts(*)
+        real (wp),    intent (in)     :: bdtf(*)
+        real (wp),    intent (in)     :: bdrs(*)
+        real (wp),    intent (in)     :: bdrf(*)
         real (wp),    intent (in out) :: f(idimf, *)
-        real (wp) :: w(*)
-        real (wp), intent (in out) :: s(*)
-        real (wp) :: an(*)
-        real (wp) :: bn(*)
-        real (wp) :: cn(*)
-        real (wp), intent (in out) :: r(*)
-        real (wp) :: am(*)
-        real (wp) :: bm(*)
-        real (wp) :: cm(*)
-        real (wp), intent (in out) :: sint(*)
-        real (wp), intent (in out) :: bmh(*)
-        complex (wp) :: wc(*)
+        real (wp)                     :: w(*)
+        real (wp),    intent (in out) :: s(*)
+        real (wp)                     :: an(*)
+        real (wp)                     :: bn(*)
+        real (wp)                     :: cn(*)
+        real (wp),    intent (in out) :: r(*)
+        real (wp)                     :: am(*)
+        real (wp)                     :: bm(*)
+        real (wp)                     :: cm(*)
+        real (wp),    intent (in out) :: sint(*)
+        real (wp),    intent (in out) :: bmh(*)
+        complex (wp)                  :: wc(*)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
