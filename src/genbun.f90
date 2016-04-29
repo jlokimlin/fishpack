@@ -62,195 +62,196 @@ contains
         !     *                                                               *
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
-        !     SUBROUTINE genbun (NPEROD, N, MPEROD, M, A, B, C, IDIMY, Y, ierror)
+        !     subroutine genbun(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
         !
         !
-        ! DIMENSION OF           A(M), B(M), C(M), Y(IDIMY, N)
-        ! ARGUMENTS
+        ! Dimension of           a(m), b(m), c(m), y(idimy, n)
+        ! arguments
         !
-        ! LATEST REVISION        JUNE 2004
+        ! Latest revision        April 2016
         !
-        ! PURPOSE                THE NAME OF THIS PACKAGE IS A MNEMONIC FOR THE
-        !                        GENERALIZED BUNEMAN ALGORITHM.
+        ! Purpose                The name of this package is a mnemonic for the
+        !                        generalized buneman algorithm.
         !
-        !                        IT SOLVES THE REAL LINEAR SYSTEM OF EQUATIONS
+        !                        It solves the real linear system of equations
         !
-        !                        A(I)*X(I-1, J) + B(I)*X(I, J) + C(I)*X(I+1, J)
-        !                        + X(I, J-1) - 2.*X(I, J) + X(I, J+1) = Y(I, J)
+        !                        a(i)*x(i-1, j) + b(i)*x(i, j) + c(i)*x(i+1, j)
+        !                        + x(i, j-1) - 2.0*x(i, j) + x(i, j+1) = y(i, j)
         !
-        !                        FOR I = 1, 2, ..., M  AND  J = 1, 2, ..., N.
+        !                        for i = 1, 2, ..., m  and  j = 1, 2, ..., n.
         !
-        !                        INDICES I+1 AND I-1 ARE EVALUATED MODULO M,
-        !                        I.E., X(0, J) = X(M, J) AND X(M+1, J) = X(1, J),
-        !                        AND X(I, 0) MAY EQUAL 0, X(I, 2), OR X(I, N),
-        !                        AND X(I, N+1) MAY EQUAL 0, X(I, N-1), OR X(I, 1)
-        !                        DEPENDING ON AN INPUT PARAMETER.
+        !                        indices i+1 and i-1 are evaluated modulo m,
+        !                        i.e., x(0, j) = x(m, j) and x(m+1, j) = x(1, j),
+        !                        and x(i, 0) may equal 0, x(i, 2), or x(i, n),
+        !                        and x(i, n+1) may equal 0, x(i, n-1), or x(i, 1)
+        !                        depending on an input parameter.
         !
-        ! USAGE                  CALL genbun (NPEROD, N, MPEROD, M, A, B, C, IDIMY, Y,
-        !                                     ierror)
+        ! Usage                  call genbun(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
         !
-        ! ARGUMENTS
+        ! Arguments
         !
-        ! ON INPUT               NPEROD
+        ! On input               nperod
         !
-        !                          INDICATES THE VALUES THAT X(I, 0) AND
-        !                          X(I, N+1) ARE ASSUMED TO HAVE.
+        !                          Indicates the values that x(i, 0) and
+        !                          x(i, n+1) are assumed to have.
         !
-        !                          = 0  IF X(I, 0) = X(I, N) AND X(I, N+1) =
-        !                               X(I, 1).
-        !                          = 1  IF X(I, 0) = X(I, N+1) = 0  .
-        !                          = 2  IF X(I, 0) = 0 AND X(I, N+1) = X(I, N-1).
-        !                          = 3  IF X(I, 0) = X(I, 2) AND X(I, N+1) =
-        !                               X(I, N-1).
-        !                          = 4  IF X(I, 0) = X(I, 2) AND X(I, N+1) = 0.
+        !                          = 0  if x(i, 0) = x(i, n) and x(i, n+1) =
+        !                               x(i, 1).
+        !                          = 1  if x(i, 0) = x(i, n+1) = 0  .
+        !                          = 2  if x(i, 0) = 0 and x(i, n+1) = x(i, n-1).
+        !                          = 3  if x(i, 0) = x(i, 2) and x(i, n+1) =
+        !                               x(i, n-1).
+        !                          = 4  if x(i, 0) = x(i, 2) and x(i, n+1) = 0.
         !
-        !                        N
-        !                          THE NUMBER OF UNKNOWNS IN THE J-DIRECTION.
-        !                          N MUST BE GREATER THAN 2.
+        !                        n
+        !                          The number of unknowns in the j-direction.
+        !                          n must be greater than 2.
         !
-        !                        MPEROD
-        !                          = 0 IF A(1) AND C(M) ARE NOT ZERO
-        !                          = 1 IF A(1) = C(M) = 0
+        !                        mperod
+        !                          = 0 if a(1) and c(m) are not zero
+        !                          = 1 if a(1) = c(m) = 0
         !
-        !                        M
-        !                          THE NUMBER OF UNKNOWNS IN THE I-DIRECTION.
-        !                          N MUST BE GREATER THAN 2.
+        !                        m
+        !                          The number of unknowns in the i-direction.
+        !                          n must be greater than 2.
         !
-        !                        A, B, C
-        !                          ONE-DIMENSIONAL ARRAYS OF LENGTH M THAT
-        !                          SPECIFY THE COEFFICIENTS IN THE LINEAR
-        !                          EQUATIONS GIVEN ABOVE.  IF MPEROD = 0
-        !                          THE ARRAY ELEMENTS MUST NOT DEPEND UPON
-        !                          THE INDEX I, BUT MUST BE CONSTANT.
-        !                          SPECIFICALLY, THE SUBROUTINE CHECKS THE
-        !                          FOLLOWING CONDITION .
+        !                        a, b, c
+        !                          One-dimensional arrays of length m that
+        !                          specify the coefficients in the linear
+        !                          equations given above.  if mperod = 0
+        !                          the array elements must not depend upon
+        !                          the index i, but must be constant.
+        !                          specifically, the subroutine checks the
+        !                          following condition .
         !
-        !                            A(I) = C(1)
-        !                            C(I) = C(1)
-        !                            B(I) = B(1)
+        !                            a(i) = c(1)
+        !                            c(i) = c(1)
+        !                            b(i) = b(1)
         !
-        !                          FOR I=1, 2, ..., M.
+        !                          for i=1, 2, ..., m.
         !
-        !                        IDIMY
-        !                          THE ROW (OR FIRST) DIMENSION OF THE
-        !                          TWO-DIMENSIONAL ARRAY Y AS IT APPEARS
-        !                          IN THE PROGRAM CALLING genbun.
-        !                          THIS PARAMETER IS USED TO SPECIFY THE
-        !                          VARIABLE DIMENSION OF Y.
-        !                          IDIMY MUST BE AT LEAST M.
+        !                        idimy
+        !                          The row (or first) dimension of the
+        !                          two-dimensional array y as it appears
+        !                          in the program calling genbun.
+        !                          this parameter is used to specify the
+        !                          variable dimension of y.
+        !                          idimy must be at least m.
         !
-        !                        Y
-        !                          A TWO-DIMENSIONAL COMPLEX ARRAY THAT
-        !                          SPECIFIES THE VALUES OF THE RIGHT SIDE
-        !                          OF THE LINEAR SYSTEM OF EQUATIONS GIVEN
-        !                          ABOVE.
-        !                          Y MUST BE DIMENSIONED AT LEAST M*N.
+        !                        y
+        !                          A two-dimensional complex array that
+        !                          specifies the values of the right side
+        !                          of the linear system of equations given
+        !                          above.
+        !                          y must be dimensioned at least m*n.
         !
         !
-        !  ON OUTPUT             Y
+        !  on output             y
         !
-        !                          CONTAINS THE SOLUTION X.
+        !                          Contains the solution x.
         !
         !                        ierror
-        !                          AN ERROR FLAG WHICH INDICATES INVALID
-        !                          INPUT PARAMETERS  EXCEPT FOR NUMBER
-        !                          ZERO, A SOLUTION IS NOT ATTEMPTED.
+        !                          An error flag which indicates invalid
+        !                          input parameters  except for number
+        !                          zero, a solution is not attempted.
         !
-        !                          = 0  NO ERROR.
-        !                          = 1  M .LE. 2  .
-        !                          = 2  N .LE. 2
-        !                          = 3  IDIMY .LT. M
-        !                          = 4  NPEROD .LT. 0 OR NPEROD .GT. 4
-        !                          = 5  MPEROD .LT. 0 OR MPEROD .GT. 1
-        !                          = 6  A(I) .NE. C(1) OR C(I) .NE. C(1) OR
-        !                               B(I) .NE. B(1) FOR
-        !                               SOME I=1, 2, ..., M.
-        !                          = 7  A(1) .NE. 0 OR C(M) .NE. 0 AND
-        !                                 MPEROD = 1
+        !                          = 0  no error
+        !                          = 1  m <= 2
+        !                          = 2  n <= 2
+        !                          = 3  idimy <= m
+        !                          = 4  nperod <= 0 or nperod > 4
+        !                          = 5  mperod < 0 or mperod > 1
+        !                          = 6  a(i) /= c(1) or c(i) /= c(1) or
+        !                               b(i) /= b(1) for
+        !                               some i=1, 2, ..., m.
+        !                          = 7  a(1) /= 0 or c(m) /= 0 and
+        !                                 mperod = 1
         !                          = 20 If the dynamic allocation of real and
         !                               complex work space required for solution
-        !                               fails (for example if N, M are too large
+        !                               fails (for example if n, m are too large
         !                               for your computer)
         !
         !
-        ! SPECIAL CONDITONS      NONE
+        ! Special conditons      None
         !
-        ! I/O                    NONE
+        ! I/O                    None
         !
-        ! PRECISION              SINGLE
+        ! Precision              64-bit precision float and 32-bit precision integer
         !
-        ! REQUIRED FILES         comf.f, gnbnaux.f, fish.f
-        ! FILES
+        ! Required files         comf.f, gnbnaux.f, fish.f
+        ! files
         !
-        ! LANGUAGE               FORTRAN 90
+        ! Language               Fortran 2008
         !
-        ! HISTORY                WRITTEN IN 1979 BY ROLAND SWEET OF NCAR'S
-        !                        SCIENTIFIC COMPUTING DIVISION.  MADE AVAILABLE
-        !                        ON NCAR'S PUBLIC LIBRARIES IN JANUARY, 1980.
+        ! History                Written in 1979 by Roland Sweet of NCAR'S
+        !                        scientific computing division. made available
+        !                        on NCAR'S public libraries in january, 1980.
+        !
         !                        Revised in June 2004 by John Adams using
         !                        Fortran 90 dynamically allocated work space.
         !
-        ! ALGORITHM              THE LINEAR SYSTEM IS SOLVED BY A CYCLIC
-        !                        REDUCTION ALGORITHM DESCRIBED IN THE
-        !                        REFERENCE.
+        ! Algorithm              The linear system is solved by a cyclic
+        !                        reduction algorithm described in the
+        !                        reference.
         !
-        ! PORTABILITY            FORTRAN 90 --
-        !                        THE MACHINE DEPENDENT CONSTANT PI IS
-        !                        DEFINED IN FUNCTION PI_MACH.
+        ! Portability            Fortran 2008 --
+        !                        the machine dependent constant pi is
+        !                        defined as acos(-1.0_wp) where wp = REAL64
+        !                        from the intrinsic module iso_fortran_env.
         !
-        ! REFERENCES             SWEET, R., "A CYCLIC REDUCTION ALGORITHM FOR
-        !                        SOLVING BLOCK TRIDIAGONAL SYSTEMS OF ARBITRARY
-        !                        DIMENSIONS, " SIAM J. ON NUMER. ANAL., 14 (1977)
+        ! References             Sweet, R., "A cyclic reduction algorithm for
+        !                        solving block tridiagonal systems of arbitrary
+        !                        dimensions, " SIAM J. On Numer. Anal., 14 (1977)
         !                        PP. 706-720.
         !
-        ! ACCURACY               THIS TEST WAS PERFORMED ON a platform with
+        ! Accuracy               This test was performed on a platform with
         !                        64 bit floating point arithmetic.
-        !                        A UNIFORM RANDOM NUMBER GENERATOR WAS USED
-        !                        TO CREATE A SOLUTION ARRAY X FOR THE SYSTEM
-        !                        GIVEN IN THE 'PURPOSE' DESCRIPTION ABOVE
-        !                        WITH
-        !                          A(I) = C(I) = -0.5*B(I) = 1, I=1, 2, ..., M
+        !                        a uniform random number generator was used
+        !                        to create a solution array x for the system
+        !                        given in the 'purpose' description above
+        !                        with
+        !                          a(i) = c(i) = -0.5*b(i) = 1, i=1, 2, ..., m
         !
-        !                        AND, WHEN MPEROD = 1
+        !                        and, when mperod = 1
         !
-        !                          A(1) = C(M) = 0
-        !                          A(M) = C(1) = 2.
+        !                          a(1) = c(m) = 0
+        !                          a(m) = c(1) = 2.
         !
-        !                        THE SOLUTION X WAS SUBSTITUTED INTO THE
-        !                        GIVEN SYSTEM  AND, USING DOUBLE PRECISION
-        !                        A RIGHT SIDE Y WAS COMPUTED.
-        !                        USING THIS ARRAY Y, SUBROUTINE genbun
-        !                        WAS CALLED TO PRODUCE APPROXIMATE
-        !                        SOLUTION Z.  THEN RELATIVE ERROR
-        !                          E = MAX(abs(Z(I, J)-X(I, J)))/
-        !                              MAX(abs(X(I, J)))
-        !                        WAS COMPUTED, WHERE THE TWO MAXIMA ARE TAKEN
-        !                        OVER I=1, 2, ..., M AND J=1, ..., N.
+        !                        The solution x was substituted into the
+        !                        given system  and, using double precision
+        !                        a right side y was computed.
+        !                        using this array y, subroutine genbun
+        !                        was called to produce approximate
+        !                        solution z.  then relative error
+        !                          e = max(abs(z(i, j)-x(i, j)))/
+        !                              max(abs(x(i, j)))
+        !                        was computed, where the two maxima are taken
+        !                        over i=1, 2, ..., m and j=1, ..., n.
         !
-        !                        THE VALUE OF E IS GIVEN IN THE TABLE
-        !                        BELOW FOR SOME TYPICAL VALUES OF M AND N.
+        !                        The value of e is given in the table
+        !                        below for some typical values of m and n.
         !
-        !                   M (=N)    MPEROD    NPEROD        E
+        !                   m (=n)    mperod    nperod        e
         !                   ------    ------    ------      ------
         !
-        !                     31        0         0         6.E-14
-        !                     31        1         1         4.E-13
-        !                     31        1         3         3.E-13
-        !                     32        0         0         9.E-14
-        !                     32        1         1         3.E-13
-        !                     32        1         3         1.E-13
-        !                     33        0         0         9.E-14
-        !                     33        1         1         4.E-13
-        !                     33        1         3         1.E-13
-        !                     63        0         0         1.E-13
-        !                     63        1         1         1.E-12
-        !                     63        1         3         2.E-13
-        !                     64        0         0         1.E-13
-        !                     64        1         1         1.E-12
-        !                     64        1         3         6.E-13
-        !                     65        0         0         2.E-13
-        !                     65        1         1         1.E-12
-        !                     65        1         3         4.E-13
+        !                     31        0         0         6.e-14
+        !                     31        1         1         4.e-13
+        !                     31        1         3         3.e-13
+        !                     32        0         0         9.e-14
+        !                     32        1         1         3.e-13
+        !                     32        1         3         1.e-13
+        !                     33        0         0         9.e-14
+        !                     33        1         1         4.e-13
+        !                     33        1         3         1.e-13
+        !                     63        0         0         1.e-13
+        !                     63        1         1         1.e-12
+        !                     63        1         3         2.e-13
+        !                     64        0         0         1.e-13
+        !                     64        1         1         1.e-12
+        !                     64        1         3         6.e-13
+        !                     65        0         0         2.e-13
+        !                     65        1         1         1.e-12
+        !                     65        1         3         4.e-13
         !
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
@@ -322,6 +323,7 @@ contains
         call workspace%destroy()
 
     end subroutine genbun
+
 
 
     subroutine genbunn(nperod, n, mperod, m, a, b, c, idimy, y, ierror, w)

@@ -499,24 +499,18 @@ contains
         type(FishpackWorkspace) :: workspace
         !-----------------------------------------------
 
+        !     check input parameters
         !
-        !==> check input parameters
-        !
-        call c4kprm(iorder, a, b, m, mbdcnd, c, d, n, nbdcnd, cofx, idmn, ierror)
+        call c4kprm( iorder, a, b, m, mbdcnd, c, d, n, nbdcnd, cofx, idmn, ierror)
 
-        if (ierror /= 0) then
-            return
-        end if
+        if (ierror /= 0) return
         !
-        !==> compute minimum work space and check work space length input
+        !     compute minimum work space and check work space length input
         !
-        if (nbdcnd == 0) then
-            l = n
-        else
-            l = n + 1
-        end if
-
+        l = n + 1
+        if (nbdcnd == 0) l = n
         k = m + 1
+        l = n + 1
 
         associate( & ! estimate log base 2 of n
             log2n => int(log(real(n + 1, kind=wp))/log(2.0_wp) + 0.5_wp, kind=ip) &
@@ -534,10 +528,7 @@ contains
 
 
                 ! Check if workspace allocation was sucessful
-                if (ierror == 20) then
-                    return
-                end if
-
+                if (ierror == 20) return
                 ierror = 0
                 !
                 !     set work space indices
@@ -641,83 +632,51 @@ contains
         bit = b
         cit = c
         dit = d
-        dly =(dit - cit)/n
+        dly =(dit - cit)/real(n)
         !
         !     set right hand side values from grhs in usol on the interior
         !     and non-specified boundaries.
         !
         usol(2:m, 2:n) = dly**2*grhs(2:m, 2:n)
-
         if (kswx/=2 .and. kswx/=3) then
             usol(1, 2:n) = dly**2*grhs(1, 2:n)
         end if
-
         if (kswx/=2 .and. kswx/=5) then
             usol(k, 2:n) = dly**2*grhs(k, 2:n)
         end if
-
         if (kswy/=2 .and. kswy/=3) then
             usol(2:m, 1) = dly**2*grhs(2:m, 1)
         end if
-
         if (kswy/=2 .and. kswy/=5) then
             usol(2:m, l) = dly**2*grhs(2:m, l)
         end if
-
-        if (kswx/=2 .and. kswx/=3 .and. kswy/=2 .and. kswy/=3) then
-            usol(1, 1) = dly**2*grhs(1, 1)
-        end if
-
-        if (kswx/=2 .and. kswx/=5 .and. kswy/=2 .and. kswy/=3) then
-            usol(k, 1) = dly**2*grhs(k, 1)
-        end if
-
-
-        if (kswx/=2 .and. kswx/=3 .and. kswy/=2 .and. kswy/=5) then
-            usol(1, l) = dly**2*grhs(1, l)
-        end if
-
-        if (kswx/=2 .and. kswx/=5 .and. kswy/=2 .and. kswy/=5) then
-            usol(k, l) = dly**2*grhs(k, l)
-        end if
-
+        if (kswx/=2 .and. kswx/=3 .and. kswy/=2 .and. kswy/=3) usol(1, 1) &
+            = dly**2*grhs(1, 1)
+        if (kswx/=2 .and. kswx/=5 .and. kswy/=2 .and. kswy/=3) usol(k, 1) &
+            = dly**2*grhs(k, 1)
+        if (kswx/=2 .and. kswx/=3 .and. kswy/=2 .and. kswy/=5) usol(1, l) &
+            = dly**2*grhs(1, l)
+        if (kswx/=2 .and. kswx/=5 .and. kswy/=2 .and. kswy/=5) usol(k, l) &
+            = dly**2*grhs(k, l)
         i1 = 1
         !
-        !==> set switches for periodic or non-periodic boundaries
+        !     set switches for periodic or non-periodic boundaries
         !
-        if (kswx == 1) then
-            mp = 0
-        else
-            mp = 1
-        end if
-
+        mp = 1
+        if (kswx == 1) mp = 0
         np = nbdcnd
         !
         !     set dlx, dly and size of block tri-diagonal system generated
         !     in nint, mint
         !
-        dlx =(bit - ait)/m
+        dlx =(bit - ait)/real(m)
         mit = k - 1
-
-        if (kswx == 2) then
-            mit = k - 2
-        end if
-
-        if (kswx == 4) then
-            mit = k
-        end if
-
-        dly =(dit - cit)/n
+        if (kswx == 2) mit = k - 2
+        if (kswx == 4) mit = k
+        dly =(dit - cit)/real(n)
         nit = l - 1
-
-        if (kswy == 2) then
-            nit = l - 2
-        end if
-
-        if (kswy == 4) then
-            nit = l
-        end if
-
+        if (kswy == 2) nit = l - 2
+        if (kswy == 4) nit = l
         tdlx3 = 2.0_wp * dlx**3
         dlx4 = dlx**4
         tdly3 = 2.0_wp * dly**3
@@ -727,35 +686,29 @@ contains
         !
         is = 1
         js = 1
-        if (kswx==2 .or. kswx==3) then
-            is = 2
-        end if
-
-        if (kswy==2 .or. kswy==3) then
-            js = 2
-        end if
-
+        if (kswx==2 .or. kswx==3) is = 2
+        if (kswy==2 .or. kswy==3) js = 2
         ns = nit + js - 1
         ms = mit + is - 1
         !
         !     set x - direction
         !
         do i = 1, mit
-            xi = ait + real(is + i - 2, kind=wp)*dlx
+            xi = ait + real(is + i - 2)*dlx
             call cofx(xi, ai, bi, ci)
-            axi =(ai/dlx - 0.5_wp*bi)/dlx
-            bxi =(-2.0_wp * ai/dlx**2) + ci
-            cxi =(ai/dlx + 0.5_wp*bi)/dlx
+            axi =(ai/dlx - 0.5*bi)/dlx
+            bxi =(-2.0 * ai/dlx**2) + ci
+            cxi =(ai/dlx + 0.5*bi)/dlx
             am(i) = (dly**2) * axi
-            bm(i) = (dly**2)*bxi
-            cm(i) = (dly**2)*cxi
+            bm(i) = dly**2*bxi
+            cm(i) = dly**2*cxi
         end do
         !
         !     set y direction
         !
-        dyj = 1.0_wp
-        eyj = -2.0_wp
-        fyj = 1.0_wp
+        dyj = 1.0
+        eyj = -2.0
+        fyj = 1.0
         an(:nit) = dyj
         bn(:nit) = eyj
         cn(:nit) = fyj
@@ -764,7 +717,6 @@ contains
         !
         ax1 = am(1)
         cxm = cm(mit)
-
         select case(kswx)
             case(2)
                 !
@@ -776,10 +728,10 @@ contains
                 !
                 !     dirichlet-mixed in x direction
                 !
-                am(1) = 0.0_wp
+                am(1) = 0.0
                 am(mit) = am(mit) + cxm
-                bm(mit) = bm(mit) - 2.0_wp * beta*dlx*cxm
-                cm(mit) = 0.0_wp
+                bm(mit) = bm(mit) - 2.0 * beta*dlx*cxm
+                cm(mit) = 0.0
             case(4)
                 !
                 !     mixed - mixed in x direction
@@ -806,7 +758,6 @@ contains
         fyn = cn(nit)
         gama = 0.0_wp
         xnu = 0.0_wp
-
         select case(kswy)
             case(2)
                 !
@@ -841,7 +792,6 @@ contains
                 cn(1) = cn(1) + dy1
                 cn(nit) = 0.0_wp
         end select
-
         if (kswx /= 1) then
             !
             !     adjust usol along x edge
@@ -895,7 +845,7 @@ contains
             grhs(is:ms, js) = usol(is:ms, js)
             grhs(is:ms, ns) = usol(is:ms, ns)
         end if
-        pertrb = 0.0_wp
+        pertrb = 0.0
         !
         !     check if operator is singular
         !
@@ -904,19 +854,12 @@ contains
         !     compute non-zero eigenvector in null space of transpose
         !     if singular
         !
-        if (singlr .eqv. .true.) then
-            call septri(mit, am, bm, cm, dm, um, zm)
-        end if
-
-        if (singlr .eqv. .true.) then
-            call septri(nit, an, bn, cn, dn, un, zn)
-        end if
+        if (singlr) call septri(mit, am, bm, cm, dm, um, zm)
+        if (singlr) call septri(nit, an, bn, cn, dn, un, zn)
         !
         !     adjust right hand side if necessary
         !
-        if (singlr .eqv. .true.) then
-            call seport(usol, idmn, zn, zm, pertrb)
-        end if
+        if (singlr) call seport(usol, idmn, zn, zm, pertrb)
         !
         !     compute solution
         !
@@ -931,17 +874,13 @@ contains
             ierror = 12
             return
         end if
-
-        if (ierror /= 0) then
-            return
-        end if
+        if (ierror /= 0) return
         !
         !     set periodic boundaries if necessary
         !
         if (kswx == 1) then
             usol(k, :l) = usol(1, :l)
         end if
-
         if (kswy == 1) then
             usol(:k, l) = usol(:k, 1)
         end if
@@ -949,24 +888,17 @@ contains
         !     minimize solution with respect to weighted least squares
         !     norm if operator is singular
         !
-        if (singlr .eqv. .true.) then
-            call sepmin(usol, idmn, zn, zm, prtrb)
-        end if
+        if (singlr) call sepmin(usol, idmn, zn, zm, prtrb)
         !
         !     return if deferred corrections and a fourth order solution are
         !     not flagged
         !
-        if (iorder == 2) then
-            return
-        end if
+        if (iorder == 2) return
         !
         !     compute new right hand side for fourth order solution
         !
         call d4fer(cofx, idmn, usol, grhs)
-
-        if (singlr .eqv. .true.) then
-            call seport(usol, idmn, zn, zm, pertrb)
-        end if
+        if (singlr) call seport(usol, idmn, zn, zm, pertrb)
         !
         !     compute solution
         !
@@ -980,17 +912,13 @@ contains
             ierror = 12
             return
         end if
-
-        if (ierror /= 0) then
-            return
-        end if
+        if (ierror /= 0) return
         !
         !     set periodic boundaries if necessary
         !
         if (kswx == 1) then
             usol(k, :l) = usol(1, :l)
         end if
-
         if (kswy == 1) then
             usol(:k, l) = usol(:k, 1)
         end if
@@ -998,9 +926,7 @@ contains
         !     minimize solution with respect to weighted least squares
         !     norm if operator is singular
         !
-        if (singlr .eqv. .true.) then
-            call sepmin(usol, idmn, zn, zm, prtrb)
-        end if
+        if (singlr) call sepmin(usol, idmn, zn, zm, prtrb)
 
     end subroutine s4elip
 
@@ -1036,19 +962,18 @@ contains
         !
         !     check definition of solution region
         !
-        if (a >= b .or. c >= d) then
+        if (a>=b .or. c>=d) then
             ierror = 1
             return
         end if
         !
         !     check boundary switches
         !
-        if (mbdcnd < 0 .or. mbdcnd > 4) then
+        if (mbdcnd<0 .or. mbdcnd>4) then
             ierror = 2
             return
         end if
-
-        if (nbdcnd < 0 .or. nbdcnd > 4) then
+        if (nbdcnd<0 .or. nbdcnd>4) then
             ierror = 3
             return
         end if
@@ -1062,7 +987,7 @@ contains
         !
         !     check m
         !
-        if (m > idmn - 1 .or. m < 6) then
+        if (m>idmn - 1 .or. m<6) then
             ierror = 6
             return
         end if
@@ -1087,9 +1012,7 @@ contains
         do i = 2, m
             xi = a + real(i - 1, kind=wp ) * dlx
             call cofx(xi, ai, bi, ci)
-            if (ai > 0.0_wp) then
-                cycle
-            end if
+            if (ai > 0.0) cycle
             ierror = 10
             return
         end do
@@ -1129,28 +1052,21 @@ contains
         !     check if the boundary conditions are
         !     entirely periodic and/or mixed
         !
-        if (mbdcnd/=0.and.mbdcnd/=3.or.nbdcnd/=0.and.nbdcnd/=3) then
-            return
-        end if
-
+        if (mbdcnd/=0.and.mbdcnd/=3.or.nbdcnd/=0.and.nbdcnd/=3)return
         !
         !     check that mixed conditions are pure neuman
         !
         if (mbdcnd == 3) then
-            if (alpha/= 0.0_wp .or. beta/=0.0_wp) then
-                return
-            end if
+            if (alpha/=0.0 .or. beta/=0.0) return
         end if
         !
         !     check that non-derivative coefficient functions
         !     are zero
         !
         do i = is, ms
-            xi = ait + real(i - 1, kind=wp) * dlx
+            xi = ait + real(i - 1)*dlx
             call cofx(xi, ai, bi, ci)
-            if (ci == 0.0_wp) then
-                cycle
-            end if
+            if (ci == 0.0) cycle
             return
         end do
         !
@@ -1197,7 +1113,7 @@ contains
         !     compute truncation error approximation over the entire mesh
         !
         do i = is, ms
-            xi = ait + real(i - 1, kind=wp) * dlx
+            xi = ait + real(i - 1)*dlx
             call cofx(xi, ai, bi, ci)
             do j = js, ns
                 !
@@ -1205,19 +1121,15 @@ contains
                 !
                 call sepdx(usol, idmn, i, j, uxxx, uxxxx)
                 call sepdy(usol, idmn, i, j, uyyy, uyyyy)
-                tx = ai*uxxxx/12 + bi*uxxx/6
-                ty = uyyyy/12
+                tx = ai*uxxxx/12.0 + bi*uxxx/6.0
+                ty = uyyyy/12.0
                 !
                 !     reset form of truncation if at boundary which is non-periodic
                 !
-                if (kswx/=1 .and.(i==1 .or. i==k)) then
-                    tx = (ai/3) * (uxxxx/4 + uxxx/dlx)
-                end if
-
-                if (kswy/=1.and.(j==1.or.j==l)) then
-                    ty = (uyyyy/4 + uyyy/dly)/3
-                    grhs(i, j) = grhs(i, j) + (dly**2) * ((dlx**2) * tx + (dly**2) * ty)
-                end if
+                if (kswx/=1 .and.(i==1 .or. i==k)) tx = ai/3.0_wp * (uxxxx/4.0 &
+                    + uxxx/dlx)
+                if (kswy/=1.and.(j==1.or.j==l))ty=(uyyyy/4.0+uyyy/dly)/3.0
+                grhs(i, j) = grhs(i, j) + dly**2*(dlx**2*tx + dly**2*ty)
             end do
         end do
         !

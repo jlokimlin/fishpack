@@ -34,34 +34,36 @@
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
 !
-! PACKAGE GNBNAUX
+! Package gnbnaux
 !
-! LATEST REVISION        June 2004
+! Latest revision        April 2016
 !
-! PURPOSE                TO PROVIDE AUXILIARY ROUTINES FOR FISHPACK
-!                        ENTRIES genbun AND POISTG.
+! Purpose                to provide auxiliary routines for fishpack
+!                        entries genbun and poistg.
 !
-! USAGE                  THERE ARE NO USER ENTRIES IN THIS PACKAGE.
-!                        THE ROUTINES IN THIS PACKAGE ARE NOT INTENDED
-!                        TO BE CALLED BY USERS, BUT RATHER BY ROUTINES
-!                        IN PACKAGES genbun AND POISTG.
+! Usage                  There are no user entries in this package.
+!                        the routines in this package are not intended
+!                        to be called by users, but rather by routines
+!                        in packages genbun and poistg.
 !
-! SPECIAL CONDITIONS     NONE
+! Special conditions     none
 !
-! I/O                    NONE
+! I/O                    none
 !
-! PRECISION              SINGLE
+! Precision              64-bit float and 32-bit integer
 !
 !
-! LANGUAGE               FORTRAN 90
+! Language               Fortran 2008
 !
-! HISTORY                WRITTEN IN 1979 BY ROLAND SWEET OF NCAR'S
-!                        SCIENTIFIC COMPUTING DIVISION.  MADE AVAILABLE
-!                        ON NCAR'S PUBLIC LIBRARIES IN JANUARY, 1980.
-!                        Revised by John Adams in June 2004 incorporating
+! History                * Written in 1979 by Roland Sweet of NCAR'S
+!                        scientific computing division. Made available
+!                        on NCAR's public libraries in January, 1980.
+!                        * Revised by John Adams in June 2004 incorporating
 !                        Fortran 90 features
+!                        * Revised by Jon Lo Kim Lin in 2016 incorporating
+!                        Fortran 2008 features
 !
-! PORTABILITY            FORTRAN 90
+! Portability            Fortran 2008
 !
 module module_gnbnaux
 
@@ -184,38 +186,49 @@ contains
         ifc = idegcr + 1
         l = ifb/ifc
         lint = 1
-        do k = 1, idegbr
+
+        outer_loop: do k = 1, idegbr
+
             x = tcos(k)
+
             if (k == l) then
                 i = idegbr + lint
                 xx = x - tcos(i)
                 w(:m) = y(:m)
                 y(:m) = xx*y(:m)
             end if
+
             z = 1.0_wp/(b(1)-x)
             d(1) = c(1)*z
             y(1) = y(1)*z
+
             do i = 2, mm1
                 z = 1.0_wp/(b(i)-x-a(i)*d(i-1))
                 d(i) = c(i)*z
                 y(i) = (y(i)-a(i)*y(i-1))*z
             end do
+
             z = b(m) - x - a(m)*d(mm1)
+
             if (z == 0.0_wp) then
                 y(m) = 0.0_wp
             else
                 y(m) = (y(m)-a(m)*y(mm1))/z
             end if
+
             do ip = 1, mm1
                 y(m-ip) = y(m-ip) - d(m-ip)*y(m+1-ip)
             end do
+
             if (k /= l) then
-                cycle
+                cycle outer_loop
             end if
+
             y(:m) = y(:m) + w(:m)
             lint = lint + 1
             l = (lint*ifb)/ifc
-        end do
+
+        end do outer_loop
 
     end subroutine trix
 
@@ -263,6 +276,7 @@ contains
         if3 = k3 + 1
         if4 = k4 + 1
         k2k3k4 = k2 + k3 + k4
+
         if (k2k3k4 /= 0) then
             l1 = if1/if2
             l2 = if1/if3
@@ -274,7 +288,8 @@ contains
             kint2 = kint1 + k2
             kint3 = kint2 + k3
         end if
-        do n = 1, k1
+
+        outer_loop: do n = 1, k1
             x = tcos(n)
             if (k2k3k4 /= 0) then
                 if (n == l1) then
@@ -292,6 +307,7 @@ contains
             y1(1) = y1(1)*z
             y2(1) = y2(1)*z
             y3(1) = y3(1)*z
+
             do i = 2, m
                 z = 1.0_wp/(b(i)-x-a(i)*d(i-1))
                 d(i) = c(i)*z
@@ -299,14 +315,17 @@ contains
                 y2(i) = (y2(i)-a(i)*y2(i-1))*z
                 y3(i) = (y3(i)-a(i)*y3(i-1))*z
             end do
+
             do ipp = 1, mm1
                 y1(m-ipp) = y1(m-ipp) - d(m-ipp)*y1(m+1-ipp)
                 y2(m-ipp) = y2(m-ipp) - d(m-ipp)*y2(m+1-ipp)
                 y3(m-ipp) = y3(m-ipp) - d(m-ipp)*y3(m+1-ipp)
             end do
+
             if (k2k3k4 == 0) then
-                cycle
+                cycle outer_loop
             end if
+
             if (n == l1) then
                 i = lint1 + kint1
                 xx = x - tcos(i)
@@ -314,6 +333,7 @@ contains
                 lint1 = lint1 + 1
                 l1 = (lint1*if1)/if2
             end if
+
             if (n == l2) then
                 i = lint2 + kint2
                 xx = x - tcos(i)
@@ -321,15 +341,18 @@ contains
                 lint2 = lint2 + 1
                 l2 = (lint2*if1)/if3
             end if
+
             if (n /= l3) then
-                cycle
+                cycle outer_loop
             end if
+
             i = lint3 + kint3
             xx = x - tcos(i)
             y3(:m) = xx*y3(:m) + w3(:m)
             lint3 = lint3 + 1
             l3 = (lint3*if1)/if4
-        end do
+
+        end do outer_loop
 
     end subroutine tri3
 
@@ -363,44 +386,77 @@ contains
         j1 = 1
         j2 = 1
         j = i3
-        if (m1 == 0) go to 107
-        if (m2 == 0) go to 104
+        if (m1 == 0) then
+            go to 107
+        end if
+
+        if (m2 == 0) then
+            go to 104
+        end if
+
 101 continue
+
     j11 = j1
     j3 = max(m1, j11)
+
     do j1 = j11, j3
         j = j + 1
         l = j1 + i1
         x = tcos(l)
         l = j2 + i2
         y = tcos(l)
-        if (x - y > 0.) go to 103
+
+        if (x - y > 0.0_wp) then
+            go to 103
+        end if
+
         tcos(j) = x
     end do
+
     go to 106
+
 103 continue
+
     tcos(j) = y
     j2 = j2 + 1
-    if (j2 <= m2) go to 101
-    if (j1 > m1) go to 109
+
+    if (j2 <= m2) then
+        go to 101
+    end if
+
+    if (j1 > m1) then
+        return
+    end if
+
+
 104 continue
+
     k = j - j1 + 1
+
     do j = j1, m1
         m = k + j
         l = j + i1
         tcos(m) = tcos(l)
     end do
-    go to 109
+
+    return
+
 106 continue
-    if (j2 > m2) go to 109
+
+    if (j2 > m2) then
+        return
+    end if
+
 107 continue
+
     k = j - j2 + 1
+
     do j = j2, m2
         m = k + j
         l = j + i2
         tcos(m) = tcos(l)
     end do
-109 continue
+
 
 end subroutine merge_rename
 

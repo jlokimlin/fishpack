@@ -84,9 +84,9 @@ module module_sepaux
     !---------------------------------------------------------------------------------
     ! Dictionary: global variables shared with sepeli.f90 and sepx4.f90
     !---------------------------------------------------------------------------------
-    integer (ip), public :: kswx, kswy, k, l, mit, nit, is, ms, js, ns
-    real (wp),    public :: ait, bit, cit, dit
-    real (wp),    public :: dlx, dly, tdlx3, tdly3, dlx4, dly4
+    integer (ip), save, public :: kswx, kswy, k, l, mit, nit, is, ms, js, ns
+    real (wp),    save, public :: ait, bit, cit, dit
+    real (wp),    save, public :: dlx, dly, tdlx3, tdly3, dlx4, dly4
     !---------------------------------------------------------------------------------
 
     interface
