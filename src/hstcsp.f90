@@ -760,7 +760,7 @@ contains
     !     INITIALIZE blktri
     !
     ierr1 = 0
-    if (intl == 0) call blktriI (0, 1, n, an, bn, cn, 1, m, am, bm, cm &
+    if (intl == 0) call blktrii(0, 1, n, an, bn, cn, 1, m, am, bm, cm &
         , idimf, f, ierr1, w, wc)
     call blktriI(1, 1, n, an, bn, cn, 1, m, am, bm, cm, idimf, f, ierr1, w, wc)
     if (.not.(isw/=2 .or. c/=0. .or. nbdcnd/=2)) then
