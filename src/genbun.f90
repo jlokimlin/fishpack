@@ -565,7 +565,7 @@ subroutine poisd2(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
     real (wp),    intent (in out) :: tcos(*)
     real (wp),    intent (in out) :: p(*)
     !-----------------------------------------------
-    ! dictionary: local variables
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer (ip)    :: m, n, jsh, ipp, ipstor, kr, irreg, jstsav, i, lr, nun
     integer (ip)    :: jst, jsp, l, nodd, j, jm1, jp1, jm2, jp2, jm3, jp3, noddpr
@@ -739,6 +739,7 @@ subroutine poisd2(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
 
     call cosgen(kr, jstsav, 0.0_wp, fi, tcos)
     call trix (kr, kr, m, ba, bb, bc, b, tcos, d, w)
+
     q(:m, j) = q(:m, jm2) + b(:m) + p(ipp+1:m+ipp)
     lr = kr
     kr = kr + l
@@ -755,15 +756,15 @@ case (2)
     jm3 = jm2 - jsh
 
     select case (irreg)
-        case default
-            jstsav = jst
-            ideg = jst
-            kr = l
         case (2)
             call cosgen(kr, jstsav, 0.0, fi, tcos)
             call cosgen(lr, jstsav, 0.0, fi, tcos(kr+1))
             ideg = kr
             kr = kr + jst
+        case default
+            jstsav = jst
+            ideg = jst
+            kr = l
     end select
 
 139 continue
@@ -923,17 +924,13 @@ end select
         case (1)
             go to 175
         case (2)
-            go to 178
+            if (j + jsh <= n) then
+                q(:m, j) = b(:m) + p(ipp+1:m+ipp)
+                ipp = ipp - m
+            else
+                q(:m, j) = b(:m) + q(:m, j) - q(:m, jm1)
+            end if
     end select
-
-178 continue
-
-    if (j + jsh <= n) then
-        q(:m, j) = b(:m) + p(ipp+1:m+ipp)
-        ipp = ipp - m
-    else
-        q(:m, j) = b(:m) + q(:m, j) - q(:m, jm1)
-    end if
 
 end if
 end do
@@ -948,7 +945,7 @@ end subroutine poisd2
 subroutine poisn2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
     b3, w, w2, w3, d, tcos, p)
     !-----------------------------------------------
-    ! dictionary: calling arguments
+    ! Dictionary: calling arguments
     !-----------------------------------------------
     integer (ip), intent (in)     :: m
     integer (ip), intent (in)     :: n
@@ -969,7 +966,7 @@ subroutine poisn2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
     real (wp),    intent (in out) :: tcos(*)
     real (wp),    intent (in out) :: p(*)
     !-----------------------------------------------
-    ! dictionary: local variables
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer (ip)    :: k(4)
     integer (ip)    :: k1, k2, k3, k4, mr, ipp, ipstor, i2r, jr, nr, nlast, kr
@@ -1592,7 +1589,7 @@ subroutine poisp2(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
     real (wp),    intent (in out) :: tcos(*)
     real (wp),    intent (in out) :: p(*)
     !-----------------------------------------------
-    ! dictionary: local variables
+    ! Dictionary: local variables
     !-----------------------------------------------
     integer (ip) :: mr, nr, nrm1, j, nrmj, nrpj, i, lh
     real (wp)    :: ipstor
