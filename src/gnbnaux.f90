@@ -77,9 +77,26 @@ module module_gnbnaux
     ! Everything is private unless stated otherwise
     private
     public :: cosgen
-    public :: merge_rename
+    public :: merger
     public :: trix
     public :: tri3
+    public :: GenbunAux
+
+    type, public :: GenbunAux
+        !--------------------------------------------------
+        ! Class variables
+        !--------------------------------------------------
+    contains
+        !--------------------------------------------------
+        ! Class methods
+        !--------------------------------------------------
+        procedure, nopass, public :: cosgen
+        procedure, nopass, public :: merger
+        procedure, nopass, public :: trix
+        procedure, nopass, public :: tri3
+        !--------------------------------------------------
+    end type GenbunAux
+
 
 contains
 
@@ -357,7 +374,7 @@ contains
     end subroutine tri3
 
 
-    subroutine merge_rename(tcos, i1, m1, i2, m2, i3)
+    subroutine merger(tcos, i1, m1, i2, m2, i3)
         !
         ! Purpose:
         !
@@ -458,7 +475,7 @@ contains
     end do
 
 
-end subroutine merge_rename
+end subroutine merger
 
 
 end module module_gnbnaux

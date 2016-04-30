@@ -9,10 +9,7 @@ module module_genbun
         FishpackWorkspace
 
     use module_gnbnaux, only: &
-        cosgen, &
-        merge_rename, &
-        trix, &
-        tri3
+        GenbunAux
 
     ! Explicit typing only
     implicit none
@@ -62,15 +59,15 @@ contains
         !     *                                                               *
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
-        !     subroutine genbun(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
+        ! SUBROUTINE genbun(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
         !
         !
-        ! Dimension of           a(m), b(m), c(m), y(idimy, n)
-        ! arguments
+        ! DIMENSION OF           a(m), b(m), c(m), y(idimy, n)
+        ! ARGUMENTS
         !
-        ! Latest revision        April 2016
+        ! LATEST REVISION        April 2016
         !
-        ! Purpose                The name of this package is a mnemonic for the
+        ! PURPOSE                The name of this package is a mnemonic for the
         !                        generalized buneman algorithm.
         !
         !                        It solves the real linear system of equations
@@ -86,11 +83,11 @@ contains
         !                        and x(i, n+1) may equal 0, x(i, n-1), or x(i, 1)
         !                        depending on an input parameter.
         !
-        ! Usage                  call genbun(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
+        ! USAGE                  call genbun(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
         !
-        ! Arguments
+        ! ARGUMENTS
         !
-        ! On input               nperod
+        ! ON INPUT               nperod
         !
         !                          Indicates the values that x(i, 0) and
         !                          x(i, n+1) are assumed to have.
@@ -146,7 +143,7 @@ contains
         !                          y must be dimensioned at least m*n.
         !
         !
-        !  on output             y
+        !  ON OUTPUT             y
         !
         !                          Contains the solution x.
         !
@@ -172,39 +169,39 @@ contains
         !                               for your computer)
         !
         !
-        ! Special conditons      None
+        ! SPECIAL CONDITONS      None
         !
         ! I/O                    None
         !
-        ! Precision              64-bit precision float and 32-bit precision integer
+        ! PRECISION              64-bit precision float and 32-bit precision integer
         !
-        ! Required files         comf.f, gnbnaux.f, fish.f
-        ! files
+        ! REQUIRED FILES         comf.f90, gnbnaux.f90, type_FishpackWorkspace.f90
         !
-        ! Language               Fortran 2008
         !
-        ! History                Written in 1979 by Roland Sweet of NCAR'S
+        ! STANDARD               Fortran 2008
+        !
+        ! HISTORY                Written in 1979 by Roland Sweet of NCAR'S
         !                        scientific computing division. made available
         !                        on NCAR'S public libraries in january, 1980.
         !
         !                        Revised in June 2004 by John Adams using
         !                        Fortran 90 dynamically allocated work space.
         !
-        ! Algorithm              The linear system is solved by a cyclic
+        ! ALGORITHM              The linear system is solved by a cyclic
         !                        reduction algorithm described in the
         !                        reference.
         !
-        ! Portability            Fortran 2008 --
+        ! PORTABILITY            Fortran 2008 --
         !                        the machine dependent constant pi is
         !                        defined as acos(-1.0_wp) where wp = REAL64
         !                        from the intrinsic module iso_fortran_env.
         !
-        ! References             Sweet, R., "A cyclic reduction algorithm for
+        ! REFERENCES             Sweet, R., "A cyclic reduction algorithm for
         !                        solving block tridiagonal systems of arbitrary
         !                        dimensions, " SIAM J. On Numer. Anal., 14 (1977)
         !                        PP. 706-720.
         !
-        ! Accuracy               This test was performed on a platform with
+        ! ACCURACY               This test was performed on a platform with
         !                        64 bit floating point arithmetic.
         !                        a uniform random number generator was used
         !                        to create a solution array x for the system
@@ -271,56 +268,34 @@ contains
         !--------------------------------------------------------------------------------
         integer (ip)             :: irwk
         type (FishpackWorkspace) :: workspace
-        !-----------------------------------------------
+        !--------------------------------------------------------------------------------
 
-        ! initialize error flag
-        ierror = 0
-
-        ! check input arguments: case 1
-        if (m <= 2) then
-            ierror = 1
-            return
-        end if
-
-        ! check input arguments: case 2
-        if (n <= 2) then
-            ierror = 2
-            return
-        end if
-
-        ! check input arguments: case 3
-        if (idimy < m) then
-            ierror = 3
-            return
-        end if
-
-        ! check input arguments: case 4
-        if (nperod < 0 .or. nperod > 4) then
-            ierror = 4
-            return
-        end if
-
-        ! check input arguments: case 5
-        if (mperod < 0 .or. mperod > 1) then
-            ierror = 5
-            return
-        end if
-
-        ! compute real workspace size for genbun
-        call workspace%get_genbun_workspace_dimensions(n, m, irwk)
-
-        ! create real workspace
+        !
+        !==> Allocate memory
+        !
         associate( icwk => 0 )
-            call workspace%create( irwk, icwk, ierror )
+
+            ! Compute real workspace size for genbun algorithm
+            call workspace%get_genbun_workspace_dimensions(n, m, irwk)
+
+            call workspace%create(irwk, icwk)
+
         end associate
 
-        ! solve system
+        !
+        !==> Solve system
+        !
         associate( rew => workspace%real_workspace )
-            call genbunn(nperod, n, mperod, m, a, b, c, idimy, y, ierror, rew )
+
+            call genbunn(nperod, n, mperod, m, a, b, c, idimy, y, ierror, rew)
+
         end associate
 
-        ! Release allocated work space
+        !
+        !==> Release memory
+        !
         call workspace%destroy()
+
 
     end subroutine genbun
 
@@ -344,92 +319,78 @@ contains
         !--------------------------------------------------------------------------------
         ! Dictionary: local variables
         !--------------------------------------------------------------------------------
-        integer (ip)    :: i, mp1, iwba, iwbb, iwbc, iwb2, iwb3, iww1, iww2, iww3
-        integer (ip)    :: iwd, iwtcos, iwp, k, j, mp, np, irev, mh, mhm1, modd
-        integer (ip)    :: nby2, mskip
-        real (wp)       :: a1, ipstor
-        !-----------------------------------------------
+        integer (ip)  :: workspace_indices(12)
+        integer (ip)  :: i, k, j, mp, np, irev, mh, mhm1, modd
+        integer (ip)  :: nby2, mskip
+        real (wp)     :: temp, ipstor
+        !--------------------------------------------------------------------------------
 
-        ! initialize error flag
-        ierror = 0
+        !
+        !==> Check validity of input arguments
+        !
+        call check_input_arguments(nperod, n, mperod, m, idimy, ierror, a, b, c)
 
-        ! check input arguments: case 6
-        if (mperod /= 1) then
-            loop: do i = 2, m
-                if (a(i) /= c(1)) then
-                    ierror = 6
-                    exit loop
-                end if
-                if (c(i) /= c(1)) then
-                    ierror = 6
-                    exit loop
-                end if
-                if (b(i) /= b(1)) then
-                    ierror = 6
-                    exit loop
-                end if
-            end do loop
-        end if
-
-        ! check input arguments: case 7
-        if (a(1) /= 0.0_wp .or. c(m) /= 0.0_wp) then
-            ierror = 7
-        end if
-
-        ! check the error flag
-        if (ierror /= 0) then
+        ! Check error flag
+        if (ierror /=0) then
             return
         end if
 
-        mp1 = m + 1
-        iwba = mp1
-        iwbb = iwba + m
-        iwbc = iwbb + m
-        iwb2 = iwbc + m
-        iwb3 = iwb2 + m
-        iww1 = iwb3 + m
-        iww2 = iww1 + m
-        iww3 = iww2 + m
-        iwd = iww3 + m
-        iwtcos = iwd + m
-        iwp = iwtcos + 4*n
+        !
+        !==> Compute workspace indices
+        !
+        workspace_indices = get_genbunn_workspace_indices(n, m)
 
-        w(iwba:m-1+iwba) = -a(:m)
-        w(iwbc:m-1+iwbc) = -c(:m)
-        w(iwbb:m-1+iwbb) = 2. - b(:m)
-        y(:m, :n) = -y(:m, :n)
+        associate( &
+            mp1 => workspace_indices(1), &
+            iwba => workspace_indices(2), &
+            iwbb => workspace_indices(3), &
+            iwbc => workspace_indices(4), &
+            iwb2 => workspace_indices(5), &
+            iwb3 => workspace_indices(6), &
+            iww1 => workspace_indices(7), &
+            iww2 => workspace_indices(8), &
+            iww3 => workspace_indices(9), &
+            iwd => workspace_indices(10), &
+            iwtcos => workspace_indices(11), &
+            iwp => workspace_indices(12) &
+            )
 
-        mp = mperod + 1
-        np = nperod + 1
+            w(iwba:m-1+iwba) = -a(:m)
+            w(iwbc:m-1+iwbc) = -c(:m)
+            w(iwbb:m-1+iwbb) = 2.0_wp - b(:m)
+            y(:m, :n) = -y(:m, :n)
 
-        select case (mp)
+            mp = mperod + 1
+            np = nperod + 1
+
+            select case (mp)
+                case (1)
+                    go to 114
+                case (2)
+                    go to 107
+            end select
+
+107     continue
+
+        select case (np)
             case (1)
-                go to 114
+                call poisp2(m, n, w(iwba), w(iwbb), w(iwbc), &
+                    y, idimy, w, w(iwb2), w(iwb3), w(iww1), &
+                    w(iww2), w(iww3), w(iwd), w(iwtcos), w(iwp) )
             case (2)
-                go to 107
+                call poisd2(m, n, 1, w(iwba), w(iwbb), w(iwbc), &
+                    y, idimy, w, w(iww1), w(iwd), w(iwtcos), w(iwp))
+            case (3)
+                call poisn2(m, n, 1, 2, w(iwba), w(iwbb), w(iwbc), &
+                    y, idimy, w, w(iwb2), w(iwb3), w(iww1), w(iww2),  &
+                    w(iww3), w(iwd), w(iwtcos), w(iwp))
+            case (4)
+                call poisn2(m, n, 1, 1, w(iwba), w(iwbb), w(iwbc), &
+                    y, idimy, w, w(iwb2), w(iwb3), w(iww1), w(iww2), &
+                    w(iww3), w(iwd), w(iwtcos), w(iwp))
+            case (5)
+                go to 123
         end select
-
-107 continue
-
-    select case (np)
-        case (1)
-            call poisp2(m, n, w(iwba), w(iwbb), w(iwbc), &
-                y, idimy, w, w(iwb2), w(iwb3), w(iww1), &
-                w(iww2), w(iww3), w(iwd), w(iwtcos), w(iwp) )
-        case (2)
-            call poisd2(m, n, 1, w(iwba), w(iwbb), w(iwbc), &
-                y, idimy, w, w(iww1), w(iwd), w(iwtcos), w(iwp))
-        case (3)
-            call poisn2(m, n, 1, 2, w(iwba), w(iwbb), w(iwbc), &
-                y, idimy, w, w(iwb2), w(iwb3), w(iww1), w(iww2),  &
-                w(iww3), w(iwd), w(iwtcos), w(iwp))
-        case (4)
-            call poisn2(m, n, 1, 1, w(iwba), w(iwbb), w(iwbc), &
-                y, idimy, w, w(iwb2), w(iwb3), w(iww1), w(iww2), &
-                w(iww3), w(iwd), w(iwtcos), w(iwp))
-        case (5)
-            go to 123
-    end select
 
 112 continue
 
@@ -503,9 +464,9 @@ contains
     do j = 1, nby2
         mskip = n + 1 - j
         do i = 1, m
-            a1 = y(i, j)
+            temp = y(i, j)
             y(i, j) = y(i, mskip)
-            y(i, mskip) = a1
+            y(i, mskip) = temp
         end do
     end do
 
@@ -535,6 +496,122 @@ contains
     end do
 
     w(1) = ipstor + real(iwp - 1, kind=wp)
+
+end associate
+
+
+contains
+
+
+    pure subroutine check_input_arguments(nperod, n, mperod, m, idimy, ierror, a, b, c)
+        !--------------------------------------------------------------------------------
+        ! Dictionary: calling arguments
+        !--------------------------------------------------------------------------------
+        integer (ip), intent (in)  :: nperod
+        integer (ip), intent (in)  :: n
+        integer (ip), intent (in)  :: mperod
+        integer (ip), intent (in)  :: m
+        integer (ip), intent (in)  :: idimy
+        integer (ip), intent (out) :: ierror
+        real (wp),    intent (in)  :: a(*)
+        real (wp),    intent (in)  :: b(*)
+        real (wp),    intent (in)  :: c(*)
+        !--------------------------------------------------------------------------------
+        ! Dictionary: local variables
+        !--------------------------------------------------------------------------------
+        integer (ip) :: i !! Counter
+        !--------------------------------------------------------------------------------
+
+        !
+        !==> Initialize error flag
+        !
+        ierror = 0
+
+        ! Case 1
+        if (m <= 2) then
+            ierror = 1
+            return
+        end if
+
+        ! Case 2
+        if (n <= 2) then
+            ierror = 2
+            return
+        end if
+
+        ! Case 3
+        if (idimy < m) then
+            ierror = 3
+            return
+        end if
+
+        ! Case 4
+        if (nperod < 0 .or. nperod > 4) then
+            ierror = 4
+            return
+        end if
+
+        ! Case 5
+        if (mperod < 0 .or. mperod > 1) then
+            ierror = 5
+            return
+        end if
+
+        ! Case 6
+        if (mperod /= 1) then
+            do i = 2, m
+
+                if (a(i) /= c(1)) then
+                    ierror = 6
+                    return
+                end if
+
+                if (c(i) /= c(1)) then
+                    ierror = 6
+                    return
+                end if
+
+                if (b(i) /= b(1)) then
+                    ierror = 6
+                    return
+                end if
+
+            end do
+        end if
+
+        ! Case 7
+        if (a(1) /= 0.0_wp .or. c(m) /= 0.0_wp) then
+            ierror = 7
+            return
+        end if
+
+    end subroutine check_input_arguments
+
+
+    pure function get_genbunn_workspace_indices(n, m) result (return_value)
+        !--------------------------------------------------------------------------------
+        ! Dictionary: calling arguments
+        !--------------------------------------------------------------------------------
+        integer (ip), intent (in) :: n
+        integer (ip), intent (in) :: m
+        integer (ip)              :: return_value(12)
+        !--------------------------------------------------------------------------------
+        integer (ip) :: j !! Counter
+        !--------------------------------------------------------------------------------
+
+        associate( i => return_value)
+
+            i(1:2) = m + 1
+
+            do j = 3, 11
+                i(j) = i(j-1) + m
+            end do
+
+            i(12) = i(11) + 4 * n
+        end associate
+
+    end function get_genbunn_workspace_indices
+
 
 end subroutine genbunn
 
@@ -569,10 +646,12 @@ subroutine poisd2(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer (ip)    :: m, n, jsh, ipp, ipstor, kr, irreg, jstsav, i, lr, nun
-    integer (ip)    :: jst, jsp, l, nodd, j, jm1, jp1, jm2, jp2, jm3, jp3, noddpr
-    integer (ip)    :: krpi, ideg, jdeg
-    real (wp)       :: fi, t
+    integer (ip)     :: m, n, jsh, ipp, ipstor, kr
+    integer (ip)     :: irreg, jstsav, i, lr, nun, nodd, noddpr
+    integer (ip)     :: jst, jsp, l, j, jm1, jp1, jm2, jp2, jm3, jp3
+    integer (ip)     :: krpi, ideg, jdeg
+    real (wp)        :: fi, t
+    type (GenbunAux) :: genbun_aux
     !-----------------------------------------------
 
     m = mr
@@ -603,7 +682,9 @@ subroutine poisd2(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
 103 continue
 
     b(:m) = q(:m, 1)
-    call trix (1, 0, m, ba, bb, bc, b, tcos, d, w)
+
+    call genbun_aux%trix(1, 0, m, ba, bb, bc, b, tcos, d, w)
+
     q(:m, 1) = b(:m)
 
     w(1) = ipstor
@@ -638,7 +719,7 @@ subroutine poisd2(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
 
 111 continue
 
-    call cosgen(jst, 1, 0.5_wp, 0.0_wp, tcos)
+    call genbun_aux%cosgen(jst, 1, 0.5_wp, 0.0_wp, tcos)
 
     if (l <= jsp) then
         do j = l, jsp, l
@@ -660,7 +741,7 @@ subroutine poisd2(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
                 end do
             end if
 
-            call trix (jst, 0, m, ba, bb, bc, b, tcos, d, w)
+            call genbun_aux%trix(jst, 0, m, ba, bb, bc, b, tcos, d, w)
             q(:m, j) = q(:m, j) + b(:m)
 
         end do
@@ -723,7 +804,7 @@ subroutine poisd2(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
 
 130 continue
 
-    call trix (jst, 0, m, ba, bb, bc, b, tcos, d, w)
+    call genbun_aux%trix(jst, 0, m, ba, bb, bc, b, tcos, d, w)
     ipp = ipp + m
     ipstor = max(ipstor, ipp + m)
     p(ipp+1:m+ipp) = q(:m, j) + b(:m)
@@ -735,12 +816,12 @@ subroutine poisd2(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
             tcos(krpi) = tcos(i)
         end do
     else
-        call cosgen(lr, jstsav, 0.0_wp, fi, tcos(jst+1))
-        call merge_rename(tcos, 0, jst, jst, lr, kr)
+        call genbun_aux%cosgen(lr, jstsav, 0.0_wp, fi, tcos(jst+1))
+        call genbun_aux%merger(tcos, 0, jst, jst, lr, kr)
     end if
 
-    call cosgen(kr, jstsav, 0.0_wp, fi, tcos)
-    call trix (kr, kr, m, ba, bb, bc, b, tcos, d, w)
+    call genbun_aux%cosgen(kr, jstsav, 0.0_wp, fi, tcos)
+    call genbun_aux%trix(kr, kr, m, ba, bb, bc, b, tcos, d, w)
 
     q(:m, j) = q(:m, jm2) + b(:m) + p(ipp+1:m+ipp)
     lr = kr
@@ -759,8 +840,8 @@ case (2)
 
     select case (irreg)
         case (2)
-            call cosgen(kr, jstsav, 0.0, fi, tcos)
-            call cosgen(lr, jstsav, 0.0, fi, tcos(kr+1))
+            call genbun_aux%cosgen(kr, jstsav, 0.0, fi, tcos)
+            call genbun_aux%cosgen(lr, jstsav, 0.0, fi, tcos(kr+1))
             ideg = kr
             kr = kr + jst
         case default
@@ -795,7 +876,7 @@ case (2)
 
 150 continue
 
-    call trix (ideg, lr, m, ba, bb, bc, b, tcos, d, w)
+    call genbun_aux%trix(ideg, lr, m, ba, bb, bc, b, tcos, d, w)
     q(:m, j) = q(:m, j) + b(:m)
 
 end select
@@ -819,17 +900,17 @@ end select
     select case (irreg)
         case (2)
             kr = lr + jst
-            call cosgen(kr, jstsav, 0.0_wp, fi, tcos)
-            call cosgen(lr, jstsav, 0.0_wp, fi, tcos(kr+1))
+            call genbun_aux%cosgen(kr, jstsav, 0.0_wp, fi, tcos)
+            call genbun_aux%cosgen(lr, jstsav, 0.0_wp, fi, tcos(kr+1))
             ideg = kr
         case default
-            call cosgen(jst, 1, 0.5_wp, 0.0_wp, tcos)
+            call genbun_aux%cosgen(jst, 1, 0.5_wp, 0.0_wp, tcos)
             ideg = jst
     end select
 
 156 continue
 
-    call trix(ideg, lr, m, ba, bb, bc, b, tcos, d, w)
+    call genbun_aux%trix(ideg, lr, m, ba, bb, bc, b, tcos, d, w)
     jm1 = j - jsh
     jp1 = j + jsh
 
@@ -887,7 +968,7 @@ end select
 
 170 continue
 
-    call cosgen(jst, 1, 0.5_wp, 0.0_wp, tcos)
+    call genbun_aux%cosgen(jst, 1, 0.5_wp, 0.0_wp, tcos)
     ideg = jst
     jdeg = 0
     go to 172
@@ -899,14 +980,14 @@ end select
     end if
 
     kr = jst + lr
-    call cosgen(kr, jstsav, 0.0_wp, fi, tcos)
-    call cosgen(lr, jstsav, 0.0_wp, fi, tcos(kr+1))
+    call genbun_aux%cosgen(kr, jstsav, 0.0_wp, fi, tcos)
+    call genbun_aux%cosgen(lr, jstsav, 0.0_wp, fi, tcos(kr+1))
     ideg = kr
     jdeg = lr
 
 172 continue
 
-    call trix (ideg, jdeg, m, ba, bb, bc, b, tcos, d, w)
+    call genbun_aux%trix(ideg, jdeg, m, ba, bb, bc, b, tcos, d, w)
 
     if (jst <= 1) then
         q(:m, j) = b(:m)
@@ -938,14 +1019,29 @@ end if
 end do
 
 l = l/2
+
 go to 164
+
 w(1) = ipstor
 
 end subroutine poisd2
 
 
+
 subroutine poisn2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
     b3, w, w2, w3, d, tcos, p)
+    !
+    ! Purpose
+    !
+    !     To solve poisson's equation with neumann boundary
+    !     conditions.
+    !
+    !     istag = 1 if the last diagonal block is a.
+    !     istag = 2 if the last diagonal block is a-i.
+    !     mixbnd = 1 if have neumann boundary conditions at both boundaries.
+    !     mixbnd = 2 if have neumann boundary conditions at bottom and
+    !     dirichlet condition at top.  (for this case, must have istag = 1.)
+    !
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
@@ -970,43 +1066,41 @@ subroutine poisn2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer (ip)    :: k(4)
-    integer (ip)    :: k1, k2, k3, k4, mr, ipp, ipstor, i2r, jr, nr, nlast, kr
-    integer (ip)    :: lr, i, nrod, jstart, jstop, i2rby2, j, jp1, jp2, jp3, jm1
-    integer (ip)    :: jm2, jm3, nrodpr, ii, i1, i2, jr2, nlastp, jstep
-    real (wp)       :: fistag, fnum, fden, fi, t
+    integer (ip)     :: k(4) !, k1, k2, k3, k4
+    integer (ip)     :: mr, ipp, ipstor, i2r, jr, nr, nlast, kr
+    integer (ip)     :: lr, i, nrod, jstart, jstop, i2rby2, j, jp1, jp2, jp3, jm1
+    integer (ip)     :: jm2, jm3, nrodpr, ii, i1, i2, jr2, nlastp, jstep
+    real (wp)        :: fistag, fnum, fden, fi, t
+    type (GenbunAux) :: genbun_aux
     !-----------------------------------------------
-    !
-    !     subroutine to solve poisson's equation with neumann boundary
-    !     conditions.
-    !
-    !     istag = 1 if the last diagonal block is a.
-    !     istag = 2 if the last diagonal block is a-i.
-    !     mixbnd = 1 if have neumann boundary conditions at both boundaries.
-    !     mixbnd = 2 if have neumann boundary conditions at bottom and
-    !     dirichlet condition at top.  (for this case, must have istag = 1.)
-    !
-    equivalence (k(1), k1), (k(2), k2), (k(3), k3), (k(4), k4)
 
-    fistag = 3 - istag
-    fnum = 1.0_wp/istag
-    fden = 0.5_wp * real(istag - 1, kind=wp)
-    mr = m
-    ipp = -mr
-    ipstor = 0
-    i2r = 1
-    jr = 2
-    nr = n
-    nlast = n
-    kr = 1
-    lr = 0
+        !equivalence (k(1), k1), (k(2), k2), (k(3), k3), (k(4), k4)
+    associate( &
+        k1 => k(1), &
+        k2 => k(2), &
+        k3 => k(3), &
+        k4 => k(4) &
+        )
 
-    select case (istag)
-        case (1)
-            go to 101
-        case (2)
-            go to 103
-    end select
+        fistag = 3 - istag
+        fnum = 1.0_wp/istag
+        fden = 0.5_wp * real(istag - 1, kind=wp)
+        mr = m
+        ipp = -mr
+        ipstor = 0
+        i2r = 1
+        jr = 2
+        nr = n
+        nlast = n
+        kr = 1
+        lr = 0
+
+        select case (istag)
+            case (1)
+                go to 101
+            case (2)
+                go to 103
+        end select
 
 101 continue
 
@@ -1051,7 +1145,7 @@ subroutine poisn2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
         jstop = jstop - i2r
     end if
 
-    call cosgen(i2r, 1, 0.5_wp, 0.0_wp, tcos)
+    call genbun_aux%cosgen(i2r, 1, 0.5_wp, 0.0_wp, tcos)
 
     i2rby2 = i2r/2
 
@@ -1084,7 +1178,7 @@ subroutine poisn2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
                 end do
             end if
 
-            call trix (i2r, 0, mr, a, bb, c, b, tcos, d, w)
+            call genbun_aux%trix(i2r, 0, mr, a, bb, c, b, tcos, d, w)
 
             q(:mr, j) = q(:mr, j) + b(:mr)
             !
@@ -1118,13 +1212,13 @@ subroutine poisn2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
                 q(:mr, j) = q(:mr, j) - q(:mr, jm1) + q(:mr, jm2)
             end if
             if (lr /= 0) then
-                call cosgen(lr, 1, 0.5_wp, fden, tcos(kr+1))
+                call genbun_aux%cosgen(lr, 1, 0.5_wp, fden, tcos(kr+1))
             else
                 b(:mr) = fistag*b(:mr)
             end if
         end if
-        call cosgen(kr, 1, 0.5_wp, fden, tcos)
-        call trix (kr, lr, mr, a, bb, c, b, tcos, d, w)
+        call genbun_aux%cosgen(kr, 1, 0.5_wp, fden, tcos)
+        call genbun_aux%trix(kr, lr, mr, a, bb, c, b, tcos, d, w)
         q(:mr, j) = q(:mr, j) + b(:mr)
         kr = kr + i2r
     else
@@ -1132,7 +1226,7 @@ subroutine poisn2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
         jp2 = j + i2r
         if (i2r == 1) then
             b(:mr) = q(:mr, j)
-            call trix (1, 0, mr, a, bb, c, b, tcos, d, w)
+            call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
             ipp = 0
             ipstor = mr
             select case (istag)
@@ -1141,7 +1235,7 @@ subroutine poisn2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
                     b(:mr) = b(:mr) + q(:mr, n)
                     tcos(1) = 1.0_wp
                     tcos(2) = 0.0_wp
-                    call trix (1, 1, mr, a, bb, c, b, tcos, d, w)
+                    call genbun_aux%trix(1, 1, mr, a, bb, c, b, tcos, d, w)
                     q(:mr, j) = q(:mr, jm2) + p(:mr) + b(:mr)
                     go to 150
                 case (1)
@@ -1159,15 +1253,15 @@ subroutine poisn2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
             b(:mr) = b(:mr) + q(:mr, jp2) - q(:mr, jp1)
         end if
 
-        call trix (i2r, 0, mr, a, bb, c, b, tcos, d, w)
+        call genbun_aux%trix(i2r, 0, mr, a, bb, c, b, tcos, d, w)
         ipp = ipp + mr
         ipstor = max(ipstor, ipp + mr)
         p(ipp+1:mr+ipp) = b(:mr) + 0.5_wp*(q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
         b(:mr) = p(ipp+1:mr+ipp) + q(:mr, jp2)
 
         if (lr /= 0) then
-            call cosgen(lr, 1, 0.5_wp, fden, tcos(i2r+1))
-            call merge_rename(tcos, 0, i2r, i2r, lr, kr)
+            call genbun_aux%cosgen(lr, 1, 0.5_wp, fden, tcos(i2r+1))
+            call genbun_aux%merger(tcos, 0, i2r, i2r, lr, kr)
         else
             do i = 1, i2r
                 ii = kr + i
@@ -1175,7 +1269,7 @@ subroutine poisn2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
             end do
         end if
 
-        call cosgen(kr, 1, 0.5_wp, fden, tcos)
+        call genbun_aux%cosgen(kr, 1, 0.5_wp, fden, tcos)
 
         if (lr == 0) then
             select case (istag)
@@ -1187,12 +1281,18 @@ subroutine poisn2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
         end if
 
 145 continue
-    call trix (kr, kr, mr, a, bb, c, b, tcos, d, w)
+
+    call genbun_aux%trix(kr, kr, mr, a, bb, c, b, tcos, d, w)
     go to 148
+
 146 continue
+
     b(:mr) = fistag*b(:mr)
+
 148 continue
+
     q(:mr, j) = q(:mr, jm2) + p(ipp+1:mr+ipp) + b(:mr)
+
 150 continue
     lr = kr
     kr = kr + jr
@@ -1250,7 +1350,7 @@ end select
         b(:mr) = q(:mr, 2)
         tcos(1) = 0.0_wp
 
-        call trix (1, 0, mr, a, bb, c, b, tcos, d, w)
+        call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
 
         q(:mr, 2) = b(:mr)
         b(:mr) = 4.0_wp*b(:mr) + q(:mr, 1) + 2.0_wp*q(:mr, 3)
@@ -1259,13 +1359,13 @@ end select
         i1 = 2
         i2 = 0
 
-        call trix (i1, i2, mr, a, bb, c, b, tcos, d, w)
+        call genbun_aux%trix(i1, i2, mr, a, bb, c, b, tcos, d, w)
 
         q(:mr, 2) = q(:mr, 2) + b(:mr)
         b(:mr) = q(:mr, 1) + 2.0_wp*q(:mr, 2)
         tcos(1) = 0.0_wp
 
-        call trix (1, 0, mr, a, bb, c, b, tcos, d, w)
+        call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
 
         q(:mr, 1) = b(:mr)
         jr = 1
@@ -1289,9 +1389,9 @@ end select
         - q(:mr, jm1) + q(:mr, nlast) - &
         q(:mr, jm2)
 
-    call cosgen(jr, 1, 0.5_wp, 0.0_wp, tcos)
+    call genbun_aux%cosgen(jr, 1, 0.5_wp, 0.0_wp, tcos)
 
-    call trix (jr, 0, mr, a, bb, c, b, tcos, d, w)
+    call genbun_aux%trix(jr, 0, mr, a, bb, c, b, tcos, d, w)
 
     q(:mr, j) = 0.5_wp*(q(:mr, j)-q(:mr, jm1)-q(:mr, jp1)) + b(:mr)
 
@@ -1299,18 +1399,18 @@ end select
 
     jr2 = 2*jr
 
-    call cosgen(jr, 1, 0.0_wp, 0.0_wp, tcos)
+    call genbun_aux%cosgen(jr, 1, 0.0_wp, 0.0_wp, tcos)
 
     tcos(jr+1:jr*2) = -tcos(jr:1:(-1))
 
-    call trix (jr2, 0, mr, a, bb, c, b, tcos, d, w)
+    call genbun_aux%trix(jr2, 0, mr, a, bb, c, b, tcos, d, w)
 
     q(:mr, j) = q(:mr, j) + b(:mr)
     b(:mr) = q(:mr, 1) + 2.0_wp*q(:mr, j)
 
-    call cosgen(jr, 1, 0.5_wp, 0.0_wp, tcos)
+    call genbun_aux%cosgen(jr, 1, 0.5_wp, 0.0_wp, tcos)
 
-    call trix (jr, 0, mr, a, bb, c, b, tcos, d, w)
+    call genbun_aux%trix(jr, 0, mr, a, bb, c, b, tcos, d, w)
 
     q(:mr, 1) = 0.5_wp*q(:mr, 1) - q(:mr, jm1) + b(:mr)
 
@@ -1354,43 +1454,43 @@ end select
     tcos(k1+1) = -2.
     k4 = k1 + 3 - istag
 
-    call cosgen(k2 + istag - 2, 1, 0.0_wp, fnum, tcos(k4))
+    call genbun_aux%cosgen(k2 + istag - 2, 1, 0.0_wp, fnum, tcos(k4))
 
     k4 = k1 + k2 + 1
 
-    call cosgen(jr - 1, 1, 0.0_wp, 1.0_wp, tcos(k4))
-    call merge_rename(tcos, k1, k2, k1 + k2, jr - 1, 0)
+    call genbun_aux%cosgen(jr - 1, 1, 0.0_wp, 1.0_wp, tcos(k4))
+    call genbun_aux%merger(tcos, k1, k2, k1 + k2, jr - 1, 0)
 
     k3 = k1 + k2 + lr
 
-    call cosgen(jr, 1, 0.5, 0.0, tcos(k3+1))
+    call genbun_aux%cosgen(jr, 1, 0.5, 0.0, tcos(k3+1))
 
     k4 = k3 + jr + 1
 
-    call cosgen(kr, 1, 0.5, fden, tcos(k4))
-    call merge_rename(tcos, k3, jr, k3 + jr, kr, k1)
+    call genbun_aux%cosgen(kr, 1, 0.5, fden, tcos(k4))
+    call genbun_aux%merger(tcos, k3, jr, k3 + jr, kr, k1)
 
     if (lr /= 0) then
-        call cosgen(lr, 1, 0.5, fden, tcos(k4))
-        call merge_rename(tcos, k3, jr, k3 + jr, lr, k3 - lr)
-        call cosgen(kr, 1, 0.5, fden, tcos(k4))
+        call genbun_aux%cosgen(lr, 1, 0.5, fden, tcos(k4))
+        call genbun_aux%merger(tcos, k3, jr, k3 + jr, lr, k3 - lr)
+        call genbun_aux%cosgen(kr, 1, 0.5, fden, tcos(k4))
     end if
 
     k3 = kr
     k4 = kr
 
-    call tri3 (mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
+    call genbun_aux%tri3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
 
     b(:mr) = b(:mr) + b2(:mr) + b3(:mr)
     tcos(1) = 2.0_wp
 
-    call trix (1, 0, mr, a, bb, c, b, tcos, d, w)
+    call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
 
     q(:mr, j) = q(:mr, j) + b(:mr)
     b(:mr) = q(:mr, 1) + 2.0_wp*q(:mr, j)
 
-    call cosgen(jr, 1, 0.5_wp, 0.0_wp, tcos)
-    call trix (jr, 0, mr, a, bb, c, b, tcos, d, w)
+    call genbun_aux%cosgen(jr, 1, 0.5_wp, 0.0_wp, tcos)
+    call genbun_aux%trix(jr, 0, mr, a, bb, c, b, tcos, d, w)
 
     if (jr == 1) then
         q(:mr, 1) = b(:mr)
@@ -1408,14 +1508,14 @@ if (n == 2) then
     b(:mr) = q(:mr, 1)
     tcos(1) = 0.0_wp
 
-    call trix (1, 0, mr, a, bb, c, b, tcos, d, w)
+    call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
 
     q(:mr, 1) = b(:mr)
     b(:mr) = 2.*(q(:mr, 2)+b(:mr))*fistag
     tcos(1) = -fistag
     tcos(2) = 2.0_wp
 
-    call trix (2, 0, mr, a, bb, c, b, tcos, d, w)
+    call genbun_aux%trix(2, 0, mr, a, bb, c, b, tcos, d, w)
 
     q(:mr, 1) = q(:mr, 1) + b(:mr)
     jr = 1
@@ -1431,28 +1531,28 @@ k1 = kr + jr - 1
 tcos(k1+1) = -2.
 k4 = k1 + 3 - istag
 
-call cosgen(kr + istag - 2, 1, 0.0, fnum, tcos(k4))
+call genbun_aux%cosgen(kr + istag - 2, 1, 0.0, fnum, tcos(k4))
 
 k4 = k1 + kr + 1
 
-call cosgen(jr - 1, 1, 0.0, 1.0, tcos(k4))
-call merge_rename(tcos, k1, kr, k1 + kr, jr - 1, 0)
-call cosgen(kr, 1, 0.5, fden, tcos(k1+1))
+call genbun_aux%cosgen(jr - 1, 1, 0.0, 1.0, tcos(k4))
+call genbun_aux%merger(tcos, k1, kr, k1 + kr, jr - 1, 0)
+call genbun_aux%cosgen(kr, 1, 0.5, fden, tcos(k1+1))
 
 k2 = kr
 k4 = k1 + k2 + 1
 
-call cosgen(lr, 1, 0.5, fden, tcos(k4))
+call genbun_aux%cosgen(lr, 1, 0.5, fden, tcos(k4))
 
 k3 = lr
 k4 = 0
 
-call tri3 (mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
+call genbun_aux%tri3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
 
 b(:mr) = b(:mr) + b2(:mr)
 tcos(1) = 2.0_wp
 
-call trix (1, 0, mr, a, bb, c, b, tcos, d, w)
+call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
 
 q(:mr, 1) = q(:mr, 1) + b(:mr)
 go to 194
@@ -1481,14 +1581,14 @@ go to 194
             q(:mr, nlast) = q(:mr, nlast) - q(:mr, jm2)
         end if
     end if
-    call cosgen(kr, 1, 0.5, fden, tcos)
-    call cosgen(lr, 1, 0.5, fden, tcos(kr+1))
+    call genbun_aux%cosgen(kr, 1, 0.5, fden, tcos)
+    call genbun_aux%cosgen(lr, 1, 0.5, fden, tcos(kr+1))
 
     if (lr == 0) then
         b(:mr) = fistag*b(:mr)
     end if
 
-    call trix (kr, lr, mr, a, bb, c, b, tcos, d, w)
+    call genbun_aux%trix(kr, lr, mr, a, bb, c, b, tcos, d, w)
 
     q(:mr, nlast) = q(:mr, nlast) + b(:mr)
     nlastp = nlast
@@ -1524,7 +1624,7 @@ go to 194
     end if
 
     lr = kr - jr
-    call cosgen(jr, 1, 0.5_wp, 0.0_wp, tcos)
+    call genbun_aux%cosgen(jr, 1, 0.5_wp, 0.0_wp, tcos)
 
     do j = jstart, jstop, jstep
         jm2 = j - jr
@@ -1544,7 +1644,7 @@ go to 194
             q(:mr, j) = 0.5_wp*(q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
         end if
 
-        call trix (jr, 0, mr, a, bb, c, b, tcos, d, w)
+        call genbun_aux%trix(jr, 0, mr, a, bb, c, b, tcos, d, w)
         q(:mr, j) = q(:mr, j) + b(:mr)
     end do
 
@@ -1560,6 +1660,8 @@ go to 194
     go to 206
 
     w(1) = ipstor
+
+end associate
 
 end subroutine poisn2
 
@@ -1703,13 +1805,14 @@ end subroutine poisp2
 
 end module module_genbun
 !
-! REVISION HISTORY---
+! Revision history
 !
-! SEPTEMBER 1973    VERSION 1
-! APRIL     1976    VERSION 2
-! JANUARY   1978    VERSION 3
-! DECEMBER  1979    VERSION 3.1
-! FEBRUARY  1985    DOCUMENTATION UPGRADE
-! NOVEMBER  1988    VERSION 3.2, FORTRAN 77 CHANGES
+! September 1973    Version 1
+! April     1976    Version 2
+! January   1978    Version 3
+! December  1979    Version 3.1
+! February  1985    Documentation upgrade
+! November  1988    Version 3.2, FORTRAN 77 changes
 ! June      2004    Version 5.0, Fortran 90 changes
-!-----------------------------------------------------------------------
+! April     2016    Fortran 2008 changes
+!
