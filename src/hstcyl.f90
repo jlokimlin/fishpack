@@ -1,5 +1,5 @@
 !
-!     file hstcyl.f
+!     file hstcyl.f90
 !
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
@@ -33,306 +33,305 @@
 !     *                                                               *
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-!     SUBROUTINE hstcyl (A, B, M, MBDCND, BDA, BDB, C, D, N, NBDCND, BDC, BDD, 
-!    +                   ELMBDA, F, IDIMF, PERTRB, ierror)
 !
-! DIMENSION OF           BDA(N), BDB(N), BDC(M), BDD(M), F(IDIMF, N)
+! SUBROUTINE hstcyl(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd,
+!            elmbda, f, idimf, pertrb, ierror)
+!
+! DIMENSION OF           bda(n), bdb(n), bdc(m), bdd(m), f(idimf, n)
 ! ARGUMENTS
 !
-! LATEST REVISION        June 2004
+! LATEST REVISION        April 2016
 !
-! PURPOSE                SOLVES THE STANDARD FIVE-POINT FINITE
-!                        DIFFERENCE APPROXIMATION ON A STAGGERED
-!                        GRID TO THE MODIFIED HELMHOLTZ EQUATION
-!                        IN CYLINDRICAL COORDINATES. THIS EQUATION
+! PURPOSE                Solves the standard five-point finite
+!                        difference approximation on a staggered
+!                        grid to the modified helmholtz equation
+!                        in cylindrical coordinates. this equation
 !
-!                          (1/R)(D/DR)(R(DU/DR)) + (D/DZ)(DU/DZ)
+!                          (1/r)(d/dr)(r(du/dr)) + (d/dz)(du/dz)
 !
-!                          + LAMBDA*(1/R**2)*U = F(R, Z)
+!                          + lambda*(1/r**2)*u = f(r, z)
 !
-!                        IS A TWO-DIMENSIONAL MODIFIED HELMHOLTZ
-!                        EQUATION RESULTING FROM THE FOURIER TRANSFORM
-!                        OF A THREE-DIMENSIONAL POISSON EQUATION.
+!                        Is a two-dimensional modified helmholtz
+!                        equation resulting from the fourier transform
+!                        of a three-dimensional poisson equation.
 !
-! USAGE                  CALL hstcyl (A, B, M, MBDCND, BDA, BDB, C, D, N, 
-!                                     NBDCND, BDC, BDD, ELMBDA, F, IDIMF, 
-!                                     PERTRB, ierror)
+! USAGE                  call hstcyl(a, b, m, mbdcnd, bda, bdb, c, d, n, &
+!                        nbdcnd, bdc, bdd, elmbda, f, idimf, pertrb, ierror)
 !
 ! ARGUMENTS
-! ON INPUT               A, B
+! ON INPUT               a, b
 !
-!                          THE RANGE OF R, I.E. A .LE. R .LE. B.
-!                          A MUST BE LESS THAN B AND A MUST BE
-!                          BE NON-NEGATIVE.
+!                          the range of r, i.e. a <= r <= b.
+!                          a must be less than b and a must be
+!                          be non-negative.
 !
-!                        M
-!                          THE NUMBER OF GRID POINTS IN THE INTERVAL
-!                          (A, B).  THE GRID POINTS IN THE R-DIRECTION
-!                          R-DIRECTION ARE GIVEN BY
-!                          R(I) = A + (I-0.5)DR FOR I=1, 2, ..., M
-!                          WHERE DR =(B-A)/M.
-!                          M MUST BE GREATER THAN 2.
+!                        m
+!                          the number of grid points in the interval
+!                          (a, b).  the grid points in the r-direction
+!                          r-direction are given by
+!                          r(i) = a + (i-0.5)dr for i=1, 2, ..., m
+!                          where dr =(b-a)/m.
+!                          m must be greater than 2.
 !
-!                        MBDCND
-!                          INDICATES THE TYPE OF BOUNDARY CONDITIONS
-!                          AT R = A AND R = B.
+!                        mbdcnd
+!                          indicates the type of boundary conditions
+!                          at r = a and r = b.
 !
-!                          = 1  IF THE SOLUTION IS SPECIFIED AT R = A
-!                               (SEE NOTE BELOW) AND R = B.
+!                          = 1  if the solution is specified at r = a
+!                               (see note below) and r = b.
 !
-!                          = 2  IF THE SOLUTION IS SPECIFIED AT R = A
-!                               (SEE NOTE BELOW) AND THE DERIVATIVE
-!                               OF THE SOLUTION WITH RESPECT TO R IS
-!                               SPECIFIED AT R = B.
+!                          = 2  If the solution is specified at r = a
+!                               (see note below) and the derivative
+!                               of the solution with respect to r is
+!                               specified at r = b.
 !
-!                          = 3  IF THE DERIVATIVE OF THE SOLUTION
-!                               WITH RESPECT TO R IS SPECIFIED AT
-!                               R = A (SEE NOTE BELOW) AND R = B.
+!                          = 3  If the derivative of the solution
+!                               with respect to r is specified at
+!                               r = a (see note below) and r = b.
 !
-!                          = 4  IF THE DERIVATIVE OF THE SOLUTION
-!                               WITH RESPECT TO R IS SPECIFIED AT
-!                               R = A (SEE NOTE BELOW) AND THE
-!                               SOLUTION IS SPECIFIED AT R = B.
+!                          = 4  If the derivative of the solution
+!                               with respect to r is specified at
+!                               r = a (see note below) and the
+!                               solution is specified at r = b.
 !
-!                          = 5  IF THE SOLUTION IS UNSPECIFIED AT
-!                               R = A = 0 AND THE SOLUTION IS
-!                               SPECIFIED AT R = B.
+!                          = 5  If the solution is unspecified at
+!                               r = a = 0 and the solution is
+!                               specified at r = b.
 !
-!                          = 6  IF THE SOLUTION IS UNSPECIFIED AT
-!                               R = A = 0 AND THE DERIVATIVE OF THE
-!                               SOLUTION WITH RESPECT TO R IS SPECIFIED
-!                               AT R = B.
+!                          = 6  If the solution is unspecified at
+!                               r = a = 0 and the derivative of the
+!                               solution with respect to r is specified
+!                               at r = b.
 !
-!                          NOTE:
-!                          IF A = 0, DO NOT USE MBDCND = 1, 2, 3, OR 4, 
-!                          BUT INSTEAD USE MBDCND = 5 OR 6.
-!                          THE RESULTING APPROXIMATION GIVES THE ONLY
-!                          MEANINGFUL BOUNDARY CONDITION, 
-!                          I.E. DU/DR = 0.
-!                          (SEE D. GREENSPAN, 'INTRODUCTORY NUMERICAL
-!                          ANALYSIS OF ELLIPTIC BOUNDARY VALUE
-!                          PROBLEMS, ' HARPER AND ROW, 1965, CHAPTER 5.)
+!                          note:
+!                          If a = 0, do not use mbdcnd = 1, 2, 3, or 4,
+!                          but instead use mbdcnd = 5 or 6.
+!                          The resulting approximation gives the only
+!                          meaningful boundary condition,
+!                          i.e. du/dr = 0
+!                          (see d. greenspan, 'Introductory numerical
+!                          analysis of elliptic boundary value
+!                          problems, ' Harper and Row, 1965, Chapter 5.)
 !
-!                        BDA
-!                          A ONE-DIMENSIONAL ARRAY OF LENGTH N THAT
-!                          SPECIFIES THE BOUNDARY VALUES (IF ANY)
-!                          OF THE SOLUTION AT R = A.
+!                        bda
+!                          A one-dimensional array of length n that
+!                          specifies the boundary values (if any)
+!                          of the solution at r = a.
 !
-!                          WHEN MBDCND = 1 OR 2, 
-!                            BDA(J) = U(A, Z(J)) ,       J=1, 2, ..., N.
+!                          When mbdcnd = 1 or 2,
+!                            bda(j) = u(a, z(j)) ,       j=1, 2, ..., n.
 !
-!                          WHEN MBDCND = 3 OR 4, 
-!                            BDA(J) = (D/DR)U(A, Z(J)) ,   J=1, 2, ..., N.
+!                          When mbdcnd = 3 or 4,
+!                            bda(j) = (d/dr)u(a, z(j)) ,   j=1, 2, ..., n.
 !
-!                          WHEN MBDCND = 5 OR 6, BDA IS A DUMMY
-!                          VARIABLE.
+!                          When mbdcnd = 5 or 6, bda is a dummy
+!                          variable.
 !
-!                        BDB
-!                          A ONE-DIMENSIONAL ARRAY OF LENGTH N THAT
-!                          SPECIFIES THE BOUNDARY VALUES OF THE
-!                          SOLUTION AT R = B.
+!                        bdb
+!                          A one-dimensional array of length n that
+!                          specifies the boundary values of the
+!                          solution at r = b.
 !
-!                          WHEN MBDCND = 1, 4, OR 5, 
-!                            BDB(J) = U(B, Z(J)) ,        J=1, 2, ..., N.
+!                          When mbdcnd = 1, 4, or 5,
+!                            bdb(j) = u(b, z(j)) ,        j=1, 2, ..., n.
 !
-!                          WHEN MBDCND = 2, 3, OR 6, 
-!                            BDB(J) = (D/DR)U(B, Z(J)) ,   J=1, 2, ..., N.
+!                          When mbdcnd = 2, 3, or 6,
+!                            bdb(j) = (d/dr)u(b, z(j)) ,   j=1, 2, ..., n.
 !
-!                        C, D
-!                          THE RANGE OF Z, I.E. C .LE. Z .LE. D.
-!                          C MUST BE LESS THAN D.
+!                        c, d
+!                          The range of z, i.e. c <= z <= d.
+!                          c must be less than d.
 !
-!                        N
-!                          THE NUMBER OF UNKNOWNS IN THE INTERVAL
-!                          (C, D).  THE UNKNOWNS IN THE Z-DIRECTION
-!                          ARE GIVEN BY Z(J) = C + (J-0.5)DZ, 
-!                          J=1, 2, ..., N, WHERE DZ = (D-C)/N.
-!                          N MUST BE GREATER THAN 2.
+!                        n
+!                          The number of unknowns in the interval
+!                          (c, d).  the unknowns in the z-direction
+!                          are given by z(j) = c + (j-0.5)dz,
+!                          j=1, 2, ..., n, where dz = (d-c)/n.
+!                          n must be greater than 2.
 !
-!                        NBDCND
-!                          INDICATES THE TYPE OF BOUNDARY CONDITIONS
-!                          AT Z = C  AND Z = D.
+!                        nbdcnd
+!                          Indicates the type of boundary conditions
+!                          at z = c  and z = d.
 !
-!                          = 0  IF THE SOLUTION IS PERIODIC IN Z, I.E.
-!                               U(I, J) = U(I, N+J).
+!                          = 0  If the solution is periodic in z, i.e.
+!                               u(i, j) = u(i, n+j).
 !
-!                          = 1  IF THE SOLUTION IS SPECIFIED AT Z = C
-!                               AND Z = D.
+!                          = 1  If the solution is specified at z = c
+!                               and z = d.
 !
-!                          = 2  IF THE SOLUTION IS SPECIFIED AT Z = C
-!                               AND THE DERIVATIVE OF THE SOLUTION WITH
-!                               RESPECT TO Z IS SPECIFIED AT Z = D.
+!                          = 2  If the solution is specified at z = c
+!                               and the derivative of the solution with
+!                               respect to z is specified at z = d.
 !
-!                          = 3  IF THE DERIVATIVE OF THE SOLUTION WITH
-!                               RESPECT TO Z IS SPECIFIED AT Z = C
-!                               AND Z = D.
+!                          = 3  If the derivative of the solution with
+!                               respect to z is specified at z = c
+!                               and z = d.
 !
-!                          = 4  IF THE DERIVATIVE OF THE SOLUTION WITH
-!                               RESPECT TO Z IS SPECIFIED AT Z = C AND
-!                               THE SOLUTION IS SPECIFIED AT Z = D.
+!                          = 4  If the derivative of the solution with
+!                               respect to z is specified at z = c and
+!                               the solution is specified at z = d.
 !
-!                        BDC
-!                          A ONE DIMENSIONAL ARRAY OF LENGTH M THAT
-!                          SPECIFIES THE BOUNDARY VALUES OF THE
-!                          SOLUTION AT Z = C.
+!                        bdc
+!                          A one dimensional array of length m that
+!                          specifies the boundary values of the
+!                          solution at z = c.
 !
-!                          WHEN NBDCND = 1 OR 2, 
-!                            BDC(I) = U(R(I), C) ,        I=1, 2, ..., M.
+!                          when nbdcnd = 1 or 2,
+!                            bdc(i) = u(r(i), c) ,        i=1, 2, ..., m.
 !
-!                          WHEN NBDCND = 3 OR 4, 
-!                            BDC(I) = (D/DZ)U(R(I), C),    I=1, 2, ..., M.
+!                          when nbdcnd = 3 or 4,
+!                            bdc(i) = (d/dz)u(r(i), c),    i=1, 2, ..., m.
 !
-!                          WHEN NBDCND = 0, BDC IS A DUMMY VARIABLE.
+!                          when nbdcnd = 0, bdc is a dummy variable.
 !
-!                        BDD
-!                          A ONE-DIMENSIONAL ARRAY OF LENGTH M THAT
-!                          SPECIFIES THE BOUNDARY VALUES OF THE
-!                          SOLUTION AT Z = D.
+!                        bdd
+!                          A one-dimensional array of length m that
+!                          specifies the boundary values of the
+!                          solution at z = d.
 !
-!                          WHEN NBDCND = 1 OR 4, 
-!                            BDD(I) = U(R(I), D) ,       I=1, 2, ..., M.
+!                          when nbdcnd = 1 or 4,
+!                            bdd(i) = u(r(i), d) ,       i=1, 2, ..., m.
 !
-!                          WHEN NBDCND = 2 OR 3, 
-!                            BDD(I) = (D/DZ)U(R(I), D) ,   I=1, 2, ..., M.
+!                          when nbdcnd = 2 or 3,
+!                            bdd(i) = (d/dz)u(r(i), d) ,   i=1, 2, ..., m.
 !
-!                          WHEN NBDCND = 0, BDD IS A DUMMY VARIABLE.
+!                          when nbdcnd = 0, bdd is a dummy variable.
 !
-!                        ELMBDA
-!                          THE CONSTANT LAMBDA IN THE MODIFIED
-!                          HELMHOLTZ EQUATION.  IF LAMBDA IS GREATER
-!                          THAN 0, A SOLUTION MAY NOT EXIST.
-!                          HOWEVER, hstcyl WILL ATTEMPT TO FIND A
-!                          SOLUTION.  LAMBDA MUST BE ZERO WHEN
-!                          MBDCND = 5 OR 6.
+!                        elmbda
+!                          The constant lambda in the modified
+!                          helmholtz equation. If lambda is greater
+!                          than 0, a solution may not exist.
+!                          however, hstcyl will attempt to find a
+!                          solution.  lambda must be zero when
+!                          mbdcnd = 5 or 6.
 !
-!                        F
-!                          A TWO-DIMENSIONAL ARRAY THAT SPECIFIES
-!                          THE VALUES OF THE RIGHT SIDE OF THE
-!                          MODIFIED HELMHOLTZ EQUATION.
-!                          FOR I=1, 2, ..., M   AND J=1, 2, ..., N
-!                            F(I, J) = F(R(I), Z(J)) .
-!                          F MUST BE DIMENSIONED AT LEAST M X N.
+!                        f
+!                          A two-dimensional array that specifies
+!                          the values of the right side of the
+!                          modified helmholtz equation.
+!                          for i=1, 2, ..., m   and j=1, 2, ..., n
+!                            f(i, j) = f(r(i), z(j)) .
+!                          f must be dimensioned at least m x n.
 !
-!                        IDIMF
-!                          THE ROW (OR FIRST) DIMENSION OF THE ARRAY
-!                          F AS IT APPEARS IN THE PROGRAM CALLING
-!                          hstcyl.  THIS PARAMETER IS USED TO SPECIFY
-!                          THE VARIABLE DIMENSION OF F.  IDIMF MUST
-!                          BE AT LEAST M.
+!                        idimf
+!                          the row (or first) dimension of the array
+!                          f as it appears in the program calling
+!                          hstcyl.  this parameter is used to specify
+!                          the variable dimension of f.  idimf must
+!                          be at least m.
 !
 ! ON OUTPUT
 !
-!                        F
-!                          CONTAINS THE SOLUTION U(I, J) OF THE FINITE
-!                          DIFFERENCE APPROXIMATION FOR THE GRID POINT
-!                          (R(I), Z(J)) FOR  I=1, 2, ..., M, J=1, 2, ..., N.
+!                        f
+!                          Contains the solution u(i, j) of the finite
+!                          difference approximation for the grid point
+!                          (r(i), z(j)) for  i=1, 2, ..., m, j=1, 2, ..., n.
 !
-!                        PERTRB
-!                          IF A COMBINATION OF PERIODIC, DERIVATIVE, 
-!                          OR UNSPECIFIED BOUNDARY CONDITIONS IS
-!                          SPECIFIED FOR A POISSON EQUATION
-!                          (LAMBDA = 0), A SOLUTION MAY NOT EXIST.
-!                          PERTRB IS A CONSTANT, CALCULATED AND
-!                          SUBTRACTED FROM F, WHICH ENSURES THAT A
-!                          SOLUTION EXISTS.  hstcyl THEN COMPUTES
-!                          THIS SOLUTION, WHICH IS A LEAST SQUARES
-!                          SOLUTION TO THE ORIGINAL APPROXIMATION.
-!                          THIS SOLUTION PLUS ANY CONSTANT IS ALSO
-!                          A SOLUTION; HENCE, THE SOLUTION IS NOT
-!                          UNIQUE.  THE VALUE OF PERTRB SHOULD BE
-!                          SMALL COMPARED TO THE RIGHT SIDE F.
-!                          OTHERWISE, A SOLUTION IS OBTAINED TO AN
-!                          ESSENTIALLY DIFFERENT PROBLEM.
-!                          THIS COMPARISON SHOULD ALWAYS BE MADE TO
-!                          INSURE THAT A MEANINGFUL SOLUTION HAS BEEN
-!                          OBTAINED.
+!                        pertrb
+!                          If a combination of periodic, derivative,
+!                          or unspecified boundary conditions is
+!                          specified for a poisson equation
+!                          (lambda = 0), a solution may not exist.
+!                          pertrb is a constant, calculated and
+!                          subtracted from f, which ensures that a
+!                          solution exists.  hstcyl then computes
+!                          this solution, which is a least squares
+!                          solution to the original approximation.
+!                          this solution plus any constant is also
+!                          a solution; hence, the solution is not
+!                          unique. The value of pertrb should be
+!                          small compared to the right side f.
+!                          Otherwise, a solution is obtained to an
+!                          essentially different problem.
+!                          This comparison should always be made to
+!                          insure that a meaningful solution has been
+!                          obtained.
 !
 !                        ierror
-!                          AN ERROR FLAG THAT INDICATES INVALID INPUT
-!                          PARAMETERS. EXCEPT TO NUMBERS 0 AND 11, 
-!                          A SOLUTION IS NOT ATTEMPTED.
+!                          An error flag that indicates invalid input
+!                          parameters. Except to numbers 0 and 11,
+!                          a solution is not attempted.
 !
-!                          =  0  NO ERROR
+!                          =  0  no error
 !
-!                          =  1  A .LT. 0
+!                          =  1  a < 0
 !
-!                          =  2  A .GE. B
+!                          =  2  a >= b
 !
-!                          =  3  MBDCND .LT. 1 OR MBDCND .GT. 6
+!                          =  3  mbdcnd < 1 or mbdcnd > 6
 !
-!                          =  4  C .GE. D
+!                          =  4  c >= d
 !
-!                          =  5  N .LE. 2
+!                          =  5  n <= 2
 !
-!                          =  6  NBDCND .LT. 0 OR NBDCND .GT. 4
+!                          =  6  nbdcnd < 0 or nbdcnd > 4
 !
-!                          =  7  A = 0 AND MBDCND = 1, 2, 3, OR 4
+!                          =  7  a = 0 and mbdcnd = 1, 2, 3, or 4
 !
-!                          =  8  A .GT. 0 AND MBDCND .GE. 5
+!                          =  8  a > 0 and mbdcnd >= 5
 !
-!                          =  9  M .LE. 2
+!                          =  9  m <= 2
 !
-!                          = 10  IDIMF .LT. M
+!                          = 10  idimf < m
 !
-!                          = 11  LAMBDA .GT. 0
+!                          = 11  lambda > 0
 !
-!                          = 12  A=0, MBDCND .GE. 5, ELMBDA .NE. 0
+!                          = 12  a=0, mbdcnd >= 5, elmbda /= 0
 !
-!                          SINCE THIS IS THE ONLY MEANS OF INDICATING
-!                          A POSSIBLY INCORRECT CALL TO hstcyl, THE
-!                          USER SHOULD TEST ierror AFTER THE CALL.
+!                          Since this is the only means of indicating
+!                          a possibly incorrect call to hstcyl, the
+!                          user should test ierror after the call.
 !
 !                          = 20 If the dynamic allocation of real and
 !                               complex work space required for solution
-!                               fails (for example if N, M are too large
+!                               fails (for example if n, m are too large
 !                               for your computer)
-! I/O                    NONE
+! I/O                    None
 !
-! PRECISION              SINGLE
+! PRECISION              64-bit precision float and 32-bit precision integer
 !
-! REQUIRED LIBRARY       fish.f, comf.f, genbun.f, gnbnaux.f, poistg.f
-! FILES
+! REQUIRED LIBRARY       type_FishpackWrapper.f90, comf.f90
+! FILES                  genbun.f90, gnbnaux.f90, poistg.f90
 !
-! LANGUAGE               FORTRAN 90
+! STANDARD               Fortran 2008
 !
-! HISTORY                WRITTEN BY ROLAND SWEET AT NCAR IN 1977.
-!                        RELEASED ON NCAR'S PUBLIC SOFTWARE LIBRARIES
-!                        IN JANUARY 1980.
-!                        Revised in June 2004 by John Adams using
-!                        Fortran 90 dynamically allocated work space.
+! HISTORY                * Written by Roland Sweet at NCAR in 1977.
+!                          released on NCAR's public software libraries
+!                          in january 1980.
+!                        * Revised in June 2004 by John Adams using
+!                          Fortran 90 dynamically allocated work space.
+!                        * Revised in April 2016 by Jon Lo Kim Lin
+!                          using object-oriented features of Fortran 2008
 !
-! PORTABILITY            FORTRAN 90
+! ALGORITHM              This subroutine defines the finite-difference
+!                        equations, incorporates boundary data, adjusts
+!                        the right side when the system is singular and
+!                        calls either poistg or genbun which solves the
+!                        linear system of equations.
 !
-! ALGORITHM              THIS SUBROUTINE DEFINES THE FINITE-DIFFERENCE
-!                        EQUATIONS, INCORPORATES BOUNDARY DATA, ADJUSTS
-!                        THE RIGHT SIDE WHEN THE SYSTEM IS SINGULAR AND
-!                        CALLS EITHER POISTG OR genbun WHICH SOLVES THE
-!                        LINEAR SYSTEM OF EQUATIONS.
+! TIMING                 For large m and n, the operation count
+!                        is roughly proportional to m*n*log2(n).
 !
-! TIMING                 FOR LARGE M AND N, THE OPERATION COUNT
-!                        IS ROUGHLY PROPORTIONAL TO M*N*LOG2(N).
+! ACCURACY               The solution process results in a loss
+!                        of no more than four significant digits
+!                        for n and m as large as 64.
+!                        more detailed information about accuracy
+!                        can be found in the documentation for
+!                        subroutine poistg which is the routine that
+!                        actually solves the finite difference
+!                        equations.
 !
-! ACCURACY               THE SOLUTION PROCESS RESULTS IN A LOSS
-!                        OF NO MORE THAN FOUR SIGNIFICANT DIGITS
-!                        FOR N AND M AS LARGE AS 64.
-!                        MORE DETAILED INFORMATION ABOUT ACCURACY
-!                        CAN BE FOUND IN THE DOCUMENTATION FOR
-!                        SUBROUTINE POISTG WHICH IS THE ROUTINE THAT
-!                        ACTUALLY SOLVES THE FINITE DIFFERENCE
-!                        EQUATIONS.
-!
-! REFERENCES             U. SCHUMANN AND R. SWEET, "A DIRECT METHOD FOR
-!                        THE SOLUTION OF POISSON'S EQUATION WITH NEUMANN
-!                        BOUNDARY CONDITIONS ON A STAGGERED GRID OF
-!                        ARBITRARY SIZE, " J. COMP. PHYS. 20(1976), 
-!                        PP. 171-182.
+! REFERENCES             U. Schumann and R. Sweet, "A direct method for
+!                        the solution of poisson's equation with neumann
+!                        boundary conditions on a staggered grid of
+!                        arbitrary size, " J. Comp. Phys. 20(1976), 
+!                        pp. 171-182.
 !
 module module_hstcyl
 
     use, intrinsic :: iso_fortran_env, only: &
         wp => REAL64, &
-        ip => INT32, &
-        stdout => OUTPUT_UNIT
+        ip => INT32
 
     use type_FishpackWorkspace, only: &
         FishpackWorkspace
@@ -383,195 +382,314 @@ contains
         type (FishpackWorkspace) :: workspace
         !-----------------------------------------------
 
-        ! initialize error flag
-        ierror = 0
-
-        ! Check input arguments
-        if (a < 0.0_wp) ierror = 1
-        if (a >= b) ierror = 2
-        if (mbdcnd <= 0 .or. mbdcnd >= 7) ierror = 3
-        if (c >= d) ierror = 4
-        if (n <= 2) ierror = 5
-        if (nbdcnd < 0 .or. nbdcnd >= 5) ierror = 6
-        if (a == 0.0_wp .and. mbdcnd /= 5 .and. mbdcnd /= 6) ierror = 7
-        if (a > 0.0_wp .and. mbdcnd >= 5) ierror = 8
-        if (idimf < m) ierror = 10
-        if (m <= 2) ierror = 9
-        if (a == 0.0_wp .and. mbdcnd >= 5 .and. elmbda /= 0.0_wp) ierror = 12
-        if (ierror /= 0) return
-
-        ! calculate required real work space size
-        call workspace%get_genbun_workspace_dimensions( n, m, irwk )
-        irwk = irwk + 3 * m
-
-        ! Allocate real workspace array
+        !
+        !==> Allocate memory
+        !
         associate( icwk => 0)
-            call workspace%create( irwk, icwk, ierror )
+
+            ! Calculate required real workspace size for genbun
+            call workspace%get_genbun_workspace_dimensions(n, m, irwk)
+
+            ! Adjust for hstcyll
+            irwk = irwk + 3 * m
+
+            call workspace%create(irwk, icwk)
+
         end associate
 
-        ! if workspace allocation was succesful
-        if (ierror == 20) return
-
-        ! solve system
+        !
+        !==> Solve system
+        !
         associate( rew => workspace%real_workspace )
-            call hstcyll(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
-                elmbda, f, idimf, pertrb, ierror, rew )
+
+            call hstcyll(a, b, m, mbdcnd, bda, bdb, c, d, n, &
+                nbdcnd, bdc, bdd, elmbda, f, idimf, pertrb, ierror, rew)
+
         end associate
 
-        ! Release memory
+        !
+        !==> Release memory
+        !
         call workspace%destroy()
 
     end subroutine hstcyl
 
 
-    subroutine hstcyll( a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
-        bdd, elmbda, f, idimf, pertrb, ierror, w )
+
+    subroutine hstcyll(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
+        bdd, elmbda, f, idimf, pertrb, ierror, w)
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: m
-        integer (ip), intent (in) :: mbdcnd
-        integer (ip), intent (in) :: n
-        integer (ip), intent (in) :: nbdcnd
-        integer (ip), intent (in) :: idimf
-        integer (ip), intent (out) :: ierror
-        real (wp),    intent (in) :: a
-        real (wp),    intent (in) :: b
-        real (wp),    intent (in) :: c
-        real (wp),    intent (in) :: d
-        real (wp),    intent (in) :: elmbda
-        real (wp),    intent (out) :: pertrb
-        real (wp),    intent (in) :: bda(*)
-        real (wp),    intent (in) :: bdb(*)
-        real (wp),    intent (in) :: bdc(*)
-        real (wp),    intent (in) :: bdd(*)
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: mbdcnd
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: nbdcnd
+        integer (ip), intent (in)     :: idimf
+        integer (ip), intent (out)    :: ierror
+        real (wp),    intent (in)     :: a
+        real (wp),    intent (in)     :: b
+        real (wp),    intent (in)     :: c
+        real (wp),    intent (in)     :: d
+        real (wp),    intent (in)     :: elmbda
+        real (wp),    intent (out)    :: pertrb
+        real (wp),    intent (in)     :: bda(*)
+        real (wp),    intent (in)     :: bdb(*)
+        real (wp),    intent (in)     :: bdc(*)
+        real (wp),    intent (in)     :: bdd(*)
         real (wp),    intent (in out) :: f(idimf,*)
         real (wp),    intent (in out) :: w(*)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
         integer (ip) :: np, iwb, iwc, iwr, i, j, k, lp, ierr1
-        real (wp)    :: deltar, dlrsq, deltht, dlthsq, a1
+        real (wp)    :: dr, dr2, dt, dt2, temp
         !-----------------------------------------------
 
-        deltar = (b - a)/m
-        dlrsq = deltar**2
-        deltht = (d - c)/n
-        dlthsq = deltht**2
-        np = nbdcnd + 1
         !
-        !     Define a, b, c coefficients in w-array.
+        !==> Check validity of calling arguments
+        !
+        call check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, &
+            elmbda, idimf, ierror)
+
+        ! Check error flag
+        if (ierror /= 0) then
+            return
+        end if
+
+        ! Set radial mesh
+        dr = (b - a)/m
+        dr2 = dr**2
+
+        ! Set polar mesh
+        dt = (d - c)/n
+        dt2 = dt**2
+
+        np = nbdcnd + 1
+
+        !
+        !==> Define a, b, c coefficients in w-array.
         !
         iwb = m
         iwc = iwb + m
         iwr = iwc + m
         do i = 1, m
             j = iwr + i
-            w(j) = a + (real(i, kind=wp) - 0.5_wp)*deltar
-            w(i) = (a + real(i - 1, kind=wp)*deltar)/(dlrsq*w(j))
+            w(j) = a + (real(i, kind=wp) - 0.5_wp)*dr
+            w(i) = (a + real(i - 1, kind=wp)*dr)/(dr2*w(j))
             k = iwc + i
-            w(k) = (a + real(i, kind=wp)*deltar)/(dlrsq*w(j))
+            w(k) = (a + real(i, kind=wp)*dr)/(dr2*w(j))
             k = iwb + i
-            w(k) = elmbda/w(j)**2 - 2.0_wp/dlrsq
+            w(k) = elmbda/w(j)**2 - 2.0_wp/dr2
         end do
         !
-        !     Enter boundary data for r-boundaries.
+        !==> Enter boundary data for r-boundaries.
         !
-        go to (102, 102, 104, 104, 106, 106) mbdcnd
-102 continue
-    a1 = 2.*w(1)
-    w(iwb+1) = w(iwb+1) - w(1)
-    f(1, :n) = f(1, :n) - a1*bda(:n)
-    go to 106
-104 continue
-    a1 = deltar*w(1)
-    w(iwb+1) = w(iwb+1) + w(1)
-    f(1, :n) = f(1, :n) + a1 * bda(:n)
-106 continue
-    go to (107, 109, 109, 107, 107, 109) mbdcnd
-107 continue
-    w(iwc) = w(iwc) - w(iwr)
-    a1 = 2.0_wp * w(iwr)
-    f(m, :n) = f(m, :n) - a1 * bdb(:n)
-    go to 111
-109 continue
-    w(iwc) = w(iwc) + w(iwr)
-    a1 = deltar * w(iwr)
-    f(m, :n) = f(m, :n) - a1 * bdb(:n)
-!
-!     Enter boundary data for theta-boundaries.
-!
-111 continue
-    a1 = 2.0_wp/dlthsq
-    go to (121, 112, 112, 114, 114) np
-112 continue
-    f(:m, 1) = f(:m, 1) - a1*bdc(:m)
-    go to 116
-114 continue
-    a1 = 1.0_wp/deltht
-    f(:m, 1) = f(:m, 1) + a1*bdc(:m)
-116 continue
-    a1 = 2.0_wp/dlthsq
-    go to (121, 117, 119, 119, 117) np
-117 continue
-    f(:m, n) = f(:m, n) - a1*bdd(:m)
-    go to 121
-119 continue
-    a1 = 1./deltht
-    f(:m, n) = f(:m, n) - a1*bdd(:m)
-121 continue
-    pertrb = 0.0_wp
-    if (elmbda >= 0.0_wp ) then
-        if (elmbda /= 0.0_wp ) then
-            ierror = 11
-        else
-            go to (130, 130, 124, 130, 130, 124) mbdcnd
-124     continue
-        go to (125, 130, 130, 125, 130) np
-125 continue
-    do i = 1, m
-        a1 = 0.0_wp
-        a1 = sum(f(i, :n))
-        j = iwr + i
-        pertrb = pertrb + a1 * w(j)
-    end do
-    pertrb = pertrb/(real( m * n, kind=wp) * 0.5_wp * (a + b))
-    f(:m, :n) = f(:m, :n) - pertrb
-end if
-end if
-130 continue
-    w(:m) = w(:m) * dlthsq
-    w(iwc+1:m+iwc) = w(iwc+1:m+iwc) * dlthsq
-    w(iwb+1:m+iwb) = w(iwb+1:m+iwb) * dlthsq
-    f(:m, :n) = f(:m, :n)*dlthsq
-    lp = nbdcnd
-    w(1) = 0.0_wp
-    w(iwr) = 0.0_wp
-    !
-    !     SOLVE THE SYSTEM OF EQUATIONS.
-    !
-    ierr1 = 0
-    if (nbdcnd /= 0) then
-        call poistgg(lp, n, 1, m, w, w(iwb+1), w(iwc+1), idimf, f, &
-            ierr1, w(iwr+1))
-    else
-        call genbunn(lp, n, 1, m, w, w(iwb+1), w(iwc+1), idimf, f, &
-            ierr1, w(iwr+1))
-    end if
+        select case (mbdcnd)
+            case (1:2)
+                temp = 2.0_wp *w(1)
+                w(iwb+1) = w(iwb+1) - w(1)
+                f(1, :n) = f(1, :n) - temp*bda(:n)
+            case (3:4)
+                temp = dr*w(1)
+                w(iwb+1) = w(iwb+1) + w(1)
+                f(1, :n) = f(1, :n) + temp * bda(:n)
+        end select
 
-end subroutine hstcyll
-    !
-    !*****************************************************************************************
-    !
+        select case (mbdcnd)
+            case (1, 4:5)
+                w(iwc) = w(iwc) - w(iwr)
+                temp = 2.0_wp * w(iwr)
+                f(m, :n) = f(m, :n) - temp * bdb(:n)
+            case (2:3, 6)
+                w(iwc) = w(iwc) + w(iwr)
+                temp = dr * w(iwr)
+                f(m, :n) = f(m, :n) - temp * bdb(:n)
+        end select
+
+        !
+        !==> Enter boundary data for theta-boundaries.
+        !
+        temp = 2.0_wp/dt2
+
+        if (n /= 1) then
+
+            select case (np)
+                case (2:3)
+                    f(:m, 1) = f(:m, 1) - temp*bdc(:m)
+                case (4:5)
+                    temp = 1.0_wp/dt
+                    f(:m, 1) = f(:m, 1) + temp*bdc(:m)
+            end select
+
+            temp = 2.0_wp/dt2
+
+            select case (np)
+                case (2, 5)
+                    f(:m, n) = f(:m, n) - temp*bdd(:m)
+                case (3:4)
+                    temp = 1.0_wp/dt
+                    f(:m, n) = f(:m, n) - temp*bdd(:m)
+            end select
+
+        end if
+
+        pertrb = 0.0_wp
+
+        if (elmbda >= 0.0_wp ) then
+            if (elmbda /= 0.0_wp ) then
+                ierror = 11
+                return
+            else
+                select case (mbdcnd)
+                    case (3, 6)
+                        select case (np)
+                            case (1, 4)
+                                do i = 1, m
+                                    temp = 0.0_wp
+                                    temp = sum(f(i, :n))
+                                    j = iwr + i
+                                    pertrb = pertrb + temp * w(j)
+                                end do
+                                pertrb = pertrb/(real(m * n, kind=wp) &
+                                    * 0.5_wp * (a + b))
+                                f(:m, :n) = f(:m, :n) - pertrb
+                        end select
+                end select
+            end if
+        end if
+
+        w(:m) = w(:m) * dt2
+        w(iwc+1:m+iwc) = w(iwc+1:m+iwc) * dt2
+        w(iwb+1:m+iwb) = w(iwb+1:m+iwb) * dt2
+        f(:m, :n) = f(:m, :n)*dt2
+        lp = nbdcnd
+        w(1) = 0.0_wp
+        w(iwr) = 0.0_wp
+        !
+        !==> Solve the system of equations.
+        !
+        ierr1 = 0
+        if (nbdcnd /= 0) then
+            call poistgg(lp, n, 1, m, w, w(iwb+1), w(iwc+1), idimf, f, &
+                ierr1, w(iwr+1))
+        else
+            call genbunn(lp, n, 1, m, w, w(iwb+1), w(iwc+1), idimf, f, &
+                ierr1, w(iwr+1))
+        end if
+
+
+    contains
+
+
+        pure subroutine check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, &
+            elmbda, idimf, ierror)
+            !--------------------------------------------------------------------------------
+            ! Dictionary: calling arguments
+            !--------------------------------------------------------------------------------
+            integer (ip), intent (in)  :: m
+            integer (ip), intent (in)  :: mbdcnd
+            integer (ip), intent (in)  :: n
+            integer (ip), intent (in)  :: nbdcnd
+            integer (ip), intent (in)  :: idimf
+            integer (ip), intent (out) :: ierror
+            real (wp),    intent (in)  :: a
+            real (wp),    intent (in)  :: b
+            real (wp),    intent (in)  :: c
+            real (wp),    intent (in)  :: d
+            real (wp),    intent (in)  :: elmbda
+            !--------------------------------------------------------------------------------
+            ! Dictionary: local variables
+            !--------------------------------------------------------------------------------
+            
+            !--------------------------------------------------------------------------------
+
+            !
+            !==> Initialize error flag
+            !
+            ierror = 0
+
+            ! Case 1
+            if (a < 0.0_wp) then
+                ierror = 1
+                return
+            end if
+
+            ! Case 2
+            if (a >= b) then
+                ierror = 2
+                return
+            end if
+
+            ! Case 3
+            if (mbdcnd <= 0 .or. mbdcnd >= 7) then
+                ierror = 3
+                return
+            end if
+
+            ! Case 4
+            if (c >= d) then
+                ierror = 4
+                return
+            end if
+
+            ! Case 5
+            if (n <= 2) then
+                ierror = 5
+                return
+            end if
+
+            ! Case 6
+            if (nbdcnd < 0 .or. nbdcnd >= 5) then
+                ierror = 6
+                return
+            end if
+
+            ! Case 7
+            if (a == 0.0_wp .and. mbdcnd /= 5 .and. mbdcnd /= 6) then
+                ierror = 7
+                return
+            end if
+
+            ! Case 8
+            if (a > 0.0_wp .and. mbdcnd >= 5) then
+                ierror = 8
+                return
+            end if
+
+            ! Case 9
+            if (m <= 2) then
+                ierror = 9
+                return
+            end if
+
+            ! Case 10
+            if (idimf < m) then
+                ierror = 10
+                return
+            end if
+
+            ! Case 12
+            if (a == 0.0_wp .and. mbdcnd >= 5 .and. elmbda /= 0.0_wp) then
+                ierror = 12
+                return
+            end if
+
+        end subroutine check_input_arguments
+
+    end subroutine hstcyll
+
+
 end module module_hstcyl
 !
-! REVISION HISTORY---
+! REVISION HISTORY
 !
-! SEPTEMBER 1973    VERSION 1
-! APRIL     1976    VERSION 2
-! JANUARY   1978    VERSION 3
-! DECEMBER  1979    VERSION 3.1
-! FEBRUARY  1985    DOCUMENTATION UPGRADE
-! NOVEMBER  1988    VERSION 3.2, FORTRAN 77 CHANGES
+! September 1973    Version 1
+! April     1976    Version 2
+! January   1978    Version 3
+! December  1979    Version 3.1
+! February  1985    Documentation upgrade
+! November  1988    Version 3.2, FORTRAN 77 changes
 ! June      2004    Version 5.0, Fortran 90 changes
-!-----------------------------------------------------------------------
+! April     2016    Fortran 2008 changes
+!
