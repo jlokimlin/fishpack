@@ -2,8 +2,7 @@ module module_hw3crt
 
     use, intrinsic :: iso_fortran_env, only: &
         wp => REAL64, &
-        ip => INT32, &
-        stdout => OUTPUT_UNIT
+        ip => INT32
 
     use type_FishpackWorkspace, only: &
         FishpackWorkspace
@@ -26,7 +25,7 @@ contains
         bdys, bdyf, zs, zf, n, nbdcnd, bdzs, bdzf, elmbda, ldimf, &
         mdimf, f, pertrb, ierror)
         !
-        !     file hw3crt.f
+        !     file hw3crt.f90
         !
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !     *                                                               *
@@ -60,379 +59,383 @@ contains
         !     *                                                               *
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
-        !     SUBROUTINE hw3crt (XS, XF, L, LBDCND, BDXS, BDXF, YS, YF, M, MBDCND, BDYS,
-        !    +                   BDYF, ZS, ZF, N, NBDCND, BDZS, BDZF, ELMBDA, LDIMF,
-        !    +                   MDIMF, F, PERTRB, ierror)
+        ! SUBROUTINE hw3crt (xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m, mbdcnd, bdys,
+        !                    bdyf, zs, zf, n, nbdcnd, bdzs, bdzf, elmbda, ldimf,
+        !                    mdimf, f, pertrb, ierror)
         !
         !
-        ! DIMENSION OF           BDXS(MDIMF, N+1),    BDXF(MDIMF, N+1),
-        ! ARGUMENTS              BDYS(LDIMF, N+1),    BDYF(LDIMF, N+1),
-        !                        BDZS(LDIMF, M+1),    BDZF(LDIMF, M+1),
-        !                        F(LDIMF, MDIMF, N+1)
+        ! DIMENSION OF           bdxs(mdimf, n+1),    bdxf(mdimf, n+1),
+        ! ARGUMENTS              bdys(ldimf, n+1),    bdyf(ldimf, n+1),
+        !                        bdzs(ldimf, m+1),    bdzf(ldimf, m+1),
+        !                        f(ldimf, mdimf, n+1)
         !
-        ! LATEST REVISION        June 2004
+        ! LATEST REVISION        April 2016
         !
-        ! PURPOSE                SOLVES THE STANDARD FIVE-POINT FINITE
-        !                        DIFFERENCE APPROXIMATION TO THE HELMHOLTZ
-        !                        EQUATION IN CARTESIAN COORDINATES.  THIS
-        !                        EQUATION IS
+        ! PURPOSE                Solves the standard five-point finite
+        !                        difference approximation to the helmholtz
+        !                        equation in cartesian coordinates.  this
+        !                        equation is
         !
-        !                          (D/DX)(DU/DX) + (D/DY)(DU/DY) +
-        !                          (D/DZ)(DU/DZ) + LAMBDA*U = F(X, Y, Z) .
+        !                          (d/dx)(du/dx) + (d/dy)(du/dy) +
+        !                          (d/dz)(du/dz) + lambda*u = f(x, y, z).
         !
-        ! USAGE                  CALL hw3crt (XS, XF, L, LBDCND, BDXS, BDXF, YS, YF, M,
-        !                                     MBDCND, BDYS, BDYF, ZS, ZF, N, NBDCND,
-        !                                     BDZS, BDZF, ELMBDA, LDIMF, MDIMF, F,
-        !                                     PERTRB, ierror)
+        ! USAGE                 call hw3crt(xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m,
+        !                            mbdcnd, bdys, bdyf, zs, zf, n, nbdcnd,
+        !                            bdzs, bdzf, elmbda, ldimf, mdimf, f,
+        !                            pertrb, ierror)
         !
         ! ARGUMENTS
         !
-        ! ON INPUT               XS, XF
+        ! ON INPUT               xs, xf
         !
-        !                          THE RANGE OF X, I.E. XS .LE. X .LE. XF .
-        !                          XS MUST BE LESS THAN XF.
+        !                          the range of x, i.e. xs .le. x .le. xf .
+        !                          xs must be less than xf.
         !
-        !                        L
-        !                          THE NUMBER OF PANELS INTO WHICH THE
-        !                          INTERVAL (XS, XF) IS SUBDIVIDED.
-        !                          HENCE, THERE WILL BE L+1 GRID POINTS
-        !                          IN THE X-DIRECTION GIVEN BY
-        !                          X(I) = XS+(I-1)DX FOR I=1, 2, ..., L+1,
-        !                          WHERE DX = (XF-XS)/L IS THE PANEL WIDTH.
-        !                          L MUST BE AT LEAST 5.
+        !                        l
+        !                          the number of panels into which the
+        !                          interval (xs, xf) is subdivided.
+        !                          hence, there will be l+1 grid points
+        !                          in the x-direction given by
+        !                          x(i) = xs+(i-1)dx for i=1, 2, ..., l+1,
+        !                          where dx = (xf-xs)/l is the panel width.
+        !                          l must be at least 5.
         !
-        !                        LBDCND
-        !                          INDICATES THE TYPE OF BOUNDARY CONDITIONS
-        !                          AT X = XS AND X = XF.
+        !                        lbdcnd
+        !                          indicates the type of boundary conditions
+        !                          at x = xs and x = xf.
         !
-        !                          = 0  IF THE SOLUTION IS PERIODIC IN X,
-        !                               I.E. U(L+I, J, K) = U(I, J, K).
-        !                          = 1  IF THE SOLUTION IS SPECIFIED AT
-        !                               X = XS AND X = XF.
-        !                          = 2  IF THE SOLUTION IS SPECIFIED AT
-        !                               X = XS AND THE DERIVATIVE OF THE
-        !                               SOLUTION WITH RESPECT TO X IS
-        !                               SPECIFIED AT X = XF.
-        !                          = 3  IF THE DERIVATIVE OF THE SOLUTION
-        !                               WITH RESPECT TO X IS SPECIFIED AT
-        !                               X = XS AND X = XF.
-        !                          = 4  IF THE DERIVATIVE OF THE SOLUTION
-        !                               WITH RESPECT TO X IS SPECIFIED AT
-        !                               X = XS AND THE SOLUTION IS SPECIFIED
-        !                               AT X=XF.
+        !                          = 0  if the solution is periodic in x,
+        !                               i.e. u(l+i, j, k) = u(i, j, k).
+        !                          = 1  if the solution is specified at
+        !                               x = xs and x = xf.
+        !                          = 2  if the solution is specified at
+        !                               x = xs and the derivative of the
+        !                               solution with respect to x is
+        !                               specified at x = xf.
+        !                          = 3  if the derivative of the solution
+        !                               with respect to x is specified at
+        !                               x = xs and x = xf.
+        !                          = 4  if the derivative of the solution
+        !                               with respect to x is specified at
+        !                               x = xs and the solution is specified
+        !                               at x=xf.
         !
-        !                        BDXS
-        !                          A TWO-DIMENSIONAL ARRAY THAT SPECIFIES THE
-        !                          VALUES OF THE DERIVATIVE OF THE SOLUTION
-        !                          WITH RESPECT TO X AT X = XS.
+        !                        bdxs
+        !                          a two-dimensional array that specifies the
+        !                          values of the derivative of the solution
+        !                          with respect to x at x = xs.
         !
-        !                          WHEN LBDCND = 3 OR 4,
+        !                          when lbdcnd = 3 or 4,
         !
-        !                            BDXS(J, K) = (D/DX)U(XS, Y(J), Z(K)),
-        !                            J=1, 2, ..., M+1,      K=1, 2, ..., N+1.
+        !                            bdxs(j, k) = (d/dx)u(xs, y(j), z(k)),
+        !                            j=1, 2, ..., m+1,      k=1, 2, ..., n+1.
         !
-        !                          WHEN LBDCND HAS ANY OTHER VALUE, BDXS
-        !                          IS A DUMMY VARIABLE. BDXS MUST BE
-        !                          DIMENSIONED AT LEAST (M+1)*(N+1).
+        !                          when lbdcnd has any other value, bdxs
+        !                          is a dummy variable. bdxs must be
+        !                          dimensioned at least (m+1)*(n+1).
         !
-        !                        BDXF
-        !                          A TWO-DIMENSIONAL ARRAY THAT SPECIFIES THE
-        !                          VALUES OF THE DERIVATIVE OF THE SOLUTION
-        !                          WITH RESPECT TO X AT X = XF.
+        !                        bdxf
+        !                          a two-dimensional array that specifies the
+        !                          values of the derivative of the solution
+        !                          with respect to x at x = xf.
         !
-        !                          WHEN LBDCND = 2 OR 3,
+        !                          when lbdcnd = 2 or 3,
         !
-        !                            BDXF(J, K) = (D/DX)U(XF, Y(J), Z(K)),
-        !                            J=1, 2, ..., M+1,      K=1, 2, ..., N+1.
+        !                            bdxf(j, k) = (d/dx)u(xf, y(j), z(k)),
+        !                            j=1, 2, ..., m+1,      k=1, 2, ..., n+1.
         !
-        !                          WHEN LBDCND HAS ANY OTHER VALUE, BDXF IS
-        !                          A DUMMY VARIABLE.  BDXF MUST BE
-        !                          DIMENSIONED AT LEAST (M+1)*(N+1).
+        !                          when lbdcnd has any other value, bdxf is
+        !                          a dummy variable.  bdxf must be
+        !                          dimensioned at least (m+1)*(n+1).
         !
-        !                        YS, YF
-        !                          THE RANGE OF Y, I.E. YS .LE. Y .LE. YF.
-        !                          YS MUST BE LESS THAN YF.
+        !                        ys, yf
+        !                          the range of y, i.e. ys .le. y .le. yf.
+        !                          ys must be less than yf.
         !
-        !                        M
-        !                          THE NUMBER OF PANELS INTO WHICH THE
-        !                          INTERVAL (YS, YF) IS SUBDIVIDED.
-        !                          HENCE, THERE WILL BE M+1 GRID POINTS IN
-        !                          THE Y-DIRECTION GIVEN BY Y(J) = YS+(J-1)DY
-        !                          FOR J=1, 2, ..., M+1,
-        !                          WHERE DY = (YF-YS)/M IS THE PANEL WIDTH.
-        !                          M MUST BE AT LEAST 5.
+        !                        m
+        !                          the number of panels into which the
+        !                          interval (ys, yf) is subdivided.
+        !                          hence, there will be m+1 grid points in
+        !                          the y-direction given by y(j) = ys+(j-1)dy
+        !                          for j=1, 2, ..., m+1,
+        !                          where dy = (yf-ys)/m is the panel width.
+        !                          m must be at least 5.
         !
-        !                        MBDCND
-        !                          INDICATES THE TYPE OF BOUNDARY CONDITIONS
-        !                          AT Y = YS AND Y = YF.
+        !                        mbdcnd
+        !                          indicates the type of boundary conditions
+        !                          at y = ys and y = yf.
         !
-        !                          = 0  IF THE SOLUTION IS PERIODIC IN Y, I.E.
-        !                               U(I, M+J, K) = U(I, J, K).
-        !                          = 1  IF THE SOLUTION IS SPECIFIED AT
-        !                               Y = YS AND Y = YF.
-        !                          = 2  IF THE SOLUTION IS SPECIFIED AT
-        !                               Y = YS AND THE DERIVATIVE OF THE
-        !                               SOLUTION WITH RESPECT TO Y IS
-        !                               SPECIFIED AT Y = YF.
-        !                          = 3  IF THE DERIVATIVE OF THE SOLUTION
-        !                               WITH RESPECT TO Y IS SPECIFIED AT
-        !                               Y = YS AND Y = YF.
-        !                          = 4  IF THE DERIVATIVE OF THE SOLUTION
-        !                               WITH RESPECT TO Y IS SPECIFIED AT
-        !                               AT Y = YS AND THE SOLUTION IS
-        !                               SPECIFIED AT Y=YF.
+        !                          = 0  if the solution is periodic in y, i.e.
+        !                               u(i, m+j, k) = u(i, j, k).
+        !                          = 1  if the solution is specified at
+        !                               y = ys and y = yf.
+        !                          = 2  if the solution is specified at
+        !                               y = ys and the derivative of the
+        !                               solution with respect to y is
+        !                               specified at y = yf.
+        !                          = 3  if the derivative of the solution
+        !                               with respect to y is specified at
+        !                               y = ys and y = yf.
+        !                          = 4  if the derivative of the solution
+        !                               with respect to y is specified at
+        !                               at y = ys and the solution is
+        !                               specified at y=yf.
         !
-        !                        BDYS
-        !                          A TWO-DIMENSIONAL ARRAY THAT SPECIFIES
-        !                          THE VALUES OF THE DERIVATIVE OF THE
-        !                          SOLUTION WITH RESPECT TO Y AT Y = YS.
+        !                        bdys
+        !                          A two-dimensional array that specifies
+        !                          the values of the derivative of the
+        !                          solution with respect to y at y = ys.
         !
-        !                          WHEN MBDCND = 3 OR 4,
+        !                          when mbdcnd = 3 or 4,
         !
-        !                            BDYS(I, K) = (D/DY)U(X(I), YS, Z(K)),
-        !                            I=1, 2, ..., L+1,      K=1, 2, ..., N+1.
+        !                            bdys(i, k) = (d/dy)u(x(i), ys, z(k)),
+        !                            i=1, 2, ..., l+1,      k=1, 2, ..., n+1.
         !
-        !                          WHEN MBDCND HAS ANY OTHER VALUE, BDYS
-        !                          IS A DUMMY VARIABLE. BDYS MUST BE
-        !                          DIMENSIONED AT LEAST (L+1)*(N+1).
+        !                          when mbdcnd has any other value, bdys
+        !                          is a dummy variable. bdys must be
+        !                          dimensioned at least (l+1)*(n+1).
         !
-        !                        BDYF
-        !                          A TWO-DIMENSIONAL ARRAY THAT SPECIFIES
-        !                          THE VALUES OF THE DERIVATIVE OF THE
-        !                          SOLUTION WITH RESPECT TO Y AT Y = YF.
+        !                        bdyf
+        !                          A two-dimensional array that specifies
+        !                          the values of the derivative of the
+        !                          solution with respect to y at y = yf.
         !
-        !                          WHEN MBDCND = 2 OR 3,
+        !                          when mbdcnd = 2 or 3,
         !
-        !                            BDYF(I, K) = (D/DY)U(X(I), YF, Z(K)),
-        !                            I=1, 2, ..., L+1,      K=1, 2, ..., N+1.
+        !                            bdyf(i, k) = (d/dy)u(x(i), yf, z(k)),
+        !                            i=1, 2, ..., l+1,      k=1, 2, ..., n+1.
         !
-        !                          WHEN MBDCND HAS ANY OTHER VALUE, BDYF
-        !                          IS A DUMMY VARIABLE. BDYF MUST BE
-        !                          DIMENSIONED AT LEAST (L+1)*(N+1).
+        !                          when mbdcnd has any other value, bdyf
+        !                          is a dummy variable. bdyf must be
+        !                          dimensioned at least (l+1)*(n+1).
         !
-        !                        ZS, ZF
-        !                          THE RANGE OF Z, I.E. ZS .LE. Z .LE. ZF.
-        !                          ZS MUST BE LESS THAN ZF.
+        !                        zs, zf
+        !                          The range of z, i.e. zs .le. z .le. zf.
+        !                          zs must be less than zf.
         !
-        !                        N
-        !                          THE NUMBER OF PANELS INTO WHICH THE
-        !                          INTERVAL (ZS, ZF) IS SUBDIVIDED.
-        !                          HENCE, THERE WILL BE N+1 GRID POINTS
-        !                          IN THE Z-DIRECTION GIVEN BY
-        !                          Z(K) = ZS+(K-1)DZ FOR K=1, 2, ..., N+1,
-        !                          WHERE DZ = (ZF-ZS)/N IS THE PANEL WIDTH.
-        !                          N MUST BE AT LEAST 5.
+        !                        n
+        !                          The number of panels into which the
+        !                          interval (zs, zf) is subdivided.
+        !                          hence, there will be n+1 grid points
+        !                          in the z-direction given by
+        !                          z(k) = zs+(k-1)dz for k=1, 2, ..., n+1,
+        !                          where dz = (zf-zs)/n is the panel width.
+        !                          n must be at least 5.
         !
-        !                        NBDCND
-        !                          INDICATES THE TYPE OF BOUNDARY CONDITIONS
-        !                          AT Z = ZS AND Z = ZF.
+        !                        nbdcnd
+        !                          Indicates the type of boundary conditions
+        !                          at z = zs and z = zf.
         !
-        !                          = 0  IF THE SOLUTION IS PERIODIC IN Z, I.E.
-        !                               U(I, J, N+K) = U(I, J, K).
-        !                          = 1  IF THE SOLUTION IS SPECIFIED AT
-        !                               Z = ZS AND Z = ZF.
-        !                          = 2  IF THE SOLUTION IS SPECIFIED AT
-        !                               Z = ZS AND THE DERIVATIVE OF THE
-        !                               SOLUTION WITH RESPECT TO Z IS
-        !                               SPECIFIED AT Z = ZF.
-        !                          = 3  IF THE DERIVATIVE OF THE SOLUTION
-        !                               WITH RESPECT TO Z IS SPECIFIED AT
-        !                               Z = ZS AND Z = ZF.
-        !                          = 4  IF THE DERIVATIVE OF THE SOLUTION
-        !                               WITH RESPECT TO Z IS SPECIFIED AT
-        !                               Z = ZS AND THE SOLUTION IS SPECIFIED
-        !                               AT Z=ZF.
+        !                          = 0  if the solution is periodic in z, i.e.
+        !                               u(i, j, n+k) = u(i, j, k).
+        !                          = 1  if the solution is specified at
+        !                               z = zs and z = zf.
+        !                          = 2  if the solution is specified at
+        !                               z = zs and the derivative of the
+        !                               solution with respect to z is
+        !                               specified at z = zf.
+        !                          = 3  if the derivative of the solution
+        !                               with respect to z is specified at
+        !                               z = zs and z = zf.
+        !                          = 4  if the derivative of the solution
+        !                               with respect to z is specified at
+        !                               z = zs and the solution is specified
+        !                               at z=zf.
         !
-        !                        BDZS
-        !                          A TWO-DIMENSIONAL ARRAY THAT SPECIFIES
-        !                          THE VALUES OF THE DERIVATIVE OF THE
-        !                          SOLUTION WITH RESPECT TO Z AT Z = ZS.
+        !                        bdzs
+        !                          A two-dimensional array that specifies
+        !                          the values of the derivative of the
+        !                          solution with respect to z at z = zs.
         !
-        !                          WHEN NBDCND = 3 OR 4,
+        !                          When nbdcnd = 3 or 4,
         !
-        !                            BDZS(I, J) = (D/DZ)U(X(I), Y(J), ZS),
-        !                            I=1, 2, ..., L+1,      J=1, 2, ..., M+1.
+        !                            bdzs(i, j) = (d/dz)u(x(i), y(j), zs),
+        !                            i=1, 2, ..., l+1,      j=1, 2, ..., m+1.
         !
-        !                          WHEN NBDCND HAS ANY OTHER VALUE, BDZS
-        !                          IS A DUMMY VARIABLE. BDZS MUST BE
-        !                          DIMENSIONED AT LEAST (L+1)*(M+1).
+        !                          When nbdcnd has any other value, bdzs
+        !                          is a dummy variable. bdzs must be
+        !                          dimensioned at least (l+1)*(m+1).
         !
-        !                        BDZF
-        !                          A TWO-DIMENSIONAL ARRAY THAT SPECIFIES
-        !                          THE VALUES OF THE DERIVATIVE OF THE
-        !                          SOLUTION WITH RESPECT TO Z AT Z = ZF.
+        !                        bdzf
+        !                          A two-dimensional array that specifies
+        !                          the values of the derivative of the
+        !                          solution with respect to z at z = zf.
         !
-        !                          WHEN NBDCND = 2 OR 3,
+        !                          when nbdcnd = 2 or 3,
         !
-        !                            BDZF(I, J) = (D/DZ)U(X(I), Y(J), ZF),
-        !                            I=1, 2, ..., L+1,      J=1, 2, ..., M+1.
+        !                            bdzf(i, j) = (d/dz)u(x(i), y(j), zf),
+        !                            i=1, 2, ..., l+1,      j=1, 2, ..., m+1.
         !
-        !                          WHEN NBDCND HAS ANY OTHER VALUE, BDZF
-        !                          IS A DUMMY VARIABLE. BDZF MUST BE
-        !                          DIMENSIONED AT LEAST (L+1)*(M+1).
+        !                          when nbdcnd has any other value, bdzf
+        !                          is a dummy variable. bdzf must be
+        !                          dimensioned at least (l+1)*(m+1).
         !
-        !                        ELMBDA
-        !                          THE CONSTANT LAMBDA IN THE HELMHOLTZ
-        !                          EQUATION. IF LAMBDA .GT. 0, A SOLUTION
-        !                          MAY NOT EXIST.  HOWEVER, hw3crt WILL
-        !                          ATTEMPT TO FIND A SOLUTION.
+        !                        elmbda
+        !                          The constant lambda in the helmholtz
+        !                          equation. if lambda > 0, a solution
+        !                          may not exist.  however, hw3crt will
+        !                          attempt to find a solution.
         !
-        !                        LDIMF
-        !                          THE ROW (OR FIRST) DIMENSION OF THE
-        !                          ARRAYS F, BDYS, BDYF, BDZS, AND BDZF AS IT
-        !                          APPEARS IN THE PROGRAM CALLING hw3crt.
-        !                          THIS PARAMETER IS USED TO SPECIFY THE
-        !                          VARIABLE DIMENSION OF THESE ARRAYS.
-        !                          LDIMF MUST BE AT LEAST L+1.
+        !                        ldimf
+        !                          The row (or first) dimension of the
+        !                          arrays f, bdys, bdyf, bdzs, and bdzf as it
+        !                          appears in the program calling hw3crt.
+        !                          this parameter is used to specify the
+        !                          variable dimension of these arrays.
+        !                          ldimf must be at least l+1.
         !
-        !                        MDIMF
-        !                          THE COLUMN (OR SECOND) DIMENSION OF THE
-        !                          ARRAY F AND THE ROW (OR FIRST) DIMENSION
-        !                          OF THE ARRAYS BDXS AND BDXF AS IT APPEARS
-        !                          IN THE PROGRAM CALLING hw3crt.  THIS
-        !                          PARAMETER IS USED TO SPECIFY THE VARIABLE
-        !                          DIMENSION OF THESE ARRAYS.
-        !                          MDIMF MUST BE AT LEAST M+1.
+        !                        mdimf
+        !                          the column (or second) dimension of the
+        !                          array f and the row (or first) dimension
+        !                          of the arrays bdxs and bdxf as it appears
+        !                          in the program calling hw3crt.  this
+        !                          parameter is used to specify the variable
+        !                          dimension of these arrays.
+        !                          mdimf must be at least m+1.
         !
-        !                        F
-        !                          A THREE-DIMENSIONAL ARRAY OF DIMENSION AT
-        !                          AT LEAST (L+1)*(M+1)*(N+1), SPECIFYING THE
-        !                          VALUES OF THE RIGHT SIDE OF THE HELMHOLZ
-        !                          EQUATION AND BOUNDARY VALUES (IF ANY).
+        !                        f
+        !                          a three-dimensional array of dimension at
+        !                          at least (l+1)*(m+1)*(n+1), specifying the
+        !                          values of the right side of the helmholz
+        !                          equation and boundary values (if any).
         !
-        !                          ON THE INTERIOR, F IS DEFINED AS FOLLOWS:
-        !                          FOR I=2, 3, ..., L,  J=2, 3, ..., M,
-        !                          AND K=2, 3, ..., N
-        !                          F(I, J, K) = F(X(I), Y(J), Z(K)).
+        !                          on the interior, f is defined as follows:
+        !                          for i=2, 3, ..., l,  j=2, 3, ..., m,
+        !                          and k=2, 3, ..., n
+        !                          f(i, j, k) = f(x(i), y(j), z(k)).
         !
-        !                          ON THE BOUNDARIES, F IS DEFINED AS FOLLOWS:
-        !                          FOR J=1, 2, ..., M+1,  K=1, 2, ..., N+1,
-        !                          AND I=1, 2, ..., L+1
+        !                          on the boundaries, f is defined as follows:
+        !                          for j=1, 2, ..., m+1,  k=1, 2, ..., n+1,
+        !                          and i=1, 2, ..., l+1
         !
-        !                          LBDCND      F(1, J, K)         F(L+1, J, K)
+        !                          lbdcnd      f(1, j, k)         f(l+1, j, k)
         !                          ------   ---------------   ---------------
         !
-        !                            0      F(XS, Y(J), Z(K))   F(XS, Y(J), Z(K))
-        !                            1      U(XS, Y(J), Z(K))   U(XF, Y(J), Z(K))
-        !                            2      U(XS, Y(J), Z(K))   F(XF, Y(J), Z(K))
-        !                            3      F(XS, Y(J), Z(K))   F(XF, Y(J), Z(K))
-        !                            4      F(XS, Y(J), Z(K))   U(XF, Y(J), Z(K))
+        !                            0      f(xs, y(j), z(k))   f(xs, y(j), z(k))
+        !                            1      u(xs, y(j), z(k))   u(xf, y(j), z(k))
+        !                            2      u(xs, y(j), z(k))   f(xf, y(j), z(k))
+        !                            3      f(xs, y(j), z(k))   f(xf, y(j), z(k))
+        !                            4      f(xs, y(j), z(k))   u(xf, y(j), z(k))
         !
-        !                          MBDCND      F(I, 1, K)         F(I, M+1, K)
+        !                          mbdcnd      f(i, 1, k)         f(i, m+1, k)
         !                          ------   ---------------   ---------------
         !
-        !                            0      F(X(I), YS, Z(K))   F(X(I), YS, Z(K))
-        !                            1      U(X(I), YS, Z(K))   U(X(I), YF, Z(K))
-        !                            2      U(X(I), YS, Z(K))   F(X(I), YF, Z(K))
-        !                            3      F(X(I), YS, Z(K))   F(X(I), YF, Z(K))
-        !                            4      F(X(I), YS, Z(K))   U(X(I), YF, Z(K))
+        !                            0      f(x(i), ys, z(k))   f(x(i), ys, z(k))
+        !                            1      u(x(i), ys, z(k))   u(x(i), yf, z(k))
+        !                            2      u(x(i), ys, z(k))   f(x(i), yf, z(k))
+        !                            3      f(x(i), ys, z(k))   f(x(i), yf, z(k))
+        !                            4      f(x(i), ys, z(k))   u(x(i), yf, z(k))
         !
-        !                          NBDCND      F(I, J, 1)         F(I, J, N+1)
+        !                          nbdcnd      f(i, j, 1)         f(i, j, n+1)
         !                          ------   ---------------   ---------------
         !
-        !                            0      F(X(I), Y(J), ZS)   F(X(I), Y(J), ZS)
-        !                            1      U(X(I), Y(J), ZS)   U(X(I), Y(J), ZF)
-        !                            2      U(X(I), Y(J), ZS)   F(X(I), Y(J), ZF)
-        !                            3      F(X(I), Y(J), ZS)   F(X(I), Y(J), ZF)
-        !                            4      F(X(I), Y(J), ZS)   U(X(I), Y(J), ZF)
+        !                            0      f(x(i), y(j), zs)   f(x(i), y(j), zs)
+        !                            1      u(x(i), y(j), zs)   u(x(i), y(j), zf)
+        !                            2      u(x(i), y(j), zs)   f(x(i), y(j), zf)
+        !                            3      f(x(i), y(j), zs)   f(x(i), y(j), zf)
+        !                            4      f(x(i), y(j), zs)   u(x(i), y(j), zf)
         !
-        !                          NOTE:
-        !                          IF THE TABLE CALLS FOR BOTH THE SOLUTION
-        !                          U AND THE RIGHT SIDE F ON A BOUNDARY,
-        !                          THEN THE SOLUTION MUST BE SPECIFIED.
+        !                          Note:
+        !                          If the table calls for both the solution
+        !                          u and the right side f on a boundary,
+        !                          then the solution must be specified.
         !
         !
-        ! ON OUTPUT              F
-        !                          CONTAINS THE SOLUTION U(I, J, K) OF THE
-        !                          FINITE DIFFERENCE APPROXIMATION FOR THE
-        !                          GRID POINT (X(I), Y(J), Z(K)) FOR
-        !                          I=1, 2, ..., L+1, J=1, 2, ..., M+1,
-        !                          AND K=1, 2, ..., N+1.
+        ! ON OUTPUT              f
+        !                          Contains the solution u(i, j, k) of the
+        !                          finite difference approximation for the
+        !                          grid point (x(i), y(j), z(k)) for
+        !                          i=1, 2, ..., l+1, j=1, 2, ..., m+1,
+        !                          and k=1, 2, ..., n+1.
         !
-        !                        PERTRB
-        !                          IF A COMBINATION OF PERIODIC OR DERIVATIVE
-        !                          BOUNDARY CONDITIONS IS SPECIFIED FOR A
-        !                          POISSON EQUATION (LAMBDA = 0), A SOLUTION
-        !                          MAY NOT EXIST.  PERTRB IS A CONSTANT,
-        !                          CALCULATED AND SUBTRACTED FROM F, WHICH
-        !                          ENSURES THAT A SOLUTION EXISTS.  PWSCRT
-        !                          THEN COMPUTES THIS SOLUTION, WHICH IS A
-        !                          LEAST SQUARES SOLUTION TO THE ORIGINAL
-        !                          APPROXIMATION.  THIS SOLUTION IS NOT
-        !                          UNIQUE AND IS UNNORMALIZED.  THE VALUE OF
-        !                          PERTRB SHOULD BE SMALL COMPARED TO THE
-        !                          THE RIGHT SIDE F.  OTHERWISE, A SOLUTION
-        !                          IS OBTAINED TO AN ESSENTIALLY DIFFERENT
-        !                          PROBLEM.  THIS COMPARISON SHOULD ALWAYS
-        !                          BE MADE TO INSURE THAT A MEANINGFUL
-        !                          SOLUTION HAS BEEN OBTAINED.
+        !                        pertrb
+        !                          If a combination of periodic or derivative
+        !                          boundary conditions is specified for a
+        !                          poisson equation (lambda = 0), a solution
+        !                          may not exist.  pertrb is a constant,
+        !                          calculated and subtracted from f, which
+        !                          ensures that a solution exists.  pwscrt
+        !                          then computes this solution, which is a
+        !                          least squares solution to the original
+        !                          approximation. This solution is not
+        !                          unique and is unnormalized. The value of
+        !                          pertrb should be small compared to the
+        !                          the right side f. Otherwise, a solution
+        !                          is obtained to an essentially different
+        !                          problem. This comparison should always
+        !                          be made to insure that a meaningful
+        !                          solution has been obtained.
         !
         !                        ierror
-        !                          AN ERROR FLAG THAT INDICATES INVALID INPUT
-        !                          PARAMETERS.  EXCEPT FOR NUMBERS 0 AND 12,
-        !                          A SOLUTION IS NOT ATTEMPTED.
+        !                          An error flag that indicates invalid input
+        !                          parameters.  except for numbers 0 and 12,
+        !                          a solution is not attempted.
         !
-        !                          =  0  NO ERROR
-        !                          =  1  XS .GE. XF
-        !                          =  2  L .LT. 5
-        !                          =  3  LBDCND .LT. 0 .OR. LBDCND .GT. 4
-        !                          =  4  YS .GE. YF
-        !                          =  5  M .LT. 5
-        !                          =  6  MBDCND .LT. 0 .OR. MBDCND .GT. 4
-        !                          =  7  ZS .GE. ZF
-        !                          =  8  N .LT. 5
-        !                          =  9  NBDCND .LT. 0 .OR. NBDCND .GT. 4
-        !                          = 10  LDIMF .LT. L+1
-        !                          = 11  MDIMF .LT. M+1
-        !                          = 12  LAMBDA .GT. 0
-        !                          = 20 If the dynamic allocation of real and
-        !                               complex work space required for solution
-        !                               fails (for example if N, M are too large
-        !                               for your computer)
+        !                          =  0  no error
+        !                          =  1  xs >= xf
+        !                          =  2  l < 5
+        !                          =  3  lbdcnd < 0 .or. lbdcnd > 4
+        !                          =  4  ys >= yf
+        !                          =  5  m < 5
+        !                          =  6  mbdcnd < 0 .or. mbdcnd > 4
+        !                          =  7  zs >= zf
+        !                          =  8  n < 5
+        !                          =  9  nbdcnd < 0 .or. nbdcnd > 4
+        !                          = 10  ldimf < l+1
+        !                          = 11  mdimf < m+1
+        !                          = 12  lambda > 0
+        !                          = 20  If the dynamic allocation of real and
+        !                                complex work space required for solution
+        !                                fails (for example if n, m are too large
+        !                                for your computer)
         !
-        !                          SINCE THIS IS THE ONLY MEANS OF INDICATING
-        !                          A POSSIBLY INCORRECT CALL TO hw3crt, THE
-        !                          USER SHOULD TEST ierror AFTER THE CALL.
+        !                          Since this is the only means of indicating
+        !                          a possibly incorrect call to hw3crt, the
+        !                          user should test ierror after the call.
         !
-        ! SPECIAL CONDITIONS     NONE
+        ! SPECIAL CONDITIONS     None
         !
-        ! I/O                    NONE
+        ! I/O                    None
         !
-        ! PRECISION              SINGLE
+        ! PRECISION              64-bit precision real and 32-bit precision float
         !
-        ! REQUIRED Files         fish.f, pois3d.f, fftpack.f, comf.f
+        ! REQUIRED Files         type_FishpackWorkspace.f90,
+        !                        pois3d.f90, fftpack.f90, comf.f90
         !
-        ! LANGUAGE               FORTRAN 90
+        ! STANDARD               Fortran 2008
         !
-        ! HISTORY                WRITTEN BY ROLAND SWEET AT NCAR IN THE LATE
-        !                        1970'S.  RELEASED ON NCAR'S PUBLIC SOFTWARE
-        !                        LIBRARIES IN January 1980.
-        !                        Revised in June 2004 by John Adams using
-        !                        Fortran 90 dynamically allocated work space.
+        ! HISTORY                * Written by Roland Sweet at NCAR in the late
+        !                          1970's.
+        !                        * Released on ncar's public software
+        !                          libraries in January 1980.
+        !                        * Revised in June 2004 by John Adams using
+        !                          Fortran 90 dynamically allocated work space.
+        !                        * Revised in April 2016 by Jon Lo Kim Lin to
+        !                          incorporate features of Fortran 2008
         !
-        ! PORTABILITY            FORTRAN 90
+        ! ALGORITHM              This subroutine defines the finite difference
+        !                        equations, incorporates boundary data, and
+        !                        adjusts the right side of singular systems and
+        !                        then calls pois3d to solve the system.
         !
-        ! ALGORITHM              THIS SUBROUTINE DEFINES THE FINITE DIFFERENCE
-        !                        EQUATIONS, INCORPORATES BOUNDARY DATA, AND
-        !                        ADJUSTS THE RIGHT SIDE OF SINGULAR SYSTEMS AND
-        !                        THEN CALLS POIS3D TO SOLVE THE SYSTEM.
+        ! TIMING                 For large l, m and n, the operation count
+        !                        is roughly proportional to
         !
-        ! TIMING                 FOR LARGE L, M AND N, THE OPERATION COUNT
-        !                        IS ROUGHLY PROPORTIONAL TO
-        !                          L*M*N*(LOG2(L)+LOG2(M)+5),
-        !                        BUT ALSO DEPENDS ON INPUT PARAMETERS LBDCND
-        !                        AND MBDCND.
+        !                          l*m*n*(log2(l)+log2(m)+5),
         !
-        ! ACCURACY               THE SOLUTION PROCESS EMPLOYED RESULTS IN
-        !                        A LOSS OF NO MORE THAN FOUR SIGNIFICANT
-        !                        DIGITS FOR L, M AND N AS LARGE AS 32.
-        !                        MORE DETAILED INFORMATION ABOUT ACCURACY
-        !                        CAN BE FOUND IN THE DOCUMENTATION FOR
-        !                        ROUTINE POIS3D WHICH IS THE ROUTINE THAT
-        !                        ACTUALLY SOLVES THE FINITE DIFFERENCE
-        !                        EQUATIONS.
+        !                        but also depends on input parameters lbdcnd
+        !                        and mbdcnd.
         !
-        ! REFERENCES             NONE
+        ! ACCURACY               The solution process employed results in
+        !                        a loss of no more than four significant
+        !                        digits for l, m and n as large as 32.
+        !                        more detailed information about accuracy
+        !                        can be found in the documentation for
+        !                        routine pois3d which is the routine that
+        !                        actually solves the finite difference
+        !                        equations.
+        !
+        ! REFERENCES             None
         !
         !-----------------------------------------------
         ! Dictionary: calling arguments
@@ -454,60 +457,58 @@ contains
         real (wp),    intent (in)      :: zf
         real (wp),    intent (in)      :: elmbda
         real (wp),    intent (out)     :: pertrb
-        real (wp), contiguous, intent (in)      :: bdxs(:,:)
-        real (wp), contiguous, intent (in)      :: bdxf(:,:)
-        real (wp), contiguous, intent (in)      :: bdys(:,:)
-        real (wp), contiguous, intent (in)      :: bdyf(:,:)
-        real (wp), contiguous, intent (in)      :: bdzs(:,:)
-        real (wp), contiguous, intent (in)      :: bdzf(:,:)
-        real (wp), contiguous, intent (in out)  :: f(:,:,:)
+        real (wp),    intent (in)      :: bdxs(:,:)
+        real (wp),    intent (in)      :: bdxf(:,:)
+        real (wp),    intent (in)      :: bdys(:,:)
+        real (wp),    intent (in)      :: bdyf(:,:)
+        real (wp),    intent (in)      :: bdzs(:,:)
+        real (wp),    intent (in)      :: bdzf(:,:)
+        real (wp),    intent (in out)  :: f(:,:,:)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
         type (FishpackWorkspace) :: workspace
+        integer (ip)             :: irwk, icwk
         !-----------------------------------------------
 
-        ! initialize error flag
-        ierror = 0
+        !
+        !==> Check validity of input arguments
+        !
+        call check_input_arguments(l, lbdcnd, m, mbdcnd, n, nbdcnd, &
+            ldimf, mdimf, xs, xf, ys, yf, zs, zf, ierror)
 
-        ! Check if input values are valid
-        if (xf <= xs) ierror = 1
-        if (l < 5) ierror = 2
-        if (lbdcnd<0 .or. lbdcnd>4) ierror = 3
-        if (yf <= ys) ierror = 4
-        if (m < 5) ierror = 5
-        if (mbdcnd<0 .or. mbdcnd>4) ierror = 6
-        if (zf <= zs) ierror = 7
-        if (n < 5) ierror = 8
-        if (nbdcnd<0 .or. nbdcnd>4) ierror = 9
-        if (ldimf < l + 1) ierror = 10
-        if (mdimf < m + 1) ierror = 11
-        if (ierror /= 0) return
+        ! Check error flag
+        if (ierror /= 0) then
+            return
+        end if
 
-        ! Allocate real workspace array
-        associate( &
-            irwk => 30+l+m+5*n+max(l, m, n)+7*(int((l+1)/2)+int((m+1)/2)), & ! Estimate required workspace length (generous estimate)
-            icwk => 0 &
-            )
-            call workspace%create( irwk, icwk, ierror )
-        end associate
+        !
+        !==> Compute required workspace dimensions for hw3crtt
+        !
+        irwk = 30+l+m+5*n+max(l, m, n) + 7*((l+1)/2 + (m+1)/2)
+        icwk = 0
+        call workspace%create(irwk, icwk)
 
-        ! Check if allocation was succcessful
-        if (ierror == 20) return
-
-        ! solve system
+        !
+        !==> Solve system
+        !
         associate( rew => workspace%real_workspace )
+
             call hw3crtt(xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m, mbdcnd, bdys, &
                 bdyf, zs, zf, n, nbdcnd, bdzs, bdzf, elmbda, ldimf, &
                 mdimf, f, pertrb, ierror, rew)
+
         end associate
 
-        ! Release memory
+        !
+        !==> Release memory
+        !
         call workspace%destroy()
 
     end subroutine hw3crt
 
-    subroutine hw3crtT(xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m, &
+
+    subroutine hw3crtt(xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m, &
         mbdcnd, bdys, bdyf, zs, zf, n, nbdcnd, bdzs, bdzf, elmbda, &
         ldimf, mdimf, f, pertrb, ierror, w)
         !-----------------------------------------------
@@ -541,113 +542,155 @@ contains
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer (ip) :: mstart, mstop, mp1, mp, munk, np, np1, nstart, nstop, &
-            nunk, lp1, lp, lstart, lstop, j, k, lunk, i, iwb, iwc, iww, &
-            mstpm1, lstpm1, nstpm1, nperod, ir
-        real::dy, twbydy, c2, dz, twbydz, c3, dx, c1, twbydx, xlp, ylp, zlp, s1, s2, s
+        integer (ip) :: hack_counter
+        integer (ip) :: mstart, mstop, mp1, mp, munk, np, np1
+        integer (ip) :: nstart, nstop, nunk, lp1, lp, lstart
+        integer (ip) :: lstop, j, k, lunk, i, iwb, iwc, iww
+        integer (ip) :: mstpm1, lstpm1, nstpm1, nperod, ir
+        real (wp)    :: dy, twbydy, c2, dz, twbydz, c3, dx
+        real (wp)    :: c1, twbydx, xlp, ylp, zlp, s1, s2, s
         !-----------------------------------------------
 
-        dy = (yf - ys)/real(m)
-        twbydy = 2./dy
-        c2 = 1./dy**2
+        dy = (yf - ys)/m
+        twbydy = 2.0_wp/dy
+        c2 = 1.0_wp/dy**2
         mstart = 1
         mstop = m
         mp1 = m + 1
         mp = mbdcnd + 1
-        go to (104, 101, 101, 102, 102) mp
-101 continue
-    mstart = 2
-102 continue
-    go to (104, 104, 103, 103, 104) mp
-103 continue
-    mstop = mp1
-104 continue
-    munk = mstop - mstart + 1
-    dz = (zf - zs)/real(n)
-    twbydz = 2./dz
-    np = nbdcnd + 1
-    c3 = 1./dz**2
-    np1 = n + 1
-    nstart = 1
-    nstop = n
-    go to (108, 105, 105, 106, 106) np
-105 continue
-    nstart = 2
-106 continue
-    go to (108, 108, 107, 107, 108) np
-107 continue
-    nstop = np1
-108 continue
-    nunk = nstop - nstart + 1
-    lp1 = l + 1
-    dx = (xf - xs)/real(l)
-    c1 = 1./dx**2
-    twbydx = 2./dx
-    lp = lbdcnd + 1
-    lstart = 1
-    lstop = l
-    !
-    !     ENTER BOUNDARY DATA FOR X-BOUNDARIES.
-    !
-    go to (122, 109, 109, 112, 112) lp
+
+        !
+        ! GCC 5.3 does not support the exit statement within
+        ! the select case construct yet.
+        !
+        dumb_hack_1: do hack_counter = 1,1
+            select case (mp)
+                case (1)
+                    exit dumb_hack_1
+                case (2:3)
+                    mstart = 2
+                    select case (mp)
+                        case (1:2, 5)
+                            exit dumb_hack_1
+                        case (3:4)
+                            mstop = mp1
+                    end select
+                case (4:5)
+                    select case (mp)
+                        case (1:2, 5)
+                            exit dumb_hack_1
+                        case (3:4)
+                            mstop = mp1
+                    end select
+            end select
+        end do dumb_hack_1
+
+        munk = mstop - mstart + 1
+        dz = (zf - zs)/n
+        twbydz = 2.0_wp/dz
+        np = nbdcnd + 1
+        c3 = 1.0_wp/dz**2
+        np1 = n + 1
+        nstart = 1
+        nstop = n
+
+        !
+        ! GCC 5.3 does not support the exit statement within
+        ! the select case construct yet.
+        !
+        dumb_hack_2: do hack_counter = 1,1
+            select case (np)
+                case (1)
+                    exit dumb_hack_2
+                case (2:3)
+                    nstart = 2
+                    select case (np)
+                        case (2) ! case(3)
+                            exit dumb_hack_2
+                        case default
+                            nstop = np1
+                    end select
+                case (4:5)
+                    select case (np)
+                        case (4) ! case(5)
+                            exit dumb_hack_2
+                        case default
+                            nstop = np1
+                    end select
+            end select
+        end do dumb_hack_2
+
+        nunk = nstop - nstart + 1
+        lp1 = l + 1
+        dx = (xf - xs)/l
+        c1 = 1.0_wp/dx**2
+        twbydx = 2.0_wp/dx
+        lp = lbdcnd + 1
+        lstart = 1
+        lstop = l
+        !
+        !==> Enter boundary data for x-boundaries.
+        !
+        go to (122, 109, 109, 112, 112) lp
 109 continue
     lstart = 2
-    f(2, mstart:mstop, nstart:nstop) = F(2, mstart:mstop, nstart:nstop) - &
-        c1*F(1, mstart:mstop, nstart:nstop)
+    f(2, mstart:mstop, nstart:nstop) = f(2, mstart:mstop, nstart:nstop) - &
+        c1*f(1, mstart:mstop, nstart:nstop)
     go to 115
 112 continue
-    f(1, mstart:mstop, nstart:nstop) = F(1, mstart:mstop, nstart:nstop) + &
-        twbydx*BDXS(mstart:mstop, nstart:nstop)
+    f(1, mstart:mstop, nstart:nstop) = f(1, mstart:mstop, nstart:nstop) + &
+        twbydx*bdxs(mstart:mstop, nstart:nstop)
 115 continue
     go to (122, 116, 119, 119, 116) lp
 116 continue
-    f(l, mstart:mstop, nstart:nstop) = F(l, mstart:mstop, nstart:nstop) - &
-        c1*F(lp1, mstart:mstop, nstart:nstop)
+    f(l, mstart:mstop, nstart:nstop) = f(l, mstart:mstop, nstart:nstop) - &
+        c1*f(lp1, mstart:mstop, nstart:nstop)
     go to 122
 119 continue
     lstop = lp1
-    f(lp1, mstart:mstop, nstart:nstop) = F(lp1, mstart:mstop, nstart:nstop &
-        ) - twbydx*BDXF(mstart:mstop, nstart:nstop)
+    f(lp1, mstart:mstop, nstart:nstop) = f(lp1, mstart:mstop, nstart:nstop &
+        ) - twbydx*bdxf(mstart:mstop, nstart:nstop)
 122 continue
     lunk = lstop - lstart + 1
+
     !
-    !     ENTER BOUNDARY DATA FOR Y-BOUNDARIES.
+    !==> Enter boundary data for y-boundaries.
     !
     go to (136, 123, 123, 126, 126) mp
 123 continue
-    f(lstart:lstop, 2, nstart:nstop) = F(lstart:lstop, 2, nstart:nstop) - &
-        c2*F(lstart:lstop, 1, nstart:nstop)
+    f(lstart:lstop, 2, nstart:nstop) = f(lstart:lstop, 2, nstart:nstop) - &
+        c2*f(lstart:lstop, 1, nstart:nstop)
     go to 129
 126 continue
-    f(lstart:lstop, 1, nstart:nstop) = F(lstart:lstop, 1, nstart:nstop) + &
-        twbydy*BDYS(lstart:lstop, nstart:nstop)
+    f(lstart:lstop, 1, nstart:nstop) = f(lstart:lstop, 1, nstart:nstop) + &
+        twbydy*bdys(lstart:lstop, nstart:nstop)
 129 continue
     go to (136, 130, 133, 133, 130) mp
 130 continue
-    f(lstart:lstop, m, nstart:nstop) = F(lstart:lstop, m, nstart:nstop) - &
-        c2*F(lstart:lstop, mp1, nstart:nstop)
+    f(lstart:lstop, m, nstart:nstop) = f(lstart:lstop, m, nstart:nstop) - &
+        c2*f(lstart:lstop, mp1, nstart:nstop)
     go to 136
 133 continue
-    f(lstart:lstop, mp1, nstart:nstop) = F(lstart:lstop, mp1, nstart:nstop &
-        ) - twbydy*BDYF(lstart:lstop, nstart:nstop)
+    f(lstart:lstop, mp1, nstart:nstop) = f(lstart:lstop, mp1, nstart:nstop &
+        ) - twbydy*bdyf(lstart:lstop, nstart:nstop)
 136 continue
     go to (150, 137, 137, 140, 140) np
 137 continue
-    f(lstart:lstop, mstart:mstop, 2) = F(lstart:lstop, mstart:mstop, 2) - &
-        c3*F(lstart:lstop, mstart:mstop, 1)
+    f(lstart:lstop, mstart:mstop, 2) = f(lstart:lstop, mstart:mstop, 2) - &
+        c3*f(lstart:lstop, mstart:mstop, 1)
     go to 143
 140 continue
-    f(lstart:lstop, mstart:mstop, 1) = F(lstart:lstop, mstart:mstop, 1) + &
-        twbydz*BDZS(lstart:lstop, mstart:mstop)
+    f(lstart:lstop, mstart:mstop, 1) = f(lstart:lstop, mstart:mstop, 1) + &
+        twbydz*bdzs(lstart:lstop, mstart:mstop)
 143 continue
     go to (150, 144, 147, 147, 144) np
 144 continue
-    f(lstart:lstop, mstart:mstop, n) = F(lstart:lstop, mstart:mstop, n) - &
-        c3*F(lstart:lstop, mstart:mstop, np1)
+    f(lstart:lstop, mstart:mstop, n) = f(lstart:lstop, mstart:mstop, n) - &
+        c3*f(lstart:lstop, mstart:mstop, np1)
     go to 150
 147 continue
-    f(lstart:lstop, mstart:mstop, np1) = F(lstart:lstop, mstart:mstop, np1 &
-        ) - twbydz*BDZF(lstart:lstop, mstart:mstop)
+    f(lstart:lstop, mstart:mstop, np1) = f(lstart:lstop, mstart:mstop, np1 &
+        ) - twbydz*bdzf(lstart:lstop, mstart:mstop)
 !
 !     DEFINE A, B, C COEFFICIENTS IN W-ARRAY.
 !
@@ -668,7 +711,7 @@ contains
 155 continue
     pertrb = 0.
     !
-    !     FOR SINGULAR PROBLEMS ADJUST DATA TO INSURE A SOLUTION WILL EXIST.
+    !     For singular problems adjust data to insure a solution will exist.
     !
     go to (156, 172, 172, 156, 172) lp
 156 continue
@@ -676,9 +719,10 @@ contains
 157 continue
     go to (158, 172, 172, 158, 172) np
 158 continue
-    if (elmbda >= 0.) then
-        if (elmbda /= 0.) then
+    if (elmbda >= 0.0_wp) then
+        if (elmbda /= 0.0_wp) then
             ierror = 12
+            return
         else
             mstpm1 = mstop - 1
             lstpm1 = lstop - 1
@@ -686,72 +730,172 @@ contains
             xlp = (2 + lp)/3
             ylp = (2 + mp)/3
             zlp = (2 + np)/3
-            s1 = 0.
+            s1 = 0.0_wp
+
             do k = 2, nstpm1
                 do j = 2, mstpm1
-                    s1 = s1 + SUM(F(2:lstpm1, j, k))
-                    s1 = s1 + (F(1, j, k)+F(lstop, j, k))/xlp
+                    s1 = s1 + sum(f(2:lstpm1, j, k))
+                    s1 = s1 + (f(1, j, k)+f(lstop, j, k))/xlp
                 end do
-                s2 = SUM(F(2:lstpm1, 1, k)+F(2:lstpm1, mstop, k))
-                s2 = (s2 + (F(1, 1, k)+F(1, mstop, k)+F(lstop, 1, k)+F(lstop, &
-                    mstop, k))/xlp)/ylp
+                s2 = sum(f(2:lstpm1, 1, k)+f(2:lstpm1, mstop, k))
+                s2 = (s2 + (f(1, 1, k)+f(1, mstop, k)+f(lstop, 1, k) &
+                    +f(lstop,mstop, k))/xlp)/ylp
                 s1 = s1 + s2
             end do
-            s = (F(1, 1, 1)+F(lstop, 1, 1)+F(1, 1, nstop)+F(lstop, 1, nstop)+F(1 &
-                , mstop, 1)+F(lstop, mstop, 1)+F(1, mstop, nstop)+F(lstop, mstop &
-                , nstop))/(xlp*ylp)
+
+            s = (f(1, 1, 1)+f(lstop, 1, 1) &
+                + f(1, 1, nstop)+f(lstop, 1, nstop) &
+                + f(1, mstop, 1)+f(lstop, mstop, 1) &
+                + f(1, mstop, nstop)+f(lstop, mstop, nstop))/(xlp*ylp)
+
             do j = 2, mstpm1
-                s = s + SUM(F(2:lstpm1, j, 1)+F(2:lstpm1, j, nstop))
+                s = s + sum(f(2:lstpm1, j, 1)+f(2:lstpm1, j, nstop))
             end do
-            s2 = 0.
-            s2 = SUM(F(2:lstpm1, 1, 1)+F(2:lstpm1, 1, nstop)+F(2:lstpm1, &
-                mstop, 1)+F(2:lstpm1, mstop, nstop))
+
+            s2 = 0.0_wp
+            s2 = sum(f(2:lstpm1, 1, 1)+f(2:lstpm1, 1, nstop)+f(2:lstpm1, &
+                mstop, 1)+f(2:lstpm1, mstop, nstop))
             s = s2/ylp + s
-            s2 = 0.
-            s2 = SUM(F(1, 2:mstpm1, 1)+F(1, 2:mstpm1, nstop)+F(lstop, 2: &
-                mstpm1, 1)+F(lstop, 2:mstpm1, nstop))
+            s2 = 0.0_wp
+            s2 = sum(f(1, 2:mstpm1, 1)+f(1, 2:mstpm1, nstop)+f(lstop, 2: &
+                mstpm1, 1)+f(lstop, 2:mstpm1, nstop))
             s = s2/xlp + s
-            pertrb = (s/zlp + s1)/((real(lunk + 1) - xlp)*(real(munk &
-                + 1) - ylp)*(real(nunk + 1) - zlp))
-            f(:lunk, :munk, :nunk) = F(:lunk, :munk, :nunk) - pertrb
+            pertrb = &
+                (s/zlp + s1)/((real(lunk + 1) - xlp) &
+                *(real(munk + 1) - ylp)*(real(nunk + 1) - zlp))
+            f(:lunk, :munk, :nunk) = f(:lunk, :munk, :nunk) - pertrb
         end if
     end if
+
 172 continue
-    nperod = 0
+
     if (nbdcnd /= 0) then
         nperod = 1
-        w(1) = 0.
-        w(iww-1) = 0.
+        w(1) = 0.0_wp
+        w(iww-1) = 0.0_wp
+    else
+        nperod = 0
     end if
 
-    call POIS3DD(lbdcnd, lunk, c1, mbdcnd, munk, c2, nperod, nunk, w, &
-        W(iwb), W(iwc), ldimf, mdimf, F(lstart, mstart, nstart), ir, W(iww))
+    call pois3dd(lbdcnd, lunk, c1, mbdcnd, munk, c2, nperod, nunk, w, &
+        w(iwb), w(iwc), ldimf, mdimf, f(lstart, mstart, nstart), ir, w(iww))
     !
-    !     FILL IN SIDES FOR PERIODIC BOUNDARY CONDITIONS.
+    !==> Fill in sides for periodic boundary conditions.
     !
     if (lp == 1) then
         if (mp == 1) then
-            f(1, mp1, nstart:nstop) = F(1, 1, nstart:nstop)
+            f(1, mp1, nstart:nstop) = f(1, 1, nstart:nstop)
             mstop = mp1
         end if
         if (np == 1) then
-            f(1, mstart:mstop, np1) = F(1, mstart:mstop, 1)
+            f(1, mstart:mstop, np1) = f(1, mstart:mstop, 1)
             nstop = np1
         end if
-        f(lp1, mstart:mstop, nstart:nstop) = F(1, mstart:mstop, nstart: nstop)
-    end if
-    if (mp == 1) then
-        if (np == 1) then
-            f(lstart:lstop, 1, np1) = F(lstart:lstop, 1, 1)
-            nstop = np1
-        end if
-        f(lstart:lstop, mp1, nstart:nstop) = F(lstart:lstop, 1, nstart:nstop)
-    end if
-    if (np == 1) then
-        f(lstart:lstop, mstart:mstop, np1) = F(lstart:lstop, mstart:mstop,1)
+        f(lp1, mstart:mstop, nstart:nstop) = f(1, mstart:mstop, nstart: nstop)
     end if
 
-end subroutine hw3crtT
+    if (mp == 1) then
+        if (np == 1) then
+            f(lstart:lstop, 1, np1) = f(lstart:lstop, 1, 1)
+            nstop = np1
+        end if
+        f(lstart:lstop, mp1, nstart:nstop) = f(lstart:lstop, 1, nstart:nstop)
+    end if
+
+    if (np == 1) then
+        f(lstart:lstop, mstart:mstop, np1) = f(lstart:lstop, mstart:mstop,1)
+    end if
+
+end subroutine hw3crtt
+
+
+
+pure subroutine check_input_arguments(l, lbdcnd, m, mbdcnd, n, nbdcnd, &
+    ldimf, mdimf, xs, xf, ys, yf, zs, zf, ierror)
+    !-----------------------------------------------
+    ! Dictionary: calling arguments
+    !-----------------------------------------------
+    integer (ip), intent (in)      :: l
+    integer (ip), intent (in)      :: lbdcnd
+    integer (ip), intent (in)      :: m
+    integer (ip), intent (in)      :: mbdcnd
+    integer (ip), intent (in)      :: n
+    integer (ip), intent (in)      :: nbdcnd
+    integer (ip), intent (in)      :: ldimf
+    integer (ip), intent (in)      :: mdimf
+    real (wp),    intent (in)      :: xs
+    real (wp),    intent (in)      :: xf
+    real (wp),    intent (in)      :: ys
+    real (wp),    intent (in)      :: yf
+    real (wp),    intent (in)      :: zs
+    real (wp),    intent (in)      :: zf
+    integer (ip), intent (out)     :: ierror
+    !-----------------------------------------------
+    ! Dictionary: calling arguments
+    !-----------------------------------------------
+
+    ! initialize error flag
+    ierror = 0
+
+    ! Case 1
+    if (xf <= xs) then
+        ierror = 1
+        return
+    end if
+
+    if (l < 5) then
+        ierror = 2
+        return
+    end if
+
+    if (lbdcnd < 0 .or. lbdcnd > 4) then
+        ierror = 3
+        return
+    end if
+
+    if (yf <= ys) then
+        ierror = 4
+        return
+    end if
+
+    if (m < 5) then
+        ierror = 5
+        return
+    end if
+
+    if (mbdcnd < 0 .or. mbdcnd > 4) then
+        ierror = 6
+        return
+    end if
+
+    if (zf <= zs) then
+        ierror = 7
+        return
+    end if
+
+    if (n < 5) then
+        ierror = 8
+        return
+    end if
+
+    if (nbdcnd < 0 .or. nbdcnd > 4) then
+        ierror = 9
+        return
+    end if
+
+    if (ldimf < l + 1) then
+        ierror = 10
+        return
+    end if
+
+    if (mdimf < m + 1) then
+        ierror = 11
+        return
+    end if
+
+end subroutine check_input_arguments
+
+
 
 end module module_hw3crt
 !
@@ -764,4 +908,5 @@ end module module_hw3crt
 ! February  1985    Documentation upgrade
 ! November  1988    Version 3.2, FORTRAN 77 changes
 ! June      2004    Version 5.0, Fortran 90 changes
-!-----------------------------------------------------------------------
+! April     2016    Fortran 2008 changes
+!
