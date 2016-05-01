@@ -9,7 +9,7 @@
 !     *                                                               *
 !     *                      all rights reserved                      *
 !     *                                                               *
-!     *                    FISHPACK90  version 1.1                    *
+!     *                    FISHPACK90  Version 1.1                    *
 !     *                                                               *
 !     *                 A Package of Fortran 77 and 90                *
 !     *                                                               *
@@ -625,13 +625,13 @@ contains
 
 end module module_sepaux
 !
-! REVISION HISTORY---
+! REVISION HISTORY
 !
-! SEPTEMBER 1973    VERSION 1
-! APRIL     1976    VERSION 2
-! JANUARY   1978    VERSION 3
-! DECEMBER  1979    VERSION 3.1
-! FEBRUARY  1985    DOCUMENTATION UPGRADE
-! NOVEMBER  1988    VERSION 3.2, FORTRAN 77 CHANGES
-! June      2004    version 5.0, fortran 90 changes
+! September 1973    Version 1
+! April     1976    Version 2
+! January   1978    Version 3
+! December  1979    Version 3.1
+! February  1985    Documentation upgrade
+! November  1988    Version 3.2, FORTRAN 77 changes
+! June      2004    Version 5.0, fortran 90 changes
 !-----------------------------------------------------------------------

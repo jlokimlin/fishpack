@@ -2,16 +2,15 @@ module module_blktri
 
     use, intrinsic :: iso_fortran_env, only: &
         wp => REAL64, &
-        ip => INT32, &
-        stdout => OUTPUT_UNIT
+        ip => INT32
 
     use type_FishpackWorkspace, only: &
         FishpackWorkspace
 
     use module_comf, only: &
+        ComfAux, &
         psgf, &
         ppspf, &
-        ppsgf, &
         comf_interface
 
     ! Explicit typing only
@@ -47,7 +46,7 @@ contains
         !     *                                                               *
         !     *                      all rights reserved                      *
         !     *                                                               *
-        !     *                    FISHPACK90  version 1.1                    *
+        !     *                    FISHPACK90  Version 1.1                    *
         !     *                                                               *
         !     *                 A Package of Fortran 77 and 90                *
         !     *                                                               *
@@ -1391,10 +1390,12 @@ subroutine ppadd(n, ierror, a, c, cbp, bp, bh)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer (ip) :: iz, izm, izm2, j, nt, modiz, is
-    integer (ip) :: if_rename, ig, it, icv, i3, i2, nhalf
-    real (wp)    :: r4, r5, r6, scnv, xl, db, sgn, xr, xm, psg
-    complex (wp) :: cx, fsg, hsg, dd, f, fp, fpp, cdis, r1, r2, r3
+    integer (ip)   :: iz, izm, izm2, j, nt, modiz, is
+    integer (ip)   :: iif, ig, it, icv, i3, i2, nhalf
+    real (wp)      :: r4, r5, r6, scnv, xl, db, sgn, xr, xm, psg
+    real (wp)      :: temp
+    complex (wp)   :: cx, fsg, hsg, dd, f, fp, fpp, cdis, r1, r2, r3
+    type (ComfAux) :: comf_aux
     !-----------------------------------------------
 
     scnv = sqrt(cnv)
@@ -1427,21 +1428,26 @@ subroutine ppadd(n, ierror, a, c, cbp, bp, bh)
         xl = bh(1)
         db = bh(3) - bh(1)
         xl = xl - db
-        r4 = psgf(xl, iz, c, a, bh)
+        r4 = comf_aux%psgf(xl, iz, c, a, bh)
 
         do while(r4 <= 0.0_wp)
             xl = xl - db
-            r4 = psgf(xl, iz, c, a, bh)
+            r4 = comf_aux%psgf(xl, iz, c, a, bh)
         end do
 
         sgn = -1.0_wp
-        cbp(1) = cmplx(bsrh(xl, bh(1), iz, c, a, bh, psgf, sgn), 0.0_wp, kind=wp)
+
+        temp = bsrh(xl, bh(1), iz, c, a, bh, psgf, sgn)
+
+        cbp(1) = cmplx(temp, 0.0_wp, kind=wp)
+
         bp(1) = real(cbp(1), kind=wp)
+
         is = 2
 
     end if
 
-    if_rename = iz - 1
+    iif = iz - 1
 
     if (modiz /= 0) then
         if (.not.(a(1) > 0.0_wp)) then
@@ -1454,31 +1460,33 @@ subroutine ppadd(n, ierror, a, c, cbp, bp, bh)
         xr = bh(iz)
         db = bh(iz) - bh(iz-2)
         xr = xr + db
-        r5 = psgf(xr, iz, c, a, bh)
+        r5 = comf_aux%psgf(xr, iz, c, a, bh)
 
         do while (r5 < 0.0_wp)
             xr = xr + db
-            r5 = psgf(xr, iz, c, a, bh)
+            r5 = comf_aux%psgf(xr, iz, c, a, bh)
         end do
 
         sgn = 1.0_wp
-        cbp(iz) = cmplx(bsrh(bh(iz), xr, iz, c, a, bh, psgf, sgn), 0.0_wp, kind=wp)
-        if_rename = iz - 2
+        temp = bsrh(bh(iz), xr, iz, c, a, bh, psgf, sgn)
+
+        cbp(iz) = cmplx(temp, 0.0_wp, kind=wp)
+        iif = iz - 2
 
     end if
 
-    do ig = is, if_rename, 2
+    do ig = is, iif, 2
         xl = bh(ig)
         xr = bh(ig+1)
-        sgn = -1.
+        sgn = -1.0_wp
         xm = bsrh(xl, xr, iz, c, a, bh, ppspf, sgn)
-        psg = psgf(xm, iz, c, a, bh)
+        psg = comf_aux%psgf(xm, iz, c, a, bh)
 
         if (abs(psg) - EPS <= 0.0_wp) then
             go to 118
         end if
 
-        r6 = psg*ppsgf(xm, iz, c, a, bh)
+        r6 = psg*comf_aux%psgf(xm, iz, c, a, bh)
 
         if (r6 > 0.0_wp) then
             go to 119
@@ -1489,15 +1497,17 @@ subroutine ppadd(n, ierror, a, c, cbp, bp, bh)
         end if
 
         sgn = 1.0_wp
-        cbp(ig) = cmplx(bsrh(bh(ig), xm, iz, c, a, bh, psgf, sgn), 0.0_wp, kind=wp)
+        temp = bsrh(bh(ig), xm, iz, c, a, bh, psgf, sgn)
+        cbp(ig) = cmplx(temp, 0.0_wp, kind=wp)
         !        bp(ig) = real(cbp(ig))
         sgn = -1.0_wp
-        cbp(ig+1) = cmplx(bsrh(xm, bh(ig+1), iz, c, a, bh, psgf, sgn), 0.0_wp, kind=wp)
+        temp = bsrh(xm, bh(ig+1), iz, c, a, bh, psgf, sgn)
+        cbp(ig+1) = cmplx(temp, 0.0_wp, kind=wp)
         !        bp(ig) = real(cbp(ig))
         !        bp(ig+1) = real(cbp(ig+1))
         cycle
     !
-    !     case of a multiple zero
+    !==> Case of a multiple zero
     !
 118 continue
 
@@ -1548,7 +1558,7 @@ subroutine ppadd(n, ierror, a, c, cbp, bp, bh)
     if (abs(fpp) > 0.0_wp) then
 
         i2 = 1
-        cdis = csqrt(fp**2 - 2.*f*fpp)
+        cdis = csqrt(fp**2 - 2.0_wp*f*fpp)
         r1 = cdis - fp
         r2 = (-fp) - cdis
 
@@ -2179,7 +2189,7 @@ end module module_blktri
 ! January   1978    Version 3
 ! December  1979    Version 3.1
 ! February  1985    Documentation upgrade
-! November  1988    VERSION 3.2, FORTRAN 77 changes
+! November  1988    Version 3.2, FORTRAN 77 changes
 ! June      2004    Version 5.0, Fortran 90 changes
 ! April     2016    Fortran 2008 changes
 !

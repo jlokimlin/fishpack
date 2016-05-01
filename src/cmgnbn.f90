@@ -31,7 +31,7 @@ contains
         !     *                                                               *
         !     *                      all rights reserved                      *
         !     *                                                               *
-        !     *                    FISHPACK90  version 1.1                    *
+        !     *                    FISHPACK90  Version 1.1                    *
         !     *                                                               *
         !     *                 A Package of Fortran 77 and 90                *
         !     *                                                               *
@@ -61,7 +61,7 @@ contains
         ! DIMENSION OF           A(M), B(M), C(M), Y(IDIMY, N)
         ! ARGUMENTS
         !
-        ! LATEST REVISION        NOVEMBER 2004
+        ! LATEST REVISION        November 2004
         !
         ! PURPOSE                THE NAME OF THIS PACKAGE IS A MNEMONIC FOR THE
         !                        COMPLEX GENERALIZED BUNEMAN ALGORITHM.
@@ -177,7 +177,7 @@ contains
         !
         ! HISTORY                WRITTEN IN 1979 BY ROLAND SWEET OF NCAR'S
         !                        SCIENTIFIC COMPUTING DIVISION.  MADE AVAILABLE
-        !                        ON NCAR'S PUBLIC LIBRARIES IN JANUARY, 1980.
+        !                        ON NCAR'S PUBLIC LIBRARIES IN January, 1980.
         !                        Revised in June 2004 by John Adams using
         !                        Fortran 90 dynamically allocated work space.
         !
@@ -1649,13 +1649,13 @@ end subroutine cmptr3
 
 end module module_cmgnbn
 !
-! REVISION HISTORY---
+! REVISION HISTORY
 !
-! SEPTEMBER 1973    VERSION 1
-! APRIL     1976    VERSION 2
-! JANUARY   1978    VERSION 3
-! DECEMBER  1979    VERSION 3.1
-! FEBRUARY  1985    DOCUMENTATION UPGRADE
-! NOVEMBER  1988    VERSION 3.2, FORTRAN 77 CHANGES
+! September 1973    Version 1
+! April     1976    Version 2
+! January   1978    Version 3
+! December  1979    Version 3.1
+! February  1985    Documentation upgrade
+! November  1988    Version 3.2, FORTRAN 77 changes
 ! June      2004    Version 5.0, Fortran 90 changes
 !-----------------------------------------------------------------------

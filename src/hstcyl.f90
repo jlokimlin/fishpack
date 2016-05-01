@@ -9,7 +9,7 @@
 !     *                                                               *
 !     *                      all rights reserved                      *
 !     *                                                               *
-!     *                    FISHPACK90  version 1.1                    *
+!     *                    FISHPACK90  Version 1.1                    *
 !     *                                                               *
 !     *                 A Package of Fortran 77 and 90                *
 !     *                                                               *
@@ -297,7 +297,7 @@
 !
 ! HISTORY                * Written by Roland Sweet at NCAR in 1977.
 !                          released on NCAR's public software libraries
-!                          in january 1980.
+!                          in January 1980.
 !                        * Revised in June 2004 by John Adams using
 !                          Fortran 90 dynamically allocated work space.
 !                        * Revised in April 2016 by Jon Lo Kim Lin

@@ -35,7 +35,7 @@ contains
         !     *                                                               *
         !     *                      all rights reserved                      *
         !     *                                                               *
-        !     *                    FISHPACK90  version 1.1                    *
+        !     *                    FISHPACK90  Version 1.1                    *
         !     *                                                               *
         !     *                 A Package of Fortran 77 and 90                *
         !     *                                                               *

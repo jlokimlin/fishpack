@@ -68,7 +68,7 @@ contains
     !     *                                                               *
     !     *                      all rights reserved                      *
     !     *                                                               *
-    !     *                    fishpack90  version 1.1                    *
+    !     *                    fishpack90  Version 1.1                    *
     !     *                                                               *
     !     *                 a package of fortran 77 and 90                *
     !     *                                                               *
@@ -326,7 +326,7 @@ contains
     !     subroutine ezfftf computes the fourier coefficients of a real
     !     perodic sequence (fourier analysis). the transform is defined
     !     below at output parameters azero, a and b. ezfftf is a simplified
-    !     but slower version of rfftf.
+    !     but slower Version of rfftf.
     !
     !     input parameters
     !
@@ -374,7 +374,7 @@ contains
     !     subroutine ezfftb computes a real perodic sequence from its
     !     fourier coefficients (fourier synthesis). the transform is
     !     defined below at output parameter r. ezfftb is a simplified
-    !     but slower version of rfftb.
+    !     but slower Version of rfftb.
     !
     !     input parameters
     !
@@ -3850,11 +3850,11 @@ end subroutine radfg
 
 
 end module module_fftpack
-! september 1973    version 1
-! april     1976    version 2
-! january   1978    version 3
-! december  1979    version 3.1
-! february  1985    documentation upgrade
-! november  1988    version 3.2, fortran 77 changes
+! September 1973    Version 1
+! April     1976    Version 2
+! January   1978    Version 3
+! December  1979    Version 3.1
+! February  1985    Documentation upgrade
+! November  1988    Version 3.2, FORTRAN 77 changes
 ! june      2004    fortran 90 updates
 !-----------------------------------------------------------------------

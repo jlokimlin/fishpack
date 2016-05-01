@@ -1,5 +1,5 @@
 !
-!     file comf.f
+!     file comf.f90
 !
 !
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -10,7 +10,7 @@
 !     *                                                               *
 !     *                      all rights reserved                      *
 !     *                                                               *
-!     *                    FISHPACK90  version 1.1                    *
+!     *                    FISHPACK90  Version 1.1                    *
 !     *                                                               *
 !     *                 A Package of Fortran 77 and 90                *
 !     *                                                               *
@@ -35,25 +35,25 @@
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
 !
-! PACKAGE COMF           THE ENTRIES IN THIS PACKAGE ARE LOWLEVEL
-!                        ENTRIES, SUPPORTING FISHPACK ENTRIES blktri
-!                        AND cblktri. THAT IS, THESE ROUTINES ARE
-!                        NOT CALLED DIRECTLY BY USERS, BUT RATHER
-!                        BY ENTRIES WITHIN blktri AND cblktri.
+! PACKAGE COMF           The entries in this package are lowlevel
+!                        entries, supporting fishpack entries blktri
+!                        and cblktri. that is, these routines are
+!                        not called directly by users, but rather
+!                        by entries within blktri and cblktri.
 !
 !
 ! LATEST REVISION        April 2016
 !
-! SPECIAL CONDITIONS     NONE
+! SPECIAL CONDITIONS     None
 !
-! I/O                    NONE
+! I/O                    None
 !
-! PRECISION              SINGLE
+! PRECISION              64-bit precision floats and 32-bit precision integer
 !
-! REQUIRED LIBRARY       NONE
+! REQUIRED LIBRARY       None
 ! FILES
 !
-! LANGUAGE               Fortran 2008+
+! STANDARD               Fortran 2008
 !
 module module_comf
 
@@ -69,7 +69,22 @@ module module_comf
     public :: ppsgf
     public :: ppspf
     public :: psgf
+    public :: ComfAux
     public :: comf_interface
+
+    type, public :: ComfAux
+        !--------------------------------------------------
+        ! Class variables
+        !--------------------------------------------------
+    contains
+        !--------------------------------------------------
+        ! Class methods
+        !--------------------------------------------------
+        procedure, nopass, public :: ppsgf
+        procedure, nopass, public :: ppspf
+        procedure, nopass, public :: psgf
+        !--------------------------------------------------
+    end type
 
     interface
         pure function comf_interface(x, iz, c, a, bh) result (return_value)
@@ -163,14 +178,14 @@ contains
 
 end module module_comf
 !
-! REVISION HISTORY---
+! REVISION HISTORY
 !
-! SEPTEMBER 1973    VERSION 1
-! APRIL     1976    VERSION 2
-! JANUARY   1978    VERSION 3
-! DECEMBER  1979    VERSION 3.1
-! FEBRUARY  1985    DOCUMENTATION UPGRADE
-! NOVEMBER  1988    VERSION 3.2, FORTRAN 77 CHANGES
+! September 1973    Version 1
+! April     1976    Version 2
+! January   1978    Version 3
+! December  1979    Version 3.1
+! February  1985    Documentation upgrade
+! November  1988    Version 3.2, FORTRAN 77 changes
 ! June      2004    Version 5.0, Fortran 90 changes
 ! April     2016    Replaced epmach with intrinsic function epsilon
 !                   and pimach with acos(-1.0_wp) where wp = REAL64 from the

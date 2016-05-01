@@ -35,7 +35,7 @@ contains
         !     *                                                               *
         !     *                      all rights reserved                      *
         !     *                                                               *
-        !     *                    FISHPACK90  version 1.1                    *
+        !     *                    FISHPACK90  Version 1.1                    *
         !     *                                                               *
         !     *                 A Package of Fortran 77 and 90                *
         !     *                                                               *
@@ -929,7 +929,7 @@ end module module_pois3d
 ! January   1978    Version 3
 ! December  1979    Version 3.1
 ! February  1985    Documentation upgrade
-! November  1988    VERSION 3.2, FORTRAN 77 changes
+! November  1988    Version 3.2, FORTRAN 77 changes
 ! June      2004    Version 5.0, Fortran 90 changes
 ! April     2016    Fortran 2008 changes
 !

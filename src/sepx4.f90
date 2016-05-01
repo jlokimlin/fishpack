@@ -39,7 +39,7 @@ contains
         !     *                                                               *
         !     *                      all rights reserved                      *
         !     *                                                               *
-        !     *                    FISHPACK90  version 1.1                    *
+        !     *                    FISHPACK90  Version 1.1                    *
         !     *                                                               *
         !     *                 A Package of Fortran 77 and 90                *
         !     *                                                               *
@@ -432,7 +432,7 @@ contains
         !                        IN OCTOBER 1978.  THE BASIS OF THIS CODE IS
         !                        NCAR ROUTINE SEPELI.  BOTH PACKAGES WERE
         !                        RELEASED ON NCAR'S PUBLIC LIBRARIES IN
-        !                        JANUARY 1980. sepx4 was modified in June 2004
+        !                        January 1980. sepx4 was modified in June 2004
         !                        incorporating fortran 90 dynamical storage
         !                        allocation for work space requirements
         !
@@ -1353,13 +1353,13 @@ contains
 
 end module module_sepx4
 !
-! REVISION HISTORY---
+! REVISION HISTORY
 !
-! SEPTEMBER 1973    VERSION 1
-! APRIL     1976    VERSION 2
-! JANUARY   1978    VERSION 3
-! DECEMBER  1979    VERSION 3.1
-! FEBRUARY  1985    DOCUMENTATION UPGRADE
-! NOVEMBER  1988    VERSION 3.2, FORTRAN 77 CHANGES
+! September 1973    Version 1
+! April     1976    Version 2
+! January   1978    Version 3
+! December  1979    Version 3.1
+! February  1985    Documentation upgrade
+! November  1988    Version 3.2, FORTRAN 77 changes
 ! June      2004    Version 5.0, Fortran 90 Changes
 !-----------------------------------------------------------------------
