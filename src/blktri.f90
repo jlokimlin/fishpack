@@ -846,7 +846,6 @@ contains
             real (wp)    :: bnorm, arg, d1, d2, d3
             !-----------------------------------------------
 
-
             bnorm = abs(bn(1))
 
             do j = 2, nm
@@ -930,162 +929,161 @@ contains
                 lh = j2
                 n2m2 = j2 + nm + nm - 2
 
-114         continue
+                do while (j2 - n2m2 > 0)
 
-            d1 = abs(b(j1)-b(j2-1))
-            d2 = abs(b(j1)-b(j2))
-            d3 = abs(b(j1)-b(j2+1))
+                    d1 = abs(b(j1)-b(j2-1))
+                    d2 = abs(b(j1)-b(j2))
+                    d3 = abs(b(j1)-b(j2+1))
 
-            if (d2 >= d1 .or. d2 >= d3) then
-                b(lh) = b(j2)
-                j2 = j2 + 1
-                lh = lh + 1
-                if (j2 - n2m2 <= 0) go to 114
-            else
-                j2 = j2 + 1
-                j1 = j1 + 1
-                if (j2 - n2m2 <= 0) go to 114
+                    if (d2 >= d1 .or. d2 >= d3) then
+                        b(lh) = b(j2)
+                        j2 = j2 + 1
+                        lh = lh + 1
+                    else
+                        j2 = j2 + 1
+                        j1 = j1 + 1
+                    end if
+                end do
+
+                b(lh) = b(n2m2+1)
+
+                call indxb(if, k - 1, j1, j2)
+
+                j2 = j1 + nmp + nmp
+
+                call ppadd(nm + 1, ierror, an, cn, bc(j1), b(j1), b(j2))
             end if
 
-            b(lh) = b(n2m2+1)
+        end subroutine compb
 
-            call indxb(if, k - 1, j1, j2)
 
-            j2 = j1 + nmp + nmp
 
-            call ppadd(nm + 1, ierror, an, cn, bc(j1), b(j1), b(j2))
+        subroutine cprod(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, b, c, d, w, y)
+            !
+            ! Purpose:
+            !
+            ! cprod applies a sequence of matrix operations to the vector x and
+            ! stores the result in yy (complex case)
+            !
+            ! aa   array containing scalar multipliers of the vector x
+            !
+            ! nd, nm1, nm2 are the lengths of the arrays bd, bm1, bm2 respectively
+            !
+            ! bd, bm1, bm2 are arrays containing roots of certian b polynomials
+            !
+            ! na is the length of the array aa
+            !
+            ! x, yy the matrix operations are applied to x and the result is yy
+            !
+            ! a, b, c  are arrays which contain the tridiagonal matrix
+            !
+            ! m  is the order of the matrix
+            !
+            ! d, w, y are working arrays
+            !
+            ! isgn  determines whether or not a change in sign is made
+            !
+            !-----------------------------------------------
+            ! Dictionary: calling arguments
+            !-----------------------------------------------
+            integer (ip), intent (in)     :: nd
+            integer (ip), intent (in)     :: nm1
+            integer (ip), intent (in)     :: nm2
+            integer (ip), intent (in)     :: na
+            integer (ip), intent (in)     :: m
+            real (wp),    intent (in)     :: bm1(*)
+            real (wp),    intent (in)     :: bm2(*)
+            real (wp),    intent (in)     :: aa(*)
+            real (wp),    intent (in)     :: x(*)
+            real (wp),    intent (out)    :: yy(*)
+            real (wp),    intent (in)     :: a(*)
+            real (wp),    intent (in)     :: b(*)
+            real (wp),    intent (in)     :: c(*)
+            complex (wp), intent (in)     :: bd(*)
+            complex (wp), intent (in out) :: d(*)
+            complex (wp), intent (in out) :: w(*)
+            complex (wp), intent (in out) :: y(*)
+            !-----------------------------------------------
+            ! Dictionary: local variables
+            !-----------------------------------------------
+            integer (ip) :: j, mm, id, m1, m2, ia, iflg, k
+            real (wp)    :: rt
+            complex (wp) :: crt, den, y1, y2
+            !-----------------------------------------------
+
+            y(1:m) = cmplx(x(1:m), 0.0_wp)
+
+            mm = m - 1
+            id = nd
+            m1 = nm1
+            m2 = nm2
+            ia = na
+102     continue
+        iflg = 0
+
+        if (id > 0) then
+            crt = bd(id)
+            id = id - 1
+            !
+            ! begin solution to system
+            !
+            d(m) = a(m)/(b(m)-crt)
+            w(m) = y(m)/(b(m)-crt)
+            do j = 2, mm
+                k = m - j
+                den = b(k+1) - crt - c(k+1)*d(k+2)
+                d(k+1) = a(k+1)/den
+                w(k+1) = (y(k+1)-c(k+1)*w(k+2))/den
+            end do
+            den = b(1) - crt - c(1)*d(2)
+
+            if (abs(den) /= 0.0_wp) then
+                y(1) = (y(1)-c(1)*w(2))/den
+            else
+                y(1) = (1.0_wp, 0.0_wp)
+            end if
+
+            do j = 2, m
+                y(j) = w(j) - d(j)*y(j-1)
+            end do
+
         end if
 
-    end subroutine compb
-
-
-
-    subroutine cprod(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, b, c, d, w, y)
-        !
-        ! Purpose:
-        !
-        ! cprod applies a sequence of matrix operations to the vector x and
-        ! stores the result in yy (complex case)
-        !
-        ! aa   array containing scalar multipliers of the vector x
-        !
-        ! nd, nm1, nm2 are the lengths of the arrays bd, bm1, bm2 respectively
-        !
-        ! bd, bm1, bm2 are arrays containing roots of certian b polynomials
-        !
-        ! na is the length of the array aa
-        !
-        ! x, yy the matrix operations are applied to x and the result is yy
-        !
-        ! a, b, c  are arrays which contain the tridiagonal matrix
-        !
-        ! m  is the order of the matrix
-        !
-        ! d, w, y are working arrays
-        !
-        ! isgn  determines whether or not a change in sign is made
-        !
-        !-----------------------------------------------
-        ! Dictionary: calling arguments
-        !-----------------------------------------------
-        integer (ip), intent (in)     :: nd
-        integer (ip), intent (in)     :: nm1
-        integer (ip), intent (in)     :: nm2
-        integer (ip), intent (in)     :: na
-        integer (ip), intent (in)     :: m
-        real (wp),    intent (in)     :: bm1(*)
-        real (wp),    intent (in)     :: bm2(*)
-        real (wp),    intent (in)     :: aa(*)
-        real (wp),    intent (in)     :: x(*)
-        real (wp),    intent (out)    :: yy(*)
-        real (wp),    intent (in)     :: a(*)
-        real (wp),    intent (in)     :: b(*)
-        real (wp),    intent (in)     :: c(*)
-        complex (wp), intent (in)     :: bd(*)
-        complex (wp), intent (in out) :: d(*)
-        complex (wp), intent (in out) :: w(*)
-        complex (wp), intent (in out) :: y(*)
-        !-----------------------------------------------
-        ! Dictionary: local variables
-        !-----------------------------------------------
-        integer (ip) :: j, mm, id, m1, m2, ia, iflg, k
-        real (wp)    :: rt
-        complex (wp) :: crt, den, y1, y2
-        !-----------------------------------------------
-
-        y(1:m) = cmplx(x(1:m), 0.0_wp)
-
-        mm = m - 1
-        id = nd
-        m1 = nm1
-        m2 = nm2
-        ia = na
-102 continue
-    iflg = 0
-
-    if (id > 0) then
-        crt = bd(id)
-        id = id - 1
-        !
-        ! begin solution to system
-        !
-        d(m) = a(m)/(b(m)-crt)
-        w(m) = y(m)/(b(m)-crt)
-        do j = 2, mm
-            k = m - j
-            den = b(k+1) - crt - c(k+1)*d(k+2)
-            d(k+1) = a(k+1)/den
-            w(k+1) = (y(k+1)-c(k+1)*w(k+2))/den
-        end do
-        den = b(1) - crt - c(1)*d(2)
-
-        if (abs(den) /= 0.0_wp) then
-            y(1) = (y(1)-c(1)*w(2))/den
+        if (m1 <= 0) then
+            if (m2 <= 0) then
+                go to 121
+            end if
+            rt = bm2(m2)
+            m2 = m2 - 1
         else
-            y(1) = (1.0_wp, 0.0_wp)
-        end if
-
-        do j = 2, m
-            y(j) = w(j) - d(j)*y(j-1)
-        end do
-
-    end if
-
-    if (m1 <= 0) then
-        if (m2 <= 0) then
-            go to 121
-        end if
-        rt = bm2(m2)
-        m2 = m2 - 1
-    else
-        if (m2 <= 0) then
-            rt = bm1(m1)
-            m1 = m1 - 1
-        else
-            if (abs(bm1(m1)) - abs(bm2(m2)) > 0.0_wp) then
+            if (m2 <= 0) then
                 rt = bm1(m1)
                 m1 = m1 - 1
             else
-                rt = bm2(m2)
-                m2 = m2 - 1
+                if (abs(bm1(m1)) - abs(bm2(m2)) > 0.0_wp) then
+                    rt = bm1(m1)
+                    m1 = m1 - 1
+                else
+                    rt = bm2(m2)
+                    m2 = m2 - 1
+                end if
             end if
         end if
-    end if
 
-    y1 = (b(1)-rt)*y(1) + c(1)*y(2)
+        y1 = (b(1)-rt)*y(1) + c(1)*y(2)
 
-    if (mm - 2 >= 0) then
-        do j = 2, mm
-            y2 = a(j)*y(j-1) + (b(j)-rt)*y(j) + c(j)*y(j+1)
-            y(j-1) = y1
-            y1 = y2
-        end do
-    end if
+        if (mm - 2 >= 0) then
+            do j = 2, mm
+                y2 = a(j)*y(j-1) + (b(j)-rt)*y(j) + c(j)*y(j+1)
+                y(j-1) = y1
+                y1 = y2
+            end do
+        end if
 
-    y(m) = a(m)*y(m-1) + (b(m)-rt)*y(m)
-    y(m-1) = y1
-    iflg = 1
-    go to 102
+        y(m) = a(m)*y(m-1) + (b(m)-rt)*y(m)
+        y(m-1) = y1
+        iflg = 1
+        go to 102
 121 continue
     if (ia > 0) then
         rt = aa(ia)
