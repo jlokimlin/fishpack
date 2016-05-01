@@ -632,13 +632,8 @@ contains
         !==> Enter boundary data for x-boundaries.
         !
         !
-        ! GCC 5.3 does not support the exit statement within
-        ! the select case construct yet.
-        !
-        dumb_hack_3: do hack_counter = 1,1
+        if (lp /= 1) then
             select case (lp)
-                case (1)
-                    exit dumb_hack_3
                 case (2:3)
                     lstart = 2
                     f(2, mstart:mstop, nstart:nstop) = &
@@ -651,8 +646,6 @@ contains
             end select
 
             select case (lp)
-                case (1)
-                    exit dumb_hack_3
                 case (2, 5)
                     f(l, mstart:mstop, nstart:nstop) = &
                         f(l, mstart:mstop, nstart:nstop) &
@@ -663,89 +656,85 @@ contains
                         f(lp1, mstart:mstop, nstart:nstop) &
                         - twbydx*bdxf(mstart:mstop, nstart:nstop)
             end select
-        end do dumb_hack_3
+        end if
 
         lunk = lstop - lstart + 1
 
         !
         !==> Enter boundary data for y-boundaries.
         !
-        select case (mp)
-            case (1)
-                go to 136
-            case (2)
-                go to 123
-            case (3)
-                go to 123
-            case (4)
-                go to 126
-            case (5)
-                go to 126
-        end select
-123 continue
-    f(lstart:lstop, 2, nstart:nstop) = f(lstart:lstop, 2, nstart:nstop) - &
-        c2*f(lstart:lstop, 1, nstart:nstop)
-    go to 129
-126 continue
-    f(lstart:lstop, 1, nstart:nstop) = f(lstart:lstop, 1, nstart:nstop) + &
-        twbydy*bdys(lstart:lstop, nstart:nstop)
-129 continue
-    select case (mp)
-        case (1)
-            go to 136
-        case (2)
-            go to 130
-        case (3)
-            go to 133
-        case (4)
-            go to 133
-        case (5)
-            go to 130
-    end select
-130 continue
-    f(lstart:lstop, m, nstart:nstop) = f(lstart:lstop, m, nstart:nstop) - &
-        c2*f(lstart:lstop, mp1, nstart:nstop)
-    go to 136
-133 continue
-    f(lstart:lstop, mp1, nstart:nstop) = f(lstart:lstop, mp1, nstart:nstop &
-        ) - twbydy*bdyf(lstart:lstop, nstart:nstop)
-136 continue
-    go to (150, 137, 137, 140, 140) np
-137 continue
-    f(lstart:lstop, mstart:mstop, 2) = f(lstart:lstop, mstart:mstop, 2) - &
-        c3*f(lstart:lstop, mstart:mstop, 1)
-    go to 143
-140 continue
-    f(lstart:lstop, mstart:mstop, 1) = f(lstart:lstop, mstart:mstop, 1) + &
-        twbydz*bdzs(lstart:lstop, mstart:mstop)
-143 continue
-    go to (150, 144, 147, 147, 144) np
-144 continue
-    f(lstart:lstop, mstart:mstop, n) = f(lstart:lstop, mstart:mstop, n) - &
-        c3*f(lstart:lstop, mstart:mstop, np1)
-    go to 150
-147 continue
-    f(lstart:lstop, mstart:mstop, np1) = f(lstart:lstop, mstart:mstop, np1 &
-        ) - twbydz*bdzf(lstart:lstop, mstart:mstop)
-!
-!     DEFINE A, B, C COEFFICIENTS IN W-ARRAY.
-!
-150 continue
-    iwb = nunk + 1
-    iwc = iwb + nunk
-    iww = iwc + nunk
-    w(:nunk) = c3
-    w(iwc:nunk-1+iwc) = c3
-    w(iwb:nunk-1+iwb) = (-2.*c3) + elmbda
-    go to (155, 155, 153, 152, 152) np
+        if (mp /= 1) then
+            select case (mp)
+                case (2:3)
+                    f(lstart:lstop, 2, nstart:nstop) = &
+                        f(lstart:lstop, 2, nstart:nstop)&
+                        - c2*f(lstart:lstop, 1, nstart:nstop)
+                case (4:5)
+                    f(lstart:lstop, 1, nstart:nstop) = &
+                        f(lstart:lstop, 1, nstart:nstop) &
+                        + twbydy*bdys(lstart:lstop, nstart:nstop)
+            end select
+
+            select case (mp)
+                case (2, 5)
+                    f(lstart:lstop, m, nstart:nstop) = &
+                        f(lstart:lstop, m, nstart:nstop) &
+                        - c2*f(lstart:lstop, mp1, nstart:nstop)
+                case (3:4)
+                    f(lstart:lstop, mp1, nstart:nstop) = &
+                        f(lstart:lstop, mp1, nstart:nstop) &
+                        - twbydy*bdyf(lstart:lstop, nstart:nstop)
+            end select
+        end if
+
+
+        if (np /= 1) then
+            select case (np)
+                case (2:3)
+                    f(lstart:lstop, mstart:mstop, 2) = &
+                        f(lstart:lstop, mstart:mstop, 2) &
+                        - c3*f(lstart:lstop, mstart:mstop, 1)
+                case (4:5)
+                    f(lstart:lstop, mstart:mstop, 1) = &
+                        f(lstart:lstop, mstart:mstop, 1) &
+                        + twbydz*bdzs(lstart:lstop, mstart:mstop)
+            end select
+
+
+            select case (np)
+                case (2, 5)
+                    f(lstart:lstop, mstart:mstop, n) = &
+                        f(lstart:lstop, mstart:mstop, n) &
+                        - c3*f(lstart:lstop, mstart:mstop, np1)
+                case (3:4)
+                    f(lstart:lstop, mstart:mstop, np1) = &
+                        f(lstart:lstop, mstart:mstop, np1) &
+                        - twbydz*bdzf(lstart:lstop, mstart:mstop)
+            end select
+        end if
+
+        !
+        !==> Define a, b, c coefficients in w-array.
+        !
+        iwb = nunk + 1
+        iwc = iwb + nunk
+        iww = iwc + nunk
+        w(:nunk) = c3
+        w(iwc:nunk-1+iwc) = c3
+        w(iwb:nunk-1+iwb) = (-2.*c3) + elmbda
+
+        go to (155, 155, 153, 152, 152) np
+
 152 continue
     w(iwc) = 2.*c3
 153 continue
+
     go to (155, 155, 154, 154, 155) np
+
 154 continue
-    w(iwb-1) = 2.*c3
+    w(iwb-1) = 2.0_wp*c3
 155 continue
-    pertrb = 0.
+    pertrb = 0.0_wp
     !
     !     For singular problems adjust data to insure a solution will exist.
     !
