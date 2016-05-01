@@ -723,22 +723,32 @@ contains
         w(iwc:nunk-1+iwc) = c3
         w(iwb:nunk-1+iwb) = (-2.*c3) + elmbda
 
-        go to (155, 155, 153, 152, 152) np
+        !
+        ! GCC 5.3 does not support the exit statement within
+        ! the select case construct yet.
+        !
+        dumb_hack_3: do hack_counter = 1,1
+            select case (np)
+                case (1:2)
+                    exit dumb_hack_3
+                case (3)
+                    w(iwb-1) = 2.0_wp*c3
+                case (4:5)
+                    w(iwc) = 2.0_wp*c3
+                    select case (np)
+                        case (4)
+                            w(iwb-1) = 2.0_wp*c3
+                        case (5)
+                            exit dumb_hack_3
+                    end select
+            end select
+        end do dumb_hack_3
 
-152 continue
-    w(iwc) = 2.*c3
-153 continue
-
-    go to (155, 155, 154, 154, 155) np
-
-154 continue
-    w(iwb-1) = 2.0_wp*c3
-155 continue
-    pertrb = 0.0_wp
-    !
-    !     For singular problems adjust data to insure a solution will exist.
-    !
-    go to (156, 172, 172, 156, 172) lp
+        pertrb = 0.0_wp
+        !
+        !==> For singular problems adjust data to insure a solution will exist.
+        !
+        go to (156, 172, 172, 156, 172) lp
 156 continue
     go to (157, 172, 172, 157, 172) mp
 157 continue
