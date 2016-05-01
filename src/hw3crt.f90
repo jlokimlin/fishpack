@@ -631,32 +631,57 @@ contains
         !
         !==> Enter boundary data for x-boundaries.
         !
-        go to (122, 109, 109, 112, 112) lp
-109 continue
-    lstart = 2
-    f(2, mstart:mstop, nstart:nstop) = f(2, mstart:mstop, nstart:nstop) - &
-        c1*f(1, mstart:mstop, nstart:nstop)
-    go to 115
-112 continue
-    f(1, mstart:mstop, nstart:nstop) = f(1, mstart:mstop, nstart:nstop) + &
-        twbydx*bdxs(mstart:mstop, nstart:nstop)
-115 continue
-    go to (122, 116, 119, 119, 116) lp
-116 continue
-    f(l, mstart:mstop, nstart:nstop) = f(l, mstart:mstop, nstart:nstop) - &
-        c1*f(lp1, mstart:mstop, nstart:nstop)
-    go to 122
-119 continue
-    lstop = lp1
-    f(lp1, mstart:mstop, nstart:nstop) = f(lp1, mstart:mstop, nstart:nstop &
-        ) - twbydx*bdxf(mstart:mstop, nstart:nstop)
-122 continue
-    lunk = lstop - lstart + 1
+        !
+        ! GCC 5.3 does not support the exit statement within
+        ! the select case construct yet.
+        !
+        dumb_hack_3: do hack_counter = 1,1
+            select case (lp)
+                case (1)
+                    exit dumb_hack_3
+                case (2:3)
+                    lstart = 2
+                    f(2, mstart:mstop, nstart:nstop) = &
+                        f(2, mstart:mstop, nstart:nstop) &
+                        - c1*f(1, mstart:mstop, nstart:nstop)
+                case (4:5)
+                    f(1, mstart:mstop, nstart:nstop) = &
+                        f(1, mstart:mstop, nstart:nstop) &
+                        + twbydx*bdxs(mstart:mstop, nstart:nstop)
+            end select
 
-    !
-    !==> Enter boundary data for y-boundaries.
-    !
-    go to (136, 123, 123, 126, 126) mp
+            select case (lp)
+                case (1)
+                    exit dumb_hack_3
+                case (2, 5)
+                    f(l, mstart:mstop, nstart:nstop) = &
+                        f(l, mstart:mstop, nstart:nstop) &
+                        - c1*f(lp1, mstart:mstop, nstart:nstop)
+                case (3:4)
+                    lstop = lp1
+                    f(lp1, mstart:mstop, nstart:nstop) = &
+                        f(lp1, mstart:mstop, nstart:nstop) &
+                        - twbydx*bdxf(mstart:mstop, nstart:nstop)
+            end select
+        end do dumb_hack_3
+
+        lunk = lstop - lstart + 1
+
+        !
+        !==> Enter boundary data for y-boundaries.
+        !
+        select case (mp)
+            case (1)
+                go to 136
+            case (2)
+                go to 123
+            case (3)
+                go to 123
+            case (4)
+                go to 126
+            case (5)
+                go to 126
+        end select
 123 continue
     f(lstart:lstop, 2, nstart:nstop) = f(lstart:lstop, 2, nstart:nstop) - &
         c2*f(lstart:lstop, 1, nstart:nstop)
@@ -665,7 +690,18 @@ contains
     f(lstart:lstop, 1, nstart:nstop) = f(lstart:lstop, 1, nstart:nstop) + &
         twbydy*bdys(lstart:lstop, nstart:nstop)
 129 continue
-    go to (136, 130, 133, 133, 130) mp
+    select case (mp)
+        case (1)
+            go to 136
+        case (2)
+            go to 130
+        case (3)
+            go to 133
+        case (4)
+            go to 133
+        case (5)
+            go to 130
+    end select
 130 continue
     f(lstart:lstop, m, nstart:nstop) = f(lstart:lstop, m, nstart:nstop) - &
         c2*f(lstart:lstop, mp1, nstart:nstop)
