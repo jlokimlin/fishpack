@@ -2,32 +2,13 @@ module module_pois3d
 
     use, intrinsic :: iso_fortran_env, only: &
         ip => INT32, &
-        wp => REAL64, &
-        stdout => OUTPUT_UNIT
+        wp => REAL64
 
     use type_FishpackWorkspace, only: &
         FishpackWorkspace
 
     use module_fftpack, only: &
-        rffti,&
-        rfftf,&
-        rfftb,&
-        ezffti,&
-        ezfftf,&
-        ezfftb,&
-        sint,&
-        sinti, &
-        costi,&
-        cost,&
-        sinqi,&
-        sinqf,&
-        sinqb,&
-        cosqi,&
-        cosqf,&
-        cosqb,&
-        cffti,&
-        cfftf, &
-        cfftb
+        FFTpack
 
     ! Explicit typing only
     implicit none
@@ -450,8 +431,10 @@ contains
                 case (1)
                     do i = 1, l
                         do j = 1, m
-                            w(nh-1:nh-nhm1:(-1))=0.5_wp *(f(i, j, nh+1:nhm1+nh)+f(i, j, :nhm1))
-                            w(nh+1:nhm1+nh) = 0.5_wp *(f(i, j, nh+1:nhm1+nh)-f(i, j, :nhm1))
+                            w(nh-1:nh-nhm1:(-1))= &
+                                0.5_wp *(f(i, j, nh+1:nhm1+nh)+f(i, j, :nhm1))
+                            w(nh+1:nhm1+nh) = &
+                                0.5_wp *(f(i, j, nh+1:nhm1+nh)-f(i, j, :nhm1))
                             w(nh) = 0.5_wp *f(i, j, nh)
                             select case (nodd)
                                 case (1)
@@ -615,7 +598,6 @@ contains
     end subroutine pois3dd
 
 
-
     subroutine pos3d1(lp, l, mp, m, n, a, b, c, ldimf, mdimf, f, xrt, &
         yrt, t, d, wx, wy, c1, c2, bb)
         !--------------------------------------------------------------------------------
@@ -632,14 +614,14 @@ contains
         real (wp),    intent (in)     :: c2
         real (wp),    intent (in out) :: a(*)
         real (wp),    intent (in)     :: b(*)
-        real (wp),    intent (in out) ::c(*)
+        real (wp),    intent (in out) :: c(*)
         real (wp),    intent (in out) :: f(ldimf, mdimf, 1)
         real (wp),    intent (in out) :: xrt(*)
         real (wp),    intent (in out) :: yrt(*)
         real (wp),    intent (in out) :: t(*)
         real (wp),    intent (in out) :: d(*)
-        real (wp),    intent (in out) ::wx(*)
-        real (wp),    intent (in out) ::wy(*)
+        real (wp),    intent (in out) :: wx(*)
+        real (wp),    intent (in out) :: wy(*)
         real (wp),    intent (in out) :: bb(*)
         !-----------------------------------------------
         ! Dictionary: local variables
@@ -647,6 +629,7 @@ contains
         integer (ip)         :: lr, mr, nr, lrdel, i, mrdel, j, ifwrd, is, k
         real (wp), parameter :: PI = acos(-1.0_wp)
         real (wp)            :: scalx, dx, di, scaly, dy, dj
+        type (FFTpack)       :: fft
         !-----------------------------------------------
 
         lr = l
@@ -668,7 +651,7 @@ contains
                 xrt(i) = xrt(i-1)
             end do
 
-            call rffti(lr, wx)
+            call fft%rffti(lr, wx)
 
         else
             select case (lp)
@@ -690,13 +673,13 @@ contains
             if ( lp /= 1 ) then
                 select case (lp)
                     case (2)
-                        call sinti(lr, wx)
+                        call fft%sinti(lr, wx)
                     case (3)
-                        call sinqi(lr, wx)
+                        call fft%sinqi(lr, wx)
                     case (4)
-                        call costi(lr, wx)
+                        call fft%costi(lr, wx)
                     case (5)
-                        call cosqi(lr, wx)
+                        call fft%cosqi(lr, wx)
                     case default
 
                         xrt(1) = 0.0_wp
@@ -707,7 +690,7 @@ contains
                             xrt(i) = xrt(i-1)
                         end do
 
-                        call rffti(lr, wx)
+                        call fft%rffti(lr, wx)
                 end select
             end if
         end if
@@ -726,7 +709,7 @@ contains
                 yrt(j) = yrt(j-1)
             end do
 
-            call rffti(mr, wy)
+            call fft%rffti(mr, wy)
 
         else
             select case (mp)
@@ -734,7 +717,7 @@ contains
                     dj = 0.0_wp
                 case (3, 5)
                     dj = 0.5_wp
-                    scaly = 2.*scaly
+                    scaly = 2.0_wp*scaly
                 case (4)
                     dj = 1.0_wp
             end select
@@ -754,17 +737,17 @@ contains
                     yrt(j) = yrt(j-1)
                 end do
 
-                call rffti(mr, wy)
+                call fft%rffti(mr, wy)
             else
                 select case (mp)
                     case (2)
-                        call sinti(mr, wy)
+                        call fft%sinti(mr, wy)
                     case (3)
-                        call sinqi(mr, wy)
+                        call fft%sinqi(mr, wy)
                     case (4)
-                        call costi(mr, wy)
+                        call fft%costi(mr, wy)
                     case (5)
-                        call cosqi(mr, wy)
+                        call fft%cosqi(mr, wy)
                 end select
             end if
         end if
@@ -785,27 +768,27 @@ contains
                 case (1)
                     select case (ifwrd)
                         case (1)
-                            call rfftf(lr, t, wx)
+                            call fft%rfftf(lr, t, wx)
                         case (2)
-                            call rfftb(lr, t, wx)
+                            call fft%rfftb(lr, t, wx)
                     end select
                 case (2)
-                    call sint(lr, t, wx)
+                    call fft%sint(lr, t, wx)
                 case (3)
                     select case (ifwrd)
                         case (1)
-                            call sinqf(lr, t, wx)
+                            call fft%sinqf(lr, t, wx)
                         case (2)
-                            call sinqb(lr, t, wx)
+                            call fft%sinqb(lr, t, wx)
                     end select
                 case (4)
-                    call cost(lr, t, wx)
+                    call fft%cost(lr, t, wx)
                 case (5)
                     select case (ifwrd)
                         case (1)
-                            call cosqf(lr, t, wx)
+                            call fft%cosqf(lr, t, wx)
                         case (2)
-                            call cosqb(lr, t, wx)
+                            call fft%cosqb(lr, t, wx)
                     end select
             end select
 
@@ -832,129 +815,110 @@ contains
 
             select case (mp)
                 case (1)
-                    go to 144
+                    select case (ifwrd)
+                        case (1)
+                            call fft%rfftf(mr, t, wy)
+                        case (2)
+                            call fft%rfftb(mr, t, wy)
+                    end select
                 case (2)
-                    go to 147
+                    call fft%sint(mr, t, wy)
                 case (3)
-                    go to 148
+                    select case (ifwrd)
+                        case (1)
+                            call fft%sinqf(mr, t, wy)
+                        case (2)
+                            call fft%sinqb(mr, t, wy)
+                    end select
                 case (4)
-                    go to 151
+                    call fft%cost(mr, t, wy)
                 case (5)
-                    go to 152
+                    select case (ifwrd)
+                        case (1)
+                            call fft%cosqf(mr, t, wy)
+                        case (2)
+                            call fft%cosqb(mr, t, wy)
+                    end select
             end select
 
-144         select case (ifwrd)
-                case (1)
-                    go to 145
-                case (2)
-                    go to 146
-            end select
-
-145         call rfftf(mr, t, wy)
-            go to 155
-146         call rfftb(mr, t, wy)
-            go to 155
-147         call sint(mr, t, wy)
-            go to 155
-148         select case (ifwrd)
-                case (1)
-                    go to 149
-                case (2)
-                    go to 150
-            end select
-149         call sinqf(mr, t, wy)
-            go to 155
-150         call sinqb(mr, t, wy)
-            go to 155
-151         call cost(mr, t, wy)
-            go to 155
-
-152         select case (ifwrd)
-                case (1)
-                    call cosqf(mr, t, wy)
-                case (2)
-                    call cosqb(mr, t, wy)
-            end select
-
-155     continue
-
-        do j=1, mr
-            f(i, j, k) = t(j)
-        end do
-    end do
-end do
-
-select case (ifwrd)
-    case (1)
-        do i = 1, lr
-            do j = 1, mr
-                bb(:nr) = b(:nr) + xrt(i) + yrt(j)
-                t(:nr) = f(i, j, :nr)
-                call trid (nr, a, bb, c, t, d)
-                f(i, j, :nr) = t(:nr)
+            do j=1, mr
+                f(i, j, k) = t(j)
             end do
         end do
+    end do
 
-        ifwrd = 2
-        is = -1
+    select case (ifwrd)
+        case (1)
+            do i = 1, lr
+                do j = 1, mr
+                    bb(:nr) = b(:nr) + xrt(i) + yrt(j)
+                    t(:nr) = f(i, j, :nr)
 
-        go to 142
+                    call trid(nr, a, bb, c, t, d)
 
-    case (2)
-        go to 125
-end select
+                    f(i, j, :nr) = t(:nr)
+                end do
+            end do
+            ifwrd = 2
+            is = -1
+            go to 142
+        case (2)
+            go to 125
+    end select
 
 
-f(:lr, :mr, :nr) = f(:lr, :mr, :nr)/(scalx*scaly)
+    f(:lr, :mr, :nr) = f(:lr, :mr, :nr)/(scalx*scaly)
+
+
+contains
+
+
+    subroutine trid(mr, a, b, c, y, d)
+
+        !-----------------------------------------------
+        ! Dictionary: calling arguments
+        !-----------------------------------------------
+        integer (ip), intent (in)     :: mr
+        real (wp),    intent (in)     :: a(*)
+        real (wp),    intent (in)     :: b(*)
+        real (wp),    intent (in)     :: c(*)
+        real (wp),    intent (in out) :: y(*)
+        real (wp),    intent (in out) :: d(*)
+        !-----------------------------------------------
+        ! Dictionary: local variables
+        !-----------------------------------------------
+        integer (ip) :: m, mm1, i, iip
+        real (wp)    :: z
+        !-----------------------------------------------
+
+        m = mr
+        mm1 = m - 1
+        z = 1.0_wp/b(1)
+        d(1) = c(1)*z
+        y(1) = y(1)*z
+
+        do i = 2, mm1
+            z = 1.0_wp/(b(i)-a(i)*d(i-1))
+            d(i) = c(i)*z
+            y(i) = (y(i)-a(i)*y(i-1))*z
+        end do
+
+        z = b(m) - a(m)*d(mm1)
+
+        if (z == 0._wp) then
+            y(m) = 0.0_wp
+        else
+            y(m) = (y(m)-a(m)*y(mm1))/z
+        end if
+
+        do iip = 1, mm1
+            i = m - iip
+            y(i) = y(i) - d(i)*y(i+1)
+        end do
+
+    end subroutine trid
 
 end subroutine pos3d1
-
-
-
-subroutine trid(mr, a, b, c, y, d)
-
-    !-----------------------------------------------
-    ! Dictionary: calling arguments
-    !-----------------------------------------------
-    integer (ip), intent (in)     :: mr
-    real (wp),    intent (in)     :: a(*)
-    real (wp),    intent (in)     :: b(*)
-    real (wp),    intent (in)     :: c(*)
-    real (wp),    intent (in out) :: y(*)
-    real (wp),    intent (in out) :: d(*)
-    !-----------------------------------------------
-    ! Dictionary: local variables
-    !-----------------------------------------------
-    integer (ip) :: m, mm1, i, iip
-    real (wp)    :: z
-    !-----------------------------------------------
-
-    m = mr
-    mm1 = m - 1
-    z = 1.0_wp/b(1)
-    d(1) = c(1)*z
-    y(1) = y(1)*z
-
-    do i = 2, mm1
-        z = 1.0_wp/(b(i)-a(i)*d(i-1))
-        d(i) = c(i)*z
-        y(i) = (y(i)-a(i)*y(i-1))*z
-    end do
-
-    z = b(m) - a(m)*d(mm1)
-
-    if (z == 0._wp) then
-        y(m) = 0.0_wp
-    else
-        y(m) = (y(m)-a(m)*y(mm1))/z
-    end if
-
-    do iip = 1, mm1
-        i = m - iip
-        y(i) = y(i) - d(i)*y(i+1)
-    end do
-
-end subroutine trid
 
 end module module_pois3d
 !

@@ -8,6 +8,7 @@ module module_fftpack
 
     ! Everything is private unless stated otherwise
     private
+    public :: FFTpack
     public :: rffti
     public :: rfftf
     public :: rfftb
@@ -28,9 +29,35 @@ module module_fftpack
     public :: cfftf
     public :: cfftb
 
+
+    ! Declare derived data type
+    type, public :: FFTpack
+        !-------------------------------------------------------
+        ! Class variables
+        !-------------------------------------------------------
+    contains
+        !-------------------------------------------------------
+        ! Class methods
+        !-------------------------------------------------------
+        procedure, nopass, public :: rffti
+        procedure, nopass, public :: rfftf
+        procedure, nopass, public :: rfftb
+        procedure, nopass, public :: sint
+        procedure, nopass, public :: sinqf
+        procedure, nopass, public :: sinqb
+        procedure, nopass, public :: sinti
+        procedure, nopass, public :: sinqi
+        procedure, nopass, public :: costi
+        procedure, nopass, public :: cosqi
+        procedure, nopass, public :: cost
+        procedure, nopass, public :: cosqf
+        procedure, nopass, public :: cosqb
+        !-------------------------------------------------------
+    end type FFTpack
+
 contains
     !
-    !     file fftpack.f
+    !     file fftpack.f90
     !
     !
     !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -66,17 +93,17 @@ contains
     !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
     !
     !
-    ! latest revision
+    ! LATEST REVISION
     ! ---------------
-    !     june 2004      (version 5.0) fortran 90 changes
+    !     April 2016   Fortran 2008 changes
     !
-    ! purpose
+    ! PURPOSE
     ! -------
     !     this package consists of programs which perform fast fourier
     !     transforms for both complex and real periodic sequences and
     !     certain other symmetric sequences that are listed below.
     !
-    ! usage
+    ! USAGE
     ! -----
     !     1.   rffti     initialize  rfftf and rfftb
     !     2.   rfftf     forward transform of a real periodic sequence
@@ -104,38 +131,37 @@ contains
     !     18.  cfftf     forward transform of a complex periodic sequence
     !     19.  cfftb     unnormalized inverse of cfftf
     !
-    ! special conditions
+    ! SPECIAL CONDITIONS
     ! ------------------
     !     before calling routines ezfftb and ezfftf for the first time,
     !     or before calling ezfftb and ezfftf with a different length,
     !     users must initialize by calling routine ezffti.
     !
-    ! i/o
+    ! I/O
     ! ---
     !     none
     !
-    ! precision
+    ! PRECISION
     ! ---------
-    !     none
+    !     64-bit precision float and 32-bit precision integer
     !
-    ! required library files
+    ! REQUIRED LIBRARY FILES
     ! ----------------------
     !     none
     !
-    ! language
+    ! STANDARD
     ! --------
-    !     fortran
+    !     Fortran 2008
     !
-    ! history
+    ! HISTORY
     ! -------
-    !     developed at ncar in boulder, colorado by paul n. swarztrauber
-    !     of the scientific computing division.  released on ncar's public
-    !     software libraries in january 1980.  modified may 29, 1985 to
-    !     increase efficiency.
+    !     * Developed at NCAR in boulder, colorado by paul n. swarztrauber
+    !       of the scientific computing division.  Released on NCAR's public
+    !       software libraries in January 1980.
+    !     * Modified may 29, 1985 to increase efficiency.
+    !     * Updated by Jon Lo Kim Lin in April 2016 to incorporate features
+    !       of Fortran 2008
     !
-    ! portability
-    ! -----------
-    !     fortran 77
     !
     ! **********************************************************************
     !
