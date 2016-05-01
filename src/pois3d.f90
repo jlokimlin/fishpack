@@ -78,298 +78,258 @@ contains
         !     *                                                               *
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
-        !     SUBROUTINE pois3d (LPEROD, L, C1, MPEROD, M, C2, NPEROD, N, A, B, C, LDIMF,
-        !    +                   MDIMF, F, ierror)
+        !
+        ! SUBROUTINE pois3d(lperod, l, c1, mperod, m, c2, nperod, n, &
+        !            a, b, c, ldimf, mdimf, f, ierror)
         !
         !
-        ! DIMENSION OF           A(N), B(N), C(N), F(LDIMF, MDIMF, N)
+        ! DIMENSION OF           a(n), b(n), c(n), f(ldimf, mdimf, n)
         ! ARGUMENTS
         !
-        ! LATEST REVISION        June 2004
+        ! LATEST REVISION        April 2016
         !
-        ! PURPOSE                SOLVES THE LINEAR SYSTEM OF EQUATIONS
-        !                        FOR UNKNOWN X VALUES, WHERE I=1, 2, ..., L,
-        !                        J=1, 2, ..., M, AND K=1, 2, ..., N
+        ! PURPOSE                Solves the linear system of equations
+        !                        for unknown x values, where i=1, 2, ..., l,
+        !                        j=1, 2, ..., m, and k=1, 2, ..., n
         !
-        !                        C1*(X(I-1, J, K) -2.*X(I, J, K) +X(I+1, J, K)) +
-        !                        C2*(X(I, J-1, K) -2.*X(I, J, K) +X(I, J+1, K)) +
-        !                        A(K)*X(I, J, K-1) +B(K)*X(I, J, K)+ C(K)*X(I, J, K+1)
-        !                        = F(I, J, K)
+        !                        c1*(x(i-1, j, k) -2.*x(i, j, k) +x(i+1, j, k)) +
+        !                        c2*(x(i, j-1, k) -2.*x(i, j, k) +x(i, j+1, k)) +
+        !                        a(k)*x(i, j, k-1) +b(k)*x(i, j, k)+ c(k)*x(i, j, k+1)
+        !                        = f(i, j, k)
         !
-        !                        THE INDICES K-1 AND K+1 ARE EVALUATED MODULO N,
-        !                        I.E. X(I, J, 0)=X(I, J, N) AND X(I, J, N+1)=X(I, J, 1).
-        !                        THE UNKNOWNS
-        !                        X(0, J, K), X(L+1, J, K), X(I, 0, K), AND X(I, M+1, K)
-        !                        ARE ASSUMED TO TAKE ON CERTAIN PRESCRIBED
-        !                        VALUES DESCRIBED BELOW.
+        !                        the indices k-1 and k+1 are evaluated modulo n,
+        !                        i.e. x(i, j, 0)=x(i, j, n) and x(i, j, n+1)=x(i, j, 1).
+        !                        the unknowns
+        !                        x(0, j, k), x(l+1, j, k), x(i, 0, k), and x(i, m+1, k)
+        !                        are assumed to take on certain prescribed
+        !                        values described below.
         !
-        ! USAGE                  CALL pois3d (LPEROD, L, C1, MPEROD, M, C2, NPEROD,
-        !                        N, A, B, C, LDIMF, MDIMF, F, ierror)
+        ! USAGE                  call pois3d (lperod, l, c1, mperod, m, c2, nperod,
+        !                        n, a, b, c, ldimf, mdimf, f, ierror)
         !
         ! ARGUMENTS
         !
         ! ON INPUT
-        !                        LPEROD
-        !                          INDICATES THE VALUES THAT X(0, J, K) AND
-        !                          X(L+1, J, K) ARE ASSUMED TO HAVE.
-        !                          = 0  X(0, J, K)=X(L, J, K), X(L+1, J, K)=X(1, J, K)
-        !                          = 1  X(0, J, K) = 0,      X(L+1, J, K) = 0
-        !                          = 2  X(0, J, K)=0,        X(L+1, J, K)=X(L-1, J, K)
-        !                          = 3  X(0, J, K)=X(2, J, K), X(L+1, J, K)=X(L-1, J, K)
-        !                          = 4  X(0, J, K)=X(2, J, K), X(L+1, J, K) = 0.
+        !                        lperod
+        !                          indicates the values that x(0, j, k) and
+        !                          x(l+1, j, k) are assumed to have.
+        !                          = 0  x(0, j, k)=x(l, j, k), x(l+1, j, k)=x(1, j, k)
+        !                          = 1  x(0, j, k) = 0,      x(l+1, j, k) = 0
+        !                          = 2  x(0, j, k)=0,        x(l+1, j, k)=x(l-1, j, k)
+        !                          = 3  x(0, j, k)=x(2, j, k), x(l+1, j, k)=x(l-1, j, k)
+        !                          = 4  x(0, j, k)=x(2, j, k), x(l+1, j, k) = 0.
         !
-        !                        L
-        !                          THE NUMBER OF UNKNOWNS IN THE I-DIRECTION.
-        !                          L MUST BE AT LEAST 3.
+        !                        l
+        !                          the number of unknowns in the i-direction.
+        !                          l must be at least 3.
         !
-        !                        C1
-        !                          REAL CONSTANT IN THE ABOVE LINEAR SYSTEM
-        !                          OF EQUATIONS TO BE SOLVED.
+        !                        c1
+        !                          real constant in the above linear system
+        !                          of equations to be solved.
         !
-        !                        MPEROD
-        !                          INDICATES THE VALUES THAT X(I, 0, K) AND
-        !                          X(I, M+1, K) ARE ASSUMED TO HAVE.
-        !                          = 0  X(I, 0, K)=X(I, M, K), X(I, M+1, K)=X(I, 1, K)
-        !                          = 1  X(I, 0, K)=0,        X(I, M+1, K)=0
-        !                          = 2  X(I, 0, K)=0,        X(I, M+1, K)=X(I, M-1, K)
-        !                          = 3  X(I, 0, K)=X(I, 2, K)  X(I, M+1, K)=X(I, M-1, K)
-        !                          = 4  X(I, 0, K)=X(I, 2, K)  X(I, M+1, K)=0
+        !                        mperod
+        !                          indicates the values that x(i, 0, k) and
+        !                          x(i, m+1, k) are assumed to have.
+        !                          = 0  x(i, 0, k)=x(i, m, k), x(i, m+1, k)=x(i, 1, k)
+        !                          = 1  x(i, 0, k)=0,        x(i, m+1, k)=0
+        !                          = 2  x(i, 0, k)=0,        x(i, m+1, k)=x(i, m-1, k)
+        !                          = 3  x(i, 0, k)=x(i, 2, k)  x(i, m+1, k)=x(i, m-1, k)
+        !                          = 4  x(i, 0, k)=x(i, 2, k)  x(i, m+1, k)=0
         !
-        !                        M
-        !                          THE NUMBER OF UNKNOWNS IN THE J-DIRECTION.
-        !                          M MUST BE AT LEAST 3.
+        !                        m
+        !                          the number of unknowns in the j-direction.
+        !                          m must be at least 3.
         !
-        !                        C2
-        !                          REAL CONSTANT IN THE ABOVE LINEAR SYSTEM
-        !                          OF EQUATIONS TO BE SOLVED.
+        !                        c2
+        !                          real constant in the above linear system
+        !                          of equations to be solved.
         !
-        !                        NPEROD
-        !                          = 0  IF A(1) AND C(N) ARE NOT ZERO.
-        !                          = 1  IF A(1) = C(N) = 0.
+        !                        nperod
+        !                          = 0  if a(1) and c(n) are not zero.
+        !                          = 1  if a(1) = c(n) = 0.
         !
-        !                        N
-        !                          THE NUMBER OF UNKNOWNS IN THE K-DIRECTION.
-        !                          N MUST BE AT LEAST 3.
+        !                        n
+        !                          the number of unknowns in the k-direction.
+        !                          n must be at least 3.
         !
-        !                        A, B, C
-        !                          ONE-DIMENSIONAL ARRAYS OF LENGTH N THAT
-        !                          SPECIFY THE COEFFICIENTS IN THE LINEAR
-        !                          EQUATIONS GIVEN ABOVE.
+        !                        a, b, c
+        !                          one-dimensional arrays of length n that
+        !                          specify the coefficients in the linear
+        !                          equations given above.
         !
-        !                          IF NPEROD = 0 THE ARRAY ELEMENTS MUST NOT
-        !                          DEPEND UPON INDEX K, BUT MUST BE CONSTANT.
-        !                          SPECIFICALLY, THE SUBROUTINE CHECKS THE
-        !                          FOLLOWING CONDITION
-        !                            A(K) = C(1)
-        !                            C(K) = C(1)
-        !                            B(K) = B(1)
-        !                          FOR K=1, 2, ..., N.
+        !                          if nperod = 0 the array elements must not
+        !                          depend upon index k, but must be constant.
+        !                          specifically, the subroutine checks the
+        !                          following condition
+        !                            a(k) = c(1)
+        !                            c(k) = c(1)
+        !                            b(k) = b(1)
+        !                          for k=1, 2, ..., n.
         !
-        !                        LDIMF
-        !                          THE ROW (OR FIRST) DIMENSION OF THE THREE-
-        !                          DIMENSIONAL ARRAY F AS IT APPEARS IN THE
-        !                          PROGRAM CALLING pois3d.  THIS PARAMETER IS
-        !                          USED TO SPECIFY THE VARIABLE DIMENSION
-        !                          OF F.  LDIMF MUST BE AT LEAST L.
+        !                        ldimf
+        !                          The row (or first) dimension of the three-
+        !                          dimensional array f as it appears in the
+        !                          program calling pois3d.  this parameter is
+        !                          used to specify the variable dimension
+        !                          of f.  ldimf must be at least l.
         !
-        !                        MDIMF
-        !                          THE COLUMN (OR SECOND) DIMENSION OF THE THREE
-        !                          DIMENSIONAL ARRAY F AS IT APPEARS IN THE
-        !                          PROGRAM CALLING pois3d.  THIS PARAMETER IS
-        !                          USED TO SPECIFY THE VARIABLE DIMENSION
-        !                          OF F.  MDIMF MUST BE AT LEAST M.
+        !                        mdimf
+        !                          The column (or second) dimension of the three
+        !                          dimensional array f as it appears in the
+        !                          program calling pois3d.  this parameter is
+        !                          used to specify the variable dimension
+        !                          of f.  mdimf must be at least m.
         !
-        !                        F
-        !                          A THREE-DIMENSIONAL ARRAY THAT SPECIFIES THE
-        !                          VALUES OF THE RIGHT SIDE OF THE LINEAR SYSTEM
-        !                          OF EQUATIONS GIVEN ABOVE.  F MUST BE
-        !                          DIMENSIONED AT LEAST L X M X N.
+        !                        f
+        !                          A three-dimensional array that specifies the
+        !                          values of the right side of the linear system
+        !                          of equations given above.  f must be
+        !                          dimensioned at least l x m x n.
         !
         ! ON OUTPUT
         !
-        !                        F
-        !                          CONTAINS THE SOLUTION X.
+        !                        f
+        !                          Contains the solution x.
         !
         !                        ierror
-        !                          AN ERROR FLAG THAT INDICATES INVALID INPUT
-        !                          PARAMETERS.  EXCEPT FOR NUMBER ZERO, A
-        !                          SOLUTION IS NOT ATTEMPTED.
-        !                          = 0  NO ERROR
-        !                          = 1  IF LPEROD .LT. 0 OR .GT. 4
-        !                          = 2  IF L .LT. 3
-        !                          = 3  IF MPEROD .LT. 0 OR .GT. 4
-        !                          = 4  IF M .LT. 3
-        !                          = 5  IF NPEROD .LT. 0 OR .GT. 1
-        !                          = 6  IF N .LT. 3
-        !                          = 7  IF LDIMF .LT. L
-        !                          = 8  IF MDIMF .LT. M
-        !                          = 9  IF A(K) .NE. C(1) OR C(K) .NE. C(1)
-        !                               OR B(I) .NE.B(1) FOR SOME K=1, 2, ..., N.
-        !                          = 10 IF NPEROD = 1 AND A(1) .NE. 0
-        !                               OR C(N) .NE. 0
+        !                          An error flag that indicates invalid input
+        !                          parameters.  except for number zero, a
+        !                          solution is not attempted.
+        !                          = 0  no error
+        !                          = 1  if lperod < 0 or > 4
+        !                          = 2  if l < 3
+        !                          = 3  if mperod < 0 or > 4
+        !                          = 4  if m < 3
+        !                          = 5  if nperod < 0 or > 1
+        !                          = 6  if n < 3
+        !                          = 7  if ldimf < l
+        !                          = 8  if mdimf < m
+        !                          = 9  if a(k) /= c(1) or c(k) /= c(1)
+        !                               or b(i) /=b(1) for some k=1, 2, ..., n.
+        !                          = 10 if nperod = 1 and a(1) /= 0
+        !                               or c(n) /= 0
         !                          = 20 If the dynamic allocation of real and
         !                               complex work space required for solution
-        !                               fails (for example if N, M are too large
+        !                               fails (for example if n, m are too large
         !                               for your computer)
         !
-        !                          SINCE THIS IS THE ONLY MEANS OF INDICATING A
-        !                          POSSIBLY INCORRECT CALL TO pois3d, THE USER
-        !                          SHOULD TEST ierror AFTER THE CALL.
+        !                          Since this is the only means of indicating a
+        !                          possibly incorrect call to pois3d, the user
+        !                          should test ierror after the call.
         !
-        ! SPECIAL CONDITIONS     NONE
+        ! SPECIAL CONDITIONS     None
         !
-        ! I/O                    NONE
+        ! I/O                    None
         !
-        ! PRECISION              SINGLE
+        ! PRECISION              64-bit float and 32-bit integer
         !
-        ! REQUIRED files         fish.f, comf.f, fftpack.f
+        ! REQUIRED files         type_FishpackWorkspace.f90, comf.f90, fftpack.f90
         !
-        ! LANGUAGE               FORTRAN 90
+        ! STANDARD               Fortran 2008
         !
-        ! HISTORY                WRITTEN BY ROLAND SWEET AT NCAR IN THE LATE
-        !                        1970'S.  RELEASED ON NCAR'S PUBLIC SOFTWARE
-        !                        LIBRARIES IN JANUARY, 1980.
-        !                        Revised in June 2004 by John Adams using
-        !                        Fortran 90 dynamically allocated work space.
+        ! HISTORY                * Written by Roland Sweet at NCAR in the late
+        !                          1970's.  released on NCAR's public software
+        !                          libraries in January, 1980.
+        !                        * Revised in June 2004 by John Adams using
+        !                          Fortran 90 dynamically allocated work space.
+        !                        * Revised in April 2016 using features from
+        !                          Fortran 2008
         !
-        ! PORTABILITY            FORTRAN 90
+        ! ALGORITHM              This subroutine solves three-dimensional block
+        !                        tridiagonal linear systems arising from finite
+        !                        difference approximations to three-dimensional
+        !                        poisson equations using the FFT package
+        !                        fftpack written by Paul Swarztrauber.
         !
-        ! ALGORITHM              THIS SUBROUTINE SOLVES THREE-DIMENSIONAL BLOCK
-        !                        tridIAGONAL LINEAR SYSTEMS ARISING FROM FINITE
-        !                        DIFFERENCE APPROXIMATIONS TO THREE-DIMENSIONAL
-        !                        POISSON EQUATIONS USING THE FFT PACKAGE
-        !                        FFTPACK WRITTEN BY PAUL SWARZTRAUBER.
+        ! TIMING                 For large l, m and n, the operation count
+        !                        is roughly proportional to
+        !                          l*m*n*(log2(l)+log2(m)+5)
+        !                        but also depends on input parameters lperod
+        !                        and mperod.
         !
-        ! TIMING                 FOR LARGE L, M AND N, THE OPERATION COUNT
-        !                        IS ROUGHLY PROPORTIONAL TO
-        !                          L*M*N*(LOG2(L)+LOG2(M)+5)
-        !                        BUT ALSO DEPENDS ON INPUT PARAMETERS LPEROD
-        !                        AND MPEROD.
+        ! ACCURACY               To measure the accuracy of the algorithm a
+        !                        uniform random number generator was used to
+        !                        create a solution array x for the system given
+        !                        in the 'purpose' section with
+        !                          a(k) = c(k) = -0.5_wp *b(k) = 1,  k=1, 2, ..., n
+        !                        and, when nperod = 1
+        !                          a(1) = c(n) = 0
+        !                          a(n) = c(1) = 2.
         !
-        ! ACCURACY               TO MEASURE THE ACCURACY OF THE ALGORITHM A
-        !                        UNIFORM RANDOM NUMBER GENERATOR WAS USED TO
-        !                        CREATE A SOLUTION ARRAY X FOR THE SYSTEM GIVEN
-        !                        IN THE 'PURPOSE' SECTION WITH
-        !                          A(K) = C(K) = -0.5*B(K) = 1,  K=1, 2, ..., N
-        !                        AND, WHEN NPEROD = 1
-        !                          A(1) = C(N) = 0
-        !                          A(N) = C(1) = 2.
+        !                        The solution x was substituted into the given
+        !                        system and, using double precision, a right
+        !                        side y was computed.  using this array y
+        !                        subroutine pois3d was called to produce an
+        !                        approximate solution z.  Relative error
         !
-        !                        THE SOLUTION X WAS SUBSTITUTED INTO THE GIVEN
-        !                        SYSTEM AND, USING DOUBLE PRECISION, A RIGHT
-        !                        SIDE Y WAS COMPUTED.  USING THIS ARRAY Y
-        !                        SUBROUTINE pois3d WAS CALLED TO PRODUCE AN
-        !                        APPROXIMATE SOLUTION Z.  RELATIVE ERROR
+        !                         = max(abs(z(i, j, k)-x(i, j, k)))/max(abs(x(i, j, k
         !
-        !                        E = MAX(abs(Z(I, J, K)-X(I, J, K)))/MAX(abs(X(I, J, K
+        !                        was computed, where the two maxima are taken
+        !                        over i=1, 2, ..., l, j=1, 2, ..., m and k=1, 2, ..., n.
+        !                        values of e are given in the table below for
+        !                        some typical values of l, m and n.
         !
-        !                        WAS COMPUTED, WHERE THE TWO MAXIMA ARE TAKEN
-        !                        OVER I=1, 2, ..., L, J=1, 2, ..., M AND K=1, 2, ..., N.
-        !                        VALUES OF E ARE GIVEN IN THE TABLE BELOW FOR
-        !                        SOME TYPICAL VALUES OF L, M AND N.
-        !
-        !                        L(=M=N)   LPEROD    MPEROD       E
+        !                        l(=m=n)   lperod    mperod       e
         !                        ------    ------    ------     ------
         !
-        !                          16        0         0        1.E-13
-        !                          15        1         1        4.E-13
-        !                          17        3         3        2.E-13
-        !                          32        0         0        2.E-13
-        !                          31        1         1        2.E-12
-        !                          33        3         3        7.E-13
+        !                          16        0         0        1.e-13
+        !                          15        1         1        4.e-13
+        !                          17        3         3        2.e-13
+        !                          32        0         0        2.e-13
+        !                          31        1         1        2.e-12
+        !                          33        3         3        7.e-13
         !
-        ! REFERENCES              NONE
+        ! REFERENCES              None
         !
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip),          intent (in)     :: lperod
-        integer (ip),          intent (in)     :: l
-        integer (ip),          intent (in)     :: mperod
-        integer (ip),          intent (in)     :: m
-        integer (ip),          intent (in)     :: nperod
-        integer (ip),          intent (in)     :: n
-        integer (ip),          intent (in)     :: ldimf
-        integer (ip),          intent (in)     :: mdimf
-        integer (ip),          intent (out)     :: ierror
-        real (wp),             intent (in)     :: c1
-        real (wp),             intent (in)     :: c2
-        real (wp), contiguous, intent (inout ) :: a(:)
-        real (wp), contiguous, intent (in out) :: b(:)
-        real (wp), contiguous, intent (in out) :: c(:)
-        real (wp), contiguous, intent (in out) :: f(:,:,:)
+        integer (ip), intent (in)     :: lperod
+        integer (ip), intent (in)     :: l
+        integer (ip), intent (in)     :: mperod
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: nperod
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: ldimf
+        integer (ip), intent (in)     :: mdimf
+        integer (ip), intent (out)    :: ierror
+        real (wp),    intent (in)     :: c1
+        real (wp),    intent (in)     :: c2
+        real (wp),    intent (inout ) :: a(:)
+        real (wp),    intent (in out) :: b(:)
+        real (wp),    intent (in out) :: c(:)
+        real (wp),    intent (in out) :: f(:,:,:)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer (ip)             :: lp, mp, np, k
+        integer (ip)             :: irwk, icwk
         type (FishpackWorkspace) :: workspace
         !-----------------------------------------------
 
-        lp = lperod + 1
-        mp = mperod + 1
-        np = nperod + 1
+        !
+        !==> Compute required workspace dimensions
+        !
+        irwk = 30+l+m+2*n + max(l, m, n) + 7 * ( (l+1)/2+(m+1)/2)
+        icwk = 0
 
-        ! initialize error flag
-        ierror = 0
+        !
+        !==> Allocate memory
+        !
+        call workspace%create(irwk, icwk)
 
-        ! Check if input arguments are valid
-
-        ! check case 1
-        if (lp<1 .or. lp>5) ierror = 1
-        ! check case 2
-        if (l < 3) ierror = 2
-        ! check case 3
-        if (mp<1 .or. mp>5) ierror = 3
-        ! check case 4
-        if (m < 3) ierror = 4
-        ! check case 5
-        if (np<1 .or. np>2) ierror = 5
-        ! check case 6
-        if (n < 3) ierror = 6
-        ! check case 7
-        if (ldimf < l) ierror = 7
-        ! check case 8
-        if (mdimf < m) ierror = 8
-        ! check case 9
-        if (np == 1) then
-            do k = 1, n
-                if (a(k) /= c(1)) then
-                    ierror = 9
-                    exit
-                end if
-                if (c(k) /= c(1)) then
-                    ierror = 9
-                    exit
-                end if
-                if (b(k) /= b(1)) then
-                    ierror = 9
-                    exit
-                end if
-            end do
-        end if
-        ! Check case 10
-        if (nperod==1 .and. (a(1)/=0. .or. c(n)/=0.)) ierror = 10
-        ! Check if input values are valid
-        if (ierror /= 0) return
-
-        ! allocate required work space length (generous estimate)
-        associate( &
-            irwk=>30+l+m+2*n+max(l, m, n)+7*(int((l+1)/2)+int((m+1)/2)), &
-            icwk => 0 &
-            )
-            call workspace%create( irwk, icwk, ierror )
-        end associate
-
-        ! check that allocation was successful
-        if (ierror == 20) return
-
-        ! solve system
+        !
+        !==> Solve system
+        !
         associate( rew => workspace%real_workspace )
-            call pois3dd(lperod, l, c1, mperod, m, c2, nperod, n, a, b, c, ldimf, &
-                mdimf, f, ierror, rew)
+
+            call pois3dd(lperod, l, c1, mperod, m, c2, nperod, n, &
+                a, b, c, ldimf, mdimf, f, ierror, rew)
+
         end associate
 
-        ! Release memory
+        !
+        !==> Release memory
+        !
         call workspace%destroy()
 
     end subroutine pois3d
@@ -388,7 +348,7 @@ contains
         integer (ip), intent (in)     :: n
         integer (ip), intent (in)     :: ldimf
         integer (ip), intent (in)     :: mdimf
-        integer (ip), intent (in)     :: ierror
+        integer (ip), intent (out)    :: ierror
         real (wp),    intent (in)     :: c1
         real (wp),    intent (in)     :: c2
         real (wp),    intent (in out) :: a(*)
@@ -399,329 +359,598 @@ contains
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer (ip) :: lp, mp, np, iwyrt, iwt, iwd, iwbb
-        integer (ip) :: iwx, iwy, nh, nhm1, nodd, i, j, k
-        real (wp)    :: save_rename(6)
+        integer (ip) :: nh, nhm1, nodd, i, j, k
+        integer (ip) :: workspace_indices(6)
+        real (wp)    :: temp_save(6)
         !-----------------------------------------------
 
-        lp = lperod + 1
-        mp = mperod + 1
-        np = nperod + 1
-        iwyrt = l + 1
-        iwt = iwyrt + m
-        iwd = iwt + max(l, m, n) + 1
-        iwbb = iwd + n
-        iwx = iwbb + n
-        iwy = iwx + 7*((l + 1)/2) + 15
-        go to (105, 114) np
-    !
-    !     reorder unknowns when nperod = 0.
-    !
-105 continue
-    nh = (n + 1)/2
-    nhm1 = nh - 1
-    nodd = 1
-    if (2*nh == n) nodd = 2
-    do i = 1, l
-        do j = 1, m
-            do k = 1, nhm1
-                w(k) = f(i, j, nh-k) - f(i, j, k+nh)
-                w(k+nh) = f(i, j, nh-k) + f(i, j, k+nh)
+        !
+        !==> Check input arguments
+        !
+        call check_input_arguments(lperod, l, mperod, m, nperod, n, &
+            a, b, c, ldimf, mdimf, ierror)
+
+        ! Check error flag
+        if (ierror /= 0) then
+            return
+        end if
+
+        !
+        !==> Compute workspace indices
+        !
+        workspace_indices = get_pois3dd_workspace_indices(l, m, n)
+
+        associate( &
+            lp => lperod + 1, &
+            mp => mperod + 1, &
+            np => nperod + 1, &
+            iwyrt => workspace_indices(1), &
+            iwt => workspace_indices(2), &
+            iwd => workspace_indices(3), &
+            iwbb => workspace_indices(4), &
+            iwx => workspace_indices(5), &
+            iwy => workspace_indices(6) &
+            )
+
+            if (np == 1) then
+                !
+                !==> Reorder unknowns when nperod = 0
+                !
+                nh = (n + 1)/2
+                nhm1 = nh - 1
+
+                if (2*nh == n) then
+                    nodd = 2
+                else
+                    nodd = 1
+                end if
+
+                do i = 1, l
+                    do j = 1, m
+                        do k = 1, nhm1
+                            w(k) = f(i, j, nh-k) - f(i, j, k+nh)
+                            w(k+nh) = f(i, j, nh-k) + f(i, j, k+nh)
+                        end do
+                        w(nh) = 2.*f(i, j, nh)
+                        select case (nodd)
+                            case (1)
+                                f(i, j, :n) = w(:n)
+                            case (2)
+                                w(n) = 2.0_wp * f(i, j, n)
+                                f(i, j, :n) = w(:n)
+                        end select
+                    end do
+                end do
+
+                temp_save(1) = c(nhm1)
+                temp_save(2) = a(nh)
+                temp_save(3) = c(nh)
+                temp_save(4) = b(nhm1)
+                temp_save(5) = b(n)
+                temp_save(6) = a(n)
+
+                c(nhm1) = 0.0_wp
+                a(nh) = 0.0_wp
+                c(nh) = 2.0_wp*c(nh)
+
+                select case (nodd)
+                    case default
+                        b(nhm1) = b(nhm1) - a(nh-1)
+                        b(n) = b(n) + a(n)
+                    case (2)
+                        a(n) = c(nh)
+                end select
+
+            end if
+
+            call pos3d1(lp, l, mp, m, n, a, b, c, ldimf, mdimf, f, &
+                w, w(iwyrt), w(iwt), w(iwd), w(iwx), w(iwy), c1, c2, w(iwbb))
+
+            select case (np)
+                case (1)
+                    do i = 1, l
+                        do j = 1, m
+                            w(nh-1:nh-nhm1:(-1))=0.5_wp *(f(i, j, nh+1:nhm1+nh)+f(i, j, :nhm1))
+                            w(nh+1:nhm1+nh) = 0.5_wp *(f(i, j, nh+1:nhm1+nh)-f(i, j, :nhm1))
+                            w(nh) = 0.5_wp *f(i, j, nh)
+                            select case (nodd)
+                                case (1)
+                                    f(i, j, :n) = w(:n)
+                                case (2)
+                                    w(n) = 0.5_wp * f(i, j, n)
+                                    f(i, j, :n) = w(:n)
+                            end select
+                        end do
+                    end do
+
+                    c(nhm1) = temp_save(1)
+                    a(nh) = temp_save(2)
+                    c(nh) = temp_save(3)
+                    b(nhm1) = temp_save(4)
+                    b(n) = temp_save(5)
+                    a(n) = temp_save(6)
+
+                case (2)
+                    return
+            end select
+
+        end associate
+
+
+    contains
+
+
+        pure subroutine check_input_arguments(lperod, l, mperod, m, nperod, n, &
+            a, b, c, ldimf, mdimf, ierror)
+            !-----------------------------------------------
+            ! Dictionary: calling arguments
+            !-----------------------------------------------
+            integer (ip), intent (in)     :: lperod
+            integer (ip), intent (in)     :: l
+            integer (ip), intent (in)     :: mperod
+            integer (ip), intent (in)     :: m
+            integer (ip), intent (in)     :: nperod
+            integer (ip), intent (in)     :: n
+            integer (ip), intent (in)     :: ldimf
+            integer (ip), intent (in)     :: mdimf
+            integer (ip), intent (out)    :: ierror
+            real (wp),    intent (in out) :: a(*)
+            real (wp),    intent (in out) :: b(*)
+            real (wp),    intent (in out) :: c(*)
+            !-----------------------------------------------
+            ! Dictionary: local variables
+            !-----------------------------------------------
+            integer (ip) :: k !! Counter
+            !-----------------------------------------------
+
+            associate( &
+                lp => lperod + 1, &
+                mp => mperod + 1, &
+                np => nperod + 1 &
+                )
+
+                ! Initialize error flag
+                ierror = 0
+
+                ! Case 1
+                if (lp < 1 .or. lp > 5) then
+                    ierror = 1
+                    return
+                end if
+
+                ! Case 2
+                if (l < 3) then
+                    ierror = 2
+                    return
+                end if
+
+                ! Case 3
+                if (mp < 1 .or. mp > 5) then
+                    ierror = 3
+                    return
+                end if
+
+                ! Case 4
+                if (m < 3) then
+                    ierror = 4
+                    return
+                end if
+
+                ! Case 5
+                if (np < 1 .or. np > 2) then
+                    ierror = 5
+                    return
+                end if
+
+                ! Case 6
+                if (n < 3) then
+                    ierror = 6
+                end if
+
+                ! Case 7
+                if (ldimf < l) then
+                    ierror = 7
+                    return
+                end if
+
+                ! Case 8
+                if (mdimf < m) then
+                    ierror = 8
+                    return
+                end if
+
+                ! Case 9
+                if (np == 1) then
+                    do k = 1, n
+                        if (a(k) /= c(1)) then
+                            ierror = 9
+                            return
+                        end if
+                        if (c(k) /= c(1)) then
+                            ierror = 9
+                            return
+                        end if
+                        if (b(k) /= b(1)) then
+                            ierror = 9
+                            return
+                        end if
+                    end do
+                end if
+
+                ! Case 10
+                if (nperod==1 .and. (a(1)/=0.0_wp .or. c(n)/=0.0_wp)) then
+                    ierror = 10
+                    return
+                end if
+
+            end associate
+
+        end subroutine check_input_arguments
+
+
+
+        pure function get_pois3dd_workspace_indices(l, m, n) result (return_value)
+            !--------------------------------------------------------------------------------
+            ! Dictionary: calling arguments
+            !--------------------------------------------------------------------------------
+            integer (ip), intent (in)     :: l
+            integer (ip), intent (in)     :: m
+            integer (ip), intent (in)     :: n
+            integer (ip)                  :: return_value(6)
+            !--------------------------------------------------------------------------------
+
+            associate( i => return_value )
+
+                i(1) = l + 1
+                i(2) = i(1) + m
+                i(3) = i(2) + max(l, m, n) + 1
+                i(4) = i(3) + n
+                i(5) = i(4) + n
+                i(6) = i(5) + 7*((l + 1)/2) + 15
+
+            end associate
+
+        end function get_pois3dd_workspace_indices
+
+    end subroutine pois3dd
+
+
+
+    subroutine pos3d1(lp, l, mp, m, n, a, b, c, ldimf, mdimf, f, xrt, &
+        yrt, t, d, wx, wy, c1, c2, bb)
+        !--------------------------------------------------------------------------------
+        ! Dictionary: calling arguments
+        !--------------------------------------------------------------------------------
+        integer (ip), intent (in)     :: lp
+        integer (ip), intent (in)     :: l
+        integer (ip), intent (in)     :: mp
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: ldimf
+        integer (ip), intent (in)     :: mdimf
+        real (wp),    intent (in)     :: c1
+        real (wp),    intent (in)     :: c2
+        real (wp),    intent (in out) :: a(*)
+        real (wp),    intent (in)     :: b(*)
+        real (wp),    intent (in out) ::c(*)
+        real (wp),    intent (in out) :: f(ldimf, mdimf, 1)
+        real (wp),    intent (in out) :: xrt(*)
+        real (wp),    intent (in out) :: yrt(*)
+        real (wp),    intent (in out) :: t(*)
+        real (wp),    intent (in out) :: d(*)
+        real (wp),    intent (in out) ::wx(*)
+        real (wp),    intent (in out) ::wy(*)
+        real (wp),    intent (in out) :: bb(*)
+        !-----------------------------------------------
+        ! Dictionary: local variables
+        !-----------------------------------------------
+        integer (ip)         :: lr, mr, nr, lrdel, i, mrdel, j, ifwrd, is, k
+        real (wp), parameter :: PI = acos(-1.0_wp)
+        real (wp)            :: scalx, dx, di, scaly, dy, dj
+        !-----------------------------------------------
+
+        lr = l
+        mr = m
+        nr = n
+        !
+        !==> generate transform roots
+        !
+        lrdel = ((lp - 1)*(lp - 3)*(lp - 5))/3
+        scalx = lr + lrdel
+        dx = PI/(2.0_wp*scalx)
+
+        if (lp ==1 ) then
+            xrt(1) = 0.0_wp
+            xrt(lr) = -4.0_wp*c1
+
+            do i = 3, lr, 2
+                xrt(i-1) = -4.0_wp*c1*sin(real(i - 1)*dx)**2
+                xrt(i) = xrt(i-1)
             end do
-            w(nh) = 2.*f(i, j, nh)
-            go to (108, 107) nodd
-107     continue
-        w(n) = 2.*f(i, j, n)
-108 continue
-    f(i, j, :n) = w(:n)
-end do
-end do
-save_rename(1) = c(nhm1)
-save_rename(2) = a(nh)
-save_rename(3) = c(nh)
-save_rename(4) = b(nhm1)
-save_rename(5) = b(n)
-save_rename(6) = a(n)
-c(nhm1) = 0.
-a(nh) = 0.
-c(nh) = 2.*c(nh)
-select case (nodd)
-    case default
-        b(nhm1) = b(nhm1) - a(nh-1)
-        b(n) = b(n) + a(n)
-    case (2)
-        a(n) = c(nh)
-end select
-114 continue
-    call pos3d1 (lp, l, mp, m, n, a, b, c, ldimf, mdimf, f, w, w(iwyrt &
-        ), w(iwt), w(iwd), w(iwx), w(iwy), c1, c2, w(iwbb))
-    go to (115, 122) np
-115 continue
-    do i = 1, l
-        do j = 1, m
-            w(nh-1:nh-nhm1:(-1))=0.5*(f(i, j, nh+1:nhm1+nh)+f(i, j, :nhm1))
-            w(nh+1:nhm1+nh) = 0.5*(f(i, j, nh+1:nhm1+nh)-f(i, j, :nhm1))
-            w(nh) = 0.5*f(i, j, nh)
-            go to (118, 117) nodd
-117     continue
-        w(n) = 0.5*f(i, j, n)
-118 continue
-    f(i, j, :n) = w(:n)
-end do
-end do
-c(nhm1) = save_rename(1)
-a(nh) = save_rename(2)
-c(nh) = save_rename(3)
-b(nhm1) = save_rename(4)
-b(n) = save_rename(5)
-a(n) = save_rename(6)
-122 continue
 
-end subroutine pois3dd
+            call rffti(lr, wx)
 
-subroutine pos3d1(lp, l, mp, m, n, a, b, c, ldimf, mdimf, f, xrt, &
-    yrt, t, d, wx, wy, c1, c2, bb)
-    !--------------------------------------------------------------------------------
-    ! Dictionary: calling arguments
-    !--------------------------------------------------------------------------------
-    integer (ip), intent (in)     :: lp
-    integer (ip), intent (in)     :: l
-    integer (ip), intent (in)     :: mp
-    integer (ip), intent (in)     :: m
-    integer (ip), intent (in)     :: n
-    integer (ip), intent (in)     :: ldimf
-    integer (ip), intent (in)     :: mdimf
-    real (wp),    intent (in)     :: c1
-    real (wp),    intent (in)     :: c2
-    real (wp),    intent (in out) :: a(*)
-    real (wp),    intent (in)     :: b(*)
-    real (wp),    intent (in out) ::c(*)
-    real (wp),    intent (in out) :: f(ldimf, mdimf, 1)
-    real (wp),    intent (in out) :: xrt(*)
-    real (wp),    intent (in out) :: yrt(*)
-    real (wp),    intent (in out) :: t(*)
-    real (wp),    intent (in out) :: d(*)
-    real (wp),    intent (in out) ::wx(*)
-    real (wp),    intent (in out) ::wy(*)
-    real (wp),    intent (in out) :: bb(*)
-    !-----------------------------------------------
-    ! Dictionary: local variables
-    !-----------------------------------------------
-    integer (ip)         :: lr, mr, nr, lrdel, i, mrdel, j, ifwrd, is, k
-    real (wp), parameter :: PI = acos(-1.0_wp)
-    real (wp)            :: scalx, dx, di, scaly, dy, dj
-    !-----------------------------------------------
+        else
+            select case (lp)
+                case (2)
+                    di = 0.0_wp
+                case (3, 5)
+                    di = 0.5_wp
+                    scalx = 2.0_wp*scalx
+                case (4)
+                    di = 1.0
+            end select
 
-    lr = l
-    mr = m
-    nr = n
-    !
-    !     generate transform roots
-    !
-    lrdel = ((lp - 1)*(lp - 3)*(lp - 5))/3
-    scalx = lr + lrdel
-    dx = PI/(2.*scalx)
-    go to (108, 103, 101, 102, 101) lp
-101 continue
-    di = 0.5
-    scalx = 2.*scalx
-    go to 104
-102 continue
-    di = 1.0
-    go to 104
-103 continue
-    di = 0.0
-104 continue
-    do i = 1, lr
-        xrt(i) = -4.*c1*sin((real(i) - di)*dx)**2
-    end do
-    scalx = 2.*scalx
-    go to (112, 106, 110, 107, 111) lp
-106 continue
-    call sinti (lr, wx)
-    go to 112
-107 continue
-    call costi (lr, wx)
-    go to 112
-108 continue
-    xrt(1) = 0.
-    xrt(lr) = -4.*c1
-    do i = 3, lr, 2
-        xrt(i-1) = -4.*c1*sin(real(i - 1)*dx)**2
-        xrt(i) = xrt(i-1)
-    end do
-    call rffti (lr, wx)
-    go to 112
-110 continue
-    call sinqi (lr, wx)
-    go to 112
-111 continue
-    call cosqi (lr, wx)
-112 continue
-    mrdel = ((mp - 1)*(mp - 3)*(mp - 5))/3
-    scaly = mr + mrdel
-    dy = PI/(2.*scaly)
-    go to (120, 115, 113, 114, 113) mp
-113 continue
-    dj = 0.5
-    scaly = 2.*scaly
-    go to 116
-114 continue
-    dj = 1.0
-    go to 116
-115 continue
-    dj = 0.0
-116 continue
-    do j = 1, mr
-        yrt(j) = -4.*c2*sin((real(j) - dj)*dy)**2
-    end do
-    scaly = 2.*scaly
-    go to (124, 118, 122, 119, 123) mp
-118 continue
-    call sinti (mr, wy)
-    go to 124
-119 continue
-    call costi (mr, wy)
-    go to 124
-120 continue
-    yrt(1) = 0.
-    yrt(mr) = -4.*c2
-    do j = 3, mr, 2
-        yrt(j-1) = -4.*c2*sin(real(j - 1)*dy)**2
-        yrt(j) = yrt(j-1)
-    end do
-    call rffti (mr, wy)
-    go to 124
-122 continue
-    call sinqi (mr, wy)
-    go to 124
-123 continue
-    call cosqi (mr, wy)
-124 continue
-    ifwrd = 1
-    is = 1
+            do i = 1, lr
+                xrt(i) = -4.0_wp*c1*sin((real(i, kind=wp) - di)*dx)**2
+            end do
+
+            scalx = 2.0_wp*scalx
+
+            if ( lp /= 1 ) then
+                select case (lp)
+                    case (2)
+                        call sinti(lr, wx)
+                    case (3)
+                        call sinqi(lr, wx)
+                    case (4)
+                        call costi(lr, wx)
+                    case (5)
+                        call cosqi(lr, wx)
+                    case default
+
+                        xrt(1) = 0.0_wp
+                        xrt(lr) = -4.0_wp*c1
+
+                        do i = 3, lr, 2
+                            xrt(i-1) = -4.0_wp*c1*sin(real(i - 1)*dx)**2
+                            xrt(i) = xrt(i-1)
+                        end do
+
+                        call rffti(lr, wx)
+                end select
+            end if
+        end if
+
+        mrdel = ((mp - 1)*(mp - 3)*(mp - 5))/3
+        scaly = mr + mrdel
+        dy = PI/(2.0_wp*scaly)
+
+        if (mp == 1) then
+
+            yrt(1) = 0.0_wp
+            yrt(mr) = -4.0_wp*c2
+
+            do j = 3, mr, 2
+                yrt(j-1) = -4.0_wp*c2*sin(real(j - 1, kind=wp)*dy)**2
+                yrt(j) = yrt(j-1)
+            end do
+
+            call rffti(mr, wy)
+
+        else
+            select case (mp)
+                case (2)
+                    dj = 0.0_wp
+                case (3, 5)
+                    dj = 0.5_wp
+                    scaly = 2.*scaly
+                case (4)
+                    dj = 1.0_wp
+            end select
+
+            do j = 1, mr
+                yrt(j) = -4.0_wp*c2*sin((real(j, kind=wp) - dj)*dy)**2
+            end do
+
+            scaly = 2.0_wp * scaly
+
+            if (mp == 1) then
+                yrt(1) = 0.0_wp
+                yrt(mr) = -4.0_wp*c2
+
+                do j = 3, mr, 2
+                    yrt(j-1) = -4.0_wp*c2*sin(real(j - 1, kind=wp)*dy)**2
+                    yrt(j) = yrt(j-1)
+                end do
+
+                call rffti(mr, wy)
+            else
+                select case (mp)
+                    case (2)
+                        call sinti(mr, wy)
+                    case (3)
+                        call sinqi(mr, wy)
+                    case (4)
+                        call costi(mr, wy)
+                    case (5)
+                        call cosqi(mr, wy)
+                end select
+            end if
+        end if
+
+        ifwrd = 1
+        is = 1
+
 125 continue
     !
-    !     transform x
+    !==> Transform x
     !
     do j=1, mr
         do k=1, nr
             do i=1, lr
                 t(i) = f(i, j, k)
             end do
-            go to (127, 130, 131, 134, 135), lp
-127         go to (128, 129), ifwrd
-128         call rfftf (lr, t, wx)
-            go to 138
-129         call rfftb (lr, t, wx)
-            go to 138
-130         call sint (lr, t, wx)
-            go to 138
-131         go to (132, 133), ifwrd
-132         call sinqf (lr, t, wx)
-            go to 138
-133         call sinqb (lr, t, wx)
-            go to 138
-134         call cost (lr, t, wx)
-            go to 138
-135         go to (136, 137), ifwrd
-136         call cosqf (lr, t, wx)
-            go to 138
-137         call cosqb (lr, t, wx)
-138     continue
-        do i=1, lr
-            f(i, j, k) = t(i)
+            select case (lp)
+                case (1)
+                    select case (ifwrd)
+                        case (1)
+                            call rfftf(lr, t, wx)
+                        case (2)
+                            call rfftb(lr, t, wx)
+                    end select
+                case (2)
+                    call sint(lr, t, wx)
+                case (3)
+                    select case (ifwrd)
+                        case (1)
+                            call sinqf(lr, t, wx)
+                        case (2)
+                            call sinqb(lr, t, wx)
+                    end select
+                case (4)
+                    call cost(lr, t, wx)
+                case (5)
+                    select case (ifwrd)
+                        case (1)
+                            call cosqf(lr, t, wx)
+                        case (2)
+                            call cosqb(lr, t, wx)
+                    end select
+            end select
+
+            do i=1, lr
+                f(i, j, k) = t(i)
+            end do
         end do
     end do
-end do
-go to (142, 164) ifwrd
+
+    if (ifwrd == 2) then
+        f(:lr, :mr, :nr) = f(:lr, :mr, :nr)/(scalx*scaly)
+        return
+    end if
 !
-!     transform y
+!==> Transform y
 !
 142 continue
+
     do i=1, lr
         do k=1, nr
             do j=1, mr
                 t(j) = f(i, j, k)
             end do
-            go to (144, 147, 148, 151, 152), mp
-144         go to (145, 146), ifwrd
-145         call rfftf (mr, t, wy)
+
+            select case (mp)
+                case (1)
+                    go to 144
+                case (2)
+                    go to 147
+                case (3)
+                    go to 148
+                case (4)
+                    go to 151
+                case (5)
+                    go to 152
+            end select
+
+144         select case (ifwrd)
+                case (1)
+                    go to 145
+                case (2)
+                    go to 146
+            end select
+
+145         call rfftf(mr, t, wy)
             go to 155
-146         call rfftb (mr, t, wy)
+146         call rfftb(mr, t, wy)
             go to 155
-147         call sint (mr, t, wy)
+147         call sint(mr, t, wy)
             go to 155
-148         go to (149, 150), ifwrd
-149         call sinqf (mr, t, wy)
+148         select case (ifwrd)
+                case (1)
+                    go to 149
+                case (2)
+                    go to 150
+            end select
+149         call sinqf(mr, t, wy)
             go to 155
-150         call sinqb (mr, t, wy)
+150         call sinqb(mr, t, wy)
             go to 155
-151         call cost (mr, t, wy)
+151         call cost(mr, t, wy)
             go to 155
-152         go to (153, 154), ifwrd
-153         call cosqf (mr, t, wy)
-            go to 155
-154         call cosqb (mr, t, wy)
+
+152         select case (ifwrd)
+                case (1)
+                    call cosqf(mr, t, wy)
+                case (2)
+                    call cosqb(mr, t, wy)
+            end select
+
 155     continue
+
         do j=1, mr
             f(i, j, k) = t(j)
         end do
     end do
 end do
-go to (159, 125) ifwrd
-159 continue
-    do i = 1, lr
-        do j = 1, mr
-            bb(:nr) = b(:nr) + xrt(i) + yrt(j)
-            t(:nr) = f(i, j, :nr)
-            call trid (nr, a, bb, c, t, d)
-            f(i, j, :nr) = t(:nr)
+
+select case (ifwrd)
+    case (1)
+        do i = 1, lr
+            do j = 1, mr
+                bb(:nr) = b(:nr) + xrt(i) + yrt(j)
+                t(:nr) = f(i, j, :nr)
+                call trid (nr, a, bb, c, t, d)
+                f(i, j, :nr) = t(:nr)
+            end do
         end do
-    end do
-    ifwrd = 2
-    is = -1
-    go to 142
-164 continue
-    f(:lr, :mr, :nr) = f(:lr, :mr, :nr)/(scalx*scaly)
+
+        ifwrd = 2
+        is = -1
+
+        go to 142
+
+    case (2)
+        go to 125
+end select
+
+
+f(:lr, :mr, :nr) = f(:lr, :mr, :nr)/(scalx*scaly)
 
 end subroutine pos3d1
+
+
 
 subroutine trid(mr, a, b, c, y, d)
 
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer (ip), intent (in)  :: mr
-    real (wp), intent (in)     :: a(*)
-    real (wp), intent (in)     :: b(*)
-    real (wp), intent (in)     :: c(*)
-    real (wp), intent (in out) :: y(*)
-    real (wp), intent (in out) :: d(*)
+    integer (ip), intent (in)     :: mr
+    real (wp),    intent (in)     :: a(*)
+    real (wp),    intent (in)     :: b(*)
+    real (wp),    intent (in)     :: c(*)
+    real (wp),    intent (in out) :: y(*)
+    real (wp),    intent (in out) :: d(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer (ip) :: m, mm1, i, ip_rename
+    integer (ip) :: m, mm1, i, iip
     real (wp)    :: z
     !-----------------------------------------------
+
     m = mr
     mm1 = m - 1
     z = 1.0_wp/b(1)
     d(1) = c(1)*z
     y(1) = y(1)*z
+
     do i = 2, mm1
         z = 1.0_wp/(b(i)-a(i)*d(i-1))
         d(i) = c(i)*z
         y(i) = (y(i)-a(i)*y(i-1))*z
     end do
+
     z = b(m) - a(m)*d(mm1)
+
     if (z == 0._wp) then
         y(m) = 0.0_wp
     else
         y(m) = (y(m)-a(m)*y(mm1))/z
     end if
-    do ip_rename = 1, mm1
-        i = m - ip_rename
+
+    do iip = 1, mm1
+        i = m - iip
         y(i) = y(i) - d(i)*y(i+1)
     end do
 
@@ -729,13 +958,14 @@ end subroutine trid
 
 end module module_pois3d
 !
-! REVISION HISTORY---
+! REVISION HISTORY
 !
-! SEPTEMBER 1973    VERSION 1
-! APRIL     1976    VERSION 2
-! JANUARY   1978    VERSION 3
-! DECEMBER  1979    VERSION 3.1
-! FEBRUARY  1985    DOCUMENTATION UPGRADE
-! NOVEMBER  1988    VERSION 3.2, FORTRAN 77 CHANGES
-! June      2004    Version 5.0, Fortran 90 Changes
-!-----------------------------------------------------------------------
+! September 1973    Version 1
+! April     1976    Version 2
+! January   1978    Version 3
+! December  1979    Version 3.1
+! February  1985    Documentation upgrade
+! November  1988    VERSION 3.2, FORTRAN 77 changes
+! June      2004    Version 5.0, Fortran 90 changes
+! April     2016    Fortran 2008 changes
+!
