@@ -542,7 +542,7 @@ contains
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer (ip) :: hack_counter
+        integer (ip) :: exit_counter
         integer (ip) :: mstart, mstop, mp1, mp, munk, np, np1
         integer (ip) :: nstart, nstop, nunk, lp1, lp, lstart
         integer (ip) :: lstop, j, k, lunk, i, iwb, iwc, iww
@@ -560,30 +560,30 @@ contains
         mp = mbdcnd + 1
 
         !
-        ! GCC 5.3 does not support the exit statement within
-        ! the select case construct yet.
+        ! GCC 5.3 does not support Fortran 2008 the exit statement within
+        ! a select case construct yet.
         !
-        dumb_hack_1: do hack_counter = 1,1
+        exit_select_case_1: do exit_counter = 1,1
             select case (mp)
                 case (1)
-                    exit dumb_hack_1
+                    exit exit_select_case_1
                 case (2:3)
                     mstart = 2
                     select case (mp)
                         case (1:2, 5)
-                            exit dumb_hack_1
+                            exit exit_select_case_1
                         case (3:4)
                             mstop = mp1
                     end select
                 case (4:5)
                     select case (mp)
                         case (1:2, 5)
-                            exit dumb_hack_1
+                            exit exit_select_case_1
                         case (3:4)
                             mstop = mp1
                     end select
             end select
-        end do dumb_hack_1
+        end do exit_select_case_1
 
         munk = mstop - mstart + 1
         dz = (zf - zs)/n
@@ -595,30 +595,30 @@ contains
         nstop = n
 
         !
-        ! GCC 5.3 does not support the exit statement within
-        ! the select case construct yet.
+        ! GCC 5.3 does not support Fortran 2008 the exit statement within
+        ! a select case construct yet.
         !
-        dumb_hack_2: do hack_counter = 1,1
+        exit_select_case_2: do exit_counter = 1,1
             select case (np)
                 case (1)
-                    exit dumb_hack_2
+                    exit exit_select_case_2
                 case (2:3)
                     nstart = 2
                     select case (np)
                         case (2) ! case(3)
-                            exit dumb_hack_2
+                            exit exit_select_case_2
                         case default
                             nstop = np1
                     end select
                 case (4:5)
                     select case (np)
                         case (4) ! case(5)
-                            exit dumb_hack_2
+                            exit exit_select_case_2
                         case default
                             nstop = np1
                     end select
             end select
-        end do dumb_hack_2
+        end do exit_select_case_2
 
         nunk = nstop - nstart + 1
         lp1 = l + 1
@@ -724,13 +724,13 @@ contains
         w(iwb:nunk-1+iwb) = (-2.*c3) + elmbda
 
         !
-        ! GCC 5.3 does not support the exit statement within
-        ! the select case construct yet.
+        ! GCC 5.3 does not support Fortran 2008 the exit statement within
+        ! a select case construct yet.
         !
-        dumb_hack_3: do hack_counter = 1,1
+        exit_select_case_3: do exit_counter = 1,1
             select case (np)
                 case (1:2)
-                    exit dumb_hack_3
+                    exit exit_select_case_3
                 case (3)
                     w(iwb-1) = 2.0_wp*c3
                 case (4:5)
@@ -739,196 +739,213 @@ contains
                         case (4)
                             w(iwb-1) = 2.0_wp*c3
                         case (5)
-                            exit dumb_hack_3
+                            exit exit_select_case_3
                     end select
             end select
-        end do dumb_hack_3
+        end do exit_select_case_3
 
         pertrb = 0.0_wp
         !
         !==> For singular problems adjust data to insure a solution will exist.
         !
-        go to (156, 172, 172, 156, 172) lp
-156 continue
-    go to (157, 172, 172, 157, 172) mp
-157 continue
-    go to (158, 172, 172, 158, 172) np
-158 continue
-    if (elmbda >= 0.0_wp) then
-        if (elmbda /= 0.0_wp) then
-            ierror = 12
-            return
+        !
+        ! GCC 5.3 does not support Fortran 2008 the exit statement within
+        ! a select case construct yet.
+        !
+        exit_select_case_4: do exit_counter = 1,1
+            select case (lp)
+                case (1, 4)
+                    select case (mp)
+                        case (1, 4)
+                            select case (np)
+                                case (1, 4)
+                                    if (elmbda >= 0.0_wp) then
+                                        if (elmbda /= 0.0_wp) then
+                                            ierror = 12
+                                            return
+                                        else
+                                            mstpm1 = mstop - 1
+                                            lstpm1 = lstop - 1
+                                            nstpm1 = nstop - 1
+                                            xlp = (2 + lp)/3
+                                            ylp = (2 + mp)/3
+                                            zlp = (2 + np)/3
+                                            s1 = 0.0_wp
+
+                                            do k = 2, nstpm1
+                                                do j = 2, mstpm1
+                                                    s1 = s1 + sum(f(2:lstpm1, j, k))
+                                                    s1 = s1 + (f(1, j, k)+f(lstop, j, k))/xlp
+                                                end do
+                                                s2 = sum(f(2:lstpm1, 1, k)+f(2:lstpm1, mstop, k))
+                                                s2 = (s2 + (f(1, 1, k) + f(1, mstop, k) &
+                                                    +f(lstop, 1, k) + f(lstop,mstop, k))/xlp)/ylp
+                                                s1 = s1 + s2
+                                            end do
+
+                                            s = (f(1, 1, 1)+f(lstop, 1, 1) &
+                                                + f(1, 1, nstop)+f(lstop, 1, nstop) &
+                                                + f(1, mstop, 1)+f(lstop, mstop, 1) &
+                                                + f(1, mstop, nstop)+f(lstop, mstop, nstop))/(xlp*ylp)
+
+                                            do j = 2, mstpm1
+                                                s = s + sum(f(2:lstpm1, j, 1)+f(2:lstpm1, j, nstop))
+                                            end do
+
+                                            s2 = 0.0_wp
+                                            s2 = sum(f(2:lstpm1, 1, 1)+f(2:lstpm1, 1, nstop) &
+                                                + f(2:lstpm1, mstop, 1)+f(2:lstpm1, mstop, nstop))
+                                            s = s2/ylp + s
+                                            s2 = 0.0_wp
+                                            s2 = sum(f(1, 2:mstpm1, 1)+f(1, 2:mstpm1, nstop) &
+                                                + f(lstop, 2:mstpm1, 1)+f(lstop, 2:mstpm1, nstop))
+                                            s = s2/xlp + s
+                                            pertrb = &
+                                                (s/zlp + s1)/((real(lunk + 1) - xlp) &
+                                                *(real(munk + 1) - ylp)*(real(nunk + 1) - zlp))
+                                            f(:lunk, :munk, :nunk) = &
+                                                f(:lunk, :munk, :nunk) - pertrb
+                                        end if
+                                    end if
+                                case (2:3, 5)
+                                    exit exit_select_case_4
+                            end select
+                        case (2:3, 5)
+                            exit exit_select_case_4
+                    end select
+                case (2:3, 5)
+                    exit exit_select_case_4
+            end select
+        end do exit_select_case_4
+
+        if (nbdcnd /= 0) then
+            nperod = 1
+            w(1) = 0.0_wp
+            w(iww-1) = 0.0_wp
         else
-            mstpm1 = mstop - 1
-            lstpm1 = lstop - 1
-            nstpm1 = nstop - 1
-            xlp = (2 + lp)/3
-            ylp = (2 + mp)/3
-            zlp = (2 + np)/3
-            s1 = 0.0_wp
-
-            do k = 2, nstpm1
-                do j = 2, mstpm1
-                    s1 = s1 + sum(f(2:lstpm1, j, k))
-                    s1 = s1 + (f(1, j, k)+f(lstop, j, k))/xlp
-                end do
-                s2 = sum(f(2:lstpm1, 1, k)+f(2:lstpm1, mstop, k))
-                s2 = (s2 + (f(1, 1, k)+f(1, mstop, k)+f(lstop, 1, k) &
-                    +f(lstop,mstop, k))/xlp)/ylp
-                s1 = s1 + s2
-            end do
-
-            s = (f(1, 1, 1)+f(lstop, 1, 1) &
-                + f(1, 1, nstop)+f(lstop, 1, nstop) &
-                + f(1, mstop, 1)+f(lstop, mstop, 1) &
-                + f(1, mstop, nstop)+f(lstop, mstop, nstop))/(xlp*ylp)
-
-            do j = 2, mstpm1
-                s = s + sum(f(2:lstpm1, j, 1)+f(2:lstpm1, j, nstop))
-            end do
-
-            s2 = 0.0_wp
-            s2 = sum(f(2:lstpm1, 1, 1)+f(2:lstpm1, 1, nstop)+f(2:lstpm1, &
-                mstop, 1)+f(2:lstpm1, mstop, nstop))
-            s = s2/ylp + s
-            s2 = 0.0_wp
-            s2 = sum(f(1, 2:mstpm1, 1)+f(1, 2:mstpm1, nstop)+f(lstop, 2: &
-                mstpm1, 1)+f(lstop, 2:mstpm1, nstop))
-            s = s2/xlp + s
-            pertrb = &
-                (s/zlp + s1)/((real(lunk + 1) - xlp) &
-                *(real(munk + 1) - ylp)*(real(nunk + 1) - zlp))
-            f(:lunk, :munk, :nunk) = f(:lunk, :munk, :nunk) - pertrb
+            nperod = 0
         end if
-    end if
 
-172 continue
+        call pois3dd(lbdcnd, lunk, c1, mbdcnd, munk, c2, nperod, nunk, w, &
+            w(iwb), w(iwc), ldimf, mdimf, f(lstart, mstart, nstart), ir, w(iww))
+        !
+        !==> Fill in sides for periodic boundary conditions.
+        !
+        if (lp == 1) then
+            if (mp == 1) then
+                f(1, mp1, nstart:nstop) = f(1, 1, nstart:nstop)
+                mstop = mp1
+            end if
+            if (np == 1) then
+                f(1, mstart:mstop, np1) = f(1, mstart:mstop, 1)
+                nstop = np1
+            end if
+            f(lp1, mstart:mstop, nstart:nstop) = &
+                f(1, mstart:mstop, nstart: nstop)
+        end if
 
-    if (nbdcnd /= 0) then
-        nperod = 1
-        w(1) = 0.0_wp
-        w(iww-1) = 0.0_wp
-    else
-        nperod = 0
-    end if
-
-    call pois3dd(lbdcnd, lunk, c1, mbdcnd, munk, c2, nperod, nunk, w, &
-        w(iwb), w(iwc), ldimf, mdimf, f(lstart, mstart, nstart), ir, w(iww))
-    !
-    !==> Fill in sides for periodic boundary conditions.
-    !
-    if (lp == 1) then
         if (mp == 1) then
-            f(1, mp1, nstart:nstop) = f(1, 1, nstart:nstop)
-            mstop = mp1
+            if (np == 1) then
+                f(lstart:lstop, 1, np1) = f(lstart:lstop, 1, 1)
+                nstop = np1
+            end if
+            f(lstart:lstop, mp1, nstart:nstop) = &
+                f(lstart:lstop, 1, nstart:nstop)
         end if
+
         if (np == 1) then
-            f(1, mstart:mstop, np1) = f(1, mstart:mstop, 1)
-            nstop = np1
+            f(lstart:lstop, mstart:mstop, np1) = &
+                f(lstart:lstop, mstart:mstop,1)
         end if
-        f(lp1, mstart:mstop, nstart:nstop) = f(1, mstart:mstop, nstart: nstop)
-    end if
 
-    if (mp == 1) then
-        if (np == 1) then
-            f(lstart:lstop, 1, np1) = f(lstart:lstop, 1, 1)
-            nstop = np1
+    end subroutine hw3crtt
+
+
+
+    pure subroutine check_input_arguments(l, lbdcnd, m, mbdcnd, n, nbdcnd, &
+        ldimf, mdimf, xs, xf, ys, yf, zs, zf, ierror)
+        !-----------------------------------------------
+        ! Dictionary: calling arguments
+        !-----------------------------------------------
+        integer (ip), intent (in)      :: l
+        integer (ip), intent (in)      :: lbdcnd
+        integer (ip), intent (in)      :: m
+        integer (ip), intent (in)      :: mbdcnd
+        integer (ip), intent (in)      :: n
+        integer (ip), intent (in)      :: nbdcnd
+        integer (ip), intent (in)      :: ldimf
+        integer (ip), intent (in)      :: mdimf
+        real (wp),    intent (in)      :: xs
+        real (wp),    intent (in)      :: xf
+        real (wp),    intent (in)      :: ys
+        real (wp),    intent (in)      :: yf
+        real (wp),    intent (in)      :: zs
+        real (wp),    intent (in)      :: zf
+        integer (ip), intent (out)     :: ierror
+        !-----------------------------------------------
+        ! Dictionary: calling arguments
+        !-----------------------------------------------
+
+        ! initialize error flag
+        ierror = 0
+
+        ! Case 1
+        if (xf <= xs) then
+            ierror = 1
+            return
         end if
-        f(lstart:lstop, mp1, nstart:nstop) = f(lstart:lstop, 1, nstart:nstop)
-    end if
 
-    if (np == 1) then
-        f(lstart:lstop, mstart:mstop, np1) = f(lstart:lstop, mstart:mstop,1)
-    end if
+        if (l < 5) then
+            ierror = 2
+            return
+        end if
 
-end subroutine hw3crtt
+        if (lbdcnd < 0 .or. lbdcnd > 4) then
+            ierror = 3
+            return
+        end if
 
+        if (yf <= ys) then
+            ierror = 4
+            return
+        end if
 
+        if (m < 5) then
+            ierror = 5
+            return
+        end if
 
-pure subroutine check_input_arguments(l, lbdcnd, m, mbdcnd, n, nbdcnd, &
-    ldimf, mdimf, xs, xf, ys, yf, zs, zf, ierror)
-    !-----------------------------------------------
-    ! Dictionary: calling arguments
-    !-----------------------------------------------
-    integer (ip), intent (in)      :: l
-    integer (ip), intent (in)      :: lbdcnd
-    integer (ip), intent (in)      :: m
-    integer (ip), intent (in)      :: mbdcnd
-    integer (ip), intent (in)      :: n
-    integer (ip), intent (in)      :: nbdcnd
-    integer (ip), intent (in)      :: ldimf
-    integer (ip), intent (in)      :: mdimf
-    real (wp),    intent (in)      :: xs
-    real (wp),    intent (in)      :: xf
-    real (wp),    intent (in)      :: ys
-    real (wp),    intent (in)      :: yf
-    real (wp),    intent (in)      :: zs
-    real (wp),    intent (in)      :: zf
-    integer (ip), intent (out)     :: ierror
-    !-----------------------------------------------
-    ! Dictionary: calling arguments
-    !-----------------------------------------------
+        if (mbdcnd < 0 .or. mbdcnd > 4) then
+            ierror = 6
+            return
+        end if
 
-    ! initialize error flag
-    ierror = 0
+        if (zf <= zs) then
+            ierror = 7
+            return
+        end if
 
-    ! Case 1
-    if (xf <= xs) then
-        ierror = 1
-        return
-    end if
+        if (n < 5) then
+            ierror = 8
+            return
+        end if
 
-    if (l < 5) then
-        ierror = 2
-        return
-    end if
+        if (nbdcnd < 0 .or. nbdcnd > 4) then
+            ierror = 9
+            return
+        end if
 
-    if (lbdcnd < 0 .or. lbdcnd > 4) then
-        ierror = 3
-        return
-    end if
+        if (ldimf < l + 1) then
+            ierror = 10
+            return
+        end if
 
-    if (yf <= ys) then
-        ierror = 4
-        return
-    end if
+        if (mdimf < m + 1) then
+            ierror = 11
+            return
+        end if
 
-    if (m < 5) then
-        ierror = 5
-        return
-    end if
-
-    if (mbdcnd < 0 .or. mbdcnd > 4) then
-        ierror = 6
-        return
-    end if
-
-    if (zf <= zs) then
-        ierror = 7
-        return
-    end if
-
-    if (n < 5) then
-        ierror = 8
-        return
-    end if
-
-    if (nbdcnd < 0 .or. nbdcnd > 4) then
-        ierror = 9
-        return
-    end if
-
-    if (ldimf < l + 1) then
-        ierror = 10
-        return
-    end if
-
-    if (mdimf < m + 1) then
-        ierror = 11
-        return
-    end if
-
-end subroutine check_input_arguments
+    end subroutine check_input_arguments
 
 
 
