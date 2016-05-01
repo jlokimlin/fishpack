@@ -1,5 +1,5 @@
 !
-!     file fish.f
+!     file type_FishpackWorkspace.f90
 !
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
@@ -37,7 +37,7 @@
 ! Purpose:
 !
 ! This module is used by all fishpack solvers
-! to allocate real and complex work space arrays for FFT
+! to allocate real and complex work space arrays for FFTpack
 !
 module type_FishpackWorkspace
 
@@ -57,6 +57,7 @@ module type_FishpackWorkspace
         !---------------------------------------------------------------------------------
         real (wp),    allocatable :: real_workspace(:)
         complex (wp), allocatable :: complex_workspace(:)
+        integer (ip), allocatable :: workspace_indices(:)
         !---------------------------------------------------------------------------------
     contains
         !---------------------------------------------------------------------------------
@@ -244,6 +245,10 @@ contains
 
         if (allocated(this%complex_workspace)) then
             deallocate( this%complex_workspace )
+        end if
+
+        if (allocated(this%workspace_indices)) then
+            deallocate( this%workspace_indices )
         end if
 
     end subroutine destroy_fishpack_workspace

@@ -25,18 +25,19 @@ module module_blktri
     !---------------------------------------------------------------------------------
     ! Dictionary: global variables confined to the module
     !---------------------------------------------------------------------------------
-    integer (ip), save :: npp, k, nm, ncmplx, ik
-    real (wp),    save :: eps, cnv
+    integer (ip)         :: npp, k, nm, ncmplx, ik
+    real (wp), parameter :: EPS = epsilon(1.0_wp)
+    real (wp)            :: cnv
     !---------------------------------------------------------------------------------
 
 
 contains
 
 
-    subroutine blktri( iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
-        idimy, y, ierror, workspace )
+    subroutine blktri(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
+        idimy, y, ierror, workspace)
         !
-        !     file blktri.f
+        !     file blktri.f90
         !
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !     *                                                               *
@@ -71,171 +72,172 @@ contains
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !
         !
-        !     SUBROUTINE blktri (IFLG, NP, N, AN, BN, CN, MP, M, AM, BM, CM, IDIMY, Y,
-        !    +                   ierror, W)
+        ! SUBROUTINE blktri(iflg, np, n, an, bn, cn, mp, m, am, bm, cm,
+        !            idimy, y, ierror, workspace)
         !
         !
         !
-        ! DIMENSION OF           AN(N), BN(N), CN(N), AM(M), BM(M), CM(M), Y(IDIMY, N),
+        ! DIMENSION OF           an(n), bn(n), cn(n), am(m), bm(m), cm(m), y(idimy, n)
         ! ARGUMENTS
         !
-        ! LATEST REVISION        JUNE 2004
+        ! LATEST REVISION        April 2016
         !
-        ! USAGE                  CALL blktri (IFLG, NP, N, AN, BN, CN, MP, M, AM, BM,
-        !                                     CM, IDIMY, Y, ierror, W)
+        ! USAGE                  call blktri(iflg, np, n, an, bn, cn, mp, m, &
+        !                                   am, bm, cm, idimy, y, ierror, workspace)
         !
-        ! PURPOSE                blktri SOLVES A SYSTEM OF LINEAR EQUATIONS
-        !                        OF THE FORM
+        ! PURPOSE                blktri solves a system of linear equations
+        !                        of the form
         !
-        !                        AN(J)*X(I, J-1) + AM(I)*X(I-1, J) +
-        !                        (BN(J)+BM(I))*X(I, J) + CN(J)*X(I, J+1) +
-        !                        CM(I)*X(I+1, J) = Y(I, J)
+        !                        an(j)*x(i, j-1) + am(i)*x(i-1, j) +
+        !                        (bn(j)+bm(i))*x(i, j) + cn(j)*x(i, j+1) +
+        !                        cm(i)*x(i+1, j) = y(i, j)
         !
-        !                        FOR I = 1, 2, ..., M  AND  J = 1, 2, ..., N.
+        !                        for i = 1, 2, ..., m  and  j = 1, 2, ..., n.
         !
-        !                        I+1 AND I-1 ARE EVALUATED MODULO M AND
-        !                        J+1 AND J-1 MODULO N, I.E.,
+        !                        i+1 and i-1 are evaluated modulo m and
+        !                        j+1 and j-1 modulo n, i.e.,
         !
-        !                        X(I, 0) = X(I, N),  X(I, N+1) = X(I, 1),
-        !                        X(0, J) = X(M, J),  X(M+1, J) = X(1, J).
+        !                        x(i, 0) = x(i, n),  x(i, n+1) = x(i, 1),
+        !                        x(0, j) = x(m, j),  x(m+1, j) = x(1, j).
         !
-        !                        THESE EQUATIONS USUALLY RESULT FROM THE
-        !                        DISCRETIZATION OF SEPARABLE ELLIPTIC
-        !                        EQUATIONS.  BOUNDARY CONDITIONS MAY BE
-        !                        DIRICHLET, NEUMANN, OR PERIODIC.
+        !                        These equations usually result from the
+        !                        discretization of separable elliptic
+        !                        equations. Boundary conditions may be
+        !                        dirichlet, neumann, or periodic.
         !
         ! ARGUMENTS
         !
-        ! ON INPUT               IFLG
+        ! ON INPUT               iflg
         !
-        !                          = 0  INITIALIZATION ONLY.
-        !                               CERTAIN QUANTITIES THAT DEPEND ON NP,
-        !                               N, AN, BN, AND CN ARE COMPUTED AND
-        !                               STORED IN DERIVED data type w (see
+        !                          = 0  Unitialization only.
+        !                               certain quantities that depend on np,
+        !                               n, an, bn, and cn are computed and
+        !                               stored in derived data type w (see
         !                               description of w below)
         !
-        !                          = 1  THE QUANTITIES THAT WERE COMPUTED
-        !                               IN THE INITIALIZATION ARE USED
-        !                               TO OBTAIN THE SOLUTION X(I, J).
+        !                          = 1  The quantities that were computed
+        !                               in the initialization are used
+        !                               to obtain the solution x(i, j).
         !
-        !                               NOTE:
-        !                               A CALL WITH IFLG=0 TAKES
-        !                               APPROXIMATELY ONE HALF THE TIME
-        !                               AS A CALL WITH IFLG = 1.
-        !                               HOWEVER, THE INITIALIZATION DOES
-        !                               NOT HAVE TO BE REPEATED UNLESS NP,
-        !                               N, AN, BN, OR CN CHANGE.
+        !                               note:
+        !                               A call with iflg=0 takes
+        !                               approximately one half the time
+        !                               as a call with iflg = 1.
+        !                               however, the initialization does
+        !                               not have to be repeated unless np,
+        !                               n, an, bn, or cn change.
         !
-        !                        NP
-        !                          = 0  IF AN(1) AND CN(N) ARE NOT ZERO,
-        !                               WHICH CORRESPONDS TO PERIODIC
-        !                               BOUNARY CONDITIONS.
+        !                        np
+        !                          = 0  If an(1) and cn(n) are not zero,
+        !                               which corresponds to periodic
+        !                               bounary conditions.
         !
-        !                          = 1  IF AN(1) AND CN(N) ARE ZERO.
+        !                          = 1  If an(1) and cn(n) are zero.
         !
-        !                        N
-        !                          THE NUMBER OF UNKNOWNS IN THE J-DIRECTION.
-        !                          N MUST BE GREATER THAN 4.
-        !                          THE OPERATION COUNT IS PROPORTIONAL TO
-        !                          MNLOG2(N), HENCE N SHOULD BE SELECTED
-        !                          LESS THAN OR EQUAL TO M.
+        !                        n
+        !                          The number of unknowns in the j-direction.
+        !                          n must be greater than 4.
+        !                          The operation count is proportional to
+        !                          m*n*log2(n), hence n should be selected
+        !                          less than or equal to m.
         !
-        !                        AN, BN, CN
-        !                          ONE-DIMENSIONAL ARRAYS OF LENGTH N
-        !                          THAT SPECIFY THE COEFFICIENTS IN THE
-        !                          LINEAR EQUATIONS GIVEN ABOVE.
+        !                        an, bn, cn
+        !                          One-dimensional arrays of length n
+        !                          that specify the coefficients in the
+        !                          linear equations given above.
         !
-        !                        MP
-        !                          = 0  IF AM(1) AND CM(M) ARE NOT ZERO,
-        !                               WHICH CORRESPONDS TO PERIODIC
-        !                               BOUNDARY CONDITIONS.
+        !                        mp
+        !                          = 0  If am(1) and cm(m) are not zero,
+        !                               which corresponds to periodic
+        !                               boundary conditions.
         !
-        !                          = 1  IF AM(1) = CM(M) = 0  .
+        !                          = 1  If am(1) = cm(m) = 0  .
         !
-        !                        M
-        !                          THE NUMBER OF UNKNOWNS IN THE I-DIRECTION.
-        !                           M MUST BE GREATER THAN 4.
+        !                        m
+        !                          The number of unknowns in the i-direction.
+        !                           m must be greater than 4.
         !
-        !                        AM, BM, CM
-        !                          ONE-DIMENSIONAL ARRAYS OF LENGTH M THAT
-        !                          SPECIFY THE COEFFICIENTS IN THE LINEAR
-        !                          EQUATIONS GIVEN ABOVE.
+        !                        am, bm, cm
+        !                          One-dimensional arrays of length m that
+        !                          specify the coefficients in the linear
+        !                          equations given above.
         !
-        !                        IDIMY
-        !                          THE ROW (OR FIRST) DIMENSION OF THE
-        !                          TWO-DIMENSIONAL ARRAY Y AS IT APPEARS
-        !                          IN THE PROGRAM CALLING blktri.
-        !                          THIS PARAMETER IS USED TO SPECIFY THE
-        !                          VARIABLE DIMENSION OF Y.
-        !                          IDIMY MUST BE AT LEAST M.
+        !                        idimy
+        !                          The row (or first) dimension of the
+        !                          two-dimensional array y as it appears
+        !                          in the program calling blktri.
+        !                          This parameter is used to specify the
+        !                          variable dimension of y.
+        !                          idimy must be at least m.
         !
-        !                        Y
-        !                          A TWO-DIMENSIONAL ARRAY THAT SPECIFIES
-        !                          THE VALUES OF THE RIGHT SIDE OF THE LINEAR
-        !                          SYSTEM OF EQUATIONS GIVEN ABOVE.
-        !                          Y MUST BE DIMENSIONED AT LEAST M*N.
+        !                        y
+        !                          A two-dimensional array that specifies
+        !                          the values of the right side of the linear
+        !                          system of equations given above.
+        !                          y must be dimensioned at least m*n.
         !
-        !                        W
-        !                          A fortran 90 derived TYPE (FishpackWorkspace) variable
+        !                        workspace
+        !                          An object of class (FishpackWorkspace)
         !                          that must be declared by the user.  The first
         !                          two declarative statements in the user program
         !                          calling blktri must be:
         !
         !                               use type_FishpackWorkspace
-        !                               TYPE (FishpackWorkspace) :: W
+        !                               type (Fishpackworkspace) :: workspace
         !
         !                          The first statement makes the fishpack module
-        !                          defined in the file "fish.f" available to the
-        !                          user program calling blktri.  The second statement
-        !                          declares a derived type variable (defined in
-        !                          the module "fish.f") which is used internally
-        !                          in blktri to dynamically allocate real and complex
-        !                          work space used in solution.  An error flag
-        !                          (ierror = 20) is set if the required work space
-        !                          allocation fails (for example if N, M are too large)
-        !                          Real and complex values are set in the components
-        !                          of W on a initial (IFLG=0) call to blktri.  These
-        !                          must be preserved on non-initial calls (IFLG=1)
-        !                          to blktri.  This eliminates redundant calculations
+        !                          defined in the file "type_FishpackWorkspace.f90"
+        !                          available to the user program calling blktri.
+        !                          The second statement declares a derived type variable
+        !                          (defined in the module "type_FishpackWorkspace.f90")
+        !                          which is used internally in blktri to dynamically
+        !                          allocate real and complex workspace used in solution.
+        !                          An error flag (ierror = 20) is set if the required
+        !                          workspace allocation fails (for example if n, m
+        !                          are too large). Real and complex values are set in
+        !                          the components of workspace on a initial (iflg=0)
+        !                          call to blktri.  These must be preserved on
+        !                          non-initial calls (iflg=1) to blktri.
+        !                          This eliminates redundant calculations
         !                          and saves compute time.
         !               ****       IMPORTANT!  The user program calling blktri should
         !                          include the statement:
         !
-        !                               CALL FISHFIN(W)
+        !                              call workspace%destroy()
         !
         !                          after the final approximation is generated by
-        !                          blktri.  The will deallocate the real and complex
-        !                          work space of W.  Failure to include this statement
-        !                          could result in serious memory leakage.
+        !                          blktri. This will deallocate the real and complex
+        !                          array components of workspace. Failure to include this
+        !                          statement could result in serious memory leakage.
         !
         !
         ! ARGUMENTS
         !
-        ! ON OUTPUT              Y
-        !                          CONTAINS THE SOLUTION X.
+        ! ON OUTPUT              y
+        !                          Contains the solution x.
         !
         !                        ierror
-        !                          AN ERROR FLAG THAT INDICATES INVALID
-        !                          INPUT PARAMETERS.  EXCEPT FOR NUMBER ZER0,
-        !                          A SOLUTION IS NOT ATTEMPTED.
+        !                          An error flag that indicates invalid
+        !                          input parameters.  except for number zer0,
+        !                          a solution is not attempted.
         !
-        !                        = 0  NO ERROR.
-        !                        = 1  M IS LESS THAN 5
-        !                        = 2  N IS LESS THAN 5
-        !                        = 3  IDIMY IS LESS THAN M.
-        !                        = 4  blktri FAILED WHILE COMPUTING RESULTS
-        !                             THAT DEPEND ON THE COEFFICIENT ARRAYS
-        !                             AN, BN, CN.  CHECK THESE ARRAYS.
-        !                        = 5  AN(J)*CN(J-1) IS LESS THAN 0 FOR SOME J.
+        !                        = 0  no error.
+        !                        = 1  m < than 5
+        !                        = 2  n < than 5
+        !                        = 3  idimy < m.
+        !                        = 4  blktri failed while computing results
+        !                             that depend on the coefficient arrays
+        !                             an, bn, cn. Check these arrays.
+        !                        = 5  an(j)*cn(j-1) is less than 0 for some j.
         !
-        !                             POSSIBLE REASONS FOR THIS CONDITION ARE
-        !                             1. THE ARRAYS AN AND CN ARE NOT CORRECT
-        !                             2. TOO LARGE A GRID SPACING WAS USED
-        !                                IN THE DISCRETIZATION OF THE ELLIPTIC
-        !                                EQUATION.
-        !                             3. THE LINEAR EQUATIONS RESULTED FROM A
-        !                                PARTIAL DIFFERENTIAL EQUATION WHICH
-        !                                WAS NOT ELLIPTIC.
+        !                             Possible reasons for this condition are
+        !                             1. The arrays an and cn are not correct
+        !                             2. Too large a grid spacing was used
+        !                                in the discretization of the elliptic
+        !                                equation.
+        !                             3. The linear equations resulted from a
+        !                                partial differential equation which
+        !                                was not elliptic.
         !
         !                        = 20 If the dynamic allocation of real and
         !                             complex work space in the derived type
@@ -243,51 +245,53 @@ contains
         !                             if N, M are too large for the platform used)
         !
         !
-        !                        W
-        !                             The derived type (FishpackWorkspace) variable W
-        !                             contains real and complex values that must not
-        !                             be destroyed if blktri is called again with
-        !                             IFLG=1.
+        !                        workspace
+        !                             The derived type (FishpackWorkspace) variable
+        !                             contains real and complex array components that
+        !                             must not be destroyed if blktri is called again with
+        !                             iflg=1.
         !
         !
-        ! SPECIAL CONDITIONS     THE ALGORITHM MAY FAIL IF abs(BM(I)+BN(J))
-        !                        IS LESS THAN abs(AM(I))+abs(AN(J))+
-        !                        abs(CM(I))+abs(CN(J))
-        !                        FOR SOME I AND J. THE ALGORITHM WILL ALSO
-        !                        FAIL IF AN(J)*CN(J-1) IS LESS THAN ZERO FOR
-        !                        SOME J.
-        !                        SEE THE DESCRIPTION OF THE OUTPUT PARAMETER
+        ! SPECIAL CONDITIONS     The algorithm may fail if abs(bm(i)+bn(j))
+        !                        is less than abs(am(i))+abs(an(j))+
+        !                        abs(cm(i))+abs(cn(j))
+        !                        for some i and j. the algorithm will also
+        !                        fail if an(j)*cn(j-1) is less than zero for
+        !                        some j.
+        !                        see the description of the output parameter
         !                        ierror.
         !
-        ! I/O                    NONE
+        ! I/O                    None
         !
-        ! PRECISION              SINGLE
+        ! PRECISION              64-bit precision float and 32-bit precision integer
         !
-        ! REQUIRED FILES         fish.f, comf.f
+        ! REQUIRED FILES         type_FishpackWorkspace.f90, comf.f90
         !
-        ! LANGUAGE               FORTRAN 90
+        ! STANDARD               Fortran 2008
         !
-        ! HISTORY                WRITTEN BY PAUL SWARZTRAUBER AT NCAR IN THE
-        !                        EARLY 1970'S.  REWRITTEN AND RELEASED IN
-        !                        LIBRARIES IN JANUARY 1980. Revised in June
-        !                        2004 using Fortan 90 dynamically allocated work
-        !                        space and derived data types to eliminate mixed
-        !                        mode conflicts in the earlier versions.
+        ! HISTORY                * Written by Paul Swarztrauber at NCAR in the
+        !                          early 1970's.
+        !                        * Rewritten and released in libraries in January 1980.
+        !                        * Revised in June 2004 using Fortan 90 dynamically
+        !                          allocated workspace and derived data types to
+        !                          eliminate mixed mode conflicts in the earlier versions.
+        !                        * Revised in April 2016 to implement features of
+        !                          Fortran 2008
         !
-        ! ALGORITHM              GENERALIZED CYCLIC REDUCTION
+        ! ALGORITHM              Generalized cyclic reduction
         !
-        ! PORTABILITY            FORTRAN 90.  APPROXIMATE MACHINE ACCURACY
-        !                        IS COMPUTED IN FUNCTION EPMACH.
+        ! PORTABILITY            Approximate machine accuracy is obtained
+        !                        using the intrinsic epsilon function
         !
-        ! REFERENCES             SWARZTRAUBER, P. AND R. SWEET, 'EFFICIENT
-        !                        FORTRAN SUBPROGRAMS FOR THE SOLUTION OF
-        !                        ELLIPTIC EQUATIONS'
-        !                        NCAR TN/IA-109, JULY, 1975, 138 PP.
+        ! REFERENCES             Swarztrauber, P. and R. Sweet, 'Efficient
+        !                        fortran subprograms for the solution of
+        !                        elliptic equations'
+        !                        NCAR TN/IA-109, July, 1975, 138 pp.
         !
-        !                        SWARZTRAUBER P. N., A DIRECT METHOD FOR
-        !                        THE DISCRETE SOLUTION OF SEPARABLE
-        !                        ELLIPTIC EQUATIONS, S.I.A.M.
-        !                        J. NUMER. ANAL., 11(1974) PP. 1136-1150.
+        !                        Swarztrauber P. N., A direct method for
+        !                        the discrete solution of separable
+        !                        elliptic equations, SIAM
+        !                        J. Numer. Anal., 11(1974) pp. 1136-1150.
         !
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
@@ -453,485 +457,570 @@ contains
                 wc(iw2), wc(iw3), prodp, cprodp)
         end if
 
-    end subroutine blktrii
+    contains
 
 
-    subroutine blktr1(n, an, bn, cn, m, am, bm, cm, idimy, y, b, bc, &
-        w1, w2, w3, wd, ww, wu, cw1, cw2, cw3, prdct, cprdct)
+        subroutine blktr1(n, an, bn, cn, m, am, bm, cm, idimy, y, b, bc, &
+            w1, w2, w3, wd, ww, wu, cw1, cw2, cw3, prdct, cprdct)
+            !
+            ! Purpose:
+            !
+            ! blktr1 solves the linear system
+            !
+            ! b  contains the roots of all the b polynomials
+            ! w1, w2, w3, wd, ww, wu  are all working arrays
+            ! prdct  is either prodp or prod depending on whether the boundary
+            ! conditions in the m direction are periodic or not
+            ! cprdct is either cprodp or cprod which are the complex versions
+            ! of prodp and prod. these are called in the event that some
+            ! of the roots of the b sub p polynomial are complex
+            !
+            !
+            !-----------------------------------------------
+            ! Dictionary: calling arguments
+            !-----------------------------------------------
+            integer (ip), intent (in)     :: n
+            integer (ip), intent (in)     :: m
+            integer (ip), intent (in)     :: idimy
+            real (wp),    intent (in)     :: an(*)
+            real (wp),    intent (in)     :: bn(*)
+            real (wp),    intent (in)     :: cn(*)
+            real (wp),    intent (in)     :: am(*)
+            real (wp),    intent (in)     :: bm(*)
+            real (wp),    intent (in)     :: cm(*)
+            real (wp),    intent (in out) :: y(idimy,1)
+            real (wp),    intent (in)     :: b(*)
+            real (wp),    intent (in out) :: w1(*)
+            real (wp),    intent (in out) :: w2(*)
+            real (wp),    intent (in out) :: w3(*)
+            real (wp),    intent (in)     :: wd(*)
+            real (wp),    intent (in)     :: ww(*)
+            real (wp),    intent (in)     :: wu(*)
+            complex (wp), intent (in)     :: bc(*)
+            complex (wp), intent (in)     :: cw1(*)
+            complex (wp), intent (in)     :: cw2(*)
+            complex (wp), intent (in)     :: cw3(*)
+            !-----------------------------------------------
+            ! Dictionary: local variables
+            !-----------------------------------------------
+            integer (ip) :: kdo, l, ir, i2, i1, i3, i4, irm1, im2, nm2, im3, nm3
+            integer (ip) :: im1, nm1, i0, iif, i, ipi1, ipi2, ipi3, idxc, nc, idxa, na, ip2
+            integer (ip) :: np2, ip1, np1, ip3, np3, iz, nz, izr, ll, ifd, iip, np
+            integer (ip) :: imi1, imi2
+            real (wp) :: dum
+            !-----------------------------------------------
+
+            !
+            ! begin reduction phase
+            !
+            kdo = k - 1
+            do l = 1, kdo
+                ir = l - 1
+                i2 = 2**ir
+                i1 = i2/2
+                i3 = i2 + i1
+                i4 = i2 + i2
+                irm1 = ir - 1
+                call indxb(i2, ir, im2, nm2)
+                call indxb(i1, irm1, im3, nm3)
+                call indxb(i3, irm1, im1, nm1)
+
+                i0 = 0
+
+                call prdct(nm2, b(im2), nm3, b(im3), nm1, b(im1), i0, dum, &
+                    y(1, i2), w3, m, am, bm, cm, wd, ww, wu)
+
+                iif = 2**k
+
+                do i = i4, iif, i4
+                    if (i - nm > 0) then
+                        cycle
+                    end if
+
+                    ipi1 = i + i1
+                    ipi2 = i + i2
+                    ipi3 = i + i3
+
+                    call indxc (i, ir, idxc, nc)
+
+                    if (i - iif >= 0) then
+                        cycle
+                    end if
+
+                    call indxa (i, ir, idxa, na)
+                    call indxb(i - i1, irm1, im1, nm1)
+                    call indxb(ipi2, ir, ip2, np2)
+                    call indxb(ipi1, irm1, ip1, np1)
+                    call indxb(ipi3, irm1, ip3, np3)
+                    call prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa), w3, &
+                        w1, m, am, bm, cm, wd, ww, wu)
+
+                    if (ipi2 - nm > 0) then
+                        w3(:m) = 0.0_wp
+                        w2(:m) = 0.0_wp
+                    else
+                        call prdct(np2, b(ip2), np1, b(ip1), np3, b(ip3), 0, dum, &
+                            y(1, ipi2), w3, m, am, bm, cm, wd, ww, wu)
+                        call prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc), w3, &
+                            w2, m, am, bm, cm, wd, ww, wu)
+                    end if
+                    y(:m, i) = w1(:m) + w2(:m) + y(:m, i)
+                end do
+            end do
+            if (npp == 0) then
+                iif = 2**k
+                i = iif/2
+                i1 = i/2
+                call indxb(i - i1, k - 2, im1, nm1)
+                call indxb(i + i1, k - 2, ip1, np1)
+                call indxb(i, k - 1, iz, nz)
+                call prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dum, y(1, i) &
+                    , w1, m, am, bm, cm, wd, ww, wu)
+                izr = i
+                w2(:m) = w1(:m)
+                do ll = 2, k
+                    l = k - ll + 1
+                    ir = l - 1
+                    i2 = 2**ir
+                    i1 = i2/2
+                    i = i2
+
+                    call indxc (i, ir, idxc, nc)
+                    call indxb(i, ir, iz, nz)
+                    call indxb(i - i1, ir - 1, im1, nm1)
+                    call indxb(i + i1, ir - 1, ip1, np1)
+                    call prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc), w1, &
+                        w1, m, am, bm, cm, wd, ww, wu)
+
+                    w1(:m) = y(:m, i) + w1(:m)
+
+                    call prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, &
+                        dum, w1, w1, m, am, bm, cm, wd, ww, wu)
+                end do
+
+                outer_loop: do ll = 2, k
+                    l = k - ll + 1
+                    ir = l - 1
+                    i2 = 2**ir
+                    i1 = i2/2
+                    i4 = i2 + i2
+                    ifd = iif - i2
+                    inner_loop: do i = i2, ifd, i4
+                        if (i - i2 - izr /= 0) then
+                            cycle inner_loop
+                        end if
+
+                        if (i - nm > 0) then
+                            cycle outer_loop
+                        end if
+
+                        call indxa (i, ir, idxa, na)
+                        call indxb(i, ir, iz, nz)
+                        call indxb(i - i1, ir - 1, im1, nm1)
+                        call indxb(i + i1, ir - 1, ip1, np1)
+                        call prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa), &
+                            w2, w2, m, am, bm, cm, wd, ww, wu)
+
+                        w2(:m) = y(:m, i) + w2(:m)
+
+                        call prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dum, &
+                            w2, w2, m, am, bm, cm, wd, ww, wu)
+
+                        izr = i
+
+                        if (i - nm == 0) then
+                            exit outer_loop
+                        end if
+
+                    end do inner_loop
+                end do outer_loop
+
+                y(:m, nm+1) = y(:m, nm+1) - cn(nm+1)*w1(:m) - an(nm+1)*w2(:m)
+
+                call indxb(iif/2, k - 1, im1, nm1)
+                call indxb(iif, k - 1, iip, np)
+
+                if (ncmplx /= 0) then
+                    call cprdct(nm + 1, bc(iip), nm1, b(im1), 0, dum, 0, dum, y( &
+                        1, nm+1), y(1, nm+1), m, am, bm, cm, cw1, cw2, cw3)
+                else
+                    call prdct(nm + 1, b(iip), nm1, b(im1), 0, dum, 0, dum, y(1, &
+                        nm+1), y(1, nm+1), m, am, bm, cm, wd, ww, wu)
+                end if
+
+                w1(:m) = an(1)*y(:m, nm+1)
+                w2(:m) = cn(nm)*y(:m, nm+1)
+                y(:m, 1) = y(:m, 1) - w1(:m)
+                y(:m, nm) = y(:m, nm) - w2(:m)
+
+                do l = 1, kdo
+                    ir = l - 1
+                    i2 = 2**ir
+                    i4 = i2 + i2
+                    i1 = i2/2
+                    i = i4
+
+                    call indxa (i, ir, idxa, na)
+                    call indxb(i - i2, ir, im2, nm2)
+                    call indxb(i - i2 - i1, ir - 1, im3, nm3)
+                    call indxb(i - i1, ir - 1, im1, nm1)
+                    call prdct(nm2, b(im2), nm3, b(im3), nm1, b(im1), 0, dum, &
+                        w1, w1, m, am, bm, cm, wd, ww, wu)
+                    call prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa), w1, &
+                        w1, m, am, bm, cm, wd, ww, wu)
+
+                    y(:m, i) = y(:m, i) - w1(:m)
+                end do
+
+                izr = nm
+
+                loop_131: do l = 1, kdo
+                    ir = l - 1
+                    i2 = 2**ir
+                    i1 = i2/2
+                    i3 = i2 + i1
+                    i4 = i2 + i2
+                    irm1 = ir - 1
+                    loop_132: do i = i4, iif, i4
+                        ipi1 = i + i1
+                        ipi2 = i + i2
+                        ipi3 = i + i3
+                        if (ipi2 - izr /= 0) then
+                            if (i - izr /= 0) then
+                                cycle loop_132
+                            end if
+                            cycle loop_131
+                        end if
+                        call indxc (i, ir, idxc, nc)
+                        call indxb(ipi2, ir, ip2, np2)
+                        call indxb(ipi1, irm1, ip1, np1)
+                        call indxb(ipi3, irm1, ip3, np3)
+                        call prdct(np2, b(ip2), np1, b(ip1), np3, b(ip3), 0, &
+                            dum, w2, w2, m, am, bm, cm, wd, ww, wu)
+                        call prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc), &
+                            w2, w2, m, am, bm, cm, wd, ww, wu)
+
+                        y(:m, i) = y(:m, i) - w2(:m)
+                        izr = i
+
+                        cycle loop_131
+                    end do loop_132
+                end do loop_131
+            end if
+            !
+            !==> begin back substitution phase
+            !
+            do ll = 1, k
+                l = k - ll + 1
+                ir = l - 1
+                irm1 = ir - 1
+                i2 = 2**ir
+                i1 = i2/2
+                i4 = i2 + i2
+                ifd = iif - i2
+                inner_back_sub: do i = i2, ifd, i4
+
+                    if (i - nm > 0) then
+                        cycle inner_back_sub
+                    end if
+
+                    imi1 = i - i1
+                    imi2 = i - i2
+                    ipi1 = i + i1
+                    ipi2 = i + i2
+
+                    call indxa (i, ir, idxa, na)
+                    call indxc (i, ir, idxc, nc)
+                    call indxb(i, ir, iz, nz)
+                    call indxb(imi1, irm1, im1, nm1)
+                    call indxb(ipi1, irm1, ip1, np1)
+
+                    if (i - i2 <= 0) then
+                        w1(:m) = 0.0_wp
+                    else
+                        call prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa), &
+                            y(1,imi2), w1, m, am, bm, cm, wd, ww, wu)
+                    end if
+
+                    if (ipi2 - nm > 0) then
+                        w2(:m) = 0.0_wp
+                    else
+                        call prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc), &
+                            y(1,ipi2), w2, m, am, bm, cm, wd, ww, wu)
+                    end if
+
+                    w1(:m) = y(:m, i) + w1(:m) + w2(:m)
+
+                    call prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dum, &
+                        w1, y(1, i), m, am, bm, cm, wd, ww, wu)
+                end do inner_back_sub
+            end do
+
+        end subroutine blktr1
+
+
+        function bsrh(xll, xrr, iz, c, a, bh, f, sgn) result (return_value)
+            !-----------------------------------------------
+            ! Dictionary: calling arguments
+            !-----------------------------------------------
+            real (wp),    intent (in)  :: xll
+            real (wp),    intent (in)  :: xrr
+            integer (ip), intent (in)  :: iz
+            real (wp),    intent (in)  :: c(*)
+            real (wp),    intent (in)  :: a(*)
+            real (wp),    intent (in)  :: bh(*)
+            procedure (comf_interface) :: f
+            real (wp),    intent (in)  :: sgn
+            real (wp)                  :: return_value
+            !-----------------------------------------------
+            ! Dictionary: local variables
+            !-----------------------------------------------
+            real (wp) :: r1, xl, xr, dx, x
+            !-----------------------------------------------
+
+            xl = xll
+            xr = xrr
+            dx = 0.5_wp * abs(xr - xl)
+            x = 0.5_wp * (xl + xr)
+            r1 = sgn * f(x, iz, c, a, bh)
+
+            if (r1 >= 0.0_wp) then
+                if (r1 == 0.0_wp) then
+                    return_value = 0.5_wp * (xl + xr)
+                    return
+                end if
+                xr = x
+            else
+                xl = x
+            end if
+
+            dx = 0.5_wp * dx
+
+            do while(dx - cnv > 0.0_wp)
+
+                x = 0.5_wp * (xl + xr)
+                r1 = sgn * f(x, iz, c, a, bh)
+
+                if (r1 >= 0.0_wp) then
+                    if (r1 == 0.0_wp) then
+                        return_value = 0.5_wp * (xl + xr)
+                        return
+                    end if
+                    xr = x
+                else
+                    xl = x
+                end if
+                dx = 0.5_wp * dx
+            end do
+
+            return_value = 0.5_wp * (xl + xr)
+
+        end function bsrh
+
+
+        subroutine compb(n, ierror, an, bn, cn, b, bc, ah, bh)
+            !
+            ! Purpose:
+            !
+            !     compb computes the roots of the b polynomials using subroutine
+            !     tevls which is a modification the eispack program tqlrat.
+            !     ierror is set to 4 if either tevls fails or if a(j+1)*c(j) is
+            !     less than zero for some j.  ah, bh are temporary work arrays.
+            !
+            !-----------------------------------------------
+            ! Dictionary: calling arguments
+            !-----------------------------------------------
+            integer (ip), intent (in)     :: n
+            integer (ip), intent (out)    :: ierror
+            real (wp),    intent (in)     :: an(*)
+            real (wp),    intent (in)     :: bn(*)
+            real (wp),    intent (in)     :: cn(*)
+            real (wp),    intent (in out) :: b(*)
+            real (wp),    intent (in out) :: ah(*)
+            real (wp),    intent (in out) :: bh(*)
+            complex (wp), intent (in out) :: bc(*)
+            !-----------------------------------------------
+            ! Dictionary: local variables
+            !-----------------------------------------------
+            integer (ip) :: j, if, kdo, l, ir, i2, i4, ipl, ifd, i, ib, nb, js, jf
+            integer (ip) ::  ls, lh, nmp, l1, l2, j2, j1, n2m2
+            real (wp)    :: bnorm, arg, d1, d2, d3
+            !-----------------------------------------------
+
+
+            bnorm = abs(bn(1))
+
+            do j = 2, nm
+                bnorm = max(bnorm, abs(bn(j)))
+                arg = an(j)*cn(j-1)
+
+                if (arg < 0.0_wp) then
+                    ierror = 5
+                    return
+                end if
+
+                b(j) = sign(sqrt(arg), an(j))
+            end do
+
+            cnv = EPS*bnorm
+            if = 2**k
+            kdo = k - 1
+
+            outer_loop: do l = 1, kdo
+                ir = l - 1
+                i2 = 2**ir
+                i4 = i2 + i2
+                ipl = i4 - 1
+                ifd = if - i4
+                do i = i4, ifd, i4
+                    call indxb(i, l, ib, nb)
+
+                    if (nb <= 0) then
+                        cycle  outer_loop
+                    end if
+
+                    js = i - ipl
+                    jf = js + nb - 1
+                    ls = 0
+                    bh(:jf-js+1) = bn(js:jf)
+                    ah(:jf-js+1) = b(js:jf)
+
+                    call tevls(nb, bh, ah, ierror)
+
+                    if (ierror /= 0) then
+                        ierror = 4
+                        return
+                    end if
+
+                    lh = ib - 1
+                    if (nb > 0) then
+                        b(lh+1:nb+lh) = -bh(:nb)
+                        lh = nb + lh
+                    end if
+                end do
+            end do outer_loop
+
+            b(:nm) = -bn(:nm)
+
+            if (npp == 0) then
+                nmp = nm + 1
+                nb = nm + nmp
+                do j = 1, nb
+                    l1 = mod(j - 1, nmp) + 1
+                    l2 = mod(j + nm - 1, nmp) + 1
+                    arg = an(l1)*cn(l2)
+                    if (arg < 0.0_wp) then
+                        ierror = 5
+                        return
+                    end if
+                    bh(j) = sign(sqrt(arg), (-an(l1)))
+                    ah(j) = -bn(l1)
+                end do
+
+                call tevls(nb, ah, bh, ierror)
+
+                if (ierror /= 0) then
+                    ierror = 4
+                    return
+                end if
+
+                call indxb(if, k - 1, j2, lh)
+                call indxb(if/2, k - 1, j1, lh)
+
+                j2 = j2 + 1
+                lh = j2
+                n2m2 = j2 + nm + nm - 2
+
+114         continue
+
+            d1 = abs(b(j1)-b(j2-1))
+            d2 = abs(b(j1)-b(j2))
+            d3 = abs(b(j1)-b(j2+1))
+
+            if (d2 >= d1 .or. d2 >= d3) then
+                b(lh) = b(j2)
+                j2 = j2 + 1
+                lh = lh + 1
+                if (j2 - n2m2 <= 0) go to 114
+            else
+                j2 = j2 + 1
+                j1 = j1 + 1
+                if (j2 - n2m2 <= 0) go to 114
+            end if
+
+            b(lh) = b(n2m2+1)
+
+            call indxb(if, k - 1, j1, j2)
+
+            j2 = j1 + nmp + nmp
+
+            call ppadd(nm + 1, ierror, an, cn, bc(j1), b(j1), b(j2))
+        end if
+
+    end subroutine compb
+
+
+
+    subroutine cprod(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, b, c, d, w, y)
         !
         ! Purpose:
         !
-        ! blktr1 solves the linear system
+        ! cprod applies a sequence of matrix operations to the vector x and
+        ! stores the result in yy (complex case)
         !
-        ! b  contains the roots of all the b polynomials
-        ! w1, w2, w3, wd, ww, wu  are all working arrays
-        ! prdct  is either prodp or prod depending on whether the boundary
-        ! conditions in the m direction are periodic or not
-        ! cprdct is either cprodp or cprod which are the complex versions
-        ! of prodp and prod. these are called in the event that some
-        ! of the roots of the b sub p polynomial are complex
+        ! aa   array containing scalar multipliers of the vector x
         !
+        ! nd, nm1, nm2 are the lengths of the arrays bd, bm1, bm2 respectively
+        !
+        ! bd, bm1, bm2 are arrays containing roots of certian b polynomials
+        !
+        ! na is the length of the array aa
+        !
+        ! x, yy the matrix operations are applied to x and the result is yy
+        !
+        ! a, b, c  are arrays which contain the tridiagonal matrix
+        !
+        ! m  is the order of the matrix
+        !
+        ! d, w, y are working arrays
+        !
+        ! isgn  determines whether or not a change in sign is made
         !
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: nd
+        integer (ip), intent (in)     :: nm1
+        integer (ip), intent (in)     :: nm2
+        integer (ip), intent (in)     :: na
         integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: idimy
-        real (wp),    intent (in)     :: an(*)
-        real (wp),    intent (in)     :: bn(*)
-        real (wp),    intent (in)     :: cn(*)
-        real (wp),    intent (in)     :: am(*)
-        real (wp),    intent (in)     :: bm(*)
-        real (wp),    intent (in)     :: cm(*)
-        real (wp),    intent (in out) :: y(idimy,1)
+        real (wp),    intent (in)     :: bm1(*)
+        real (wp),    intent (in)     :: bm2(*)
+        real (wp),    intent (in)     :: aa(*)
+        real (wp),    intent (in)     :: x(*)
+        real (wp),    intent (out)    :: yy(*)
+        real (wp),    intent (in)     :: a(*)
         real (wp),    intent (in)     :: b(*)
-        real (wp),    intent (in out) :: w1(*)
-        real (wp),    intent (in out) :: w2(*)
-        real (wp),    intent (in out) :: w3(*)
-        real (wp),    intent (in)     :: wd(*)
-        real (wp),    intent (in)     :: ww(*)
-        real (wp),    intent (in)     :: wu(*)
-        complex (wp), intent (in)     :: bc(*)
-        complex (wp), intent (in)     :: cw1(*)
-        complex (wp), intent (in)     :: cw2(*)
-        complex (wp), intent (in)     :: cw3(*)
+        real (wp),    intent (in)     :: c(*)
+        complex (wp), intent (in)     :: bd(*)
+        complex (wp), intent (in out) :: d(*)
+        complex (wp), intent (in out) :: w(*)
+        complex (wp), intent (in out) :: y(*)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer (ip) :: kdo, l, ir, i2, i1, i3, i4, irm1, im2, nm2, im3, nm3
-        integer (ip) :: im1, nm1, i0, if_rename, i, ipi1, ipi2, ipi3, idxc, nc, idxa, na, ip2
-        integer (ip) :: np2, ip1, np1, ip3, np3, iz, nz, izr, ll, ifd, ip_rename, np
-        integer (ip) :: imi1, imi2
-        real (wp) :: dum
+        integer (ip) :: j, mm, id, m1, m2, ia, iflg, k
+        real (wp)    :: rt
+        complex (wp) :: crt, den, y1, y2
         !-----------------------------------------------
 
-        !
-        ! begin reduction phase
-        !
-        kdo = k - 1
-        do l = 1, kdo
-            ir = l - 1
-            i2 = 2**ir
-            i1 = i2/2
-            i3 = i2 + i1
-            i4 = i2 + i2
-            irm1 = ir - 1
-            call indxb(i2, ir, im2, nm2)
-            call indxb(i1, irm1, im3, nm3)
-            call indxb(i3, irm1, im1, nm1)
-            i0 = 0
-            call prdct(nm2, b(im2), nm3, b(im3), nm1, b(im1), i0, dum, &
-                y(1, i2), w3, m, am, bm, cm, wd, ww, wu)
-            if_rename = 2**k
-            do i = i4, if_rename, i4
-                if (i - nm > 0) cycle
-                ipi1 = i + i1
-                ipi2 = i + i2
-                ipi3 = i + i3
-                call indxc (i, ir, idxc, nc)
-                if (i - if_rename >= 0) cycle
-                call indxa (i, ir, idxa, na)
-                call indxb(i - i1, irm1, im1, nm1)
-                call indxb(ipi2, ir, ip2, np2)
-                call indxb(ipi1, irm1, ip1, np1)
-                call indxb(ipi3, irm1, ip3, np3)
-                call prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa), w3, &
-                    w1, m, am, bm, cm, wd, ww, wu)
-                if (ipi2 - nm > 0) then
-                    w3(:m) = 0.
-                    w2(:m) = 0.
-                else
-                    call prdct(np2, b(ip2), np1, b(ip1), np3, b(ip3), 0, dum &
-                        , y(1, ipi2), w3, m, am, bm, cm, wd, ww, wu)
-                    call prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc), w3 &
-                        , w2, m, am, bm, cm, wd, ww, wu)
-                end if
-                y(:m, i) = w1(:m) + w2(:m) + y(:m, i)
-            end do
-        end do
-        if (npp == 0) then
-            if_rename = 2**k
-            i = if_rename/2
-            i1 = i/2
-            call indxb(i - i1, k - 2, im1, nm1)
-            call indxb(i + i1, k - 2, ip1, np1)
-            call indxb(i, k - 1, iz, nz)
-            call prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dum, y(1, i) &
-                , w1, m, am, bm, cm, wd, ww, wu)
-            izr = i
-            w2(:m) = w1(:m)
-            do ll = 2, k
-                l = k - ll + 1
-                ir = l - 1
-                i2 = 2**ir
-                i1 = i2/2
-                i = i2
-                call indxc (i, ir, idxc, nc)
-                call indxb(i, ir, iz, nz)
-                call indxb(i - i1, ir - 1, im1, nm1)
-                call indxb(i + i1, ir - 1, ip1, np1)
-                call prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc), w1, &
-                    w1, m, am, bm, cm, wd, ww, wu)
-                w1(:m) = y(:m, i) + w1(:m)
-                call prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dum, w1 &
-                    , w1, m, am, bm, cm, wd, ww, wu)
-            end do
-            l118: do ll = 2, k
-                l = k - ll + 1
-                ir = l - 1
-                i2 = 2**ir
-                i1 = i2/2
-                i4 = i2 + i2
-                ifd = if_rename - i2
-                do i = i2, ifd, i4
-                    if (i - i2 - izr /= 0) cycle
-                    if (i - nm > 0) cycle  l118
-                    call indxa (i, ir, idxa, na)
-                    call indxb(i, ir, iz, nz)
-                    call indxb(i - i1, ir - 1, im1, nm1)
-                    call indxb(i + i1, ir - 1, ip1, np1)
-                    call prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa), w2 &
-                        , w2, m, am, bm, cm, wd, ww, wu)
-                    w2(:m) = y(:m, i) + w2(:m)
-                    call prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dum, &
-                        w2, w2, m, am, bm, cm, wd, ww, wu)
-                    izr = i
-                    if (i - nm == 0) exit  l118
-                end do
-            end do l118
-119     continue
-        y(:m, nm+1) = y(:m, nm+1) - cn(nm+1)*w1(:m) - an(nm+1)*w2(:m)
-        call indxb(if_rename/2, k - 1, im1, nm1)
-        call indxb(if_rename, k - 1, ip_rename, np)
-        if (ncmplx /= 0) then
-            call cprdct(nm + 1, bc(ip_rename), nm1, b(im1), 0, dum, 0, dum, y( &
-                1, nm+1), y(1, nm+1), m, am, bm, cm, cw1, cw2, cw3)
-        else
-            call prdct(nm + 1, b(ip_rename), nm1, b(im1), 0, dum, 0, dum, y(1, &
-                nm+1), y(1, nm+1), m, am, bm, cm, wd, ww, wu)
-        end if
-        w1(:m) = an(1)*y(:m, nm+1)
-        w2(:m) = cn(nm)*y(:m, nm+1)
-        y(:m, 1) = y(:m, 1) - w1(:m)
-        y(:m, nm) = y(:m, nm) - w2(:m)
-        do l = 1, kdo
-            ir = l - 1
-            i2 = 2**ir
-            i4 = i2 + i2
-            i1 = i2/2
-            i = i4
-            call indxa (i, ir, idxa, na)
-            call indxb(i - i2, ir, im2, nm2)
-            call indxb(i - i2 - i1, ir - 1, im3, nm3)
-            call indxb(i - i1, ir - 1, im1, nm1)
-            call prdct(nm2, b(im2), nm3, b(im3), nm1, b(im1), 0, dum, &
-                w1, w1, m, am, bm, cm, wd, ww, wu)
-            call prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa), w1, &
-                w1, m, am, bm, cm, wd, ww, wu)
-            y(:m, i) = y(:m, i) - w1(:m)
-        end do
-        !
-        izr = nm
-        l131: do l = 1, kdo
-            ir = l - 1
-            i2 = 2**ir
-            i1 = i2/2
-            i3 = i2 + i1
-            i4 = i2 + i2
-            irm1 = ir - 1
-            do i = i4, if_rename, i4
-                ipi1 = i + i1
-                ipi2 = i + i2
-                ipi3 = i + i3
-                if (ipi2 - izr /= 0) then
-                    if (i - izr /= 0) cycle
-                    cycle  l131
-                end if
-                call indxc (i, ir, idxc, nc)
-                call indxb(ipi2, ir, ip2, np2)
-                call indxb(ipi1, irm1, ip1, np1)
-                call indxb(ipi3, irm1, ip3, np3)
-                call prdct(np2, b(ip2), np1, b(ip1), np3, b(ip3), 0, dum &
-                    , w2, w2, m, am, bm, cm, wd, ww, wu)
-                call prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc), w2 &
-                    , w2, m, am, bm, cm, wd, ww, wu)
-                y(:m, i) = y(:m, i) - w2(:m)
-                izr = i
-                cycle  l131
-            end do
-        end do l131
-    end if
-    !
-    ! begin back substitution phase
-    !
-    do ll = 1, k
-        l = k - ll + 1
-        ir = l - 1
-        irm1 = ir - 1
-        i2 = 2**ir
-        i1 = i2/2
-        i4 = i2 + i2
-        ifd = if_rename - i2
-        do i = i2, ifd, i4
-            if (i - nm > 0) cycle
-            imi1 = i - i1
-            imi2 = i - i2
-            ipi1 = i + i1
-            ipi2 = i + i2
-            call indxa (i, ir, idxa, na)
-            call indxc (i, ir, idxc, nc)
-            call indxb(i, ir, iz, nz)
-            call indxb(imi1, irm1, im1, nm1)
-            call indxb(ipi1, irm1, ip1, np1)
-            if (i - i2 <= 0) then
-                w1(:m) = 0.
-            else
-                call prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa), y( &
-                    1, imi2), w1, m, am, bm, cm, wd, ww, wu)
-            end if
-            if (ipi2 - nm > 0) then
-                w2(:m) = 0.
-            else
-                call prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc), y( &
-                    1, ipi2), w2, m, am, bm, cm, wd, ww, wu)
-            end if
-            w1(:m) = y(:m, i) + w1(:m) + w2(:m)
-            call prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dum, w1 &
-                , y(1, i), m, am, bm, cm, wd, ww, wu)
-        end do
-    end do
+        y(1:m) = cmplx(x(1:m), 0.0_wp)
 
-end subroutine blktr1
-
-
-function bsrh(xll, xrr, iz, c, a, bh, f, sgn) result (return_value)
-    !-----------------------------------------------
-    ! Dictionary: calling arguments
-    !-----------------------------------------------
-    real (wp),    intent (in)  :: xll
-    real (wp),    intent (in)  :: xrr
-    integer (ip), intent (in)  :: iz
-    real (wp),    intent (in)  :: c(*)
-    real (wp),    intent (in)  :: a(*)
-    real (wp),    intent (in)  :: bh(*)
-    procedure (comf_interface) :: f
-    real (wp),    intent (in)  :: sgn
-    real (wp)                  :: return_value
-    !-----------------------------------------------
-    ! Dictionary: local variables
-    !-----------------------------------------------
-    real (wp) :: r1, xl, xr, dx, x
-    !-----------------------------------------------
-
-    xl = xll
-    xr = xrr
-    dx = 0.5_wp * abs(xr - xl)
-    x = 0.5_wp * (xl + xr)
-    r1 = sgn * f(x, iz, c, a, bh)
-
-    if (r1 >= 0.0_wp) then
-        if (r1 == 0.0_wp) then
-            return_value = 0.5_wp * (xl + xr)
-            return
-        end if
-        xr = x
-    else
-        xl = x
-    end if
-
-    dx = 0.5_wp * dx
-
-    do while(dx - cnv > 0.0_wp)
-
-        x = 0.5_wp * (xl + xr)
-        r1 = sgn * f(x, iz, c, a, bh)
-
-        if (r1 >= 0.0_wp) then
-            if (r1 == 0.0_wp) then
-                return_value = 0.5_wp * (xl + xr)
-                return
-            end if
-            xr = x
-        else
-            xl = x
-        end if
-        dx = 0.5_wp * dx
-    end do
-
-    return_value = 0.5_wp * (xl + xr)
-
-end function bsrh
-
-
-subroutine compb(n, ierror, an, bn, cn, b, bc, ah, bh)
-    !-----------------------------------------------
-    ! Dictionary: calling arguments
-    !-----------------------------------------------
-    integer (ip), intent (in)     :: n
-    integer (ip), intent (out)    :: ierror
-    real (wp),    intent (in)     :: an(*)
-    real (wp),    intent (in)     :: bn(*)
-    real (wp),    intent (in)     :: cn(*)
-    real (wp),    intent (in out) :: b(*)
-    real (wp),    intent (in out) :: ah(*)
-    real (wp),    intent (in out) :: bh(*)
-    complex (wp), intent (in out) :: bc(*)
-    !-----------------------------------------------
-    ! Dictionary: local variables
-    !-----------------------------------------------
-    integer (ip) :: j, if, kdo, l, ir, i2, i4, ipl, ifd, i, ib, nb, js, jf
-    integer (ip) ::  ls, lh, nmp, l1, l2, j2, j1, n2m2
-    real (wp)    :: dum, bnorm, arg, d1, d2, d3
-    !-----------------------------------------------
-    !
-    !     compb computes the roots of the b polynomials using subroutine
-    !     tevls which is a modification the eispack program tqlrat.
-    !     ierror is set to 4 if either tevls fails or if a(j+1)*c(j) is
-    !     less than zero for some j.  ah, bh are temporary work arrays.
-    !
-    eps = epsilon(dum)
-    bnorm = abs(bn(1))
-    do j = 2, nm
-        bnorm = max(bnorm, abs(bn(j)))
-        arg = an(j)*cn(j-1)
-        if (arg < 0.) go to 119
-        b(j) = sign(sqrt(arg), an(j))
-    end do
-    cnv = eps*bnorm
-    if = 2**k
-    kdo = k - 1
-    l108: do l = 1, kdo
-        ir = l - 1
-        i2 = 2**ir
-        i4 = i2 + i2
-        ipl = i4 - 1
-        ifd = if - i4
-        do i = i4, ifd, i4
-            call indxb(i, l, ib, nb)
-            if (nb <= 0) cycle  l108
-            js = i - ipl
-            jf = js + nb - 1
-            ls = 0
-            bh(:jf-js+1) = bn(js:jf)
-            ah(:jf-js+1) = b(js:jf)
-            call tevls (nb, bh, ah, ierror)
-            if (ierror /= 0) go to 118
-            lh = ib - 1
-            if (nb > 0) then
-                b(lh+1:nb+lh) = -bh(:nb)
-                lh = nb + lh
-            end if
-        end do
-    end do l108
-    b(:nm) = -bn(:nm)
-    if (npp == 0) then
-        nmp = nm + 1
-        nb = nm + nmp
-        do j = 1, nb
-            l1 = mod(j - 1, nmp) + 1
-            l2 = mod(j + nm - 1, nmp) + 1
-            arg = an(l1)*cn(l2)
-            if (arg < 0.) go to 119
-            bh(j) = sign(sqrt(arg), (-an(l1)))
-            ah(j) = -bn(l1)
-        end do
-        call tevls (nb, ah, bh, ierror)
-        if (ierror /= 0) go to 118
-        call indxb(if, k - 1, j2, lh)
-        call indxb(if/2, k - 1, j1, lh)
-        j2 = j2 + 1
-        lh = j2
-        n2m2 = j2 + nm + nm - 2
-114 continue
-    d1 = abs(b(j1)-b(j2-1))
-    d2 = abs(b(j1)-b(j2))
-    d3 = abs(b(j1)-b(j2+1))
-    if (d2>=d1 .or. d2>=d3) then
-        b(lh) = b(j2)
-        j2 = j2 + 1
-        lh = lh + 1
-        if (j2 - n2m2 <= 0) go to 114
-    else
-        j2 = j2 + 1
-        j1 = j1 + 1
-        if (j2 - n2m2 <= 0) go to 114
-    end if
-    b(lh) = b(n2m2+1)
-    call indxb(if, k - 1, j1, j2)
-    j2 = j1 + nmp + nmp
-    call ppadd(nm + 1, ierror, an, cn, bc(j1), b(j1), b(j2))
-end if
-return 
-118 continue
-    ierror = 4
-    return
-119 continue
-    ierror = 5
-
-end subroutine compb
-
-
-subroutine cprod(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, b, c, d, w, y)
-    !
-    ! Purpose:
-    !
-    ! cprod applies a sequence of matrix operations to the vector x and
-    ! stores the result in yy (complex case)
-    !
-    ! aa   array containing scalar multipliers of the vector x
-    !
-    ! nd, nm1, nm2 are the lengths of the arrays bd, bm1, bm2 respectively
-    !
-    ! bd, bm1, bm2 are arrays containing roots of certian b polynomials
-    !
-    ! na is the length of the array aa
-    !
-    ! x, yy the matrix operations are applied to x and the result is yy
-    !
-    ! a, b, c  are arrays which contain the tridiagonal matrix
-    !
-    ! m  is the order of the matrix
-    !
-    ! d, w, y are working arrays
-    !
-    ! isgn  determines whether or not a change in sign is made
-    !
-    !-----------------------------------------------
-    ! Dictionary: calling arguments
-    !-----------------------------------------------
-    integer (ip), intent (in)     :: nd
-    integer (ip), intent (in)     :: nm1
-    integer (ip), intent (in)     :: nm2
-    integer (ip), intent (in)     :: na
-    integer (ip), intent (in)     :: m
-    real (wp),    intent (in)     :: bm1(*)
-    real (wp),    intent (in)     :: bm2(*)
-    real (wp),    intent (in)     :: aa(*)
-    real (wp),    intent (in)     :: x(*)
-    real (wp),    intent (out)    :: yy(*)
-    real (wp),    intent (in)     :: a(*)
-    real (wp),    intent (in)     :: b(*)
-    real (wp),    intent (in)     :: c(*)
-    complex (wp), intent (in)     :: bd(*)
-    complex (wp), intent (in out) :: d(*)
-    complex (wp), intent (in out) :: w(*)
-    complex (wp), intent (in out) :: y(*)
-    !-----------------------------------------------
-    ! Dictionary: local variables
-    !-----------------------------------------------
-    integer (ip) :: j, mm, id, m1, m2, ia, iflg, k
-    real (wp)    :: rt
-    complex (wp) :: crt, den, y1, y2
-    !-----------------------------------------------
-
-    y(1:m) = cmplx(x(1:m), 0.0_wp)
-
-    mm = m - 1
-    id = nd
-    m1 = nm1
-    m2 = nm2
-    ia = na
+        mm = m - 1
+        id = nd
+        m1 = nm1
+        m2 = nm2
+        ia = na
 102 continue
     iflg = 0
 
@@ -1021,7 +1110,7 @@ end subroutine cprod
 
 subroutine cprodp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, &
     b, c, d, u, y)
-        !
+    !
     ! Purpose:
     !
     ! cprodp applies a sequence of matrix operations to the vector x and
@@ -1385,7 +1474,7 @@ subroutine ppadd(n, ierror, a, c, cbp, bp, bh)
         xm = bsrh(xl, xr, iz, c, a, bh, ppspf, sgn)
         psg = psgf(xm, iz, c, a, bh)
 
-        if (abs(psg) - eps <= 0.0_wp) then
+        if (abs(psg) - EPS <= 0.0_wp) then
             go to 118
         end if
 
@@ -1544,6 +1633,19 @@ end subroutine ppadd
 
 
 subroutine prod(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, w, u)
+    !
+    ! prod applies a sequence of matrix operations to the vector x and
+    ! stores the result in y
+    ! bd, bm1, bm2 are arrays containing roots of certian b polynomials
+    ! nd, nm1, nm2 are the lengths of the arrays bd, bm1, bm2 respectively
+    ! aa   array containing scalar multipliers of the vector x
+    ! na is the length of the array aa
+    ! x, y  the matrix operations are applied to x and the result is y
+    ! a, b, c  are arrays which contain the tridiagonal matrix
+    ! m  is the order of the matrix
+    ! d, w, u are working arrays
+    ! is  determines whether or not a change in sign is made
+    !
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
@@ -1570,19 +1672,7 @@ subroutine prod(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, w, u)
     integer (ip) :: j, mm, id, ibr, m1, m2, ia, k
     real (wp)    :: rt, den
     !-----------------------------------------------
-    !
-    ! prod applies a sequence of matrix operations to the vector x and
-    ! stores the result in y
-    ! bd, bm1, bm2 are arrays containing roots of certian b polynomials
-    ! nd, nm1, nm2 are the lengths of the arrays bd, bm1, bm2 respectively
-    ! aa   array containing scalar multipliers of the vector x
-    ! na is the length of the array aa
-    ! x, y  the matrix operations are applied to x and the result is y
-    ! a, b, c  are arrays which contain the tridiagonal matrix
-    ! m  is the order of the matrix
-    ! d, w, u are working arrays
-    ! is  determines whether or not a change in sign is made
-    !
+
     w(:m) = x(:m)
     y(:m) = w(:m)
     mm = m - 1
@@ -1941,7 +2031,7 @@ subroutine tevls(n, d, e2, ierr)
 
         do l = 1, n
             j = 0
-            h = eps*(abs(d(l))+sqrt(e2(l)))
+            h = EPS*(abs(d(l))+sqrt(e2(l)))
             if (b <= h) then
                 b = h
                 c = b*b
@@ -1961,9 +2051,16 @@ subroutine tevls(n, d, e2, ierr)
             end do
             !
             if (m /= l) then
+
 105         continue
+
             if (j == 30) then
-                go to 114
+                !
+                !==> set error -- no convergence to an
+                !    eigenvalue after 30 iterations
+                !
+                ierr = l
+                return
             end if
             j = j + 1
             !
@@ -1981,10 +2078,12 @@ subroutine tevls(n, d, e2, ierr)
             !
             !==> rational ql transformation
             !
-            g = d(m)
+
 
             if (g == 0.0_wp) then
                 g = b
+            else
+                g = d(m)
             end if
 
             h = g
@@ -2063,30 +2162,24 @@ do i = 1, nhalf
     d(i) = d(ntop+1)
     d(ntop+1) = dhold
 end do
-
-return
-!
-!==> set error -- no convergence to an
-!    eigenvalue after 30 iterations
-!
-114 continue
-    ierr = l
 end if
 !
 !==> last card of tqlrat
 !
 end subroutine tevls
 
+end subroutine blktrii
 
 end module module_blktri
 !
-! REVISION HISTORY---
+! REVISION HISTORY
 !
-! SEPTEMBER 1973    VERSION 1
-! APRIL     1976    VERSION 2
-! JANUARY   1978    VERSION 3
-! DECEMBER  1979    VERSION 3.1
-! FEBRUARY  1985    DOCUMENTATION UPGRADE
-! NOVEMBER  1988    VERSION 3.2, FORTRAN 77 CHANGES
+! September 1973    Version 1
+! April     1976    Version 2
+! January   1978    Version 3
+! December  1979    Version 3.1
+! February  1985    Documentation upgrade
+! November  1988    VERSION 3.2, FORTRAN 77 changes
 ! June      2004    Version 5.0, Fortran 90 changes
-!-----------------------------------------------------------------------
+! April     2016    Fortran 2008 changes
+!
