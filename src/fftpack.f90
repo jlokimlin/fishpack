@@ -215,7 +215,7 @@ contains
     !
     !     r       r(1) = the sum from i=1 to i=n of r(i)
     !
-    !             if n is even set l =n/2   , if n is odd set l = (n+1)/2
+    !             if n is even set l =n/2   , if n is odd set l =(n+1)/2
     !
     !               then for k = 2, ..., l
     !
@@ -390,7 +390,7 @@ contains
     !             odd.
     !
     !             if n is even n/2    locations are required
-    !             if n is odd (n-1)/2 locations are required
+    !             if n is odd(n-1)/2 locations are required
     !
     !     wsave   a work array which must be dimensioned at least 3*n+15.
     !             in the program that calls ezfftb. the wsave array must be
@@ -969,7 +969,7 @@ contains
         cf = 2.0_wp/n
         cfm = -cf
         azero = 0.5_wp*cf*wsave(1)
-        ns2 = (n + 1)/2
+        ns2 =(n + 1)/2
         ns2m = ns2 - 1
         a(:ns2m) = cf*wsave(2:ns2m*2:2)
         b(:ns2m) = cfm*wsave(3:ns2m*2+1:2)
@@ -1010,7 +1010,7 @@ contains
             return
         end if
 
-        ns2 = (n - 1)/2
+        ns2 =(n - 1)/2
         r(2:ns2*2:2) = 0.5*a(:ns2)
         r(3:ns2*2+1:2) = -0.5*b(:ns2)
         r(1) = azero
@@ -1019,7 +1019,7 @@ contains
             r(n) = a(ns2+1)
         end if
 
-        call rfftb (n, r, wsave(n+1))
+        call rfftb(n, r, wsave(n+1))
 
     end subroutine ezfftb
 
@@ -1034,7 +1034,7 @@ contains
 
         if (n == 1) return
 
-        call ezfft1 (n, wsave(2*n+1), wsave(3*n+1))
+        call ezfft1(n, wsave(2*n+1), wsave(3*n+1))
 
     end subroutine ezffti
 
@@ -1051,7 +1051,8 @@ contains
         ! Dictionary: local variables
         !-----------------------------------------------
         integer , parameter :: ntryh(*) =[ 4, 2, 3, 5 ]
-        integer  :: nl, nf, j, ntry, nq, nr, i, is, nfm1, l1, k1, ip, l2, ido, ipm, ii
+        integer  :: nl, nf, j, ntry, nq, nr, i, is, nfm1
+        integer  :: l1, k1, ip, l2, ido, ipm, ii
         real (wp), parameter :: two_pi = 2.0_wp * acos(-1.0_wp)
         real (wp) :: argh, arg1, ch1, sh1, dch1, dsh1, ch1h
         !-----------------------------------------------
@@ -1255,7 +1256,7 @@ subroutine sint(n, x, wsave)
     iw1 = n/2 + 1
     iw2 = iw1 + np1
     iw3 = iw2 + np1
-    call sint1 (n, x, wsave, wsave(iw1), wsave(iw2), wsave(iw3))
+    call sint1(n, x, wsave, wsave(iw1), wsave(iw2), wsave(iw3))
 
 end subroutine sint
 
@@ -1303,7 +1304,7 @@ subroutine sint1(n, war, was, xh, x, ifac)
     end do
     modn = mod(n, 2)
     if (modn /= 0) x(ns2+2) = 4.0_wp * xh(ns2+1)
-    call rfftf1 (np1, x, xh, war, ifac)
+    call rfftf1(np1, x, xh, war, ifac)
     xh(1) = 0.5*x(1)
     do i = 3, n, 2
         xh(i-1) = -x(i)
@@ -1359,7 +1360,9 @@ subroutine cosqf(n, x, wsave)
 
 
     if (n - 2 >= 0) then
-        if (n - 2 > 0) go to 103
+        if (n - 2 > 0) then
+            go to 103
+        end if
         associate( tsqx => sqrt2*x(2) )
             x(2) = x(1) - tsqx
             x(1) = x(1) + tsqx
@@ -1367,7 +1370,7 @@ subroutine cosqf(n, x, wsave)
     end if
     return
 103 continue
-    call cosqf1 (n, x, wsave, wsave(n+1))
+    call cosqf1(n, x, wsave, wsave(n+1))
 
 end subroutine cosqf
 
@@ -1387,7 +1390,7 @@ subroutine cosqf1(n, x, w, xh)
     real (wp) :: xim1
     !-----------------------------------------------
 
-    ns2 = (n + 1)/2
+    ns2 =(n + 1)/2
     np2 = n + 2
 
     do k = 2, ns2
@@ -1448,7 +1451,7 @@ subroutine cosqb(n, x, wsave)
         return
     end if
 
-    call cosqb1 (n, x, wsave, wsave(n+1))
+    call cosqb1(n, x, wsave, wsave(n+1))
 
 end subroutine cosqb
 
@@ -1468,7 +1471,7 @@ subroutine cosqb1(n, x, w, xh)
     real (wp) :: xim1
     !-----------------------------------------------
 
-    ns2 = (n + 1)/2
+    ns2 =(n + 1)/2
     np2 = n + 2
 
     do i = 3, n, 2
@@ -1548,7 +1551,7 @@ subroutine sinqf(n, x, wsave)
         x(kc+1) = xhold
     end do
 
-    call cosqf (n, x, wsave)
+    call cosqf(n, x, wsave)
 
     x(2:n:2) = -x(2:n:2)
 
@@ -1577,7 +1580,7 @@ subroutine sinqb(n, x, wsave)
     ns2 = n/2
     x(2:n:2) = -x(2:n:2)
 
-    call cosqb (n, x, wsave)
+    call cosqb(n, x, wsave)
 
     do k = 1, ns2
         kc = n - k
@@ -1710,20 +1713,20 @@ subroutine cfftb(n, c, wsave)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer  :: n
+    integer   :: n
     real (wp) :: c(*)
     real (wp) :: wsave(*)
     !-----------------------------------------------
+    ! Dictionary: calling arguments
+    !-----------------------------------------------
+    integer :: iw1, iw2
+    !-----------------------------------------------
 
-    if (n == 1) then
-        return
+    if (n /= 1) then
+        iw1 = 2*n + 1
+        iw2 = iw1 + 2*n
+        call cfftb1(n, c, wsave, wsave(iw1), wsave(iw2))
     end if
-
-    associate (iw1 => 2*n + 1 )
-        associate( iw2 => iw1 + 2*n )
-            call cfftb1 (n, c, wsave, wsave(iw1), wsave(iw2))
-        end associate
-    end associate
 
 end subroutine cfftb
 
@@ -1733,7 +1736,6 @@ subroutine cfftb1(n, c, ch, wa, ifac)
     ! Dictionary: calling arguments
     !-----------------------------------------------
     integer , intent (in) :: n
-    !integer , intent (in) :: ifac(*)
     real (wp), intent (in) :: ifac(*)
     real (wp) :: c(*)
     real (wp) :: ch(*)
@@ -1844,19 +1846,18 @@ pure subroutine passb2(ido, l1, cc, ch, wa1)
         ch(1,:, 2) = cc(1, 1,:) - cc(1, 2,:)
         ch(2,:, 1) = cc(2, 1,:) + cc(2, 2,:)
         ch(2,:, 2) = cc(2, 1,:) - cc(2, 2,:)
-        return
-    end if
-
-    do k = 1, l1
-        do i = 2, ido, 2
-            ch(i-1, k, 1) = cc(i-1, 1, k) + cc(i-1, 2, k)
-            tr2 = cc(i-1, 1, k) - cc(i-1, 2, k)
-            ch(i, k, 1) = cc(i, 1, k) + cc(i, 2, k)
-            ti2 = cc(i, 1, k) - cc(i, 2, k)
-            ch(i, k, 2) = wa1(i-1)*ti2 + wa1(i)*tr2
-            ch(i-1, k, 2) = wa1(i-1)*tr2 - wa1(i)*ti2
+    else
+        do k = 1, l1
+            do i = 2, ido, 2
+                ch(i-1, k, 1) = cc(i-1, 1, k) + cc(i-1, 2, k)
+                tr2 = cc(i-1, 1, k) - cc(i-1, 2, k)
+                ch(i, k, 1) = cc(i, 1, k) + cc(i, 2, k)
+                ti2 = cc(i, 1, k) - cc(i, 2, k)
+                ch(i, k, 2) = wa1(i-1)*ti2 + wa1(i)*tr2
+                ch(i-1, k, 2) = wa1(i-1)*tr2 - wa1(i)*ti2
+            end do
         end do
-    end do
+    end if
 
 end subroutine passb2
 
@@ -1880,43 +1881,44 @@ pure subroutine passb3(ido, l1, cc, ch, wa1, wa2)
     real (wp)            :: tr2, cr2, ti2, ci2, cr3, ci3, dr2, dr3, di2, di3
     !-----------------------------------------------
 
-    if (ido == 2) then
-        do k = 1, l1
-            tr2 = cc(1, 2, k) + cc(1, 3, k)
-            cr2 = cc(1, 1, k) + taur*tr2
-            ch(1, k, 1) = cc(1, 1, k) + tr2
-            ti2 = cc(2, 2, k) + cc(2, 3, k)
-            ci2 = cc(2, 1, k) + taur*ti2
-            ch(2, k, 1) = cc(2, 1, k) + ti2
-            cr3 = taui*(cc(1, 2, k)-cc(1, 3, k))
-            ci3 = taui*(cc(2, 2, k)-cc(2, 3, k))
-            ch(1, k, 2) = cr2 - ci3
-            ch(1, k, 3) = cr2 + ci3
-            ch(2, k, 2) = ci2 + cr3
-            ch(2, k, 3) = ci2 - cr3
-        end do
-        return
-    end if
-    do k = 1, l1
-        do i = 2, ido, 2
-            tr2 = cc(i-1, 2, k) + cc(i-1, 3, k)
-            cr2 = cc(i-1, 1, k) + taur*tr2
-            ch(i-1, k, 1) = cc(i-1, 1, k) + tr2
-            ti2 = cc(i, 2, k) + cc(i, 3, k)
-            ci2 = cc(i, 1, k) + taur*ti2
-            ch(i, k, 1) = cc(i, 1, k) + ti2
-            cr3 = taui*(cc(i-1, 2, k)-cc(i-1, 3, k))
-            ci3 = taui*(cc(i, 2, k)-cc(i, 3, k))
-            dr2 = cr2 - ci3
-            dr3 = cr2 + ci3
-            di2 = ci2 + cr3
-            di3 = ci2 - cr3
-            ch(i, k, 2) = wa1(i-1)*di2 + wa1(i)*dr2
-            ch(i-1, k, 2) = wa1(i-1)*dr2 - wa1(i)*di2
-            ch(i, k, 3) = wa2(i-1)*di3 + wa2(i)*dr3
-            ch(i-1, k, 3) = wa2(i-1)*dr3 - wa2(i)*di3
-        end do
-    end do
+    select case (ido)
+        case (2)
+            do k = 1, l1
+                tr2 = cc(1, 2, k) + cc(1, 3, k)
+                cr2 = cc(1, 1, k) + taur*tr2
+                ch(1, k, 1) = cc(1, 1, k) + tr2
+                ti2 = cc(2, 2, k) + cc(2, 3, k)
+                ci2 = cc(2, 1, k) + taur*ti2
+                ch(2, k, 1) = cc(2, 1, k) + ti2
+                cr3 = taui*(cc(1, 2, k)-cc(1, 3, k))
+                ci3 = taui*(cc(2, 2, k)-cc(2, 3, k))
+                ch(1, k, 2) = cr2 - ci3
+                ch(1, k, 3) = cr2 + ci3
+                ch(2, k, 2) = ci2 + cr3
+                ch(2, k, 3) = ci2 - cr3
+            end do
+        case default
+            do k = 1, l1
+                do i = 2, ido, 2
+                    tr2 = cc(i-1, 2, k) + cc(i-1, 3, k)
+                    cr2 = cc(i-1, 1, k) + taur*tr2
+                    ch(i-1, k, 1) = cc(i-1, 1, k) + tr2
+                    ti2 = cc(i, 2, k) + cc(i, 3, k)
+                    ci2 = cc(i, 1, k) + taur*ti2
+                    ch(i, k, 1) = cc(i, 1, k) + ti2
+                    cr3 = taui*(cc(i-1, 2, k)-cc(i-1, 3, k))
+                    ci3 = taui*(cc(i, 2, k)-cc(i, 3, k))
+                    dr2 = cr2 - ci3
+                    dr3 = cr2 + ci3
+                    di2 = ci2 + cr3
+                    di3 = ci2 - cr3
+                    ch(i, k, 2) = wa1(i-1)*di2 + wa1(i)*dr2
+                    ch(i-1, k, 2) = wa1(i-1)*dr2 - wa1(i)*di2
+                    ch(i, k, 3) = wa2(i-1)*di3 + wa2(i)*dr3
+                    ch(i-1, k, 3) = wa2(i-1)*dr3 - wa2(i)*di3
+                end do
+            end do
+    end select
 
 end subroutine passb3
 
@@ -1940,53 +1942,54 @@ pure subroutine passb4(ido, l1, cc, ch, wa1, wa2, wa3)
     real (wp) :: tr3, cr3, ci3, cr2, cr4, ci2, ci4
     !-----------------------------------------------
 
-    if (ido == 2) then
-        do k = 1, l1
-            ti1 = cc(2, 1, k) - cc(2, 3, k)
-            ti2 = cc(2, 1, k) + cc(2, 3, k)
-            tr4 = cc(2, 4, k) - cc(2, 2, k)
-            ti3 = cc(2, 2, k) + cc(2, 4, k)
-            tr1 = cc(1, 1, k) - cc(1, 3, k)
-            tr2 = cc(1, 1, k) + cc(1, 3, k)
-            ti4 = cc(1, 2, k) - cc(1, 4, k)
-            tr3 = cc(1, 2, k) + cc(1, 4, k)
-            ch(1, k, 1) = tr2 + tr3
-            ch(1, k, 3) = tr2 - tr3
-            ch(2, k, 1) = ti2 + ti3
-            ch(2, k, 3) = ti2 - ti3
-            ch(1, k, 2) = tr1 + tr4
-            ch(1, k, 4) = tr1 - tr4
-            ch(2, k, 2) = ti1 + ti4
-            ch(2, k, 4) = ti1 - ti4
-        end do
-        return
-    end if
-    do k = 1, l1
-        do i = 2, ido, 2
-            ti1 = cc(i, 1, k) - cc(i, 3, k)
-            ti2 = cc(i, 1, k) + cc(i, 3, k)
-            ti3 = cc(i, 2, k) + cc(i, 4, k)
-            tr4 = cc(i, 4, k) - cc(i, 2, k)
-            tr1 = cc(i-1, 1, k) - cc(i-1, 3, k)
-            tr2 = cc(i-1, 1, k) + cc(i-1, 3, k)
-            ti4 = cc(i-1, 2, k) - cc(i-1, 4, k)
-            tr3 = cc(i-1, 2, k) + cc(i-1, 4, k)
-            ch(i-1, k, 1) = tr2 + tr3
-            cr3 = tr2 - tr3
-            ch(i, k, 1) = ti2 + ti3
-            ci3 = ti2 - ti3
-            cr2 = tr1 + tr4
-            cr4 = tr1 - tr4
-            ci2 = ti1 + ti4
-            ci4 = ti1 - ti4
-            ch(i-1, k, 2) = wa1(i-1)*cr2 - wa1(i)*ci2
-            ch(i, k, 2) = wa1(i-1)*ci2 + wa1(i)*cr2
-            ch(i-1, k, 3) = wa2(i-1)*cr3 - wa2(i)*ci3
-            ch(i, k, 3) = wa2(i-1)*ci3 + wa2(i)*cr3
-            ch(i-1, k, 4) = wa3(i-1)*cr4 - wa3(i)*ci4
-            ch(i, k, 4) = wa3(i-1)*ci4 + wa3(i)*cr4
-        end do
-    end do
+    select case (ido)
+        case (2)
+            do k = 1, l1
+                ti1 = cc(2, 1, k) - cc(2, 3, k)
+                ti2 = cc(2, 1, k) + cc(2, 3, k)
+                tr4 = cc(2, 4, k) - cc(2, 2, k)
+                ti3 = cc(2, 2, k) + cc(2, 4, k)
+                tr1 = cc(1, 1, k) - cc(1, 3, k)
+                tr2 = cc(1, 1, k) + cc(1, 3, k)
+                ti4 = cc(1, 2, k) - cc(1, 4, k)
+                tr3 = cc(1, 2, k) + cc(1, 4, k)
+                ch(1, k, 1) = tr2 + tr3
+                ch(1, k, 3) = tr2 - tr3
+                ch(2, k, 1) = ti2 + ti3
+                ch(2, k, 3) = ti2 - ti3
+                ch(1, k, 2) = tr1 + tr4
+                ch(1, k, 4) = tr1 - tr4
+                ch(2, k, 2) = ti1 + ti4
+                ch(2, k, 4) = ti1 - ti4
+            end do
+        case default
+            do k = 1, l1
+                do i = 2, ido, 2
+                    ti1 = cc(i, 1, k) - cc(i, 3, k)
+                    ti2 = cc(i, 1, k) + cc(i, 3, k)
+                    ti3 = cc(i, 2, k) + cc(i, 4, k)
+                    tr4 = cc(i, 4, k) - cc(i, 2, k)
+                    tr1 = cc(i-1, 1, k) - cc(i-1, 3, k)
+                    tr2 = cc(i-1, 1, k) + cc(i-1, 3, k)
+                    ti4 = cc(i-1, 2, k) - cc(i-1, 4, k)
+                    tr3 = cc(i-1, 2, k) + cc(i-1, 4, k)
+                    ch(i-1, k, 1) = tr2 + tr3
+                    cr3 = tr2 - tr3
+                    ch(i, k, 1) = ti2 + ti3
+                    ci3 = ti2 - ti3
+                    cr2 = tr1 + tr4
+                    cr4 = tr1 - tr4
+                    ci2 = ti1 + ti4
+                    ci4 = ti1 - ti4
+                    ch(i-1, k, 2) = wa1(i-1)*cr2 - wa1(i)*ci2
+                    ch(i, k, 2) = wa1(i-1)*ci2 + wa1(i)*cr2
+                    ch(i-1, k, 3) = wa2(i-1)*cr3 - wa2(i)*ci3
+                    ch(i, k, 3) = wa2(i-1)*ci3 + wa2(i)*cr3
+                    ch(i-1, k, 4) = wa3(i-1)*cr4 - wa3(i)*ci4
+                    ch(i, k, 4) = wa3(i-1)*ci4 + wa3(i)*cr4
+                end do
+            end do
+    end select
 
 end subroutine passb4
 
@@ -2017,75 +2020,76 @@ pure subroutine passb5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
     real (wp) :: di4, dr5, dr2, di5, di2
     !-----------------------------------------------
 
-    if (ido == 2) then
-        do k = 1, l1
-            ti5 = cc(2, 2, k) - cc(2, 5, k)
-            ti2 = cc(2, 2, k) + cc(2, 5, k)
-            ti4 = cc(2, 3, k) - cc(2, 4, k)
-            ti3 = cc(2, 3, k) + cc(2, 4, k)
-            tr5 = cc(1, 2, k) - cc(1, 5, k)
-            tr2 = cc(1, 2, k) + cc(1, 5, k)
-            tr4 = cc(1, 3, k) - cc(1, 4, k)
-            tr3 = cc(1, 3, k) + cc(1, 4, k)
-            ch(1, k, 1) = cc(1, 1, k) + tr2 + tr3
-            ch(2, k, 1) = cc(2, 1, k) + ti2 + ti3
-            cr2 = cc(1, 1, k) + tr11*tr2 + tr12*tr3
-            ci2 = cc(2, 1, k) + tr11*ti2 + tr12*ti3
-            cr3 = cc(1, 1, k) + tr12*tr2 + tr11*tr3
-            ci3 = cc(2, 1, k) + tr12*ti2 + tr11*ti3
-            cr5 = ti11*tr5 + ti12*tr4
-            ci5 = ti11*ti5 + ti12*ti4
-            cr4 = ti12*tr5 - ti11*tr4
-            ci4 = ti12*ti5 - ti11*ti4
-            ch(1, k, 2) = cr2 - ci5
-            ch(1, k, 5) = cr2 + ci5
-            ch(2, k, 2) = ci2 + cr5
-            ch(2, k, 3) = ci3 + cr4
-            ch(1, k, 3) = cr3 - ci4
-            ch(1, k, 4) = cr3 + ci4
-            ch(2, k, 4) = ci3 - cr4
-            ch(2, k, 5) = ci2 - cr5
-        end do
-        return
-    end if
-    do k = 1, l1
-        do i = 2, ido, 2
-            ti5 = cc(i, 2, k) - cc(i, 5, k)
-            ti2 = cc(i, 2, k) + cc(i, 5, k)
-            ti4 = cc(i, 3, k) - cc(i, 4, k)
-            ti3 = cc(i, 3, k) + cc(i, 4, k)
-            tr5 = cc(i-1, 2, k) - cc(i-1, 5, k)
-            tr2 = cc(i-1, 2, k) + cc(i-1, 5, k)
-            tr4 = cc(i-1, 3, k) - cc(i-1, 4, k)
-            tr3 = cc(i-1, 3, k) + cc(i-1, 4, k)
-            ch(i-1, k, 1) = cc(i-1, 1, k) + tr2 + tr3
-            ch(i, k, 1) = cc(i, 1, k) + ti2 + ti3
-            cr2 = cc(i-1, 1, k) + tr11*tr2 + tr12*tr3
-            ci2 = cc(i, 1, k) + tr11*ti2 + tr12*ti3
-            cr3 = cc(i-1, 1, k) + tr12*tr2 + tr11*tr3
-            ci3 = cc(i, 1, k) + tr12*ti2 + tr11*ti3
-            cr5 = ti11*tr5 + ti12*tr4
-            ci5 = ti11*ti5 + ti12*ti4
-            cr4 = ti12*tr5 - ti11*tr4
-            ci4 = ti12*ti5 - ti11*ti4
-            dr3 = cr3 - ci4
-            dr4 = cr3 + ci4
-            di3 = ci3 + cr4
-            di4 = ci3 - cr4
-            dr5 = cr2 + ci5
-            dr2 = cr2 - ci5
-            di5 = ci2 - cr5
-            di2 = ci2 + cr5
-            ch(i-1, k, 2) = wa1(i-1)*dr2 - wa1(i)*di2
-            ch(i, k, 2) = wa1(i-1)*di2 + wa1(i)*dr2
-            ch(i-1, k, 3) = wa2(i-1)*dr3 - wa2(i)*di3
-            ch(i, k, 3) = wa2(i-1)*di3 + wa2(i)*dr3
-            ch(i-1, k, 4) = wa3(i-1)*dr4 - wa3(i)*di4
-            ch(i, k, 4) = wa3(i-1)*di4 + wa3(i)*dr4
-            ch(i-1, k, 5) = wa4(i-1)*dr5 - wa4(i)*di5
-            ch(i, k, 5) = wa4(i-1)*di5 + wa4(i)*dr5
-        end do
-    end do
+    select case (ido)
+        case (2)
+            do k = 1, l1
+                ti5 = cc(2, 2, k) - cc(2, 5, k)
+                ti2 = cc(2, 2, k) + cc(2, 5, k)
+                ti4 = cc(2, 3, k) - cc(2, 4, k)
+                ti3 = cc(2, 3, k) + cc(2, 4, k)
+                tr5 = cc(1, 2, k) - cc(1, 5, k)
+                tr2 = cc(1, 2, k) + cc(1, 5, k)
+                tr4 = cc(1, 3, k) - cc(1, 4, k)
+                tr3 = cc(1, 3, k) + cc(1, 4, k)
+                ch(1, k, 1) = cc(1, 1, k) + tr2 + tr3
+                ch(2, k, 1) = cc(2, 1, k) + ti2 + ti3
+                cr2 = cc(1, 1, k) + tr11*tr2 + tr12*tr3
+                ci2 = cc(2, 1, k) + tr11*ti2 + tr12*ti3
+                cr3 = cc(1, 1, k) + tr12*tr2 + tr11*tr3
+                ci3 = cc(2, 1, k) + tr12*ti2 + tr11*ti3
+                cr5 = ti11*tr5 + ti12*tr4
+                ci5 = ti11*ti5 + ti12*ti4
+                cr4 = ti12*tr5 - ti11*tr4
+                ci4 = ti12*ti5 - ti11*ti4
+                ch(1, k, 2) = cr2 - ci5
+                ch(1, k, 5) = cr2 + ci5
+                ch(2, k, 2) = ci2 + cr5
+                ch(2, k, 3) = ci3 + cr4
+                ch(1, k, 3) = cr3 - ci4
+                ch(1, k, 4) = cr3 + ci4
+                ch(2, k, 4) = ci3 - cr4
+                ch(2, k, 5) = ci2 - cr5
+            end do
+        case default
+            do k = 1, l1
+                do i = 2, ido, 2
+                    ti5 = cc(i, 2, k) - cc(i, 5, k)
+                    ti2 = cc(i, 2, k) + cc(i, 5, k)
+                    ti4 = cc(i, 3, k) - cc(i, 4, k)
+                    ti3 = cc(i, 3, k) + cc(i, 4, k)
+                    tr5 = cc(i-1, 2, k) - cc(i-1, 5, k)
+                    tr2 = cc(i-1, 2, k) + cc(i-1, 5, k)
+                    tr4 = cc(i-1, 3, k) - cc(i-1, 4, k)
+                    tr3 = cc(i-1, 3, k) + cc(i-1, 4, k)
+                    ch(i-1, k, 1) = cc(i-1, 1, k) + tr2 + tr3
+                    ch(i, k, 1) = cc(i, 1, k) + ti2 + ti3
+                    cr2 = cc(i-1, 1, k) + tr11*tr2 + tr12*tr3
+                    ci2 = cc(i, 1, k) + tr11*ti2 + tr12*ti3
+                    cr3 = cc(i-1, 1, k) + tr12*tr2 + tr11*tr3
+                    ci3 = cc(i, 1, k) + tr12*ti2 + tr11*ti3
+                    cr5 = ti11*tr5 + ti12*tr4
+                    ci5 = ti11*ti5 + ti12*ti4
+                    cr4 = ti12*tr5 - ti11*tr4
+                    ci4 = ti12*ti5 - ti11*ti4
+                    dr3 = cr3 - ci4
+                    dr4 = cr3 + ci4
+                    di3 = ci3 + cr4
+                    di4 = ci3 - cr4
+                    dr5 = cr2 + ci5
+                    dr2 = cr2 - ci5
+                    di5 = ci2 - cr5
+                    di2 = ci2 + cr5
+                    ch(i-1, k, 2) = wa1(i-1)*dr2 - wa1(i)*di2
+                    ch(i, k, 2) = wa1(i-1)*di2 + wa1(i)*dr2
+                    ch(i-1, k, 3) = wa2(i-1)*dr3 - wa2(i)*di3
+                    ch(i, k, 3) = wa2(i-1)*di3 + wa2(i)*dr3
+                    ch(i-1, k, 4) = wa3(i-1)*dr4 - wa3(i)*di4
+                    ch(i, k, 4) = wa3(i-1)*di4 + wa3(i)*dr4
+                    ch(i-1, k, 5) = wa4(i-1)*dr5 - wa4(i)*di5
+                    ch(i, k, 5) = wa4(i-1)*di5 + wa4(i)*dr5
+                end do
+            end do
+    end select
 
 end subroutine passb5
 
@@ -2214,16 +2218,16 @@ subroutine cfftf(n, c, wsave)
     real (wp) :: c(*)
     real (wp) :: wsave(*)
     !-----------------------------------------------
+    ! Dictionary: local variables
+    !-----------------------------------------------
+    integer :: iw1, iw2
+    !-----------------------------------------------
 
-    if (n == 1) then
-        return
+    if (n /= 1) then
+        iw1 = 2*n + 1
+        iw2 = iw1 + 2*n
+        call cfftf1(n, c, wsave, wsave(iw1), wsave(iw2))
     end if
-
-    associate( iw1 => 2*n + 1 )
-        associate( iw2 => iw1 + 2*n )
-            call cfftf1 (n, c, wsave, wsave(iw1), wsave(iw2))
-        end associate
-    end associate
 
 end subroutine cfftf
 
@@ -2297,10 +2301,10 @@ subroutine cfftf1(n, c, ch, wa, ifac)
                         na = 1 - na
                     else
                         if (na == 0) then
-                            call passf (nac, idot, ip, l1, idl1, c, c, c, ch &
+                            call passf(nac, idot, ip, l1, idl1, c, c, c, ch &
                                 , ch, wa(iw))
                         else
-                            call passf (nac, idot, ip, l1, idl1, ch, ch, ch &
+                            call passf(nac, idot, ip, l1, idl1, ch, ch, ch &
                                 , c, c, wa(iw))
                         end if
                         if (nac /= 0) na = 1 - na
@@ -2343,19 +2347,18 @@ pure subroutine passf2(ido, l1, cc, ch, wa1)
         ch(1,:, 2) = cc(1, 1,:) - cc(1, 2,:)
         ch(2,:, 1) = cc(2, 1,:) + cc(2, 2,:)
         ch(2,:, 2) = cc(2, 1,:) - cc(2, 2,:)
-        return
-    end if
-
-    do k = 1, l1
-        do i = 2, ido, 2
-            ch(i-1, k, 1) = cc(i-1, 1, k) + cc(i-1, 2, k)
-            tr2 = cc(i-1, 1, k) - cc(i-1, 2, k)
-            ch(i, k, 1) = cc(i, 1, k) + cc(i, 2, k)
-            ti2 = cc(i, 1, k) - cc(i, 2, k)
-            ch(i, k, 2) = wa1(i-1)*ti2 - wa1(i)*tr2
-            ch(i-1, k, 2) = wa1(i-1)*tr2 + wa1(i)*ti2
+    else
+        do k = 1, l1
+            do i = 2, ido, 2
+                ch(i-1, k, 1) = cc(i-1, 1, k) + cc(i-1, 2, k)
+                tr2 = cc(i-1, 1, k) - cc(i-1, 2, k)
+                ch(i, k, 1) = cc(i, 1, k) + cc(i, 2, k)
+                ti2 = cc(i, 1, k) - cc(i, 2, k)
+                ch(i, k, 2) = wa1(i-1)*ti2 - wa1(i)*tr2
+                ch(i-1, k, 2) = wa1(i-1)*tr2 + wa1(i)*ti2
+            end do
         end do
-    end do
+    end if
 
 end subroutine passf2
 
@@ -2379,43 +2382,44 @@ pure subroutine passf3(ido, l1, cc, ch, wa1, wa2)
     real (wp) :: tr2, cr2, ti2, ci2, cr3, ci3, dr2, dr3, di2, di3
     !-----------------------------------------------
 
-    if (ido == 2) then
-        do k = 1, l1
-            tr2 = cc(1, 2, k) + cc(1, 3, k)
-            cr2 = cc(1, 1, k) + taur*tr2
-            ch(1, k, 1) = cc(1, 1, k) + tr2
-            ti2 = cc(2, 2, k) + cc(2, 3, k)
-            ci2 = cc(2, 1, k) + taur*ti2
-            ch(2, k, 1) = cc(2, 1, k) + ti2
-            cr3 = taui*(cc(1, 2, k)-cc(1, 3, k))
-            ci3 = taui*(cc(2, 2, k)-cc(2, 3, k))
-            ch(1, k, 2) = cr2 - ci3
-            ch(1, k, 3) = cr2 + ci3
-            ch(2, k, 2) = ci2 + cr3
-            ch(2, k, 3) = ci2 - cr3
-        end do
-        return
-    end if
-    do k = 1, l1
-        do i = 2, ido, 2
-            tr2 = cc(i-1, 2, k) + cc(i-1, 3, k)
-            cr2 = cc(i-1, 1, k) + taur*tr2
-            ch(i-1, k, 1) = cc(i-1, 1, k) + tr2
-            ti2 = cc(i, 2, k) + cc(i, 3, k)
-            ci2 = cc(i, 1, k) + taur*ti2
-            ch(i, k, 1) = cc(i, 1, k) + ti2
-            cr3 = taui*(cc(i-1, 2, k)-cc(i-1, 3, k))
-            ci3 = taui*(cc(i, 2, k)-cc(i, 3, k))
-            dr2 = cr2 - ci3
-            dr3 = cr2 + ci3
-            di2 = ci2 + cr3
-            di3 = ci2 - cr3
-            ch(i, k, 2) = wa1(i-1)*di2 - wa1(i)*dr2
-            ch(i-1, k, 2) = wa1(i-1)*dr2 + wa1(i)*di2
-            ch(i, k, 3) = wa2(i-1)*di3 - wa2(i)*dr3
-            ch(i-1, k, 3) = wa2(i-1)*dr3 + wa2(i)*di3
-        end do
-    end do
+    select case (ido)
+        case (2)
+            do k = 1, l1
+                tr2 = cc(1, 2, k) + cc(1, 3, k)
+                cr2 = cc(1, 1, k) + taur*tr2
+                ch(1, k, 1) = cc(1, 1, k) + tr2
+                ti2 = cc(2, 2, k) + cc(2, 3, k)
+                ci2 = cc(2, 1, k) + taur*ti2
+                ch(2, k, 1) = cc(2, 1, k) + ti2
+                cr3 = taui*(cc(1, 2, k)-cc(1, 3, k))
+                ci3 = taui*(cc(2, 2, k)-cc(2, 3, k))
+                ch(1, k, 2) = cr2 - ci3
+                ch(1, k, 3) = cr2 + ci3
+                ch(2, k, 2) = ci2 + cr3
+                ch(2, k, 3) = ci2 - cr3
+            end do
+        case default
+            do k = 1, l1
+                do i = 2, ido, 2
+                    tr2 = cc(i-1, 2, k) + cc(i-1, 3, k)
+                    cr2 = cc(i-1, 1, k) + taur*tr2
+                    ch(i-1, k, 1) = cc(i-1, 1, k) + tr2
+                    ti2 = cc(i, 2, k) + cc(i, 3, k)
+                    ci2 = cc(i, 1, k) + taur*ti2
+                    ch(i, k, 1) = cc(i, 1, k) + ti2
+                    cr3 = taui*(cc(i-1, 2, k)-cc(i-1, 3, k))
+                    ci3 = taui*(cc(i, 2, k)-cc(i, 3, k))
+                    dr2 = cr2 - ci3
+                    dr3 = cr2 + ci3
+                    di2 = ci2 + cr3
+                    di3 = ci2 - cr3
+                    ch(i, k, 2) = wa1(i-1)*di2 - wa1(i)*dr2
+                    ch(i-1, k, 2) = wa1(i-1)*dr2 + wa1(i)*di2
+                    ch(i, k, 3) = wa2(i-1)*di3 - wa2(i)*dr3
+                    ch(i-1, k, 3) = wa2(i-1)*dr3 + wa2(i)*di3
+                end do
+            end do
+    end select
 
 end subroutine passf3
 
@@ -2438,53 +2442,55 @@ pure subroutine passf4(ido, l1, cc, ch, wa1, wa2, wa3)
     real (wp) :: ti1, ti2, tr4, ti3, tr1, tr2, ti4
     real (wp) :: tr3, cr3, ci3, cr2, cr4, ci2, ci4
     !-----------------------------------------------
-    if (ido == 2) then
-        do k = 1, l1
-            ti1 = cc(2, 1, k) - cc(2, 3, k)
-            ti2 = cc(2, 1, k) + cc(2, 3, k)
-            tr4 = cc(2, 2, k) - cc(2, 4, k)
-            ti3 = cc(2, 2, k) + cc(2, 4, k)
-            tr1 = cc(1, 1, k) - cc(1, 3, k)
-            tr2 = cc(1, 1, k) + cc(1, 3, k)
-            ti4 = cc(1, 4, k) - cc(1, 2, k)
-            tr3 = cc(1, 2, k) + cc(1, 4, k)
-            ch(1, k, 1) = tr2 + tr3
-            ch(1, k, 3) = tr2 - tr3
-            ch(2, k, 1) = ti2 + ti3
-            ch(2, k, 3) = ti2 - ti3
-            ch(1, k, 2) = tr1 + tr4
-            ch(1, k, 4) = tr1 - tr4
-            ch(2, k, 2) = ti1 + ti4
-            ch(2, k, 4) = ti1 - ti4
-        end do
-        return
-    end if
-    do k = 1, l1
-        do i = 2, ido, 2
-            ti1 = cc(i, 1, k) - cc(i, 3, k)
-            ti2 = cc(i, 1, k) + cc(i, 3, k)
-            ti3 = cc(i, 2, k) + cc(i, 4, k)
-            tr4 = cc(i, 2, k) - cc(i, 4, k)
-            tr1 = cc(i-1, 1, k) - cc(i-1, 3, k)
-            tr2 = cc(i-1, 1, k) + cc(i-1, 3, k)
-            ti4 = cc(i-1, 4, k) - cc(i-1, 2, k)
-            tr3 = cc(i-1, 2, k) + cc(i-1, 4, k)
-            ch(i-1, k, 1) = tr2 + tr3
-            cr3 = tr2 - tr3
-            ch(i, k, 1) = ti2 + ti3
-            ci3 = ti2 - ti3
-            cr2 = tr1 + tr4
-            cr4 = tr1 - tr4
-            ci2 = ti1 + ti4
-            ci4 = ti1 - ti4
-            ch(i-1, k, 2) = wa1(i-1)*cr2 + wa1(i)*ci2
-            ch(i, k, 2) = wa1(i-1)*ci2 - wa1(i)*cr2
-            ch(i-1, k, 3) = wa2(i-1)*cr3 + wa2(i)*ci3
-            ch(i, k, 3) = wa2(i-1)*ci3 - wa2(i)*cr3
-            ch(i-1, k, 4) = wa3(i-1)*cr4 + wa3(i)*ci4
-            ch(i, k, 4) = wa3(i-1)*ci4 - wa3(i)*cr4
-        end do
-    end do
+
+    select case (ido)
+        case (2)
+            do k = 1, l1
+                ti1 = cc(2, 1, k) - cc(2, 3, k)
+                ti2 = cc(2, 1, k) + cc(2, 3, k)
+                tr4 = cc(2, 2, k) - cc(2, 4, k)
+                ti3 = cc(2, 2, k) + cc(2, 4, k)
+                tr1 = cc(1, 1, k) - cc(1, 3, k)
+                tr2 = cc(1, 1, k) + cc(1, 3, k)
+                ti4 = cc(1, 4, k) - cc(1, 2, k)
+                tr3 = cc(1, 2, k) + cc(1, 4, k)
+                ch(1, k, 1) = tr2 + tr3
+                ch(1, k, 3) = tr2 - tr3
+                ch(2, k, 1) = ti2 + ti3
+                ch(2, k, 3) = ti2 - ti3
+                ch(1, k, 2) = tr1 + tr4
+                ch(1, k, 4) = tr1 - tr4
+                ch(2, k, 2) = ti1 + ti4
+                ch(2, k, 4) = ti1 - ti4
+            end do
+        case default
+            do k = 1, l1
+                do i = 2, ido, 2
+                    ti1 = cc(i, 1, k) - cc(i, 3, k)
+                    ti2 = cc(i, 1, k) + cc(i, 3, k)
+                    ti3 = cc(i, 2, k) + cc(i, 4, k)
+                    tr4 = cc(i, 2, k) - cc(i, 4, k)
+                    tr1 = cc(i-1, 1, k) - cc(i-1, 3, k)
+                    tr2 = cc(i-1, 1, k) + cc(i-1, 3, k)
+                    ti4 = cc(i-1, 4, k) - cc(i-1, 2, k)
+                    tr3 = cc(i-1, 2, k) + cc(i-1, 4, k)
+                    ch(i-1, k, 1) = tr2 + tr3
+                    cr3 = tr2 - tr3
+                    ch(i, k, 1) = ti2 + ti3
+                    ci3 = ti2 - ti3
+                    cr2 = tr1 + tr4
+                    cr4 = tr1 - tr4
+                    ci2 = ti1 + ti4
+                    ci4 = ti1 - ti4
+                    ch(i-1, k, 2) = wa1(i-1)*cr2 + wa1(i)*ci2
+                    ch(i, k, 2) = wa1(i-1)*ci2 - wa1(i)*cr2
+                    ch(i-1, k, 3) = wa2(i-1)*cr3 + wa2(i)*ci3
+                    ch(i, k, 3) = wa2(i-1)*ci3 - wa2(i)*cr3
+                    ch(i-1, k, 4) = wa3(i-1)*cr4 + wa3(i)*ci4
+                    ch(i, k, 4) = wa3(i-1)*ci4 - wa3(i)*cr4
+                end do
+            end do
+    end select
 
 end subroutine passf4
 
@@ -2515,75 +2521,76 @@ pure subroutine passf5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
     real (wp), parameter :: ti12 = -sqrt(5.0_wp/(2.0_wp * (5.0_wp + sqrt_5)) ) ! -0.587785252292473
     !-----------------------------------------------
 
-    if (ido == 2) then
-        do k = 1, l1
-            ti5 = cc(2, 2, k) - cc(2, 5, k)
-            ti2 = cc(2, 2, k) + cc(2, 5, k)
-            ti4 = cc(2, 3, k) - cc(2, 4, k)
-            ti3 = cc(2, 3, k) + cc(2, 4, k)
-            tr5 = cc(1, 2, k) - cc(1, 5, k)
-            tr2 = cc(1, 2, k) + cc(1, 5, k)
-            tr4 = cc(1, 3, k) - cc(1, 4, k)
-            tr3 = cc(1, 3, k) + cc(1, 4, k)
-            ch(1, k, 1) = cc(1, 1, k) + tr2 + tr3
-            ch(2, k, 1) = cc(2, 1, k) + ti2 + ti3
-            cr2 = cc(1, 1, k) + tr11*tr2 + tr12*tr3
-            ci2 = cc(2, 1, k) + tr11*ti2 + tr12*ti3
-            cr3 = cc(1, 1, k) + tr12*tr2 + tr11*tr3
-            ci3 = cc(2, 1, k) + tr12*ti2 + tr11*ti3
-            cr5 = ti11*tr5 + ti12*tr4
-            ci5 = ti11*ti5 + ti12*ti4
-            cr4 = ti12*tr5 - ti11*tr4
-            ci4 = ti12*ti5 - ti11*ti4
-            ch(1, k, 2) = cr2 - ci5
-            ch(1, k, 5) = cr2 + ci5
-            ch(2, k, 2) = ci2 + cr5
-            ch(2, k, 3) = ci3 + cr4
-            ch(1, k, 3) = cr3 - ci4
-            ch(1, k, 4) = cr3 + ci4
-            ch(2, k, 4) = ci3 - cr4
-            ch(2, k, 5) = ci2 - cr5
-        end do
-        return
-    end if
-    do k = 1, l1
-        do i = 2, ido, 2
-            ti5 = cc(i, 2, k) - cc(i, 5, k)
-            ti2 = cc(i, 2, k) + cc(i, 5, k)
-            ti4 = cc(i, 3, k) - cc(i, 4, k)
-            ti3 = cc(i, 3, k) + cc(i, 4, k)
-            tr5 = cc(i-1, 2, k) - cc(i-1, 5, k)
-            tr2 = cc(i-1, 2, k) + cc(i-1, 5, k)
-            tr4 = cc(i-1, 3, k) - cc(i-1, 4, k)
-            tr3 = cc(i-1, 3, k) + cc(i-1, 4, k)
-            ch(i-1, k, 1) = cc(i-1, 1, k) + tr2 + tr3
-            ch(i, k, 1) = cc(i, 1, k) + ti2 + ti3
-            cr2 = cc(i-1, 1, k) + tr11*tr2 + tr12*tr3
-            ci2 = cc(i, 1, k) + tr11*ti2 + tr12*ti3
-            cr3 = cc(i-1, 1, k) + tr12*tr2 + tr11*tr3
-            ci3 = cc(i, 1, k) + tr12*ti2 + tr11*ti3
-            cr5 = ti11*tr5 + ti12*tr4
-            ci5 = ti11*ti5 + ti12*ti4
-            cr4 = ti12*tr5 - ti11*tr4
-            ci4 = ti12*ti5 - ti11*ti4
-            dr3 = cr3 - ci4
-            dr4 = cr3 + ci4
-            di3 = ci3 + cr4
-            di4 = ci3 - cr4
-            dr5 = cr2 + ci5
-            dr2 = cr2 - ci5
-            di5 = ci2 - cr5
-            di2 = ci2 + cr5
-            ch(i-1, k, 2) = wa1(i-1)*dr2 + wa1(i)*di2
-            ch(i, k, 2) = wa1(i-1)*di2 - wa1(i)*dr2
-            ch(i-1, k, 3) = wa2(i-1)*dr3 + wa2(i)*di3
-            ch(i, k, 3) = wa2(i-1)*di3 - wa2(i)*dr3
-            ch(i-1, k, 4) = wa3(i-1)*dr4 + wa3(i)*di4
-            ch(i, k, 4) = wa3(i-1)*di4 - wa3(i)*dr4
-            ch(i-1, k, 5) = wa4(i-1)*dr5 + wa4(i)*di5
-            ch(i, k, 5) = wa4(i-1)*di5 - wa4(i)*dr5
-        end do
-    end do
+    select case (ido)
+        case (2)
+            do k = 1, l1
+                ti5 = cc(2, 2, k) - cc(2, 5, k)
+                ti2 = cc(2, 2, k) + cc(2, 5, k)
+                ti4 = cc(2, 3, k) - cc(2, 4, k)
+                ti3 = cc(2, 3, k) + cc(2, 4, k)
+                tr5 = cc(1, 2, k) - cc(1, 5, k)
+                tr2 = cc(1, 2, k) + cc(1, 5, k)
+                tr4 = cc(1, 3, k) - cc(1, 4, k)
+                tr3 = cc(1, 3, k) + cc(1, 4, k)
+                ch(1, k, 1) = cc(1, 1, k) + tr2 + tr3
+                ch(2, k, 1) = cc(2, 1, k) + ti2 + ti3
+                cr2 = cc(1, 1, k) + tr11*tr2 + tr12*tr3
+                ci2 = cc(2, 1, k) + tr11*ti2 + tr12*ti3
+                cr3 = cc(1, 1, k) + tr12*tr2 + tr11*tr3
+                ci3 = cc(2, 1, k) + tr12*ti2 + tr11*ti3
+                cr5 = ti11*tr5 + ti12*tr4
+                ci5 = ti11*ti5 + ti12*ti4
+                cr4 = ti12*tr5 - ti11*tr4
+                ci4 = ti12*ti5 - ti11*ti4
+                ch(1, k, 2) = cr2 - ci5
+                ch(1, k, 5) = cr2 + ci5
+                ch(2, k, 2) = ci2 + cr5
+                ch(2, k, 3) = ci3 + cr4
+                ch(1, k, 3) = cr3 - ci4
+                ch(1, k, 4) = cr3 + ci4
+                ch(2, k, 4) = ci3 - cr4
+                ch(2, k, 5) = ci2 - cr5
+            end do
+        case default
+            do k = 1, l1
+                do i = 2, ido, 2
+                    ti5 = cc(i, 2, k) - cc(i, 5, k)
+                    ti2 = cc(i, 2, k) + cc(i, 5, k)
+                    ti4 = cc(i, 3, k) - cc(i, 4, k)
+                    ti3 = cc(i, 3, k) + cc(i, 4, k)
+                    tr5 = cc(i-1, 2, k) - cc(i-1, 5, k)
+                    tr2 = cc(i-1, 2, k) + cc(i-1, 5, k)
+                    tr4 = cc(i-1, 3, k) - cc(i-1, 4, k)
+                    tr3 = cc(i-1, 3, k) + cc(i-1, 4, k)
+                    ch(i-1, k, 1) = cc(i-1, 1, k) + tr2 + tr3
+                    ch(i, k, 1) = cc(i, 1, k) + ti2 + ti3
+                    cr2 = cc(i-1, 1, k) + tr11*tr2 + tr12*tr3
+                    ci2 = cc(i, 1, k) + tr11*ti2 + tr12*ti3
+                    cr3 = cc(i-1, 1, k) + tr12*tr2 + tr11*tr3
+                    ci3 = cc(i, 1, k) + tr12*ti2 + tr11*ti3
+                    cr5 = ti11*tr5 + ti12*tr4
+                    ci5 = ti11*ti5 + ti12*ti4
+                    cr4 = ti12*tr5 - ti11*tr4
+                    ci4 = ti12*ti5 - ti11*ti4
+                    dr3 = cr3 - ci4
+                    dr4 = cr3 + ci4
+                    di3 = ci3 + cr4
+                    di4 = ci3 - cr4
+                    dr5 = cr2 + ci5
+                    dr2 = cr2 - ci5
+                    di5 = ci2 - cr5
+                    di2 = ci2 + cr5
+                    ch(i-1, k, 2) = wa1(i-1)*dr2 + wa1(i)*di2
+                    ch(i, k, 2) = wa1(i-1)*di2 - wa1(i)*dr2
+                    ch(i-1, k, 3) = wa2(i-1)*dr3 + wa2(i)*di3
+                    ch(i, k, 3) = wa2(i-1)*di3 - wa2(i)*dr3
+                    ch(i-1, k, 4) = wa3(i-1)*dr4 + wa3(i)*di4
+                    ch(i, k, 4) = wa3(i-1)*di4 - wa3(i)*dr4
+                    ch(i-1, k, 5) = wa4(i-1)*dr5 + wa4(i)*di5
+                    ch(i, k, 5) = wa4(i-1)*di5 - wa4(i)*dr5
+                end do
+            end do
+    end select
 
 end subroutine passf5
 
@@ -2611,6 +2618,7 @@ subroutine passf(nac, ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
     integer :: idlj, idij, idj
     real (wp) :: war, wai
     !-----------------------------------------------
+
     idot = ido/2
     nt = ip*idl1
     ipp2 = ip + 2
@@ -2713,12 +2721,10 @@ subroutine rffti(n, wsave)
     integer  :: n
     real (wp) :: wsave(*)
     !-----------------------------------------------
-    !
-    if (n == 1) then
-        return
-    end if
 
-    call rffti1(n, wsave(n+1), wsave(2*n+1))
+    if (n /= 1) then
+        call rffti1(n, wsave(n+1), wsave(2*n+1))
+    end if
 
 end subroutine rffti
 
@@ -2821,13 +2827,14 @@ subroutine rfftb(n, r, wsave)
     integer  :: n
     real (wp) :: r(*)
     real (wp) :: wsave(*)
-    !-----------------------------------------------
+     !-----------------------------------------------
 
-    if (n == 1) then
-        return
-    end if
-
-    call rfftb1(n, r, wsave, wsave(n+1), wsave(2*n+1))
+    select case (n)
+        case (1)
+            return
+        case default
+            call rfftb1(n, r, wsave, wsave(n+1), wsave(2*n+1))
+    end select
 
 end subroutine rfftb
 
@@ -2836,12 +2843,11 @@ subroutine rfftb1(n, c, ch, wa, ifac)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent (in) :: n
+    integer ,  intent (in) :: n
     real (wp), intent (in) :: ifac(*)
-    !integer , intent (in) :: ifac(*)
-    real (wp) :: c(*)
-    real (wp) :: ch(*)
-    real (wp) :: wa(*)
+    real (wp)              :: c(*)
+    real (wp)              :: ch(*)
+    real (wp)              :: wa(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -3051,6 +3057,7 @@ pure subroutine radb4(ido, l1, cc, ch, wa1, wa2, wa3)
         ch(1, k, 3) = tr2 - tr3
         ch(1, k, 4) = tr1 + tr4
     end do
+
     if (ido - 2 >= 0) then
         if (ido - 2 /= 0) then
             idp2 = ido + 2
@@ -3142,7 +3149,11 @@ pure subroutine radb5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
         ch(1, k, 4) = cr3 + ci4
         ch(1, k, 5) = cr2 + ci5
     end do
-    if (ido == 1) return
+
+    if (ido == 1) then
+        return
+    end if
+
     idp2 = ido + 2
     do k = 1, l1
         do i = 3, ido, 2
@@ -3347,7 +3358,7 @@ subroutine rfftf(n, r, wsave)
         return
     end if
 
-    call rfftf1 (n, r, wsave, wsave(n+1), wsave(2*n+1))
+    call rfftf1(n, r, wsave, wsave(n+1), wsave(2*n+1))
 
 end subroutine rfftf
 
