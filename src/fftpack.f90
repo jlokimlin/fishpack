@@ -988,12 +988,12 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer  :: n
+        integer                :: n
         real (wp), intent (in) :: azero
-        real (wp) :: r(*)
+        real (wp)              :: r(*)
         real (wp), intent (in) :: a(*)
         real (wp), intent (in) :: b(*)
-        real (wp) :: wsave(*)
+        real (wp)              :: wsave(*)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
@@ -1011,8 +1011,8 @@ contains
         end if
 
         ns2 =(n - 1)/2
-        r(2:ns2*2:2) = 0.5*a(:ns2)
-        r(3:ns2*2+1:2) = -0.5*b(:ns2)
+        r(2:ns2*2:2) = 0.5_wp*a(:ns2)
+        r(3:ns2*2+1:2) = -0.5_wp*b(:ns2)
         r(1) = azero
 
         if (mod(n, 2) == 0) then
@@ -1032,9 +1032,9 @@ contains
         real (wp) :: wsave(*)
         !-----------------------------------------------
 
-        if (n == 1) return
-
-        call ezfft1(n, wsave(2*n+1), wsave(3*n+1))
+        if (n /= 1) then
+            call ezfft1(n, wsave(2*n+1), wsave(3*n+1))
+        end if
 
     end subroutine ezffti
 
@@ -1060,34 +1060,52 @@ contains
         nl = n
         nf = 0
         j = 0
+
 101 continue
+
     j = j + 1
+
     if (j - 4 <= 0) then
         ntry = ntryh(j)
     else
         ntry = ntry + 2
     end if
+
 104 continue
+
     nq = nl/ntry
     nr = nl - ntry*nq
-    if (nr /= 0) go to 101
+
+    if (nr /= 0) then
+        go to 101
+    end if
+
     nf = nf + 1
     ifac(nf+2) = ntry
     nl = nq
+
     if (ntry == 2) then
         if (nf /= 1) then
             ifac(nf+2:4:(-1)) = ifac(nf+1:3:(-1))
             ifac(3) = 2
         end if
     end if
-    if (nl /= 1) go to 104
+
+    if (nl /= 1) then
+        go to 104
+    end if
+
     ifac(1) = n
     ifac(2) = nf
     argh = two_pi/n
     is = 0
     nfm1 = nf - 1
     l1 = 1
-    if (nfm1 == 0) return
+
+    if (nfm1 == 0) then
+        return
+    end if
+
     do k1 = 1, nfm1
         ip = ifac(k1+2)
         l2 = l1*ip
@@ -1129,24 +1147,27 @@ subroutine costi(n, wsave)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: nm1, np1, ns2, k, kc
+    integer              :: nm1, np1, ns2, k, kc
     real (wp), parameter :: pi = acos(-1.0_wp)
     real (wp)            :: dt, fk
     !-----------------------------------------------
 
-    if (n <= 3) return
-    nm1 = n - 1
-    np1 = n + 1
-    ns2 = n/2
-    dt = pi/nm1
-    fk = 0.0_wp
-    do k = 2, ns2
-        kc = np1 - k
-        fk = fk + 1.
-        wsave(k) = 2.0_wp * sin(fk*dt)
-        wsave(kc) = 2.0_wp * cos(fk*dt)
-    end do
-    call rffti(nm1, wsave(n+1))
+    if (n > 3) then
+        nm1 = n - 1
+        np1 = n + 1
+        ns2 = n/2
+        dt = pi/nm1
+        fk = 0.0_wp
+
+        do k = 2, ns2
+            kc = np1 - k
+            fk = fk + 1.
+            wsave(k) = 2.0_wp * sin(fk*dt)
+            wsave(kc) = 2.0_wp * cos(fk*dt)
+        end do
+
+        call rffti(nm1, wsave(n+1))
+    end if
 
 end subroutine costi
 
@@ -1161,13 +1182,14 @@ subroutine cost(n, x, wsave)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: nm1, np1, ns2, k, kc, modn, i
+    integer   :: nm1, np1, ns2, k, kc, modn, i
     real (wp) :: x1h, x1p3, tx2, c1, t1, t2, xim2, xi
     !-----------------------------------------------
     !
     nm1 = n - 1
     np1 = n + 1
     ns2 = n/2
+
     if (n - 2 >= 0) then
         if (n - 2 <= 0) then
             x1h = x(1) + x(2)
@@ -1194,18 +1216,28 @@ subroutine cost(n, x, wsave)
             x(k) = t1 - t2
             x(kc) = t1 + t2
         end do
+
         modn = mod(n, 2)
-        if (modn /= 0) x(ns2+1) = x(ns2+1) + x(ns2+1)
+
+        if (modn /= 0) then
+            x(ns2+1) = x(ns2+1) + x(ns2+1)
+        end if
+
         call rfftf(nm1, x, wsave(n+1))
+
         xim2 = x(2)
         x(2) = c1
+
         do i = 4, n, 2
             xi = x(i)
             x(i) = x(i-2) - x(i-1)
             x(i-1) = xim2
             xim2 = xi
         end do
-        if (modn /= 0) x(n) = xim2
+
+        if (modn /= 0) then
+            x(n) = xim2
+        end if
     end if
 
 end subroutine cost
@@ -1220,21 +1252,22 @@ subroutine sinti(n, wsave)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: ns2, np1, k
-    real (wp), parameter :: pi = acos(-1.0_wp)
+    integer              :: ns2, np1, k
+    real (wp), parameter :: PI = acos(-1.0_wp)
+    real (wp)            :: dt
     !-----------------------------------------------
 
-    if (n <= 1) return
-    ns2 = n/2
-    np1 = n + 1
+    if (n > 1) then
+        ns2 = n/2
+        np1 = n + 1
+        dt = PI/np1
 
-    associate( dt => pi/np1 )
         do k = 1, ns2
             wsave(k) = 2.0_wp * sin(k*dt)
         end do
-    end associate
 
-    call rffti(np1, wsave(ns2+1))
+        call rffti(np1, wsave(ns2+1))
+    end if
 
 end subroutine sinti
 
@@ -1256,6 +1289,7 @@ subroutine sint(n, x, wsave)
     iw1 = n/2 + 1
     iw2 = iw1 + np1
     iw3 = iw2 + np1
+
     call sint1(n, x, wsave, wsave(iw1), wsave(iw2), wsave(iw3))
 
 end subroutine sint
@@ -1275,26 +1309,29 @@ subroutine sint1(n, war, was, xh, x, ifac)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: i, np1, ns2, k, kc, modn
-    real (wp), parameter :: sqrt3 = sqrt( 3.0_wp) ! 1.73205080756888
-    real (wp) ::  xhold, t1, t2
+    integer              :: i, np1, ns2, k, kc, modn
+    real (wp), parameter :: SQRT3 = sqrt( 3.0_wp) ! 1.73205080756888
+    real (wp)            :: xhold, t1, t2
     !-----------------------------------------------
 
     xh(:n) = war(:n)
     war(:n) = x(:n)
+
     if (n - 2 <= 0) then
         if (n - 2 /= 0) then
             xh(1) = xh(1) + xh(1)
             go to 106
         end if
-        xhold = sqrt3*(xh(1)+xh(2))
-        xh(2) = sqrt3*(xh(1)-xh(2))
+        xhold = SQRT3*(xh(1)+xh(2))
+        xh(2) = SQRT3*(xh(1)-xh(2))
         xh(1) = xhold
         go to 106
     end if
+
     np1 = n + 1
     ns2 = n/2
-    x(1) = 0.
+    x(1) = 0.0_wp
+
     do k = 1, ns2
         kc = np1 - k
         t1 = xh(k) - xh(kc)
@@ -1302,15 +1339,27 @@ subroutine sint1(n, war, was, xh, x, ifac)
         x(k+1) = t1 + t2
         x(kc+1) = t2 - t1
     end do
+
     modn = mod(n, 2)
-    if (modn /= 0) x(ns2+2) = 4.0_wp * xh(ns2+1)
+
+    if (modn /= 0) then
+        x(ns2+2) = 4.0_wp * xh(ns2+1)
+    end if
+
     call rfftf1(np1, x, xh, war, ifac)
-    xh(1) = 0.5*x(1)
+
+    xh(1) = 0.5_wp*x(1)
+
     do i = 3, n, 2
         xh(i-1) = -x(i)
         xh(i) = xh(i-2) + x(i-1)
     end do
-    if (modn == 0) xh(n) = -x(n+1)
+
+    if (modn == 0) then
+        xh(n) = -x(n+1)
+    end if
+
+
 106 continue
     x(:n) = war(:n)
     war(:n) = xh(:n)
@@ -1349,28 +1398,25 @@ subroutine cosqf(n, x, wsave)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer  :: n
+    integer   :: n
     real (wp) :: x(*)
     real (wp) :: wsave(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    real (wp), parameter :: sqrt2 = sqrt(2.0_wp) ! 1.4142135623731
+    real (wp), parameter :: SQRT2 = sqrt(2.0_wp) ! 1.4142135623731
     !-----------------------------------------------
 
 
     if (n - 2 >= 0) then
         if (n - 2 > 0) then
-            go to 103
+            call cosqf1(n, x, wsave, wsave(n+1))
         end if
-        associate( tsqx => sqrt2*x(2) )
+        associate( tsqx => SQRT2*x(2) )
             x(2) = x(1) - tsqx
             x(1) = x(1) + tsqx
         end associate
     end if
-    return
-103 continue
-    call cosqf1(n, x, wsave, wsave(n+1))
 
 end subroutine cosqf
 
@@ -1386,7 +1432,7 @@ subroutine cosqf1(n, x, w, xh)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: ns2, np2, k, kc, modn, i
+    integer   :: ns2, np2, k, kc, modn, i
     real (wp) :: xim1
     !-----------------------------------------------
 
@@ -1460,10 +1506,10 @@ subroutine cosqb1(n, x, w, xh)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer  :: n
-    real (wp) :: x(*)
+    integer                :: n
+    real (wp)              :: x(*)
     real (wp), intent (in) :: w(*)
-    real (wp) :: xh(*)
+    real (wp)              :: xh(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -1534,26 +1580,26 @@ subroutine sinqf(n, x, wsave)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: ns2, k, kc
+    integer   :: ns2, k, kc
     real (wp) :: xhold
     !-----------------------------------------------
-    !
-    if (n == 1) then
-        return
+
+    if (n /= 1) then
+
+        ns2 = n/2
+
+        do k = 1, ns2
+            kc = n - k
+            xhold = x(k)
+            x(k) = x(kc+1)
+            x(kc+1) = xhold
+        end do
+
+        call cosqf(n, x, wsave)
+
+        x(2:n:2) = -x(2:n:2)
+
     end if
-
-    ns2 = n/2
-
-    do k = 1, ns2
-        kc = n - k
-        xhold = x(k)
-        x(k) = x(kc+1)
-        x(kc+1) = xhold
-    end do
-
-    call cosqf(n, x, wsave)
-
-    x(2:n:2) = -x(2:n:2)
 
 end subroutine sinqf
 
@@ -1568,26 +1614,25 @@ subroutine sinqb(n, x, wsave)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: ns2, k, kc
+    integer   :: ns2, k, kc
     real (wp) :: xhold
     !-----------------------------------------------
-    !
+
     if (n <= 1) then
         x(1) = 4.0_wp * x(1)
-        return
+    else
+        ns2 = n/2
+        x(2:n:2) = -x(2:n:2)
+
+        call cosqb(n, x, wsave)
+
+        do k = 1, ns2
+            kc = n - k
+            xhold = x(k)
+            x(k) = x(kc+1)
+            x(kc+1) = xhold
+        end do
     end if
-
-    ns2 = n/2
-    x(2:n:2) = -x(2:n:2)
-
-    call cosqb(n, x, wsave)
-
-    do k = 1, ns2
-        kc = n - k
-        xhold = x(k)
-        x(k) = x(kc+1)
-        x(kc+1) = xhold
-    end do
 
 end subroutine sinqb
 
@@ -1596,19 +1641,19 @@ subroutine cffti(n, wsave)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer  :: n
+    integer   :: n
     real (wp) :: wsave(*)
     !-----------------------------------------------
+    ! Dictionary: calling arguments
+    !-----------------------------------------------
+    integer :: iw1, iw2
+    !-----------------------------------------------
 
-    if (n == 1) then
-        return
+    if (n /= 1) then
+        iw1 = 2*n + 1
+        iw2 = iw1 + 2*n
+        call cffti1(n, wsave(iw1), wsave(iw2))
     end if
-
-    associate( iw1 => 2*n + 1 )
-        associate( iw2 => iw1 + 2*n )
-            call cffti1(n, wsave(iw1), wsave(iw2))
-        end associate
-    end associate
 
 end subroutine cffti
 
@@ -1617,18 +1662,18 @@ subroutine cffti1(n, wa, ifac)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent (in) :: n
-    !integer , intent (in out) :: ifac(*)
+    integer , intent (in)      :: n
     real (wp), intent (in out) :: ifac(*)
     real (wp), intent (in out) :: wa(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer , parameter :: ntryh(*) = [3, 4, 2, 5]
-    integer :: nl, nf, j, ntry, nq, nr, i, l1, k1, ip, ld, l2, ido
-    integer :: idot, ipm, i1, ii
-    real (wp), parameter :: two_pi = 2.0_wp * acos(-1.0_wp)
-    real (wp) :: argh, fi, argld, arg
+    integer , parameter  :: ntryh(*) = [3, 4, 2, 5]
+    integer              :: nl, nf, j, ntry, nq, nr
+    integer              :: i, l1, k1, ip, ld, l2, ido
+    integer              :: idot, ipm, i1, ii
+    real (wp), parameter :: TWO_PI = 2.0_wp * acos(-1.0_wp)
+    real (wp)            :: argh, fi, argld, arg
     !-----------------------------------------------
 
     nl = n
@@ -1671,7 +1716,7 @@ subroutine cffti1(n, wa, ifac)
 
     ifac(1) = n
     ifac(2) = nf
-    argh = two_pi/n
+    argh = TWO_PI/n
     i = 2
     l1 = 1
     do k1 = 1, nf
@@ -1837,7 +1882,7 @@ pure subroutine passb2(ido, l1, cc, ch, wa1)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: k, i
+    integer   :: k, i
     real (wp) :: tr2, ti2
     !-----------------------------------------------
 
@@ -1875,7 +1920,7 @@ pure subroutine passb3(ido, l1, cc, ch, wa1, wa2)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: k, i
+    integer              :: k, i
     real (wp), parameter :: taur = -0.5_wp
     real (wp), parameter :: taui = sqrt(3.0_wp)/2 ! 0.866025403784439
     real (wp)            :: tr2, cr2, ti2, ci2, cr3, ci3, dr2, dr3, di2, di3
