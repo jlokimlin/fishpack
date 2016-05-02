@@ -939,12 +939,12 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer  :: n
+        integer                 :: n
         real (wp), intent (out) :: azero
-        real (wp), intent (in) :: r(*)
+        real (wp), intent (in)  :: r(*)
         real (wp), intent (out) :: a(*)
         real (wp), intent (out) :: b(*)
-        real (wp) :: wsave(*)
+        real (wp)               :: wsave(*)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
@@ -3356,84 +3356,96 @@ subroutine rfftf1(n, c, ch, wa, ifac)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent (in) :: n
-    !integer , intent (in) :: ifac(*)
+    integer ,  intent (in) :: n
     real (wp), intent (in) :: ifac(*)
-    real (wp) :: c(*)
-    real (wp) :: ch(*)
-    real (wp) :: wa(*)
+    real (wp)              :: c(*)
+    real (wp)              :: ch(*)
+    real (wp)              :: wa(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: nf, na, l2, iw, k1, kh, ip, l1, ido, idl1, ix2, ix3, ix4
+    integer :: exit_counter
+    integer :: nf, na, l2, iw, k1, kh
+    integer :: iip, l1, ido, idl1, ix2, ix3, ix4
     !-----------------------------------------------
 
     nf = ifac(2)
     na = 1
     l2 = n
     iw = n
+
     do k1 = 1, nf
         kh = nf - k1
-        ip = ifac(kh+3)
-        l1 = l2/ip
+        iip = ifac(kh+3)
+        l1 = l2/iip
         ido = n/l2
         idl1 = ido*l1
-        iw = iw - (ip - 1)*ido
+        iw = iw - (iip - 1)*ido
         na = 1 - na
-        if (ip == 4) then
-            ix2 = iw + ido
-            ix3 = ix2 + ido
-            if (na == 0) then
-                call radf4 (ido, l1, c, ch, wa(iw), wa(ix2), wa(ix3))
-                go to 110
+        !
+        !
+        ! GCC 5.3 does not support Fortran 2008 the exit statement within
+        ! a if-then-else construct yet.
+        !
+        exit_if_then_else: do exit_counter = 1, 1
+            if (iip == 4) then
+                ix2 = iw + ido
+                ix3 = ix2 + ido
+                if (na == 0) then
+                    call radf4 (ido, l1, c, ch, wa(iw), wa(ix2), wa(ix3))
+                    exit exit_if_then_else
+                end if
+                call radf4 (ido, l1, ch, c, wa(iw), wa(ix2), wa(ix3))
+                exit exit_if_then_else
             end if
-            call radf4 (ido, l1, ch, c, wa(iw), wa(ix2), wa(ix3))
-            go to 110
-        end if
-        if (ip == 2) then
-            if (na == 0) then
-                call radf2 (ido, l1, c, ch, wa(iw))
-                go to 110
+            if (iip == 2) then
+                if (na == 0) then
+                    call radf2 (ido, l1, c, ch, wa(iw))
+                    exit exit_if_then_else
+                end if
+                call radf2 (ido, l1, ch, c, wa(iw))
+                exit exit_if_then_else
             end if
-            call radf2 (ido, l1, ch, c, wa(iw))
-            go to 110
-        end if
-104 continue
-    if (ip == 3) then
-        ix2 = iw + ido
-        if (na == 0) then
-            call radf3 (ido, l1, c, ch, wa(iw), wa(ix2))
-            go to 110
-        end if
-        call radf3 (ido, l1, ch, c, wa(iw), wa(ix2))
-        go to 110
+            if (iip == 3) then
+                ix2 = iw + ido
+                if (na == 0) then
+                    call radf3 (ido, l1, c, ch, wa(iw), wa(ix2))
+                    exit exit_if_then_else
+                end if
+                call radf3 (ido, l1, ch, c, wa(iw), wa(ix2))
+                exit exit_if_then_else
+            end if
+            if (iip == 5) then
+                ix2 = iw + ido
+                ix3 = ix2 + ido
+                ix4 = ix3 + ido
+                if (na == 0) then
+                    call radf5(ido, l1, c, ch, wa(iw), wa(ix2), wa(ix3), wa(ix4))
+                    exit exit_if_then_else
+                end if
+                call radf5(ido, l1, ch, c, wa(iw), wa(ix2), wa(ix3), wa(ix4))
+                exit exit_if_then_else
+            end if
+            if (ido == 1) then
+                na = 1 - na
+            end if
+            if (na == 0) then
+                call radfg (ido, iip, l1, idl1, c, c, c, ch, ch, wa(iw))
+                na = 1
+            else
+                call radfg (ido, iip, l1, idl1, ch, ch, ch, c, c, wa(iw))
+                na = 0
+            end if
+        end do exit_if_then_else
+
+        l2 = l1
+    end do
+
+    if (na == 1) then
+        return
     end if
-106 continue
-    if (ip == 5) then
-        ix2 = iw + ido
-        ix3 = ix2 + ido
-        ix4 = ix3 + ido
-        if (na == 0) then
-            call radf5(ido, l1, c, ch, wa(iw), wa(ix2), wa(ix3), wa(ix4))
-            go to 110
-        end if
-        call radf5(ido, l1, ch, c, wa(iw), wa(ix2), wa(ix3), wa(ix4))
-        go to 110
-    end if
-108 continue
-    if (ido == 1) na = 1 - na
-    if (na == 0) then
-        call radfg (ido, ip, l1, idl1, c, c, c, ch, ch, wa(iw))
-        na = 1
-    else
-        call radfg (ido, ip, l1, idl1, ch, ch, ch, c, c, wa(iw))
-        na = 0
-    end if
-110 continue
-    l2 = l1
-end do
-if (na == 1) return
-c(:n) = ch(:n)
+
+    c(:n) = ch(:n)
 
 end subroutine rfftf1
 
@@ -3450,12 +3462,13 @@ pure subroutine radf2(ido, l1, cc, ch, wa1)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer :: k, idp2, i, ic
+    integer   :: k, idp2, i, ic
     real (wp) :: tr2, ti2
     !-----------------------------------------------
 
     ch(1, 1,:) = cc(1,:, 1) + cc(1,:, 2)
     ch(ido, 2,:) = cc(1,:, 1) - cc(1,:, 2)
+
     if (ido - 2 >= 0) then
         if (ido - 2 /= 0) then
             idp2 = ido + 2
@@ -3470,12 +3483,14 @@ pure subroutine radf2(ido, l1, cc, ch, wa1)
                     ch(ic-1, 2, k) = cc(i-1, k, 1) - tr2
                 end do
             end do
-            if (mod(ido, 2) == 1) return
+            if (mod(ido, 2) == 1) then
+                return
+            end if
         end if
         ch(1, 2,:) = -cc(ido,:, 2)
         ch(ido, 1,:) = cc(ido,:, 1)
     end if
-    return
+
 end subroutine radf2
 
 
@@ -3504,7 +3519,11 @@ pure subroutine radf3(ido, l1, cc, ch, wa1, wa2)
         ch(1, 3, k) = taui*(cc(1, k, 3)-cc(1, k, 2))
         ch(ido, 2, k) = cc(1, k, 1) + taur*cr2
     end do
-    if (ido == 1) return
+
+    if (ido == 1) then
+        return
+    end if
+
     idp2 = ido + 2
     do k = 1, l1
         do i = 3, ido, 2
@@ -3535,13 +3554,13 @@ subroutine radf4(ido, l1, cc, ch, wa1, wa2, wa3)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent (in) :: ido
-    integer , intent (in) :: l1
-    real (wp), intent (in) :: cc(ido, l1, 4)
+    integer ,  intent (in)  :: ido
+    integer ,  intent (in)  :: l1
+    real (wp), intent (in)  :: cc(ido, l1, 4)
     real (wp), intent (out) :: ch(ido, 4, l1)
-    real (wp), intent (in) :: wa1(*)
-    real (wp), intent (in) :: wa2(*)
-    real (wp), intent (in) :: wa3(*)
+    real (wp), intent (in)  :: wa1(*)
+    real (wp), intent (in)  :: wa2(*)
+    real (wp), intent (in)  :: wa3(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -3591,7 +3610,9 @@ subroutine radf4(ido, l1, cc, ch, wa1, wa2, wa3)
                     ch(ic, 2, k) = tr4 - ti3
                 end do
             end do
-            if (mod(ido, 2) == 1) return
+            if (mod(ido, 2) == 1) then
+                return
+            end if
         end if
         do k = 1, l1
             ti1 = -one_over_sqrt2*(cc(ido, k, 2)+cc(ido, k, 4))
@@ -3610,14 +3631,14 @@ subroutine radf5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent (in) :: ido
-    integer , intent (in) :: l1
-    real (wp), intent (in) :: cc(ido, l1, 5)
+    integer ,  intent (in)  :: ido
+    integer ,  intent (in)  :: l1
+    real (wp), intent (in)  :: cc(ido, l1, 5)
     real (wp), intent (out) :: ch(ido, 5, l1)
-    real (wp), intent (in) :: wa1(*)
-    real (wp), intent (in) :: wa2(*)
-    real (wp), intent (in) :: wa3(*)
-    real (wp), intent (in) :: wa4(*)
+    real (wp), intent (in)  :: wa1(*)
+    real (wp), intent (in)  :: wa2(*)
+    real (wp), intent (in)  :: wa3(*)
+    real (wp), intent (in)  :: wa4(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
@@ -3693,91 +3714,103 @@ subroutine radf5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
 end subroutine radf5
 
 
+
 subroutine radfg(ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer , intent (in) :: ido
-    integer , intent (in) :: ip
-    integer , intent (in) :: l1
-    integer , intent (in) :: idl1
-    real (wp), intent (out) :: cc(ido, ip, l1)
+    integer , intent (in)      :: ido
+    integer , intent (in)      :: ip
+    integer , intent (in)      :: l1
+    integer , intent (in)      :: idl1
+    real (wp), intent (out)    :: cc(ido, ip, l1)
     real (wp), intent (in out) :: c1(ido, l1, ip)
     real (wp), intent (in out) :: c2(idl1, ip)
     real (wp), intent (in out) :: ch(ido, l1, ip)
     real (wp), intent (in out) :: ch2(idl1, ip)
-    real (wp), intent (in) :: wa(*)
+    real (wp), intent (in)     :: wa(*)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer:: ipph, ipp2, idp2, nbd, j, k, is, idij, i, jc, l, lc
-    real (wp), parameter :: two_pi = 2.0_wp * acos(-1.0_wp)
-    real (wp) :: arg, dcp, dsp, ar1, ai1, ar1h, dc2, ds2, ar2, ai2, ar2h
+    integer              :: exit_counter
+    integer              :: ipph, ipp2, idp2, nbd, j
+    integer              :: k, is, idij, i, jc, l, lc
+    real (wp), parameter :: TWO_PI = 2.0_wp * acos(-1.0_wp)
+    real (wp)            :: arg, dcp, dsp, ar1, ai1
+    real (wp)            :: ar1h, dc2, ds2, ar2, ai2, ar2h
     !-----------------------------------------------
 
-    arg = two_pi/ip
+    arg = TWO_PI/ip
     dcp = cos(arg)
     dsp = sin(arg)
     ipph = (ip + 1)/2
     ipp2 = ip + 2
     idp2 = ido + 2
     nbd = (ido - 1)/2
-    if (ido /= 1) then
-        ch2(:, 1) = c2(:, 1)
-        ch(1,:, 2:ip) = c1(1,:, 2:ip)
-        if (nbd <= l1) then
-            is = -ido
-            do j = 2, ip
-                is = is + ido
-                idij = is
-                do i = 3, ido, 2
-                    idij = idij + 2
-                    ch(i-1,:, j)=wa(idij-1)*c1(i-1,:, j)+wa(idij)*c1(i,:, j)
-                    ch(i,:, j)=wa(idij-1)*c1(i,:, j)-wa(idij)*c1(i-1,:, j)
-                end do
-            end do
-        else
-            is = -ido
-            do j = 2, ip
-                is = is + ido
-                do k = 1, l1
+
+    !
+    !
+    ! GCC 5.3 does not support Fortran 2008 the exit statement within
+    ! a if-then-else construct yet.
+    !
+    exit_if_then_else: do exit_counter = 1, 1
+        if (ido /= 1) then
+            ch2(:, 1) = c2(:, 1)
+            ch(1,:, 2:ip) = c1(1,:, 2:ip)
+            if (nbd <= l1) then
+                is = -ido
+                do j = 2, ip
+                    is = is + ido
                     idij = is
-                    ch(2:ido-1:2, k, j) = wa(idij+1:ido-2+idij:2)*c1(2:ido-1 &
-                        :2, k, j) + wa(idij+2:ido-1+idij:2)*c1(3:ido:2, k, j)
-                    ch(3:ido:2, k, j) = wa(idij+1:ido-2+idij:2)*c1(3:ido:2, k &
-                        , j) - wa(idij+2:ido-1+idij:2)*c1(2:ido-1:2, k, j)
+                    do i = 3, ido, 2
+                        idij = idij + 2
+                        ch(i-1,:, j)=wa(idij-1)*c1(i-1,:, j)+wa(idij)*c1(i,:, j)
+                        ch(i,:, j)=wa(idij-1)*c1(i,:, j)-wa(idij)*c1(i-1,:, j)
+                    end do
                 end do
-            end do
-        end if
-        if (nbd >= l1) then
+            else
+                is = -ido
+                do j = 2, ip
+                    is = is + ido
+                    do k = 1, l1
+                        idij = is
+                        ch(2:ido-1:2, k, j) = wa(idij+1:ido-2+idij:2)*c1(2:ido-1 &
+                            :2, k, j) + wa(idij+2:ido-1+idij:2)*c1(3:ido:2, k, j)
+                        ch(3:ido:2, k, j) = wa(idij+1:ido-2+idij:2)*c1(3:ido:2, k &
+                            , j) - wa(idij+2:ido-1+idij:2)*c1(2:ido-1:2, k, j)
+                    end do
+                end do
+            end if
+            if (nbd >= l1) then
+                do j = 2, ipph
+                    jc = ipp2 - j
+                    c1(2:ido-1:2,:, j)=ch(2:ido-1:2,:, j)+ch(2:ido-1:2,:, jc)
+                    c1(2:ido-1:2,:, jc) = ch(3:ido:2,:, j) - ch(3:ido:2,:, jc)
+                    c1(3:ido:2,:, j) = ch(3:ido:2,:, j) + ch(3:ido:2,:, jc)
+                    c1(3:ido:2,:, jc) = ch(2:ido-1:2,:, jc) - ch(2:ido-1:2,:, j)
+                end do
+                exit exit_if_then_else
+            end if
             do j = 2, ipph
                 jc = ipp2 - j
-                c1(2:ido-1:2,:, j)=ch(2:ido-1:2,:, j)+ch(2:ido-1:2,:, jc)
+                c1(2:ido-1:2,:, j) = ch(2:ido-1:2,:, j) + ch(2:ido-1:2,:, jc)
                 c1(2:ido-1:2,:, jc) = ch(3:ido:2,:, j) - ch(3:ido:2,:, jc)
                 c1(3:ido:2,:, j) = ch(3:ido:2,:, j) + ch(3:ido:2,:, jc)
                 c1(3:ido:2,:, jc) = ch(2:ido-1:2,:, jc) - ch(2:ido-1:2,:, j)
             end do
-            go to 121
+            exit exit_if_then_else
         end if
-        do j = 2, ipph
-            jc = ipp2 - j
-            c1(2:ido-1:2,:, j) = ch(2:ido-1:2,:, j) + ch(2:ido-1:2,:, jc)
-            c1(2:ido-1:2,:, jc) = ch(3:ido:2,:, j) - ch(3:ido:2,:, jc)
-            c1(3:ido:2,:, j) = ch(3:ido:2,:, j) + ch(3:ido:2,:, jc)
-            c1(3:ido:2,:, jc) = ch(2:ido-1:2,:, jc) - ch(2:ido-1:2,:, j)
-        end do
-        go to 121
-    end if
-    c2(:, 1) = ch2(:, 1)
-121 continue
+        c2(:, 1) = ch2(:, 1)
+    end do exit_if_then_else
+
     do j = 2, ipph
         jc = ipp2 - j
         c1(1,:, j) = ch(1,:, j) + ch(1,:, jc)
         c1(1,:, jc) = ch(1,:, jc) - ch(1,:, j)
     end do
-    !
-    ar1 = 1.
-    ai1 = 0.
+
+    ar1 = 1.0_wp
+    ai1 = 0.0_wp
     do l = 2, ipph
         lc = ipp2 - l
         ar1h = dcp*ar1 - dsp*ai1
@@ -3832,6 +3865,7 @@ subroutine radfg(ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
             = [(ido-1)/2, ipph-1, l1], order = [1, 3, 2])
         return
     end if
+
     cc(2:ido-1:2, 3:ipph*2-1:2,:) = reshape(source = ch(2:ido-1:2,:, 2: &
         ipph)+ch(2:ido-1:2,:, ipp2-2:ipp2-ipph:(-1)), shape = [(ido-1)/2 &
         , ipph-1, l1], order = [1, 3, 2])
@@ -3845,16 +3879,19 @@ subroutine radfg(ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
         ido:2,:, ipp2-2:ipp2-ipph:(-1))-ch(3:ido:2,:, 2:ipph), shape = [( &
         ido-1)/2, ipph-1, l1], order = [1, 3, 2])
 
-!     this function is define in the file comf.f
 end subroutine radfg
 
 
 end module module_fftpack
+!
+! REVISION HISTORY
+!
 ! September 1973    Version 1
 ! April     1976    Version 2
 ! January   1978    Version 3
 ! December  1979    Version 3.1
 ! February  1985    Documentation upgrade
 ! November  1988    Version 3.2, FORTRAN 77 changes
-! june      2004    fortran 90 updates
-!-----------------------------------------------------------------------
+! June      2004    Fortran 90 updates
+! April     2016    Fortran 2008 changes
+!
