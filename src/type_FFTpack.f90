@@ -1,4 +1,4 @@
-module module_fftpack
+module type_FFTpack
 
     use, intrinsic :: iso_fortran_env, only: &
         wp => REAL64
@@ -9,25 +9,6 @@ module module_fftpack
     ! Everything is private unless stated otherwise
     private
     public :: FFTpack
-    public :: rffti
-    public :: rfftf
-    public :: rfftb
-    public :: ezffti
-    public :: ezfftf
-    public :: ezfftb
-    public :: sinti
-    public :: sint
-    public :: costi
-    public :: cost
-    public :: sinqi
-    public :: sinqf
-    public :: sinqb
-    public :: cosqi
-    public :: cosqf
-    public :: cosqb
-    public :: cffti
-    public :: cfftf
-    public :: cfftb
 
 
     ! Declare derived data type
@@ -42,53 +23,59 @@ module module_fftpack
         procedure, nopass, public :: rffti
         procedure, nopass, public :: rfftf
         procedure, nopass, public :: rfftb
+        procedure, nopass, public :: ezffti
+        procedure, nopass, public :: ezfftf
+        procedure, nopass, public :: ezfftb
+        procedure, nopass, public :: sinti
         procedure, nopass, public :: sint
+        procedure, nopass, public :: costi
+        procedure, nopass, public :: cost
+        procedure, nopass, public :: sinqi
         procedure, nopass, public :: sinqf
         procedure, nopass, public :: sinqb
-        procedure, nopass, public :: sinti
-        procedure, nopass, public :: sinqi
-        procedure, nopass, public :: costi
         procedure, nopass, public :: cosqi
-        procedure, nopass, public :: cost
         procedure, nopass, public :: cosqf
         procedure, nopass, public :: cosqb
+        procedure, nopass, public :: cffti
+        procedure, nopass, public :: cfftf
+        procedure, nopass, public :: cfftb
         !-------------------------------------------------------
     end type FFTpack
 
 contains
     !
-    !     file fftpack.f90
+    !     file type_FFTpack.f90
     !
     !
     !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
     !     *                                                               *
-    !     *                  copyright (c) 2005 by ucar                   *
+    !     *                  copyright (c) 2005 by UCAR                   *
     !     *                                                               *
-    !     *       university corporation for atmospheric research         *
+    !     *       University Corporation for Atmospheric Research         *
     !     *                                                               *
     !     *                      all rights reserved                      *
     !     *                                                               *
-    !     *                    fishpack90  Version 1.1                    *
+    !     *                    FISHPACK90  Version 1.1                    *
     !     *                                                               *
-    !     *                 a package of fortran 77 and 90                *
+    !     *                 A Package of Fortran 77 and 90                *
     !     *                                                               *
-    !     *                subroutines and example programs               *
+    !     *                Subroutines and Example Programs               *
     !     *                                                               *
-    !     *               for modeling geophysical processes              *
+    !     *               for Modeling Geophysical Processes              *
     !     *                                                               *
     !     *                             by                                *
     !     *                                                               *
-    !     *        john adams, paul swarztrauber and roland sweet         *
+    !     *        John Adams, Paul Swarztrauber and Roland Sweet         *
     !     *                                                               *
     !     *                             of                                *
     !     *                                                               *
-    !     *         the national center for atmospheric research          *
+    !     *         the National Center for Atmospheric Research          *
     !     *                                                               *
-    !     *                boulder, colorado  (80307)  u.s.a.             *
+    !     *                Boulder, Colorado  (80307)  U.S.A.             *
     !     *                                                               *
     !     *                   which is sponsored by                       *
     !     *                                                               *
-    !     *              the national science foundation                  *
+    !     *              the National Science Foundation                  *
     !     *                                                               *
     !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
     !
@@ -3916,7 +3903,7 @@ subroutine radfg(ido, ip, l1, idl1, cc, c1, c2, ch, ch2, wa)
 end subroutine radfg
 
 
-end module module_fftpack
+end module type_FFTpack
 !
 ! REVISION HISTORY
 !

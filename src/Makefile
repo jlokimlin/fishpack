@@ -42,9 +42,9 @@ gnbnaux.f90
 	$(FC) $(FFLAGS) -c gnbnaux.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
-fftpack.o: \
-fftpack.f90
-	$(FC) $(FFLAGS) -c fftpack.f90 $(LINKS) \
+type_FFTpack.o: \
+type_FFTpack.f90
+	$(FC) $(FFLAGS) -c type_FFTpack.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 	 
 genbun.o: \
@@ -63,7 +63,7 @@ poistg.f90
 
 pois3d.o: \
 type_FishpackWorkspace.o \
-fftpack.o \
+type_FFTpack.o \
 pois3d.f90
 	$(FC) $(FFLAGS) -c pois3d.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)

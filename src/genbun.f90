@@ -25,7 +25,7 @@ contains
 
     subroutine genbun(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
         !
-        !     file genbun.f
+        !     file genbun.f90
         !
         !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
         !     *                                                               *

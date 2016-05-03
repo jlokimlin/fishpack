@@ -7,7 +7,7 @@ module module_pois3d
     use type_FishpackWorkspace, only: &
         FishpackWorkspace
 
-    use module_fftpack, only: &
+    use type_FFTpack, only: &
         FFTpack
 
     ! Explicit typing only
@@ -204,7 +204,7 @@ contains
         !
         ! PRECISION              64-bit float and 32-bit integer
         !
-        ! REQUIRED files         type_FishpackWorkspace.f90, comf.f90, fftpack.f90
+        ! REQUIRED files         type_FishpackWorkspace.f90, comf.f90, type_FFTpack.f90
         !
         ! STANDARD               Fortran 2008
         !
