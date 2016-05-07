@@ -41,8 +41,8 @@ program thstcsp
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-        FishpackWorkspace, &
-        hstcsp
+        FishpackSolver, &
+        FishpackWorkspace
 
     ! Explicit typing only
     implicit none
@@ -50,6 +50,7 @@ program thstcsp
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
+    type (FishpackSolver)    :: solver
     type (FishpackWorkspace) :: workspace
     integer (ip) :: idimf, m, mbdcnd, i, n, nbdcnd, j, intl, ierror
     real (wp), dimension(47, 16) :: f
@@ -68,7 +69,7 @@ program thstcsp
     !
     m = 45
     mbdcnd = 9
-    dt = (b - a)/real(m)
+    dt = (b - a)/m
     !
     !     define grid points theta(i) and cos(theta(i))
     !
@@ -76,11 +77,11 @@ program thstcsp
         theta(i) = a + (real(i) - 0.5)*dt
         cost(i) = cos(theta(i))
     end do
-    c = 0.
-    d = 1.
+    c = 0.0_wp
+    d = 1.0_wp
     n = 15
     nbdcnd = 5
-    dr = (d - c)/real(n)
+    dr = (d - c)/n
     !
     !     define grid points r(j)
     !
@@ -92,7 +93,7 @@ program thstcsp
     !     variables in this example.
     !
     bdd(:m) = cost(:m)**4
-    elmbda = 0.
+    elmbda = 0.0_wp
     !
     !     define right side f
     !
@@ -103,7 +104,7 @@ program thstcsp
     ! Initialize
     intl = 0
 
-    call hstcsp(intl, a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
+    call solver%hstcsp(intl, a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror, workspace)
     !
     !     compute discretization error.  the exact solution is
@@ -131,7 +132,9 @@ program thstcsp
     write( stdout, '(A,I3,A,1pe15.6)') &
         '     ierror =', ierror, ' discretization error = ', discretization_error
 
-    !     release memory allocated by hstcsp (intl=0 call)
+    !
+    !==> Release memory
+    !
     call workspace%destroy()
 
 end program thstcsp

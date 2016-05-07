@@ -40,14 +40,15 @@ program thwscrt
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-        hwscrt
+        FishpackSolver
 
     ! Explicit typing only
     implicit none
 
     !-----------------------------------------------
-    ! Dictionary
+    ! Dictionary: local variables
     !-----------------------------------------------
+    type (FishpackSolver)    :: solver
     integer :: idimf, m, mbdcnd, n, nbdcnd, mp1, np1, i, j, ierror
     real (wp), dimension(45, 82) :: f
     real (wp), dimension(81) :: bdb, bda, bdc, bdd, y
@@ -104,7 +105,7 @@ program thwscrt
         end do
     end do
 
-    call hwscrt(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
+    call solver%hwscrt(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
         elmbda, f, idimf, pertrb, ierror)
     !
     !     compute discretization error.  the exact solution is

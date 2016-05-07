@@ -90,8 +90,8 @@ program tblktri
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-        FishpackWorkspace, &
-        blktri
+        FishpackSolver, &
+        FishpackWorkspace
 
     ! Explicit typing only
     implicit none
@@ -99,6 +99,7 @@ program tblktri
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
+    type (FishpackSolver)     :: solver
     type (FishpackWorkspace)  :: workspace
     integer (ip), parameter   :: IDIMY = 75
     integer (ip)              :: iflg, np, n, mp, m, i, j, ierror
@@ -189,16 +190,21 @@ program tblktri
     y(m, :n) = y(m, :n) - cm(m)*t(:n)**5
     y(:m, n) = y(:m, n) - cn(n)*s(:m)**5
     !
-    !     Determine the approximate solution u(i, j)
+    !==> Determine the approximate solution u(i, j)
     !
-    call blktri(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, IDIMY, y, ierror, workspace)
+    call solver%blktri(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, IDIMY, y, ierror, workspace)
 
     iflg = iflg + 1
 
     do while(iflg - 1 <= 0)
-        call blktri(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, IDIMY, &
+
+        ! Solver system
+        call solver%blktri(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, IDIMY, &
             y, ierror, workspace )
+
+        ! Increment flag
         iflg = iflg + 1
+
     end do
 
     discretization_error = 0.0_wp
@@ -206,7 +212,9 @@ program tblktri
     do j = 1, n
         do i = 1, m
             associate( local_error => abs(y(i, j)-(s(i)*t(j))**5) )
+
                 discretization_error = max(local_error, discretization_error)
+
             end associate
         end do
     end do
@@ -221,7 +229,9 @@ program tblktri
     write( stdout, '(A,I3,A,1pe15.6)') '     ierror =', ierror, ' discretization error = ', &
         discretization_error
 
-    ! Release memory
+    !
+    !==> Release memory
+    !
     call workspace%destroy()
 
 end program tblktri

@@ -241,7 +241,7 @@ type_TridiagonalSolver.f90
 	$(FC) $(FFLAGS) -c type_TridiagonalSolver.f90 $(LINKS)\
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
-fishpack_library.o: \
+type_FishpackSolver.o: \
 blktri.o\
 cblktri.o\
 cmgnbn.o\
@@ -261,7 +261,13 @@ pois3d.o\
 poistg.o\
 sepeli.o\
 sepx4.o\
+type_FishpackSolver.f90
+	$(FC) $(FFLAGS) -c type_FishpackSolver.f90 $(LINKS)\
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+	 
+fishpack_library.o: \
 type_FishpackWorkspace.o\
+type_FishpackSolver.o\
 type_HelmholtzData.o\
 type_HelmholtzSolver.o\
 type_PoissonSolver.o \

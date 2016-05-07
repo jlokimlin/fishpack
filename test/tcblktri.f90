@@ -41,8 +41,8 @@ program tcblktri
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-        FishpackWorkspace, &
-        cblktrigit
+        FishpackSolver, &
+        FishpackWorkspace
 
     ! Explicit typing only
     implicit none
@@ -50,6 +50,7 @@ program tcblktri
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
+    type (FishpackSolver)               :: solver
     type (FishpackWorkspace)            :: workspace
     integer (ip), parameter             :: IDIMY = 75
     integer (ip)                        :: iflg, np, n, mp, m, i, j, ierror
@@ -71,18 +72,21 @@ program tcblktri
     !     generate and store grid points for the purpose of computing the
     !     coefficients and the array y.
     !
-    ds = 1./real(m + 1)
+    ds = 1.0_wp/(m + 1)
+
     do i = 1, m
         s(i) = real(i)*ds
     end do
-    dt = 1./real(n + 1)
+
+    dt = 1.0_wp/(n + 1)
+
     do j = 1, n
         t(j) = real(j)*dt
     end do
     !
     !     compute the coefficients am, bm, cm corresponding to the s direction
     !
-    half_ds = ds/2.
+    half_ds = ds/2
     two_ds = ds + ds
     do i = 1, m
         temp1 = 1./(s(i)*two_ds)
@@ -95,8 +99,8 @@ program tcblktri
     !
     !     compute the coefficients an, bn, cn corresponding to the t direction
     !
-    half_dt = dt/2.
-    two_dt = dt + dt
+    half_dt = dt/2
+    two_dt = 2.0_wp * dt
     do j = 1, n
         temp1 = 1./(t(j)*two_dt)
         temp2 = 1./((t(j)-half_dt)*two_dt)
@@ -123,20 +127,29 @@ program tcblktri
     !
     y(m, :n) = y(m, :n) - cm(m)*t(:n)**5
     y(:m, n) = y(:m, n) - cn(n)*s(:m)**5
-    call cblktri(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, IDIMY, y, ierror, workspace)
+
+    call solver%cblktri(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, IDIMY, y, ierror, workspace)
+
     iflg = iflg + 1
+
     do while(iflg - 1 <= 0)
-        call cblktri (iflg, np, n, an, bn, cn, mp, m, am, bm, cm, IDIMY &
-            , y, ierror, workspace)
+
+        ! Solve system
+        call solver%cblktri(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, IDIMY, y, ierror, workspace)
+
+        ! Increment iteration flag
         iflg = iflg + 1
+
     end do
-    err = 0.
+
+    err = 0.0_wp
     do j = 1, n
         do i = 1, m
             z = abs(y(i, j)-(s(i)*t(j))**5)
             err = max(z, err)
         end do
     end do
+
     !     Print earlier output from platforms with 32 and 64 bit floating point
     !     arithemtic followed by the output from this computer
     write( stdout, '(A)') ''
@@ -147,7 +160,9 @@ program tcblktri
     write( stdout, '(A,I3,A,1pe15.6)') &
         '     ierror =', ierror, ' discretization error = ', ERR
 
-    ! Release memory
+    !
+    !==> Release memory
+    !
     call workspace%destroy()
 
 end program tcblktri

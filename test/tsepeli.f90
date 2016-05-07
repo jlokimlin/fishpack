@@ -41,8 +41,8 @@ program tsepeli
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-        FishpackWorkspace, &
-        sepeli
+        FishpackSolver, &
+        FishpackWorkspace
 
     ! Explicit typing only
     implicit none
@@ -50,7 +50,8 @@ program tsepeli
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
-    type (FishpackWorkspace) :: workspace
+    type (FishpackSolver)     :: solver
+    type (FishpackWorkspace)  :: workspace
     integer (ip)             :: m, n, nx, ny, i, j, mbdcnd, nbdcnd, idmn, intl, iorder, ierror
     real (wp), allocatable   :: usol(:,:), grhs(:,:)
     real (wp), allocatable   :: bda(:), bdb(:)
@@ -76,8 +77,8 @@ program tsepeli
     !
     m = 32
     n = 32
-    dlx = (b - a)/real(m)
-    dly = (d - c)/real(n)
+    dlx = (b - a)/m
+    dly = (d - c)/n
     nx = m + 1
     ny = n + 1
     do i = 1, nx
@@ -123,7 +124,7 @@ program tsepeli
     !     obtain second order approximation
     !
     iorder = 2
-    call sepeli(intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta &
+    call solver%sepeli(intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta &
         , c, d, n, nbdcnd, dum(1:1), dum(1), dum(1:1), dum(1), &
         get_coefficients_in_x_direction, get_coefficients_in_y_direction, grhs, usol, &
         idmn, workspace, pertrb, ierror)
@@ -144,7 +145,7 @@ program tsepeli
     !     non-initial call
     !
     intl = 1
-    call sepeli (intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta &
+    call solver%sepeli(intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta &
         , c, d, n, nbdcnd, dum(1:1), dum(1), dum(1:1), dum(1), &
         get_coefficients_in_x_direction, get_coefficients_in_y_direction, grhs, usol, &
         idmn, workspace, pertrb, ierror)

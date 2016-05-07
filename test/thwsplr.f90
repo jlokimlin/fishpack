@@ -65,14 +65,15 @@ program thwsplr
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-        hwsplr
+        FishpackSolver
 
     ! Explicit typing only
     implicit none
 
     !-----------------------------------------------
-    ! Dictionary: local variables
+    ! Dictionary
     !-----------------------------------------------
+    type (FishpackSolver)     :: solver
     integer :: idimf, m, mbdcnd, n, nbdcnd, mp1, np1, i, j, ierror
     real , dimension(100, 50) :: f
     real , dimension(51) :: bdc, bdd, r, bda, bdb
@@ -125,7 +126,7 @@ program thwsplr
     end do
 
     ! Solve system
-    call hwsplr(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
+    call solver%hwsplr(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
         elmbda, f, idimf, pertrb, ierror)
     !
     !     compute discretization error.  the exact solution is

@@ -41,14 +41,15 @@ program thstssp
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-        hstssp
+        FishpackSolver
 
     ! Explicit typing only
     implicit none
 
     !-----------------------------------------------
-    ! Dictionary
+    ! Dictionary: local variables
     !-----------------------------------------------
+    type (FishpackSolver)    :: solver
     integer :: m, mbdcnd, n, nbdcnd, idimf, i, j, ierror
     real (wp), dimension(18, 72) :: f
     real (wp), dimension(72) :: bda, bdb, bdc, bdd
@@ -94,7 +95,7 @@ program thstssp
     !
     !     bda, bdc, and bdd are dummy variables.
     !
-    call hstssp(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
+    call solver%hstssp(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
         elmbda, f, idimf, pertrb, ierror)
     !
     !     compute discretization error. since problem is singular, the

@@ -41,14 +41,15 @@ program thw3crt
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-        hw3crt
+        FishpackSolver
 
     ! Explicit typing only
     implicit none
 
     !-----------------------------------------------
-    ! Dictionary
+    ! Dictionary: local variables
     !-----------------------------------------------
+    type (FishpackSolver)    :: solver
     integer (ip) :: lbdcnd, mbdcnd, nbdcnd, l, m, n, ldimf, mdimf, lp1, i, &
         mp1, j, np1, k, ierror
     real (wp), dimension(11, 41, 16) :: f
@@ -138,7 +139,7 @@ program thw3crt
     !
     !     call hw3crt to generate and solve the finite difference equation.
     !
-    call hw3crt(xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m, mbdcnd, &
+    call solver%hw3crt(xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m, mbdcnd, &
         bdys, bdyf, zs, zf, n, nbdcnd, bdzs, bdzf, elmbda, ldimf, mdimf, &
         f, pertrb, ierror)
     !

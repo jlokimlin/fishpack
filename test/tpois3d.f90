@@ -41,7 +41,7 @@ program tpois3d
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-        pois3d
+        FishpackSolver
 
     ! Explicit typing only
     implicit none
@@ -49,6 +49,7 @@ program tpois3d
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
+    type (FishpackSolver)     :: solver
     integer :: ldimf, mdimf, lperod, l, mperod, m, nperod, n, i, j, k, ierror
     real (wp), dimension(32, 33, 10) :: f
     real (wp), dimension(10) :: a, b, c
@@ -117,7 +118,7 @@ program tpois3d
     !
     !     call pois3d to solve equations.
     !
-    call pois3d(lperod, l, c1, mperod, m, c2, nperod, n, a, b, c, &
+    call solver%pois3d(lperod, l, c1, mperod, m, c2, nperod, n, a, b, c, &
         ldimf, mdimf, f, ierror)
     !
     !     compute discretization error.  the exact solution is

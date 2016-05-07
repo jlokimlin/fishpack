@@ -62,14 +62,15 @@ program thstcyl
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-        hstcyl
+        FishpackSolver
 
     ! Explicit typing only
     implicit none
 
     !-----------------------------------------------
-    ! Dictionary
+    ! Dictionary: local variables
     !-----------------------------------------------
+    type (FishpackSolver)        :: solver
     integer (ip)                 :: idimf, m, mbdcnd, n, nbdcnd, i, j, ierror
     real (wp), dimension(51, 52) :: f
     real (wp), dimension(52)     :: bda, bdb
@@ -121,7 +122,7 @@ program thstcyl
     end do
 
     ! Solve system
-    call hstcyl(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
+    call solver%hstcyl(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
         elmbda, f, idimf, pertrb, ierror)
     !
     !     compute discretization error by minimizing over all a the function

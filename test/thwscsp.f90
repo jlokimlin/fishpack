@@ -41,8 +41,8 @@ program thwscsp
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-        FishpackWorkspace, &
-        hwscsp
+        FishpackSolver, &
+        FishpackWorkspace
 
     ! Explicit typing only
     implicit none
@@ -50,7 +50,8 @@ program thwscsp
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
-    type (FishpackWorkspace) :: workspace
+    type (FishpackSolver)     :: solver
+    type (FishpackWorkspace)  :: workspace
     integer (ip) :: intl, m, mbdcnd, n, nbdcnd, idimf, mp1, i, np1, j, ierror
     real (wp), dimension(48, 33) :: f
     real (wp), dimension(33) :: bdtf, bdts, bdrs, bdrf
@@ -108,7 +109,7 @@ program thwscsp
     end do
 
     ! Solve system
-    call hwscsp(intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, &
+    call solver%hwscsp(intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, &
         nbdcnd, bdrs, bdrf, elmbda, f, idimf, pertrb, ierror, workspace)
     !
     !     compute discretization error
@@ -151,7 +152,7 @@ program thwscsp
     f(:mp1, :n) = 0.
 
     ! Solve system
-    call hwscsp(intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, &
+    call solver%hwscsp(intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, &
         nbdcnd, bdrs, bdrf, elmbda, f, idimf, pertrb, ierror, workspace)
     !
     !     compute discretization error   (fourier coefficients)

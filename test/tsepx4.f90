@@ -41,14 +41,15 @@ program tsepx4
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-        sepx4
+        FishpackSolver
 
     ! Explicit typing only
     implicit none
 
-    !--------------------------------------------------------------------------
+    !-----------------------------------------------
     ! Dictionary
-    !--------------------------------------------------------------------------
+    !-----------------------------------------------
+    type (FishpackSolver)     :: solver
     integer(ip) :: m, n, nx, ny, i, j, mbdcnd, nbdcnd, idmn, iorder, ierror
     real (wp), dimension(33, 33) :: usol, grhs
     real (wp), dimension(33) :: bda, bdb
@@ -115,7 +116,7 @@ program tsepx4
     !
     iorder = 2
 
-    call sepx4(iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta, c, d, &
+    call solver%sepx4(iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta, c, d, &
         n, nbdcnd, dum, dum, get_coefficients_in_x_direction, grhs, usol, idmn, pertrb, ierror)
     !
     !     compute second order discretization error(relative)
@@ -141,7 +142,7 @@ program tsepx4
     !     obtain fourth order approximation
     !
     iorder = 4
-    call sepx4(iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta, c, d, &
+    call solver%sepx4(iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta, c, d, &
         n, nbdcnd, dum, dum, get_coefficients_in_x_direction, &
         grhs, usol, idmn, pertrb, ierror)
     !

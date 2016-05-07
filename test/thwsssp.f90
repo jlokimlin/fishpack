@@ -43,7 +43,7 @@ program thwsssp
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-        hwsssp
+        FishpackSolver
 
     ! Explicit typing only
     implicit none
@@ -51,6 +51,7 @@ program thwsssp
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
+    type (FishpackSolver)     :: solver
     integer :: m, mbdcnd, n, nbdcnd, idimf, mp1, i, np1, j, ierror
     real (wp), dimension(19, 73) :: f
     real (wp), dimension(73) :: bdtf, bdts, bdps, bdpf
@@ -94,7 +95,7 @@ program thwsssp
     !
     bdtf(:np1) = 0.
     !
-    call hwsssp(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
+    call solver%hwsssp(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
         bdps, bdpf, elmbda, f, idimf, pertrb, ierror)
     !
     !     compute discretization error. since problem is singular, the

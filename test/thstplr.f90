@@ -40,15 +40,16 @@ program thstplr
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-        hstplr
+        FishpackSolver
 
     ! Explicit typing only
     implicit none
 
     !-----------------------------------------------
-    ! Dictionary
+    ! Dictionary: local variables
     !-----------------------------------------------
-    integer (ip) :: idimf, m, mbdcnd, n, nbdcnd, i, j, ierror
+    type (FishpackSolver)    :: solver
+    integer (ip)             :: idimf, m, mbdcnd, n, nbdcnd, i, j, ierror
     real (wp), dimension(51, 50) :: f
     real (wp), dimension(48) :: bda, bdb
     real (wp), dimension(50) :: bdc, bdd, r
@@ -101,7 +102,7 @@ program thstplr
     end do
 
     ! Solve system
-    call hstplr(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
+    call solver%hstplr(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
         elmbda, f, idimf, pertrb, ierror)
     !
     !     compute discretization error.  the exact solution is

@@ -41,7 +41,7 @@ program thwscyl
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-        hwscyl
+        FishpackSolver
 
     ! Explicit typing only
     implicit none
@@ -49,6 +49,7 @@ program thwscyl
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
+    type (FishpackSolver)     :: solver
     integer (ip) :: idimf, m, mbdcnd, n, nbdcnd, mp1, np1, i, j, ierror
     real , dimension(75, 105) :: f
     real , dimension(101) :: bda, bdb
@@ -104,7 +105,7 @@ program thwscyl
     end do
 
     ! Solve system
-    call hwscyl(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
+    call solver%hwscyl(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
         elmbda, f, idimf, pertrb, ierror)
     !
     !     compute discretization error by minimizing over all a the function

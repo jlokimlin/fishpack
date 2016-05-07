@@ -40,7 +40,7 @@ program thstcrt
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-        hstcrt
+        FishpackSolver
 
     ! Explicit typing only
     implicit none
@@ -48,7 +48,8 @@ program thstcrt
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
-    integer (ip) :: idimf, m, mbdcnd, n, nbdcnd, i, j, ierror
+    type (FishpackSolver)   :: solver
+    integer (ip)            :: idimf, m, mbdcnd, n, nbdcnd, i, j, ierror
     real (wp), dimension(50, 53) :: f
     real (wp), dimension(53) :: bda, bdb, bdc, bdd
     real (wp), dimension(48) :: x
@@ -104,20 +105,21 @@ program thstcrt
         end do
     end do
 
-    call hstcrt (a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd &
-        , elmbda, f, idimf, pertrb, ierror)
+    call solver%hstcrt(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, &
+        bdc, bdd, elmbda, f, idimf, pertrb, ierror)
     !
     !     compute discretization error.  the exact solution is
     !
     !               u(x, y) = sin(pi*x)*cos(pi*y) .
     !
-    discretization_error = 0.
+    discretization_error = 0.0_wp
     do i = 1, m
         do j = 1, n
             t = abs(f(i, j)-sin(pi*x(i))*cos(pi*y(j)))
             discretization_error = max(t, discretization_error)
         end do
     end do
+
     !     Print earlier output from platforms with 32 and 64 bit floating point
     !     arithemtic followed by the output from this computer
     write( stdout, '(A)') ''

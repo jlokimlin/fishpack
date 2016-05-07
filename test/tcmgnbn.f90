@@ -145,15 +145,15 @@ program tcmgnbn
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-        FishpackWorkspace, &
-        cmgnbn
+        FishpackSolver
 
     ! Explicit typing only
     implicit none
 
     !-----------------------------------------------
-    ! Dictionary
+    ! Dictionary: local variables
     !-----------------------------------------------
+    type (FishpackSolver)    :: solver
     integer (ip) :: idimf, m, mp1, mperod, n, nperod, i, j, ierror
     real (wp), dimension(21) :: x
     real (wp), dimension(41) :: y
@@ -214,7 +214,7 @@ program tcmgnbn
     end do
 
     ! Solve system
-    call cmgnbn(nperod, n, mperod, m, a, b, c, idimf, f, ierror)
+    call solver%cmgnbn(nperod, n, mperod, m, a, b, c, idimf, f, ierror)
 
     !     compute discretization error.  the exact solution is
     !
