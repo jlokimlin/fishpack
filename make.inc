@@ -1,7 +1,7 @@
 
-LIB = ../lib/libmodern_fishpack.a
+LIB_NAME = fishpack
 
-LIB_NAME = modern_fishpack
+LIB = ../lib/lib$(LIB_NAME).a
 
 AR = /usr/bin/ar
 

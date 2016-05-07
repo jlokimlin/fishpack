@@ -1,7 +1,6 @@
-# **modern\_fishpack**
+# **fishpack - Efficient Fortran Subprograms for the Solution of Separable Elliptic Partial Differential Equations**
  
-This Fortran project is a object-oriented programming (OOP) modernization of NCAR's FISHPACK90 library. The original work, written in both FORTRAN 77 and Fortran 90, was heavily refactored to incorporate OOP features of modern Fortran (2008+). 
-
+fishpack is an object-oriented programming (OOP) modernization of NCAR's FISHPACK90 library. The original work, written in both FORTRAN 77 and Fortran 90, was heavily refactored to incorporate OOP features of modern Fortran (2008+). 
 
 Every common block, subroutine, and function is now encapsulated in a module. Most importantly, the potential memory leak in the derived type **fish**, now rebaptized as **FishpackWorkspace**, is resolved by replacing pointers with allocatable arrays. 
 
@@ -10,13 +9,13 @@ This project is still a work in progress and every refactored solver passes thei
 -----------------------------------------------------------------------------
 
 
-## What is modern\_fishpack?
+## What is fishpack?
 
 A collection of Fortran programs and subroutines that solve second- and fourth-order finite difference approximations to separable elliptic Partial Differential Equations (PDEs). 
 
 These include Helmholtz equations in cartesian, polar, cylindrical, and spherical coordinates, as well as more general separable elliptic equations. The solvers use the cyclic reduction algorithm. When the problem is singular, a least-squares solution is computed. Singularities induced by the coordinate system are handled, including at the origin r=0 in cylindrical coordinates, and at the poles in spherical coordinates.
 
-Test programs are provided for the 19 solvers. Each serves two purposes: as a template to guide you in writing your own codes utilizing the modern\_fishpack solvers, and as a demonstration that you can correctly produce the executables. 
+Test programs are provided for the 19 solvers. Each serves two purposes: as a template to guide you in writing your own codes utilizing the fishpack solvers, and as a demonstration that you can correctly produce the executables. 
 
 So far, only tgenbun.f90 and tpoistg.f90 demonstrate OOP usage.
 
@@ -41,9 +40,9 @@ So far, only tgenbun.f90 and tpoistg.f90 demonstrate OOP usage.
 
 Type the following command line arguments
 ```
-git clone https://github.com/jlokimlin/modern_fishpack.git
+git clone https://github.com/jlokimlin/fishpack.git
 
-cd modern_fishpack; make all
+cd fishpack; make all
 ```
 
 -----------------------------------------------------------------------------
