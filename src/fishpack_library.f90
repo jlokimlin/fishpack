@@ -1,4 +1,4 @@
-module modern_fishpack_library
+module fishpack_library
 
     use module_blktri, only: &
         blktri
@@ -122,4 +122,4 @@ module modern_fishpack_library
     public :: StaggeredGrid
     public :: MacGrid
 
-end module modern_fishpack_library
+end module fishpack_library

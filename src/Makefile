@@ -241,7 +241,7 @@ type_TridiagonalSolver.f90
 	$(FC) $(FFLAGS) -c type_TridiagonalSolver.f90 $(LINKS)\
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
-modern_fishpack_library.o: \
+fishpack_library.o: \
 blktri.o\
 cblktri.o\
 cmgnbn.o\
@@ -270,12 +270,12 @@ type_TridiagonalSolver.o\
 type_CenteredGrid.o\
 type_StaggeredGrid.o\
 type_MacGrid.o\
-modern_fishpack_library.f90
-	$(FC) $(FFLAGS) -c modern_fishpack_library.f90 $(LINKS)\
+fishpack_library.f90
+	$(FC) $(FFLAGS) -c fishpack_library.f90 $(LINKS)\
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 main.o: \
-modern_fishpack_library.o \
+fishpack_library.o \
 main.f90
 	$(FC) $(FFLAGS) -c main.f90 $(LINKS) \
 	-o $(OBJ_DIRECTORY)/$@

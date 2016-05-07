@@ -40,7 +40,7 @@ program tsepx4
         ip => INT32, &
         stdout => OUTPUT_UNIT
 
-    use modern_fishpack_library, only: &
+    use fishpack_library, only: &
         sepx4
 
     ! Explicit typing only

@@ -42,7 +42,7 @@ program thwsssp
         ip => INT32, &
         stdout => OUTPUT_UNIT
 
-    use modern_fishpack_library, only: &
+    use fishpack_library, only: &
         hwsssp
 
     ! Explicit typing only

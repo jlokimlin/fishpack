@@ -1,6 +1,6 @@
 program main
 
-    use modern_fishpack_library
+    use fishpack_library
 
     print '(A)', 'Successful build!'
 
