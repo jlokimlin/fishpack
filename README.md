@@ -1,10 +1,15 @@
 # **fishpack - Efficient modern Fortran (2008+) Subprograms for the Solution of Separable Elliptic Partial Differential Equations**
  
-fishpack is an object-oriented programming (OOP) modernization of NCAR's FISHPACK90 library. The original work, written in both FORTRAN 77 and Fortran 90, was heavily refactored to incorporate OOP features of modern Fortran (2008+). 
+An object-oriented modernization of NCAR's FISHPACK90.
 
-Every common block, subroutine, and function is now encapsulated in a module. Most importantly, the potential memory leak in the derived type **fish**, now rebaptized as **FishpackWorkspace**, is resolved by replacing pointers with allocatable arrays. 
+* The original work, written in both FORTRAN 77 and Fortran 90, was heavily refactored to incorporate features of modern Fortran (2008+). 
+* Every common block, subroutine, and function is now encapsulated in a module. 
+* The potential memory leak in the derived data type **type**(fish), now rebaptized as **type**(FishpackWorkspace), is resolved by replacing pointers with **allocatable** arrays.
+* Every procedural solver is enclosed in **type**(FishpackSolver) 
+* This project is still a work in progress and every refactored solver passes their original unit test.
+* The functionality of genbun and poistg are now enclosed in **type**(TridiagonalSolver), and that of hwscrt and hstcrt inside **type**(HelmholtzSolver), respectively. 
+* The 2d-separable PDE (second or fourth order) solvers sepx4 (centered grid) and sepeli (staggered grid) are now thread safe. The shared module variables are enclosed inside **type**(SepAux).
 
-This project is still a work in progress and every refactored solver passes their original unit test.
 
 -----------------------------------------------------------------------------
 
@@ -17,16 +22,13 @@ These include Helmholtz equations in cartesian, polar, cylindrical, and spherica
 
 Test programs are provided for the 19 solvers. Each serves two purposes: as a template to guide you in writing your own codes utilizing the fishpack solvers, and as a demonstration that you can correctly produce the executables. 
 
-So far, only tgenbun.f90 and tpoistg.f90 demonstrate OOP usage.
-
 -----------------------------------------------------------------------------
 
+## Contributing
 
-## TODO
-* Introduce interfaces to replace assumed-size arrays with assumed shape arrays. 
-* Replace all instances of **go to** statements with **exit**, **cycle** and **select case**
-* Implement object-oriented features to hide workspace arrays.
-* Parameterized kinds to remove the compiler flags **-fdefault-real-8 -fdefault-double-8** 
+This project is still a work in progress and anyone is free to contribute under the proviso that they abstain from using the dreaded **go to**. 
+
+For bug reports or feature requests please open an issue on github.
 
 -----------------------------------------------------------------------------
 
