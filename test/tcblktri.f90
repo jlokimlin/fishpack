@@ -42,7 +42,7 @@ program tcblktri
 
     use fishpack_library, only: &
         FishpackWorkspace, &
-        cblktri
+        cblktrigit
 
     ! Explicit typing only
     implicit none

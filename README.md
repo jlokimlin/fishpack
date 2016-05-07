@@ -1,4 +1,4 @@
-# **fishpack - Efficient Fortran Subprograms for the Solution of Separable Elliptic Partial Differential Equations**
+# **fishpack - Efficient modern Fortran (2008+) Subprograms for the Solution of Separable Elliptic Partial Differential Equations**
  
 fishpack is an object-oriented programming (OOP) modernization of NCAR's FISHPACK90 library. The original work, written in both FORTRAN 77 and Fortran 90, was heavily refactored to incorporate OOP features of modern Fortran (2008+). 
 
