@@ -20,6 +20,22 @@ module module_blktri
     private
     public :: blktri
     public :: blktrii
+    public :: BlktriAux
+
+    type, public :: BlktriAux
+!        integer (ip) :: npp
+!        integer (ip) :: k
+!        integer (ip) :: nm
+!        integer (ip) :: ncmplx
+!        integer (ip) :: ik
+!        real (wp)    :: cnv
+    contains
+        procedure, nopass, public  :: blktrii
+!        procedure, private :: blktr1
+!        procedure, private :: bsrh
+!        procedure, private :: compb
+!        procedure, private :: ppadd
+    end type
 
     !---------------------------------------------------------------------------------
     ! Dictionary: global variables confined to the module

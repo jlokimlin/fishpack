@@ -257,7 +257,7 @@ program tgenbun
     !    arithmetic followed by the output from this computer
     !
     write( stdout, '(A)') ''
-    write( stdout, '(A)') '     tgenbun *** TEST RUN *** '
+    write( stdout, '(A)') '     genbun *** TEST RUN *** '
     write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
     write( stdout, '(A)') '     ierror = 0,  discretization error = 9.6406e-3'
     write( stdout, '(A)') '     The output from your computer is: '

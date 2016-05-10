@@ -1,5 +1,5 @@
 
-LIB_NAME = fishpack
+LIB_NAME = modern_fishpack
 
 LIB = ../lib/lib$(LIB_NAME).a
 
@@ -18,11 +18,13 @@ OBJ_DIRECTORY = ../objs
 
 LIB_DIRECTORY = ../lib
 
+MOD_DIRECTORY = $(LIB_DIRECTORY)
+
 OBJS = $(addprefix $(OBJ_DIRECTORY)/, $(OBJ))
 
 FC = gfortran
 
-FFLAGS = \
+FCFLAGS = \
 -O3\
 $(ENFORCE_64_BIT_PRECISION) \
 $(LANGUAGE_OPTIONS)

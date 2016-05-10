@@ -9,7 +9,7 @@ module module_hwscsp
         FishpackWorkspace
 
     use module_blktri, only: &
-        blktrii
+        BlktriAux
 
     ! Explicit typing only
     implicit none
@@ -683,15 +683,16 @@ contains
         integer (ip)         :: hack_counter, mp1, i, np1, j, mp, np
         integer (ip)         :: its, itf, itsp, itfm, ictr, jrs
         integer (ip)         :: l, jrf, jrsp, jrfm, munk, nunk, ising, iflg
-        real (wp)            :: dum, eps, dth, tdt, hdth, sdts
+        real (wp)            :: eps, dth, tdt, hdth, sdts
         real (wp)            :: theta, t1, dr, hdr
         real (wp)            :: tdr, dr2, czr, at, ct, wts, wtf
         real (wp)            :: ar, wtnm, yps, cr, wrs, wrf
         real (wp)            :: wrz, summation, r2, hne, yhld
         real (wp)            :: rs2, rf2, rsq, xp, yph, xps
+        type (BlktriAux)     :: blktri_aux
         !-----------------------------------------------
 
-        eps = epsilon(dum)
+        eps = epsilon(1.0_wp)
         mp1 = m + 1
         dth = (tf - ts)/m
         tdt = dth + dth
@@ -937,13 +938,13 @@ contains
 
         iflg = intl
 
-        call blktrii(iflg, np, nunk, an(jrs), bn(jrs), cn(jrs), mp, munk, &
+        call blktri_aux%blktrii(iflg, np, nunk, an(jrs), bn(jrs), cn(jrs), mp, munk, &
             am(its), bm(its), cm(its), idimf, f(its, jrs), ierror, w, wc)
 
         iflg = iflg + 1
 
         do while(iflg - 1 == 0)
-            call blktrii(iflg, np, nunk, an(jrs), bn(jrs), cn(jrs), mp, &
+            call blktri_aux%blktrii(iflg, np, nunk, an(jrs), bn(jrs), cn(jrs), mp, &
                 munk, am(its), bm(its), cm(its), idimf, f(its, jrs), ierror, &
                 w, wc)
             iflg = iflg + 1

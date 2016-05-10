@@ -1,11 +1,9 @@
 
 include ../make.inc
 
-MODULE_PATH = $(LIB_DIRECTORY)
-
 LINKS = \
 -L$(LIB_DIRECTORY) -l$(LIB_NAME) \
--I$(MODULE_PATH)
+-I$(MOD_DIRECTORY)
 
 SRC=$(subst .o,.f90, $(OBJ))
 
@@ -17,7 +15,7 @@ $(EXES): $(SRC)
 
 %.exe : %.f90
 	rm -f $@
-	$(FC) $(FFLAGS) $< -o $@ $(LINKS)
+	$(FC) $(FCFLAGS) $< -o $@ $(LINKS)
 	./$@
 
 clean:

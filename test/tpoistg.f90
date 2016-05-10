@@ -266,7 +266,7 @@ program tpoistg
     !    arithmetic followed by the output from this computer
     !
     write( stdout, '(A)') ''
-    write( stdout, '(A)') '     tpoistg *** TEST RUN *** '
+    write( stdout, '(A)') '     poistg *** TEST RUN *** '
     write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
     write( stdout, '(A)') '     ierror = 0,  discretization error = 5.6417e-4'
     write( stdout, '(A)') '     The output from your computer is: '
