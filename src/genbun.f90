@@ -1,3 +1,229 @@
+!
+!     file genbun.f90
+!
+!     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+!     *                                                               *
+!     *                  copyright (c) 2005 by UCAR                   *
+!     *                                                               *
+!     *       University Corporation for Atmospheric Research         *
+!     *                                                               *
+!     *                      all rights reserved                      *
+!     *                                                               *
+!     *                    FISHPACK90  Version 1.1                    *
+!     *                                                               *
+!     *                 A Package of Fortran 77 and 90                *
+!     *                                                               *
+!     *                Subroutines and Example Programs               *
+!     *                                                               *
+!     *               for Modeling Geophysical Processes              *
+!     *                                                               *
+!     *                             by                                *
+!     *                                                               *
+!     *        John Adams, Paul Swarztrauber and Roland Sweet         *
+!     *                                                               *
+!     *                             of                                *
+!     *                                                               *
+!     *         the National Center for Atmospheric Research          *
+!     *                                                               *
+!     *                Boulder, Colorado  (80307)  U.S.A.             *
+!     *                                                               *
+!     *                   which is sponsored by                       *
+!     *                                                               *
+!     *              the National Science Foundation                  *
+!     *                                                               *
+!     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+!
+! SUBROUTINE genbun(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
+!
+!
+! DIMENSION OF           a(m), b(m), c(m), y(idimy, n)
+! ARGUMENTS
+!
+! LATEST REVISION        April 2016
+!
+! PURPOSE                The name of this package is a mnemonic for the
+!                        generalized buneman algorithm.
+!
+!                        It solves the real linear system of equations
+!
+!                        a(i)*x(i-1, j) + b(i)*x(i, j) + c(i)*x(i+1, j)
+!                        + x(i, j-1) - 2.0*x(i, j) + x(i, j+1) = y(i, j)
+!
+!                        for i = 1, 2, ..., m  and  j = 1, 2, ..., n.
+!
+!                        indices i+1 and i-1 are evaluated modulo m,
+!                        i.e., x(0, j) = x(m, j) and x(m+1, j) = x(1, j),
+!                        and x(i, 0) may equal 0, x(i, 2), or x(i, n),
+!                        and x(i, n+1) may equal 0, x(i, n-1), or x(i, 1)
+!                        depending on an input parameter.
+!
+! USAGE                  call genbun(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
+!
+! ARGUMENTS
+!
+! ON INPUT               nperod
+!
+!                          Indicates the values that x(i, 0) and
+!                          x(i, n+1) are assumed to have.
+!
+!                          = 0  if x(i, 0) = x(i, n) and x(i, n+1) =
+!                               x(i, 1).
+!                          = 1  if x(i, 0) = x(i, n+1) = 0  .
+!                          = 2  if x(i, 0) = 0 and x(i, n+1) = x(i, n-1).
+!                          = 3  if x(i, 0) = x(i, 2) and x(i, n+1) =
+!                               x(i, n-1).
+!                          = 4  if x(i, 0) = x(i, 2) and x(i, n+1) = 0.
+!
+!                        n
+!                          The number of unknowns in the j-direction.
+!                          n must be greater than 2.
+!
+!                        mperod
+!                          = 0 if a(1) and c(m) are not zero
+!                          = 1 if a(1) = c(m) = 0
+!
+!                        m
+!                          The number of unknowns in the i-direction.
+!                          n must be greater than 2.
+!
+!                        a, b, c
+!                          One-dimensional arrays of length m that
+!                          specify the coefficients in the linear
+!                          equations given above.  if mperod = 0
+!                          the array elements must not depend upon
+!                          the index i, but must be constant.
+!                          specifically, the subroutine checks the
+!                          following condition .
+!
+!                            a(i) = c(1)
+!                            c(i) = c(1)
+!                            b(i) = b(1)
+!
+!                          for i=1, 2, ..., m.
+!
+!                        idimy
+!                          The row (or first) dimension of the
+!                          two-dimensional array y as it appears
+!                          in the program calling genbun.
+!                          this parameter is used to specify the
+!                          variable dimension of y.
+!                          idimy must be at least m.
+!
+!                        y
+!                          A two-dimensional complex array that
+!                          specifies the values of the right side
+!                          of the linear system of equations given
+!                          above.
+!                          y must be dimensioned at least m*n.
+!
+!
+!  ON OUTPUT             y
+!
+!                          Contains the solution x.
+!
+!                        ierror
+!                          An error flag which indicates invalid
+!                          input parameters  except for number
+!                          zero, a solution is not attempted.
+!
+!                          = 0  no error
+!                          = 1  m <= 2
+!                          = 2  n <= 2
+!                          = 3  idimy <= m
+!                          = 4  nperod <= 0 or nperod > 4
+!                          = 5  mperod < 0 or mperod > 1
+!                          = 6  a(i) /= c(1) or c(i) /= c(1) or
+!                               b(i) /= b(1) for
+!                               some i=1, 2, ..., m.
+!                          = 7  a(1) /= 0 or c(m) /= 0 and
+!                                 mperod = 1
+!                          = 20 If the dynamic allocation of real and
+!                               complex work space required for solution
+!                               fails (for example if n, m are too large
+!                               for your computer)
+!
+!
+! SPECIAL CONDITONS      None
+!
+! I/O                    None
+!
+! PRECISION              64-bit precision float and 32-bit precision integer
+!
+! REQUIRED FILES         comf.f90, gnbnaux.f90, type_FishpackWorkspace.f90
+!
+!
+! STANDARD               Fortran 2008
+!
+! HISTORY                Written in 1979 by Roland Sweet of NCAR'S
+!                        scientific computing division. made available
+!                        on NCAR'S public libraries in January, 1980.
+!
+!                        Revised in June 2004 by John Adams using
+!                        Fortran 90 dynamically allocated work space.
+!
+! ALGORITHM              The linear system is solved by a cyclic
+!                        reduction algorithm described in the
+!                        reference.
+!
+! PORTABILITY            Fortran 2008 --
+!                        the machine dependent constant pi is
+!                        defined as acos(-1.0_wp) where wp = REAL64
+!                        from the intrinsic module iso_fortran_env.
+!
+! REFERENCES             Sweet, R., "A cyclic reduction algorithm for
+!                        solving block tridiagonal systems of arbitrary
+!                        dimensions, " SIAM J. On Numer. Anal., 14 (1977)
+!                        PP. 706-720.
+!
+! ACCURACY               This test was performed on a platform with
+!                        64 bit floating point arithmetic.
+!                        a uniform random number generator was used
+!                        to create a solution array x for the system
+!                        given in the 'purpose' description above
+!                        with
+!                          a(i) = c(i) = -0.5*b(i) = 1, i=1, 2, ..., m
+!
+!                        and, when mperod = 1
+!
+!                          a(1) = c(m) = 0
+!                          a(m) = c(1) = 2.
+!
+!                        The solution x was substituted into the
+!                        given system  and, using double precision
+!                        a right side y was computed.
+!                        using this array y, subroutine genbun
+!                        was called to produce approximate
+!                        solution z.  then relative error
+!                          e = max(abs(z(i, j)-x(i, j)))/
+!                              max(abs(x(i, j)))
+!                        was computed, where the two maxima are taken
+!                        over i=1, 2, ..., m and j=1, ..., n.
+!
+!                        The value of e is given in the table
+!                        below for some typical values of m and n.
+!
+!                   m (=n)    mperod    nperod        e
+!                   ------    ------    ------      ------
+!
+!                     31        0         0         6.e-14
+!                     31        1         1         4.e-13
+!                     31        1         3         3.e-13
+!                     32        0         0         9.e-14
+!                     32        1         1         3.e-13
+!                     32        1         3         1.e-13
+!                     33        0         0         9.e-14
+!                     33        1         1         4.e-13
+!                     33        1         3         1.e-13
+!                     63        0         0         1.e-13
+!                     63        1         1         1.e-12
+!                     63        1         3         2.e-13
+!                     64        0         0         1.e-13
+!                     64        1         1         1.e-12
+!                     64        1         3         6.e-13
+!                     65        0         0         2.e-13
+!                     65        1         1         1.e-12
+!                     65        1         3         4.e-13
+!
 module module_genbun
 
     use, intrinsic :: iso_fortran_env, only: &
@@ -24,232 +250,6 @@ contains
 
 
     subroutine genbun(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
-        !
-        !     file genbun.f90
-        !
-        !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-        !     *                                                               *
-        !     *                  copyright (c) 2005 by UCAR                   *
-        !     *                                                               *
-        !     *       University Corporation for Atmospheric Research         *
-        !     *                                                               *
-        !     *                      all rights reserved                      *
-        !     *                                                               *
-        !     *                    FISHPACK90  Version 1.1                    *
-        !     *                                                               *
-        !     *                 A Package of Fortran 77 and 90                *
-        !     *                                                               *
-        !     *                Subroutines and Example Programs               *
-        !     *                                                               *
-        !     *               for Modeling Geophysical Processes              *
-        !     *                                                               *
-        !     *                             by                                *
-        !     *                                                               *
-        !     *        John Adams, Paul Swarztrauber and Roland Sweet         *
-        !     *                                                               *
-        !     *                             of                                *
-        !     *                                                               *
-        !     *         the National Center for Atmospheric Research          *
-        !     *                                                               *
-        !     *                Boulder, Colorado  (80307)  U.S.A.             *
-        !     *                                                               *
-        !     *                   which is sponsored by                       *
-        !     *                                                               *
-        !     *              the National Science Foundation                  *
-        !     *                                                               *
-        !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-        !
-        ! SUBROUTINE genbun(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
-        !
-        !
-        ! DIMENSION OF           a(m), b(m), c(m), y(idimy, n)
-        ! ARGUMENTS
-        !
-        ! LATEST REVISION        April 2016
-        !
-        ! PURPOSE                The name of this package is a mnemonic for the
-        !                        generalized buneman algorithm.
-        !
-        !                        It solves the real linear system of equations
-        !
-        !                        a(i)*x(i-1, j) + b(i)*x(i, j) + c(i)*x(i+1, j)
-        !                        + x(i, j-1) - 2.0*x(i, j) + x(i, j+1) = y(i, j)
-        !
-        !                        for i = 1, 2, ..., m  and  j = 1, 2, ..., n.
-        !
-        !                        indices i+1 and i-1 are evaluated modulo m,
-        !                        i.e., x(0, j) = x(m, j) and x(m+1, j) = x(1, j),
-        !                        and x(i, 0) may equal 0, x(i, 2), or x(i, n),
-        !                        and x(i, n+1) may equal 0, x(i, n-1), or x(i, 1)
-        !                        depending on an input parameter.
-        !
-        ! USAGE                  call genbun(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
-        !
-        ! ARGUMENTS
-        !
-        ! ON INPUT               nperod
-        !
-        !                          Indicates the values that x(i, 0) and
-        !                          x(i, n+1) are assumed to have.
-        !
-        !                          = 0  if x(i, 0) = x(i, n) and x(i, n+1) =
-        !                               x(i, 1).
-        !                          = 1  if x(i, 0) = x(i, n+1) = 0  .
-        !                          = 2  if x(i, 0) = 0 and x(i, n+1) = x(i, n-1).
-        !                          = 3  if x(i, 0) = x(i, 2) and x(i, n+1) =
-        !                               x(i, n-1).
-        !                          = 4  if x(i, 0) = x(i, 2) and x(i, n+1) = 0.
-        !
-        !                        n
-        !                          The number of unknowns in the j-direction.
-        !                          n must be greater than 2.
-        !
-        !                        mperod
-        !                          = 0 if a(1) and c(m) are not zero
-        !                          = 1 if a(1) = c(m) = 0
-        !
-        !                        m
-        !                          The number of unknowns in the i-direction.
-        !                          n must be greater than 2.
-        !
-        !                        a, b, c
-        !                          One-dimensional arrays of length m that
-        !                          specify the coefficients in the linear
-        !                          equations given above.  if mperod = 0
-        !                          the array elements must not depend upon
-        !                          the index i, but must be constant.
-        !                          specifically, the subroutine checks the
-        !                          following condition .
-        !
-        !                            a(i) = c(1)
-        !                            c(i) = c(1)
-        !                            b(i) = b(1)
-        !
-        !                          for i=1, 2, ..., m.
-        !
-        !                        idimy
-        !                          The row (or first) dimension of the
-        !                          two-dimensional array y as it appears
-        !                          in the program calling genbun.
-        !                          this parameter is used to specify the
-        !                          variable dimension of y.
-        !                          idimy must be at least m.
-        !
-        !                        y
-        !                          A two-dimensional complex array that
-        !                          specifies the values of the right side
-        !                          of the linear system of equations given
-        !                          above.
-        !                          y must be dimensioned at least m*n.
-        !
-        !
-        !  ON OUTPUT             y
-        !
-        !                          Contains the solution x.
-        !
-        !                        ierror
-        !                          An error flag which indicates invalid
-        !                          input parameters  except for number
-        !                          zero, a solution is not attempted.
-        !
-        !                          = 0  no error
-        !                          = 1  m <= 2
-        !                          = 2  n <= 2
-        !                          = 3  idimy <= m
-        !                          = 4  nperod <= 0 or nperod > 4
-        !                          = 5  mperod < 0 or mperod > 1
-        !                          = 6  a(i) /= c(1) or c(i) /= c(1) or
-        !                               b(i) /= b(1) for
-        !                               some i=1, 2, ..., m.
-        !                          = 7  a(1) /= 0 or c(m) /= 0 and
-        !                                 mperod = 1
-        !                          = 20 If the dynamic allocation of real and
-        !                               complex work space required for solution
-        !                               fails (for example if n, m are too large
-        !                               for your computer)
-        !
-        !
-        ! SPECIAL CONDITONS      None
-        !
-        ! I/O                    None
-        !
-        ! PRECISION              64-bit precision float and 32-bit precision integer
-        !
-        ! REQUIRED FILES         comf.f90, gnbnaux.f90, type_FishpackWorkspace.f90
-        !
-        !
-        ! STANDARD               Fortran 2008
-        !
-        ! HISTORY                Written in 1979 by Roland Sweet of NCAR'S
-        !                        scientific computing division. made available
-        !                        on NCAR'S public libraries in January, 1980.
-        !
-        !                        Revised in June 2004 by John Adams using
-        !                        Fortran 90 dynamically allocated work space.
-        !
-        ! ALGORITHM              The linear system is solved by a cyclic
-        !                        reduction algorithm described in the
-        !                        reference.
-        !
-        ! PORTABILITY            Fortran 2008 --
-        !                        the machine dependent constant pi is
-        !                        defined as acos(-1.0_wp) where wp = REAL64
-        !                        from the intrinsic module iso_fortran_env.
-        !
-        ! REFERENCES             Sweet, R., "A cyclic reduction algorithm for
-        !                        solving block tridiagonal systems of arbitrary
-        !                        dimensions, " SIAM J. On Numer. Anal., 14 (1977)
-        !                        PP. 706-720.
-        !
-        ! ACCURACY               This test was performed on a platform with
-        !                        64 bit floating point arithmetic.
-        !                        a uniform random number generator was used
-        !                        to create a solution array x for the system
-        !                        given in the 'purpose' description above
-        !                        with
-        !                          a(i) = c(i) = -0.5*b(i) = 1, i=1, 2, ..., m
-        !
-        !                        and, when mperod = 1
-        !
-        !                          a(1) = c(m) = 0
-        !                          a(m) = c(1) = 2.
-        !
-        !                        The solution x was substituted into the
-        !                        given system  and, using double precision
-        !                        a right side y was computed.
-        !                        using this array y, subroutine genbun
-        !                        was called to produce approximate
-        !                        solution z.  then relative error
-        !                          e = max(abs(z(i, j)-x(i, j)))/
-        !                              max(abs(x(i, j)))
-        !                        was computed, where the two maxima are taken
-        !                        over i=1, 2, ..., m and j=1, ..., n.
-        !
-        !                        The value of e is given in the table
-        !                        below for some typical values of m and n.
-        !
-        !                   m (=n)    mperod    nperod        e
-        !                   ------    ------    ------      ------
-        !
-        !                     31        0         0         6.e-14
-        !                     31        1         1         4.e-13
-        !                     31        1         3         3.e-13
-        !                     32        0         0         9.e-14
-        !                     32        1         1         3.e-13
-        !                     32        1         3         1.e-13
-        !                     33        0         0         9.e-14
-        !                     33        1         1         4.e-13
-        !                     33        1         3         1.e-13
-        !                     63        0         0         1.e-13
-        !                     63        1         1         1.e-12
-        !                     63        1         3         2.e-13
-        !                     64        0         0         1.e-13
-        !                     64        1         1         1.e-12
-        !                     64        1         3         6.e-13
-        !                     65        0         0         2.e-13
-        !                     65        1         1         1.e-12
-        !                     65        1         3         4.e-13
-        !
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
@@ -365,9 +365,42 @@ contains
 
             select case (mp)
                 case (1)
-                    go to 114
-                case (2)
-                    go to 107
+                    mh = (m + 1)/2
+                    mhm1 = mh - 1
+
+                    if (mh*2 == m) then
+                        modd = 2
+                    else
+                        modd = 1
+                    end if
+
+                    do j = 1, n
+                        w(:mhm1) = y(mh-1:mh-mhm1:(-1), j) - y(mh+1:mhm1+mh, j)
+                        w(mh+1:mhm1+mh) = y(mh-1:mh-mhm1:(-1), j) + y(mh+1:mhm1+mh, j)
+                        w(mh) = 2.0_wp*y(mh, j)
+                        select case (modd)
+                            case (1)
+                                y(:m, j) = w(:m)
+                            case (2)
+                                w(m) = 2.0_wp*y(m, j)
+                                y(:m, j) = w(:m)
+                        end select
+                    end do
+
+                    k = iwbc + mhm1 - 1
+                    i = iwba + mhm1
+                    w(k) = 0.0_wp
+                    w(i) = 0.0_wp
+                    w(k+1) = 2.0_wp*w(k+1)
+
+                    select case (modd)
+                        case default
+                            k = iwbb + mhm1 - 1
+                            w(k) = w(k) - w(i-1)
+                            w(iwbc-1) = w(iwbc-1) + w(iwbb-1)
+                        case (2)
+                            w(iwbb-1) = w(k+1)
+                    end select
             end select
 
 107     continue
@@ -405,13 +438,24 @@ contains
 
     select case (mp)
         case (1)
-            go to 127
+            do j = 1, n
+                w(mh-1:mh-mhm1:(-1)) = 0.5_wp*(y(mh+1:mhm1+mh, j)+y(:mhm1, j))
+                w(mh+1:mhm1+mh) = 0.5_wp*(y(mh+1:mhm1+mh, j)-y(:mhm1, j))
+                w(mh) = 0.5_wp*y(mh, j)
+                select case (modd)
+                    case (1)
+                        y(:m, j) = w(:m)
+                    case (2)
+                        w(m) = 0.5_wp*y(m, j)
+                        y(:m, j) = w(:m)
+                end select
+            end do
+            w(1) = ipstor + real(iwp - 1, kind=wp)
+            return
         case (2)
             w(1) = ipstor + real(iwp - 1, kind=wp)
             return
     end select
-
-114 continue
 
     mh = (m + 1)/2
     mhm1 = mh - 1
@@ -479,8 +523,6 @@ contains
         case (2)
             go to 113
     end select
-
-127 continue
 
     do j = 1, n
         w(mh-1:mh-mhm1:(-1)) = 0.5_wp*(y(mh+1:mhm1+mh, j)+y(:mhm1, j))
@@ -717,8 +759,6 @@ subroutine poisd2(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
             jsp = jsp - l
     end select
 
-111 continue
-
     call genbun_aux%cosgen(jst, 1, 0.5_wp, 0.0_wp, tcos)
 
     if (l <= jsp) then
@@ -798,8 +838,6 @@ subroutine poisd2(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
                 -q(:m, jm3)) + p(ipp+1:m+ipp) + q(:m, j)
     end select
 
-128 continue
-
     q(:m, j) = 0.5*(q(:m, j)-q(:m, jm1)-q(:m, jp1))
 
 130 continue
@@ -849,8 +887,6 @@ case (2)
             ideg = jst
             kr = l
     end select
-
-139 continue
 
     if (jst == 1) then
         irreg = 2
@@ -1315,12 +1351,10 @@ select case (mixbnd)
         end if
 end select
 
-154 continue
+i2r = jr
+nrodpr = nrod
 
-    i2r = jr
-    nrodpr = nrod
-
-    go to 104
+go to 104
 
 155 continue
 
@@ -1610,8 +1644,6 @@ go to 194
         case default
             jstart = 1 + jr
     end select
-
-209 continue
 
     kr = kr - jr
 
