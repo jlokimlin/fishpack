@@ -109,8 +109,8 @@ program thstssp
         end do
     end do
 
-    !     Print earlier output from platforms with 32 and 64 bit floating point
-    !     arithemtic followed by the output from this computer
+    !     Print earlier output from platforms with 64 bit floating point
+    !     arithmetic followed by the output from this computer
     write( stdout, '(A)') ''
     write( stdout, '(A)') '     hstssp *** TEST RUN *** '
     write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
@@ -119,5 +119,6 @@ program thstssp
     write( stdout, '(A)') '     The output from your computer is: '
     write( stdout, '(A,I3,A,1pe15.6)') '     ierror =', ierror, ' pertrb = ', pertrb
     write( stdout, '(A,1pe15.6)') '     discretization error = ', err
+
 
 end program thstssp

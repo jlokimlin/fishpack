@@ -1,3 +1,504 @@
+!
+!     file sepeli.f90
+!
+!     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+!     *                                                               *
+!     *                  copyright (c) 2005 by UCAR                   *
+!     *                                                               *
+!     *       University Corporation for Atmospheric Research         *
+!     *                                                               *
+!     *                      all rights reserved                      *
+!     *                                                               *
+!     *                    FISHPACK90  Version 1.1                    *
+!     *                                                               *
+!     *                 A Package of Fortran 77 and 90                *
+!     *                                                               *
+!     *                Subroutines and Example Programs               *
+!     *                                                               *
+!     *               for Modeling Geophysical Processes              *
+!     *                                                               *
+!     *                             by                                *
+!     *                                                               *
+!     *        John Adams, Paul Swarztrauber and Roland Sweet         *
+!     *                                                               *
+!     *                             of                                *
+!     *                                                               *
+!     *         the National Center for Atmospheric Research          *
+!     *                                                               *
+!     *                Boulder, Colorado  (80307)  U.S.A.             *
+!     *                                                               *
+!     *                   which is sponsored by                       *
+!     *                                                               *
+!     *              the National Science Foundation                  *
+!     *                                                               *
+!     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+!
+!     SUBROUTINE sepeli(intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta, c,
+!                       d, n, nbdcnd, bdc, gama, bdd, xnu, cofx, cofy, grhs,
+!                       usol, idmn, workspace, pertrb, ierror)
+!
+! DIMENSION OF           bda(n+1), bdb(n+1), bdc(m+1), bdd(m+1),
+! ARGUMENTS              usol(idmn, n+1), grhs(idmn, n+1),
+!
+! LATEST REVISION        April 2016
+!
+! PURPOSE                sepeli solves for either the second-order
+!                        finite difference approximation or a
+!                        fourth-order approximation to a separable
+!                        elliptic equation
+!
+!                                 2    2
+!                          af(x)*d u/dx + bf(x)*du/dx  + cf(x)*u +
+!                                 2    2
+!                          df(y)*d u/dy  + ef(y)*du/dy + ff(y)*u
+!
+!                          = g(x, y)
+!
+!                        on a rectangle (x greater than or equal to a
+!                        and less than or equal to b; y greater than
+!                        or equal to c and less than or equal to d).
+!                        any combination of periodic or mixed boundary
+!                        conditions is allowed.
+!
+!                        The possible boundary conditions are:
+!                        in the x-direction:
+!                        (0) periodic, u(x+b-a, y)=u(x, y) for all
+!                            y, x (1) u(a, y), u(b, y) are specified for
+!                            all y
+!                        (2) u(a, y), du(b, y)/dx+beta*u(b, y) are
+!                            specified for all y
+!                        (3) du(a, y)/dx+alpha*u(a, y), du(b, y)/dx+
+!                            beta*u(b, y) are specified for all y
+!                        (4) du(a, y)/dx+alpha*u(a, y), u(b, y) are
+!                            specified for all y
+!
+!                        in the y-direction:
+!                        (0) periodic, u(x, y+d-c)=u(x, y) for all x, y
+!                        (1) u(x, c), u(x, d) are specified for all x
+!                        (2) u(x, c), du(x, d)/dy+xnu*u(x, d) are
+!                            specified for all x
+!                        (3) du(x, c)/dy+gama*u(x, c), du(x, d)/dy+
+!                            xnu*u(x, d) are specified for all x
+!                        (4) du(x, c)/dy+gama*u(x, c), u(x, d) are
+!                            specified for all x
+!
+! USAGE                  call sepeli (intl, iorder, a, b, m, mbdcnd, bda,
+!                                     alpha, bdb, beta, c, d, n, nbdcnd, bdc,
+!                                     gama, bdd, xnu, cofx, cofy, grhs, usol,
+!                                     idmn, w, pertrb, ierror)
+!
+! ARGUMENTS
+! ON INPUT               intl
+!                          = 0 on initial entry to sepeli or if any
+!                              of the arguments c, d, n, nbdcnd, cofy
+!                              are changed from a previous call
+!                          = 1 if c, d, n, nbdcnd, cofy are unchanged
+!                              from the previous call.
+!
+!                        iorder
+!                          = 2 if a second-order approximation
+!                              is sought
+!                          = 4 if a fourth-order approximation
+!                              is sought
+!
+!                        a, b
+!                          the range of the x-independent variable,
+!                          i.e., x is greater than or equal to a
+!                          and less than or equal to b.  a must be
+!                          less than b.
+!
+!                        m
+!                          the number of panels into which the
+!                          interval [a, b] is subdivided. hence,
+!                          there will be m+1 grid points in the x-
+!                          direction given by xi=a+(i-1)*dlx
+!                          for i=1, 2, ..., m+1 where dlx=(b-a)/m is
+!                          the panel width.  m must be less than
+!                          idmn and greater than 5.
+!
+!                        mbdcnd
+!                          indicates the type of boundary condition
+!                          at x=a and x=b
+!
+!                          = 0 if the solution is periodic in x, i.e.,
+!                              u(x+b-a, y)=u(x, y)  for all y, x
+!                          = 1 if the solution is specified at x=a
+!                              and x=b, i.e., u(a, y) and u(b, y) are
+!                              specified for all y
+!                          = 2 if the solution is specified at x=a and
+!                              the boundary condition is mixed at x=b,
+!                              i.e., u(a, y) and du(b, y)/dx+beta*u(b, y)
+!                              are specified for all y
+!                          = 3 if the boundary conditions at x=a and
+!                              x=b are mixed, i.e.,
+!                              du(a, y)/dx+alpha*u(a, y) and
+!                              du(b, y)/dx+beta*u(b, y) are specified
+!                              for all y
+!                          = 4 if the boundary condition at x=a is
+!                              mixed and the solution is specified
+!                              at x=b, i.e., du(a, y)/dx+alpha*u(a, y)
+!                              and u(b, y) are specified for all y
+!
+!                        bda
+!                          a one-dimensional array of length n+1
+!                          that specifies the values of
+!                          du(a, y)/dx+ alpha*u(a, y) at x=a, when
+!                          mbdcnd=3 or 4.
+!                          bda(j) = du(a, yj)/dx+alpha*u(a, yj),
+!                          j=1, 2, ..., n+1. when mbdcnd has any other
+!                          other value, bda is a dummy parameter.
+!
+!                        alpha
+!                          the scalar multiplying the solution in
+!                          case of a mixed boundary condition at x=a
+!                          (see argument bda).  if mbdcnd is not
+!                          equal to 3 or 4 then alpha is a dummy
+!                          parameter.
+!
+!                        bdb
+!                          a one-dimensional array of length n+1
+!                          that specifies the values of
+!                          du(b, y)/dx+ beta*u(b, y) at x=b.
+!                          when mbdcnd=2 or 3
+!                          bdb(j) = du(b, yj)/dx+beta*u(b, yj),
+!                          j=1, 2, ..., n+1. when mbdcnd has any other
+!                          other value, bdb is a dummy parameter.
+!
+!                        beta
+!                          the scalar multiplying the solution in
+!                          case of a mixed boundary condition at
+!                          x=b (see argument bdb).  if mbdcnd is
+!                          not equal to 2 or 3 then beta is a dummy
+!                          parameter.
+!
+!                        c, d
+!                          the range of the y-independent variable,
+!                          i.e., y is greater than or equal to c
+!                          and less than or equal to d.  c must be
+!                          less than d.
+!
+!                        n
+!                          the number of panels into which the
+!                          interval [c, d] is subdivided.
+!                          hence, there will be n+1 grid points
+!                          in the y-direction given by
+!                          yj=c+(j-1)*dly for j=1, 2, ..., n+1 where
+!                          dly=(d-c)/n is the panel width.
+!                          in addition, n must be greater than 4.
+!
+!                        nbdcnd
+!                          indicates the types of boundary conditions
+!                          at y=c and y=d
+!
+!                          = 0 if the solution is periodic in y,
+!                              i.e., u(x, y+d-c)=u(x, y)  for all x, y
+!                          = 1 if the solution is specified at y=c
+!                              and y = d, i.e., u(x, c) and u(x, d)
+!                              are specified for all x
+!                          = 2 if the solution is specified at y=c
+!                              and the boundary condition is mixed
+!                              at y=d, i.e., u(x, c) and
+!                              du(x, d)/dy+xnu*u(x, d) are specified
+!                              for all x
+!                          = 3 if the boundary conditions are mixed
+!                              at y=c and y=d, i.e.,
+!                              du(x, d)/dy+gama*u(x, c) and
+!                              du(x, d)/dy+xnu*u(x, d) are specified
+!                              for all x
+!                          = 4 if the boundary condition is mixed
+!                              at y=c and the solution is specified
+!                              at y=d, i.e. du(x, c)/dy+gama*u(x, c)
+!                              and u(x, d) are specified for all x
+!
+!                        bdc
+!                          a one-dimensional array of length m+1
+!                          that specifies the value of
+!                          du(x, c)/dy+gama*u(x, c) at y=c.
+!                          when nbdcnd=3 or 4 bdc(i) = du(xi, c)/dy +
+!                          gama*u(xi, c), i=1, 2, ..., m+1.
+!                          when nbdcnd has any other value, bdc
+!                          is a dummy parameter.
+!
+!                        gama
+!                          the scalar multiplying the solution in
+!                          case of a mixed boundary condition at
+!                          y=c (see argument bdc).  if nbdcnd is
+!                          not equal to 3 or 4 then gama is a dummy
+!                          parameter.
+!
+!                        bdd
+!                          a one-dimensional array of length m+1
+!                          that specifies the value of
+!                          du(x, d)/dy + xnu*u(x, d) at y=c.
+!                          when nbdcnd=2 or 3 bdd(i) = du(xi, d)/dy +
+!                          xnu*u(xi, d), i=1, 2, ..., m+1.
+!                          when nbdcnd has any other value, bdd
+!                          is a dummy parameter.
+!
+!                        xnu
+!                          the scalar multiplying the solution in
+!                          case of a mixed boundary condition at
+!                          y=d (see argument bdd).  if nbdcnd is
+!                          not equal to 2 or 3 then xnu is a
+!                          dummy parameter.
+!
+!                        cofx
+!                          a user-supplied subprogram with
+!                          parameters x, afun, bfun, cfun which
+!                          returns the values of the x-dependent
+!                          coefficients af(x), bf(x), cf(x) in the
+!                          elliptic equation at x.
+!
+!                        cofy
+!                          a user-supplied subprogram with parameters
+!                          y, dfun, efun, ffun which returns the
+!                          values of the y-dependent coefficients
+!                          df(y), ef(y), ff(y) in the elliptic
+!                          equation at y.
+!
+!                          note:  cofx and cofy must be declared
+!                          external in the calling routine.
+!                          the values returned in afun and dfun
+!                          must satisfy afun*dfun greater than 0
+!                          for a less than x less than b, c less
+!                          than y less than d (see ierror=10).
+!                          the coefficients provided may lead to a
+!                          matrix equation which is not diagonally
+!                          dominant in which case solution may fail
+!                          (see ierror=4).
+!
+!                        grhs
+!                          a two-dimensional array that specifies the
+!                          values of the right-hand side of the
+!                          elliptic equation, i.e.,
+!                          grhs(i, j)=g(xi, yi), for i=2, ..., m,
+!                          j=2, ..., n.  at the boundaries, grhs is
+!                          defined by
+!
+!                          mbdcnd   grhs(1, j)   grhs(m+1, j)
+!                          ------   ---------   -----------
+!                            0      g(a, yj)     g(b, yj)
+!                            1         *           *
+!                            2         *        g(b, yj)  j=1, 2, ..., n+1
+!                            3      g(a, yj)     g(b, yj)
+!                            4      g(a, yj)        *
+!
+!                          nbdcnd   grhs(i, 1)   grhs(i, n+1)
+!                          ------   ---------   -----------
+!                            0      g(xi, c)     g(xi, d)
+!                            1         *           *
+!                            2         *        g(xi, d)  i=1, 2, ..., m+1
+!                            3      g(xi, c)     g(xi, d)
+!                            4      g(xi, c)        *
+!
+!                          where * means these quantities are not used.
+!                          grhs should be dimensioned idmn by at least
+!                          n+1 in the calling routine.
+!
+!                        usol
+!                          a two-dimensional array that specifies the
+!                          values of the solution along the boundaries.
+!                          at the boundaries, usol is defined by
+!
+!                          mbdcnd   usol(1, j)   usol(m+1, j)
+!                          ------   ---------   -----------
+!                            0         *           *
+!                            1      u(a, yj)     u(b, yj)
+!                            2      u(a, yj)        *     j=1, 2, ..., n+1
+!                            3         *           *
+!                            4         *        u(b, yj)
+!
+!                          nbdcnd   usol(i, 1)   usol(i, n+1)
+!                          ------   ---------   -----------
+!                            0         *           *
+!                            1      u(xi, c)     u(xi, d)
+!                            2      u(xi, c)        *     i=1, 2, ..., m+1
+!                            3         *           *
+!                            4         *        u(xi, d)
+!
+!                          where * means the quantities are not used
+!                          in the solution.
+!
+!                          if iorder=2, the user may equivalence grhs
+!                          and usol to save space.  note that in this
+!                          case the tables specifying the boundaries
+!                          of the grhs and usol arrays determine the
+!                          boundaries uniquely except at the corners.
+!                          if the tables call for both g(x, y) and
+!                          u(x, y) at a corner then the solution must
+!                          be chosen.  for example, if mbdcnd=2 and
+!                          nbdcnd=4, then u(a, c), u(a, d), u(b, d) must
+!                          be chosen at the corners in addition
+!                          to g(b, c).
+!
+!                          if iorder=4, then the two arrays, usol and
+!                          grhs, must be distinct.
+!
+!                          usol should be dimensioned idmn by at least
+!                          n+1 in the calling routine.
+!
+!                        idmn
+!                          the row (or first) dimension of the arrays
+!                          grhs and usol as it appears in the program
+!                          calling sepeli.  this parameter is used
+!                          to specify the variable dimension of grhs
+!                          and usol.  idmn must be at least 7 and
+!                          greater than or equal to m+1.
+!
+!                        workspace
+!                          An object of class (FishpackWorkspace) variable
+!                          which is used internally in sepeli to dynamically
+!                          allocate real and complex workspace arrays used
+!                          in the solver. An error flag (ierror = 20) is
+!                          set if the required work space
+!                          allocation fails (for example if n, m are too large)
+!                          real and complex values are set in the components
+!                          of workspace on a initial (intl=0) call to sepeli.
+!                          These must be preserved on non-initial calls (intl=1)
+!                          to sepeli. This eliminates redundant calculations
+!                          and saves compute time.
+!
+!               ****       IMPORTANT!  The user program calling sepeli should
+!                          include the statement:
+!
+!                               call workspace%destroy()
+!
+!                          after the final approximation is generated by
+!                          sepeli. This will deallocate the real and complex
+!                          work space of workspace. Failure to include this statement
+!                          could result in serious memory leakage.
+!
+! ON OUTPUT              usol
+!                          Contains the approximate solution to the
+!                          elliptic equation.
+!                          usol(i, j) is the approximation to u(xi, yj)
+!                          for i=1, 2..., m+1 and j=1, 2, ..., n+1.
+!                          the approximation has error
+!                          o(dlx**2+dly**2) if called with iorder=2
+!                          and o(dlx**4+dly**4) if called with
+!                          iorder=4.
+!
+!                        workwpace
+!                          The derived type (FishpackWorkspace) variable
+!                          contains real and complex values that must not
+!                          be destroyed if sepeli is called again with
+!                          intl=1.
+!
+!                        pertrb
+!                          if a combination of periodic or derivative
+!                          boundary conditions
+!                          (i.e., alpha=beta=0 if mbdcnd=3;
+!                          gama=xnu=0 if nbdcnd=3) is specified
+!                          and if the coefficients of u(x, y) in the
+!                          separable elliptic equation are zero
+!                          (i.e., cf(x)=0 for x greater than or equal
+!                          to a and less than or equal to b;
+!                          ff(y)=0 for y greater than or equal to c
+!                          and less than or equal to d) then a
+!                          solution may not exist.  pertrb is a
+!                          constant calculated and subtracted from
+!                          the right-hand side of the matrix equations
+!                          generated by sepeli which insures that a
+!                          solution exists. sepeli then computes this
+!                          solution which is a weighted minimal least
+!                          squares solution to the original problem.
+!
+!                        ierror
+!                          an error flag that indicates invalid input
+!                          parameters or failure to find a solution
+!                          = 0 no error
+!                          = 1 if a greater than b or c greater than d
+!                          = 2 if mbdcnd less than 0 or mbdcnd greater
+!                              than 4
+!                          = 3 if nbdcnd less than 0 or nbdcnd greater
+!                              than 4
+!                          = 4 if attempt to find a solution fails.
+!                              (the linear system generated is not
+!                              diagonally dominant.)
+!                          = 5 if idmn is too small
+!                              (see discussion of idmn)
+!                          = 6 if m is too small or too large
+!                              (see discussion of m)
+!                          = 7 if n is too small (see discussion of n)
+!                          = 8 if iorder is not 2 or 4
+!                          = 9 if intl is not 0 or 1
+!                          = 10 if afun*dfun less than or equal to 0
+!                               for some interior mesh point (xi, yj)
+!                          = 20 If the dynamic allocation of real and
+!                               complex work space in the derived type
+!                               (FishpackWorkspace) variable W fails (e.g.,
+!                               if N, M are too large for the platform used)
+!
+!                          Note (concerning ierror=4):  for the
+!                          coefficients input through cofx, cofy,
+!                          the discretization may lead to a block
+!                          tridiagonal linear system which is not
+!                          diagonally dominant (for example, this
+!                          happens if cfun=0 and bfun/(2.*dlx) greater
+!                          than afun/dlx**2).  in this case solution
+!                          may fail.  this cannot happen in the limit
+!                          as dlx, dly approach zero.  hence, the
+!                          condition may be remedied by taking larger
+!                          values for m or n.
+!
+! SPECIAL CONDITIONS     See cofx, cofy argument descriptions above.
+!
+! I/O                    None
+!
+! PRECISION              Set by the instrinsic module iso_fortran_env to 64-bit double precision
+!
+! REQUIRED FILES         blktri.f90, comf.f90, sepaux.f90, type_FishpackWorkspace.f90
+!
+! STANDARD               Fortran 2008
+!
+! HISTORY                Developed at NCAR during 1975-76 by
+!                        John c. Adams of the scientific computing
+!                        division.  Released on NCAR's public software
+!                        libraries in January 1980. Revised in June
+!                        2004 using Fortan 90 dynamically allocated work
+!                        space and derived data types to eliminate mixed
+!                        mode conflicts in the earlier versions. All
+!                        statement labels, arithmetic if statements and
+!                        computed go to statements have been removed from
+!                        the current version of sepeli.
+!
+! ALGORITHM              sepeli automatically discretizes the
+!                        separable elliptic equation which is then
+!                        solved by a generalized cyclic reduction
+!                        algorithm in the subroutine, blktri. The
+!                        fourth-order solution is obtained using
+!                        'deferred corrections' which is described
+!                        and referenced in sections, references and
+!                        method.
+!
+! TIMING                 The operational count is proportional to
+!                        m*n*log2(n).
+!
+! ACCURACY               The following accuracy results were obtained
+!                        using 64 bit floating point arithmetic. note
+!                        that the fourth-order accuracy is not realized
+!                        until the mesh is sufficiently refined.
+!
+!                                     second-order  fourth-order
+!                            m    n     error         error
+!
+!                             6    6    6.8e-1        1.2e0
+!                            14   14    1.4e-1        1.8e-1
+!                            30   30    3.2e-2        9.7e-3
+!                            62   62    7.5e-3        3.0e-4
+!                           126  126    1.8e-3        3.5e-6
+!
+!
+! REFERENCES             Keller, H.B., Numerical methods for two-point
+!                        boundary-value problems, Blaisdel (1968),
+!                        Waltham, Mass.
+!
+!                        Swarztrauber, P., and R. Sweet (1975):
+!                        Efficient FORTRAN subprograms for the
+!                        solution of elliptic partial differential
+!                        equations.  NCAR Technical note
+!                        NCAR-TN/IA-109, PP. 135-137.
+!
 module module_sepeli
 
     use, intrinsic :: iso_fortran_env, only: &
@@ -29,517 +530,6 @@ contains
     subroutine sepeli(intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, &
         beta, c, d, n, nbdcnd, bdc, gama, bdd, xnu, cofx, cofy, grhs, &
         usol, idmn, workspace, pertrb, ierror)
-        !
-        !     file sepeli.f
-        !
-        !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-        !     *                                                               *
-        !     *                  copyright (c) 2005 by UCAR                   *
-        !     *                                                               *
-        !     *       University Corporation for Atmospheric Research         *
-        !     *                                                               *
-        !     *                      all rights reserved                      *
-        !     *                                                               *
-        !     *                    FISHPACK90  Version 1.1                    *
-        !     *                                                               *
-        !     *                 A Package of Fortran 77 and 90                *
-        !     *                                                               *
-        !     *                Subroutines and Example Programs               *
-        !     *                                                               *
-        !     *               for Modeling Geophysical Processes              *
-        !     *                                                               *
-        !     *                             by                                *
-        !     *                                                               *
-        !     *        John Adams, Paul Swarztrauber and Roland Sweet         *
-        !     *                                                               *
-        !     *                             of                                *
-        !     *                                                               *
-        !     *         the National Center for Atmospheric Research          *
-        !     *                                                               *
-        !     *                Boulder, Colorado  (80307)  U.S.A.             *
-        !     *                                                               *
-        !     *                   which is sponsored by                       *
-        !     *                                                               *
-        !     *              the National Science Foundation                  *
-        !     *                                                               *
-        !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-        !
-        !     SUBROUTINE sepeli (INTL, IORDER, A, B, M, MBDCND, BDA, ALPHA, BDB, BETA, C,
-        !    +                   D, N, NBDCND, BDC, GAMA, BDD, XNU, COFX, COFY, GRHS,
-        !    +                   USOL, IDMN, workspace, PERTRB, ierror)
-        !
-        ! DIMENSION OF           BDA(N+1), BDB(N+1), BDC(M+1), BDD(M+1),
-        ! ARGUMENTS              USOL(IDMN, N+1), GRHS(IDMN, N+1),
-        !
-        ! LATEST REVISION        April 2016
-        !
-        ! PURPOSE                sepeli SOLVES FOR EITHER THE SECOND-ORDER
-        !                        FINITE DIFFERENCE APPROXIMATION OR A
-        !                        FOURTH-ORDER APPROXIMATION TO A SEPARABLE
-        !                        ELLIPTIC EQUATION
-        !
-        !                                 2    2
-        !                          AF(X)*D U/DX + BF(X)*DU/DX  + CF(X)*U +
-        !                                 2    2
-        !                          DF(Y)*D U/DY  + EF(Y)*DU/DY + FF(Y)*U
-        !
-        !                          = G(X, Y)
-        !
-        !                        ON A RECTANGLE (X GREATER THAN OR EQUAL TO A
-        !                        AND LESS THAN OR EQUAL TO B; Y GREATER THAN
-        !                        OR EQUAL TO C AND LESS THAN OR EQUAL TO D).
-        !                        ANY COMBINATION OF PERIODIC OR MIXED BOUNDARY
-        !                        CONDITIONS IS ALLOWED.
-        !
-        !                        THE POSSIBLE BOUNDARY CONDITIONS ARE:
-        !                        IN THE X-DIRECTION:
-        !                        (0) PERIODIC, U(X+B-A, Y)=U(X, Y) FOR ALL
-        !                            Y, X (1) U(A, Y), U(B, Y) ARE SPECIFIED FOR
-        !                            ALL Y
-        !                        (2) U(A, Y), DU(B, Y)/DX+BETA*U(B, Y) ARE
-        !                            SPECIFIED FOR ALL Y
-        !                        (3) DU(A, Y)/DX+ALPHA*U(A, Y), DU(B, Y)/DX+
-        !                            BETA*U(B, Y) ARE SPECIFIED FOR ALL Y
-        !                        (4) DU(A, Y)/DX+ALPHA*U(A, Y), U(B, Y) ARE
-        !                            SPECIFIED FOR ALL Y
-        !
-        !                        IN THE Y-DIRECTION:
-        !                        (0) PERIODIC, U(X, Y+D-C)=U(X, Y) FOR ALL X, Y
-        !                        (1) U(X, C), U(X, D) ARE SPECIFIED FOR ALL X
-        !                        (2) U(X, C), DU(X, D)/DY+XNU*U(X, D) ARE
-        !                            SPECIFIED FOR ALL X
-        !                        (3) DU(X, C)/DY+GAMA*U(X, C), DU(X, D)/DY+
-        !                            XNU*U(X, D) ARE SPECIFIED FOR ALL X
-        !                        (4) DU(X, C)/DY+GAMA*U(X, C), U(X, D) ARE
-        !                            SPECIFIED FOR ALL X
-        !
-        ! USAGE                  CALL sepeli (INTL, IORDER, A, B, M, MBDCND, BDA,
-        !                                     ALPHA, BDB, BETA, C, D, N, NBDCND, BDC,
-        !                                     GAMA, BDD, XNU, COFX, COFY, GRHS, USOL,
-        !                                     IDMN, W, PERTRB, ierror)
-        !
-        ! ARGUMENTS
-        ! ON INPUT               INTL
-        !                          = 0 ON INITIAL ENTRY TO sepeli OR IF ANY
-        !                              OF THE ARGUMENTS C, D, N, NBDCND, COFY
-        !                              ARE CHANGED FROM A PREVIOUS CALL
-        !                          = 1 IF C, D, N, NBDCND, COFY ARE UNCHANGED
-        !                              FROM THE PREVIOUS CALL.
-        !
-        !                        IORDER
-        !                          = 2 IF A SECOND-ORDER APPROXIMATION
-        !                              IS SOUGHT
-        !                          = 4 IF A FOURTH-ORDER APPROXIMATION
-        !                              IS SOUGHT
-        !
-        !                        A, B
-        !                          THE RANGE OF THE X-INDEPENDENT VARIABLE,
-        !                          I.E., X IS GREATER THAN OR EQUAL TO A
-        !                          AND LESS THAN OR EQUAL TO B.  A MUST BE
-        !                          LESS THAN B.
-        !
-        !                        M
-        !                          THE NUMBER OF PANELS INTO WHICH THE
-        !                          INTERVAL [A, B] IS SUBDIVIDED. HENCE,
-        !                          THERE WILL BE M+1 GRID POINTS IN THE X-
-        !                          DIRECTION GIVEN BY XI=A+(I-1)*DLX
-        !                          FOR I=1, 2, ..., M+1 WHERE DLX=(B-A)/M IS
-        !                          THE PANEL WIDTH.  M MUST BE LESS THAN
-        !                          IDMN AND GREATER THAN 5.
-        !
-        !                        MBDCND
-        !                          INDICATES THE TYPE OF BOUNDARY CONDITION
-        !                          AT X=A AND X=B
-        !
-        !                          = 0 IF THE SOLUTION IS PERIODIC IN X, I.E.,
-        !                              U(X+B-A, Y)=U(X, Y)  FOR ALL Y, X
-        !                          = 1 IF THE SOLUTION IS SPECIFIED AT X=A
-        !                              AND X=B, I.E., U(A, Y) AND U(B, Y) ARE
-        !                              SPECIFIED FOR ALL Y
-        !                          = 2 IF THE SOLUTION IS SPECIFIED AT X=A AND
-        !                              THE BOUNDARY CONDITION IS MIXED AT X=B,
-        !                              I.E., U(A, Y) AND DU(B, Y)/DX+BETA*U(B, Y)
-        !                              ARE SPECIFIED FOR ALL Y
-        !                          = 3 IF THE BOUNDARY CONDITIONS AT X=A AND
-        !                              X=B ARE MIXED, I.E.,
-        !                              DU(A, Y)/DX+ALPHA*U(A, Y) AND
-        !                              DU(B, Y)/DX+BETA*U(B, Y) ARE SPECIFIED
-        !                              FOR ALL Y
-        !                          = 4 IF THE BOUNDARY CONDITION AT X=A IS
-        !                              MIXED AND THE SOLUTION IS SPECIFIED
-        !                              AT X=B, I.E., DU(A, Y)/DX+ALPHA*U(A, Y)
-        !                              AND U(B, Y) ARE SPECIFIED FOR ALL Y
-        !
-        !                        BDA
-        !                          A ONE-DIMENSIONAL ARRAY OF LENGTH N+1
-        !                          THAT SPECIFIES THE VALueS OF
-        !                          DU(A, Y)/DX+ ALPHA*U(A, Y) AT X=A, WHEN
-        !                          MBDCND=3 OR 4.
-        !                          BDA(J) = DU(A, YJ)/DX+ALPHA*U(A, YJ),
-        !                          J=1, 2, ..., N+1. WHEN MBDCND HAS ANY OTHER
-        !                          OTHER VALue, BDA IS A DUMMY PARAMETER.
-        !
-        !                        ALPHA
-        !                          THE SCALAR MULTIPLYING THE SOLUTION IN
-        !                          CASE OF A MIXED BOUNDARY CONDITION AT X=A
-        !                          (SEE ARGUMENT BDA).  IF MBDCND IS NOT
-        !                          EQUAL TO 3 OR 4 THEN ALPHA IS A DUMMY
-        !                          PARAMETER.
-        !
-        !                        BDB
-        !                          A ONE-DIMENSIONAL ARRAY OF LENGTH N+1
-        !                          THAT SPECIFIES THE VALueS OF
-        !                          DU(B, Y)/DX+ BETA*U(B, Y) AT X=B.
-        !                          WHEN MBDCND=2 OR 3
-        !                          BDB(J) = DU(B, YJ)/DX+BETA*U(B, YJ),
-        !                          J=1, 2, ..., N+1. WHEN MBDCND HAS ANY OTHER
-        !                          OTHER VALue, BDB IS A DUMMY PARAMETER.
-        !
-        !                        BETA
-        !                          THE SCALAR MULTIPLYING THE SOLUTION IN
-        !                          CASE OF A MIXED BOUNDARY CONDITION AT
-        !                          X=B (SEE ARGUMENT BDB).  IF MBDCND IS
-        !                          NOT EQUAL TO 2 OR 3 THEN BETA IS A DUMMY
-        !                          PARAMETER.
-        !
-        !                        C, D
-        !                          THE RANGE OF THE Y-INDEPENDENT VARIABLE,
-        !                          I.E., Y IS GREATER THAN OR EQUAL TO C
-        !                          AND LESS THAN OR EQUAL TO D.  C MUST BE
-        !                          LESS THAN D.
-        !
-        !                        N
-        !                          THE NUMBER OF PANELS INTO WHICH THE
-        !                          INTERVAL [C, D] IS SUBDIVIDED.
-        !                          HENCE, THERE WILL BE N+1 GRID POINTS
-        !                          IN THE Y-DIRECTION GIVEN BY
-        !                          YJ=C+(J-1)*DLY FOR J=1, 2, ..., N+1 WHERE
-        !                          DLY=(D-C)/N IS THE PANEL WIDTH.
-        !                          IN ADDITION, N MUST BE GREATER THAN 4.
-        !
-        !                        NBDCND
-        !                          INDICATES THE TYPES OF BOUNDARY CONDITIONS
-        !                          AT Y=C AND Y=D
-        !
-        !                          = 0 IF THE SOLUTION IS PERIODIC IN Y,
-        !                              I.E., U(X, Y+D-C)=U(X, Y)  FOR ALL X, Y
-        !                          = 1 IF THE SOLUTION IS SPECIFIED AT Y=C
-        !                              AND Y = D, I.E., U(X, C) AND U(X, D)
-        !                              ARE SPECIFIED FOR ALL X
-        !                          = 2 IF THE SOLUTION IS SPECIFIED AT Y=C
-        !                              AND THE BOUNDARY CONDITION IS MIXED
-        !                              AT Y=D, I.E., U(X, C) AND
-        !                              DU(X, D)/DY+XNU*U(X, D) ARE SPECIFIED
-        !                              FOR ALL X
-        !                          = 3 IF THE BOUNDARY CONDITIONS ARE MIXED
-        !                              AT Y=C AND Y=D, I.E.,
-        !                              DU(X, D)/DY+GAMA*U(X, C) AND
-        !                              DU(X, D)/DY+XNU*U(X, D) ARE SPECIFIED
-        !                              FOR ALL X
-        !                          = 4 IF THE BOUNDARY CONDITION IS MIXED
-        !                              AT Y=C AND THE SOLUTION IS SPECIFIED
-        !                              AT Y=D, I.E. DU(X, C)/DY+GAMA*U(X, C)
-        !                              AND U(X, D) ARE SPECIFIED FOR ALL X
-        !
-        !                        BDC
-        !                          A ONE-DIMENSIONAL ARRAY OF LENGTH M+1
-        !                          THAT SPECIFIES THE VALue OF
-        !                          DU(X, C)/DY+GAMA*U(X, C) AT Y=C.
-        !                          WHEN NBDCND=3 OR 4 BDC(I) = DU(XI, C)/DY +
-        !                          GAMA*U(XI, C), I=1, 2, ..., M+1.
-        !                          WHEN NBDCND HAS ANY OTHER VALue, BDC
-        !                          IS A DUMMY PARAMETER.
-        !
-        !                        GAMA
-        !                          THE SCALAR MULTIPLYING THE SOLUTION IN
-        !                          CASE OF A MIXED BOUNDARY CONDITION AT
-        !                          Y=C (SEE ARGUMENT BDC).  IF NBDCND IS
-        !                          NOT EQUAL TO 3 OR 4 THEN GAMA IS A DUMMY
-        !                          PARAMETER.
-        !
-        !                        BDD
-        !                          A ONE-DIMENSIONAL ARRAY OF LENGTH M+1
-        !                          THAT SPECIFIES THE VALue OF
-        !                          DU(X, D)/DY + XNU*U(X, D) AT Y=C.
-        !                          WHEN NBDCND=2 OR 3 BDD(I) = DU(XI, D)/DY +
-        !                          XNU*U(XI, D), I=1, 2, ..., M+1.
-        !                          WHEN NBDCND HAS ANY OTHER VALue, BDD
-        !                          IS A DUMMY PARAMETER.
-        !
-        !                        XNU
-        !                          THE SCALAR MULTIPLYING THE SOLUTION IN
-        !                          CASE OF A MIXED BOUNDARY CONDITION AT
-        !                          Y=D (SEE ARGUMENT BDD).  IF NBDCND IS
-        !                          NOT EQUAL TO 2 OR 3 THEN XNU IS A
-        !                          DUMMY PARAMETER.
-        !
-        !                        COFX
-        !                          A USER-SUPPLIED SUBPROGRAM WITH
-        !                          PARAMETERS X, AFUN, BFUN, CFUN WHICH
-        !                          RETURNS THE VALueS OF THE X-DEPENDENT
-        !                          COEFFICIENTS AF(X), BF(X), CF(X) IN THE
-        !                          ELLIPTIC EQUATION AT X.
-        !
-        !                        COFY
-        !                          A USER-SUPPLIED SUBPROGRAM WITH PARAMETERS
-        !                          Y, DFUN, EFUN, FFUN WHICH RETURNS THE
-        !                          VALueS OF THE Y-DEPENDENT COEFFICIENTS
-        !                          DF(Y), EF(Y), FF(Y) IN THE ELLIPTIC
-        !                          EQUATION AT Y.
-        !
-        !                          NOTE:  COFX AND COFY MUST BE DECLARED
-        !                          EXTERNAL IN THE CALLING ROUTINE.
-        !                          THE VALueS RETURNED IN AFUN AND DFUN
-        !                          MUST SATISFY AFUN*DFUN GREATER THAN 0
-        !                          FOR A LESS THAN X LESS THAN B, C LESS
-        !                          THAN Y LESS THAN D (SEE ierror=10).
-        !                          THE COEFFICIENTS PROVIDED MAY LEAD TO A
-        !                          MATRIX EQUATION WHICH IS NOT DIAGONALLY
-        !                          DOMINANT IN WHICH CASE SOLUTION MAY FAIL
-        !                          (SEE ierror=4).
-        !
-        !                        GRHS
-        !                          A TWO-DIMENSIONAL ARRAY THAT SPECIFIES THE
-        !                          VALueS OF THE RIGHT-HAND SIDE OF THE
-        !                          ELLIPTIC EQUATION, I.E.,
-        !                          GRHS(I, J)=G(XI, YI), FOR I=2, ..., M,
-        !                          J=2, ..., N.  AT THE BOUNDARIES, GRHS IS
-        !                          DEFINED BY
-        !
-        !                          MBDCND   GRHS(1, J)   GRHS(M+1, J)
-        !                          ------   ---------   -----------
-        !                            0      G(A, YJ)     G(B, YJ)
-        !                            1         *           *
-        !                            2         *        G(B, YJ)  J=1, 2, ..., N+1
-        !                            3      G(A, YJ)     G(B, YJ)
-        !                            4      G(A, YJ)        *
-        !
-        !                          NBDCND   GRHS(I, 1)   GRHS(I, N+1)
-        !                          ------   ---------   -----------
-        !                            0      G(XI, C)     G(XI, D)
-        !                            1         *           *
-        !                            2         *        G(XI, D)  I=1, 2, ..., M+1
-        !                            3      G(XI, C)     G(XI, D)
-        !                            4      G(XI, C)        *
-        !
-        !                          WHERE * MEANS THESE QUANTITIES ARE NOT USED.
-        !                          GRHS SHOULD BE DIMENSIONED IDMN BY AT LEAST
-        !                          N+1 IN THE CALLING ROUTINE.
-        !
-        !                        USOL
-        !                          A TWO-DIMENSIONAL ARRAY THAT SPECIFIES THE
-        !                          VALueS OF THE SOLUTION ALONG THE BOUNDARIES.
-        !                          AT THE BOUNDARIES, USOL IS DEFINED BY
-        !
-        !                          MBDCND   USOL(1, J)   USOL(M+1, J)
-        !                          ------   ---------   -----------
-        !                            0         *           *
-        !                            1      U(A, YJ)     U(B, YJ)
-        !                            2      U(A, YJ)        *     J=1, 2, ..., N+1
-        !                            3         *           *
-        !                            4         *        U(B, YJ)
-        !
-        !                          NBDCND   USOL(I, 1)   USOL(I, N+1)
-        !                          ------   ---------   -----------
-        !                            0         *           *
-        !                            1      U(XI, C)     U(XI, D)
-        !                            2      U(XI, C)        *     I=1, 2, ..., M+1
-        !                            3         *           *
-        !                            4         *        U(XI, D)
-        !
-        !                          WHERE * MEANS THE QUANTITIES ARE NOT USED
-        !                          IN THE SOLUTION.
-        !
-        !                          IF IORDER=2, THE USER MAY EQUIVALENCE GRHS
-        !                          AND USOL TO SAVE SPACE.  NOTE THAT IN THIS
-        !                          CASE THE TABLES SPECIFYING THE BOUNDARIES
-        !                          OF THE GRHS AND USOL ARRAYS DETERMINE THE
-        !                          BOUNDARIES UNIQueLY EXCEPT AT THE CORNERS.
-        !                          IF THE TABLES CALL FOR BOTH G(X, Y) AND
-        !                          U(X, Y) AT A CORNER THEN THE SOLUTION MUST
-        !                          BE CHOSEN.  FOR EXAMPLE, IF MBDCND=2 AND
-        !                          NBDCND=4, THEN U(A, C), U(A, D), U(B, D) MUST
-        !                          BE CHOSEN AT THE CORNERS IN ADDITION
-        !                          TO G(B, C).
-        !
-        !                          IF IORDER=4, THEN THE TWO ARRAYS, USOL AND
-        !                          GRHS, MUST BE DISTINCT.
-        !
-        !                          USOL SHOULD BE DIMENSIONED IDMN BY AT LEAST
-        !                          N+1 IN THE CALLING ROUTINE.
-        !
-        !                        IDMN
-        !                          THE ROW (OR FIRST) DIMENSION OF THE ARRAYS
-        !                          GRHS AND USOL AS IT APPEARS IN THE PROGRAM
-        !                          CALLING sepeli.  THIS PARAMETER IS USED
-        !                          TO SPECIFY THE VARIABLE DIMENSION OF GRHS
-        !                          AND USOL.  IDMN MUST BE AT LEAST 7 AND
-        !                          GREATER THAN OR EQUAL TO M+1.
-        !
-        !                        W
-        !                          A fortran 90 derived TYPE (FishpackWorkspace) variable
-        !                          that must be declared by the user.  The first
-        !                          two declarative statements in the user program
-        !                          calling sepeli must be:
-        !
-        !                               use type_FishpackWorkspace
-        !                               TYPE (FishpackWorkspace) :: W
-        !
-        !                          The first statement makes the fishpack module
-        !                          defined in the file "fish.f" available to the
-        !                          user program calling sepeli.  The second statement
-        !                          declares a derived type variable (defined in
-        !                          the module "fish.f") which is used internally
-        !                          in sepeli to dynamically allocate real and complex
-        !                          work space used in solution.  An error flag
-        !                          (ierror = 20) is set if the required work space
-        !                          allocation fails (for example if N, M are too large)
-        !                          Real and complex values are set in the components
-        !                          of W on a initial (INTL=0) call to sepeli.  These
-        !                          must be preserved on non-initial calls (INTL=1)
-        !                          to sepeli.  This eliminates redundant calculations
-        !                          and saves compute time.
-        !               ****       IMPORTANT!  The user program calling sepeli should
-        !                          include the statement:
-        !
-        !                               CALL FISHFIN(W)
-        !
-        !                          after the final approximation is generated by
-        !                          sepeli.  The will deallocate the real and complex
-        !                          work space of W.  Failure to include this statement
-        !                          could result in serious memory leakage.
-        !
-        ! ON OUTPUT              USOL
-        !                          CONTAINS THE APPROXIMATE SOLUTION TO THE
-        !                          ELLIPTIC EQUATION.
-        !                          USOL(I, J) IS THE APPROXIMATION TO U(XI, YJ)
-        !                          FOR I=1, 2..., M+1 AND J=1, 2, ..., N+1.
-        !                          THE APPROXIMATION HAS ERROR
-        !                          O(DLX**2+DLY**2) IF CALLED WITH IORDER=2
-        !                          AND O(DLX**4+DLY**4) IF CALLED WITH
-        !                          IORDER=4.
-        !
-        !                        W
-        !                          The derived type (FishpackWorkspace) variable W
-        !                          contains real and complex values that must not
-        !                          be destroyed if sepeli is called again with
-        !                          INTL=1.
-        !
-        !                        PERTRB
-        !                          IF A COMBINATION OF PERIODIC OR DERIVATIVE
-        !                          BOUNDARY CONDITIONS
-        !                          (I.E., ALPHA=BETA=0 IF MBDCND=3;
-        !                          GAMA=XNU=0 IF NBDCND=3) IS SPECIFIED
-        !                          AND IF THE COEFFICIENTS OF U(X, Y) IN THE
-        !                          SEPARABLE ELLIPTIC EQUATION ARE ZERO
-        !                          (I.E., CF(X)=0 FOR X GREATER THAN OR EQUAL
-        !                          TO A AND LESS THAN OR EQUAL TO B;
-        !                          FF(Y)=0 FOR Y GREATER THAN OR EQUAL TO C
-        !                          AND LESS THAN OR EQUAL TO D) THEN A
-        !                          SOLUTION MAY NOT EXIST.  PERTRB IS A
-        !                          CONSTANT CALCULATED AND SUBTRACTED FROM
-        !                          THE RIGHT-HAND SIDE OF THE MATRIX EQUATIONS
-        !                          GENERATED BY sepeli WHICH INSURES THAT A
-        !                          SOLUTION EXISTS. sepeli THEN COMPUTES THIS
-        !                          SOLUTION WHICH IS A WEIGHTED MINIMAL LEAST
-        !                          SQUARES SOLUTION TO THE ORIGINAL PROBLEM.
-        !
-        !                        ierror
-        !                          AN ERROR FLAG THAT INDICATES INVALID INPUT
-        !                          PARAMETERS OR FAILURE TO FIND A SOLUTION
-        !                          = 0 NO ERROR
-        !                          = 1 IF A GREATER THAN B OR C GREATER THAN D
-        !                          = 2 IF MBDCND LESS THAN 0 OR MBDCND GREATER
-        !                              THAN 4
-        !                          = 3 IF NBDCND LESS THAN 0 OR NBDCND GREATER
-        !                              THAN 4
-        !                          = 4 IF ATTEMPT TO FIND A SOLUTION FAILS.
-        !                              (THE LINEAR SYSTEM GENERATED IS NOT
-        !                              DIAGONALLY DOMINANT.)
-        !                          = 5 IF IDMN IS TOO SMALL
-        !                              (SEE DISCUSSION OF IDMN)
-        !                          = 6 IF M IS TOO SMALL OR TOO LARGE
-        !                              (SEE DISCUSSION OF M)
-        !                          = 7 IF N IS TOO SMALL (SEE DISCUSSION OF N)
-        !                          = 8 IF IORDER IS NOT 2 OR 4
-        !                          = 9 IF INTL IS NOT 0 OR 1
-        !                          = 10 IF AFUN*DFUN LESS THAN OR EQUAL TO 0
-        !                               FOR SOME INTERIOR MESH POINT (XI, YJ)
-        !                          = 20 If the dynamic allocation of real and
-        !                               complex work space in the derived type
-        !                               (FishpackWorkspace) variable W fails (e.g.,
-        !                               if N, M are too large for the platform used)
-        !
-        !                          NOTE (CONCERNING ierror=4):  FOR THE
-        !                          COEFFICIENTS INPUT THROUGH COFX, COFY,
-        !                          THE DISCRETIZATION MAY LEAD TO A BLOCK
-        !                          TRIDIAGONAL LINEAR SYSTEM WHICH IS NOT
-        !                          DIAGONALLY DOMINANT (FOR EXAMPLE, THIS
-        !                          HAPPENS IF CFUN=0 AND BFUN/(2.*DLX) GREATER
-        !                          THAN AFUN/DLX**2).  IN THIS CASE SOLUTION
-        !                          MAY FAIL.  THIS CANNOT HAPPEN IN THE LIMIT
-        !                          AS DLX, DLY APPROACH ZERO.  HENCE, THE
-        !                          CONDITION MAY BE REMEDIED BY TAKING LARGER
-        !                          VALueS FOR M OR N.
-        !
-        ! SPECIAL CONDITIONS     SEE COFX, COFY ARGUMENT DESCRIPTIONS ABOVE.
-        !
-        ! I/O                    NONE
-        !
-        ! PRECISION              SINGLE
-        !
-        ! REQUIRED FILES         blktri.f, comf.f, sepaux.f, fish.f
-        !
-        ! LANGUAGE               Fortran 90
-        !
-        ! HISTORY                DEVELOPED AT NCAR DURING 1975-76 BY
-        !                        JOHN C. ADAMS OF THE SCIENTIFIC COMPUTING
-        !                        DIVISION.  RELEASED ON NCAR'S PUBLIC SOFTWARE
-        !                        LIBRARIES IN January 1980. Revised in June
-        !                        2004 using Fortan 90 dynamically allocated work
-        !                        space and derived data types to eliminate mixed
-        !                        mode conflicts in the earlier versions. All
-        !                        statement labels, arithmetic if statements and
-        !                        computed GO TO statements have been removed from
-        !                        the current Version of sepeli.
-        !
-        ! ALGORITHM              sepeli AUTOMATICALLY DISCRETIZES THE
-        !                        SEPARABLE ELLIPTIC EQUATION WHICH IS THEN
-        !                        SOLVED BY A GENERALIZED CYCLIC REDUCTION
-        !                        ALGORITHM IN THE SUBROUTINE, blktri.  THE
-        !                        FOURTH-ORDER SOLUTION IS OBTAINED USING
-        !                        'deferRED CORRECTIONS' WHICH IS DESCRIBED
-        !                        AND REFERENCED IN SECTIONS, REFERENCES AND
-        !                        METHOD.
-        !
-        ! TIMING                 THE OPERATIONAL COUNT IS PROPORTIONAL TO
-        !                        M*N*LOG2(N).
-        !
-        ! ACCURACY               THE FOLLOWING ACCURACY RESULTS WERE OBTAINED
-        !                        using 64 bit floating point arithmetic.  Note
-        !                        THAT THE FOURTH-ORDER accuracy is not realized
-        !                        UNTIL THE MESH IS sufficiently refined.
-        !
-        !                                     SECOND-ORDER  FOURTH-ORDER
-        !                            M    N     ERROR         ERROR
-        !
-        !                             6    6    6.8E-1        1.2E0
-        !                            14   14    1.4E-1        1.8E-1
-        !                            30   30    3.2E-2        9.7E-3
-        !                            62   62    7.5E-3        3.0E-4
-        !                           126  126    1.8E-3        3.5E-6
-        !
-        !
-        ! REFERENCES             KELLER, H.B., NUMERICAL METHODS FOR TWO-POINT
-        !                        BOUNDARY-VALue PROBLEMS, BLAISDEL (1968),
-        !                        WALTHAM, MASS.
-        !
-        !                        SWARZTRAUBER, P., AND R. SWEET (1975):
-        !                        EFFICIENT FORTRAN SUBPROGRAMS FOR THE
-        !                        SOLUTION OF ELLIPTIC PARTIAL DIFFERENTIAL
-        !                        EQUATIONS.  NCAR TECHNICAL NOTE
-        !                        NCAR-TN/IA-109, PP. 135-137.
-        !
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
@@ -622,6 +612,10 @@ contains
             rew => workspace%real_workspace, &
             cxw => workspace%complex_workspace &
             )
+
+            !
+            !==> Solve system
+            !
             call spelip(sep_aux, intl, iorder, a, b, m, mbdcnd, &
                 bda, alpha, bdb, beta, c, d, n, &
                 nbdcnd, bdc, gama, bdd, xnu, cofx, cofy, &
@@ -630,6 +624,7 @@ contains
                 rew(i(9)), rew(i(10)), rew(i(11)), rew(i(12)), &
                 grhs, usol, idmn, rew, cxw, &
                 pertrb, ierror)
+
         end associate
 
     end subroutine sepeli

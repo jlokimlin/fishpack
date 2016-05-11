@@ -1,3 +1,260 @@
+!
+!     file blktri.f90
+!
+!     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+!     *                                                               *
+!     *                  copyright (c) 2005 by UCAR                   *
+!     *                                                               *
+!     *       University Corporation for Atmospheric Research         *
+!     *                                                               *
+!     *                      all rights reserved                      *
+!     *                                                               *
+!     *                    FISHPACK90  Version 1.1                    *
+!     *                                                               *
+!     *                 A Package of Fortran 77 and 90                *
+!     *                                                               *
+!     *                Subroutines and Example Programs               *
+!     *                                                               *
+!     *               for Modeling Geophysical Processes              *
+!     *                                                               *
+!     *                             by                                *
+!     *                                                               *
+!     *        John Adams, Paul Swarztrauber and Roland Sweet         *
+!     *                                                               *
+!     *                             of                                *
+!     *                                                               *
+!     *         the National Center for Atmospheric Research          *
+!     *                                                               *
+!     *                Boulder, Colorado  (80307)  U.S.A.             *
+!     *                                                               *
+!     *                   which is sponsored by                       *
+!     *                                                               *
+!     *              the National Science Foundation                  *
+!     *                                                               *
+!     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+!
+!
+! SUBROUTINE blktri(iflg, np, n, an, bn, cn, mp, m, am, bm, cm,
+!            idimy, y, ierror, workspace)
+!
+!
+!
+! DIMENSION OF           an(n), bn(n), cn(n), am(m), bm(m), cm(m), y(idimy, n)
+! ARGUMENTS
+!
+! LATEST REVISION        April 2016
+!
+! USAGE                  call blktri(iflg, np, n, an, bn, cn, mp, m, &
+!                                   am, bm, cm, idimy, y, ierror, workspace)
+!
+! PURPOSE                blktri solves a system of linear equations
+!                        of the form
+!
+!                        an(j)*x(i, j-1) + am(i)*x(i-1, j) +
+!                        (bn(j)+bm(i))*x(i, j) + cn(j)*x(i, j+1) +
+!                        cm(i)*x(i+1, j) = y(i, j)
+!
+!                        for i = 1, 2, ..., m  and  j = 1, 2, ..., n.
+!
+!                        i+1 and i-1 are evaluated modulo m and
+!                        j+1 and j-1 modulo n, i.e.,
+!
+!                        x(i, 0) = x(i, n),  x(i, n+1) = x(i, 1),
+!                        x(0, j) = x(m, j),  x(m+1, j) = x(1, j).
+!
+!                        These equations usually result from the
+!                        discretization of separable elliptic
+!                        equations. Boundary conditions may be
+!                        dirichlet, neumann, or periodic.
+!
+! ARGUMENTS
+!
+! ON INPUT               iflg
+!
+!                          = 0  Unitialization only.
+!                               certain quantities that depend on np,
+!                               n, an, bn, and cn are computed and
+!                               stored in derived data type w (see
+!                               description of w below)
+!
+!                          = 1  The quantities that were computed
+!                               in the initialization are used
+!                               to obtain the solution x(i, j).
+!
+!                               note:
+!                               A call with iflg=0 takes
+!                               approximately one half the time
+!                               as a call with iflg = 1.
+!                               however, the initialization does
+!                               not have to be repeated unless np,
+!                               n, an, bn, or cn change.
+!
+!                        np
+!                          = 0  If an(1) and cn(n) are not zero,
+!                               which corresponds to periodic
+!                               bounary conditions.
+!
+!                          = 1  If an(1) and cn(n) are zero.
+!
+!                        n
+!                          The number of unknowns in the j-direction.
+!                          n must be greater than 4.
+!                          The operation count is proportional to
+!                          m*n*log2(n), hence n should be selected
+!                          less than or equal to m.
+!
+!                        an, bn, cn
+!                          One-dimensional arrays of length n
+!                          that specify the coefficients in the
+!                          linear equations given above.
+!
+!                        mp
+!                          = 0  If am(1) and cm(m) are not zero,
+!                               which corresponds to periodic
+!                               boundary conditions.
+!
+!                          = 1  If am(1) = cm(m) = 0  .
+!
+!                        m
+!                          The number of unknowns in the i-direction.
+!                           m must be greater than 4.
+!
+!                        am, bm, cm
+!                          One-dimensional arrays of length m that
+!                          specify the coefficients in the linear
+!                          equations given above.
+!
+!                        idimy
+!                          The row (or first) dimension of the
+!                          two-dimensional array y as it appears
+!                          in the program calling blktri.
+!                          This parameter is used to specify the
+!                          variable dimension of y.
+!                          idimy must be at least m.
+!
+!                        y
+!                          A two-dimensional array that specifies
+!                          the values of the right side of the linear
+!                          system of equations given above.
+!                          y must be dimensioned at least m*n.
+!
+!                        workspace
+!                          An object of class (FishpackWorkspace)
+!                          that must be declared by the user.  The first
+!                          two declarative statements in the user program
+!                          calling blktri must be:
+!
+!                               use type_FishpackWorkspace
+!                               type (Fishpackworkspace) :: workspace
+!
+!                          The first statement makes the fishpack module
+!                          defined in the file "type_FishpackWorkspace.f90"
+!                          available to the user program calling blktri.
+!                          The second statement declares a derived type variable
+!                          (defined in the module "type_FishpackWorkspace.f90")
+!                          which is used internally in blktri to dynamically
+!                          allocate real and complex workspace used in solution.
+!                          An error flag (ierror = 20) is set if the required
+!                          workspace allocation fails (for example if n, m
+!                          are too large). Real and complex values are set in
+!                          the components of workspace on a initial (iflg=0)
+!                          call to blktri.  These must be preserved on
+!                          non-initial calls (iflg=1) to blktri.
+!                          This eliminates redundant calculations
+!                          and saves compute time.
+!               ****       IMPORTANT!  The user program calling blktri should
+!                          include the statement:
+!
+!                              call workspace%destroy()
+!
+!                          after the final approximation is generated by
+!                          blktri. This will deallocate the real and complex
+!                          array components of workspace. Failure to include this
+!                          statement could result in serious memory leakage.
+!
+!
+! ARGUMENTS
+!
+! ON OUTPUT              y
+!                          Contains the solution x.
+!
+!                        ierror
+!                          An error flag that indicates invalid
+!                          input parameters.  except for number zer0,
+!                          a solution is not attempted.
+!
+!                        = 0  no error.
+!                        = 1  m < than 5
+!                        = 2  n < than 5
+!                        = 3  idimy < m.
+!                        = 4  blktri failed while computing results
+!                             that depend on the coefficient arrays
+!                             an, bn, cn. Check these arrays.
+!                        = 5  an(j)*cn(j-1) is less than 0 for some j.
+!
+!                             Possible reasons for this condition are
+!                             1. The arrays an and cn are not correct
+!                             2. Too large a grid spacing was used
+!                                in the discretization of the elliptic
+!                                equation.
+!                             3. The linear equations resulted from a
+!                                partial differential equation which
+!                                was not elliptic.
+!
+!                        = 20 If the dynamic allocation of real and
+!                             complex work space in the derived type
+!                             (FishpackWorkspace) variable W fails (e.g.,
+!                             if N, M are too large for the platform used)
+!
+!
+!                        workspace
+!                             The derived type (FishpackWorkspace) variable
+!                             contains real and complex array components that
+!                             must not be destroyed if blktri is called again with
+!                             iflg=1.
+!
+!
+! SPECIAL CONDITIONS     The algorithm may fail if abs(bm(i)+bn(j))
+!                        is less than abs(am(i))+abs(an(j))+
+!                        abs(cm(i))+abs(cn(j))
+!                        for some i and j. the algorithm will also
+!                        fail if an(j)*cn(j-1) is less than zero for
+!                        some j.
+!                        see the description of the output parameter
+!                        ierror.
+!
+! I/O                    None
+!
+! PRECISION              64-bit precision float and 32-bit precision integer
+!
+! REQUIRED FILES         type_FishpackWorkspace.f90, comf.f90
+!
+! STANDARD               Fortran 2008
+!
+! HISTORY                * Written by Paul Swarztrauber at NCAR in the
+!                          early 1970's.
+!                        * Rewritten and released in libraries in January 1980.
+!                        * Revised in June 2004 using Fortan 90 dynamically
+!                          allocated workspace and derived data types to
+!                          eliminate mixed mode conflicts in the earlier versions.
+!                        * Revised in April 2016 to implement features of
+!                          Fortran 2008
+!
+! ALGORITHM              Generalized cyclic reduction
+!
+! PORTABILITY            Approximate machine accuracy is obtained
+!                        using the intrinsic epsilon function
+!
+! REFERENCES             Swarztrauber, P. and R. Sweet, 'Efficient
+!                        FORTRAN subprograms for the solution of
+!                        elliptic equations'
+!                        NCAR TN/IA-109, July, 1975, 138 pp.
+!
+!                        Swarztrauber P. N., A direct method for
+!                        the discrete solution of separable
+!                        elliptic equations, SIAM
+!                        J. Numer. Anal., 11(1974) pp. 1136-1150.
+!
 module module_blktri
 
     use, intrinsic :: iso_fortran_env, only: &
@@ -50,263 +307,6 @@ contains
 
     subroutine blktri(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
         idimy, y, ierror, workspace)
-        !
-        !     file blktri.f90
-        !
-        !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-        !     *                                                               *
-        !     *                  copyright (c) 2005 by UCAR                   *
-        !     *                                                               *
-        !     *       University Corporation for Atmospheric Research         *
-        !     *                                                               *
-        !     *                      all rights reserved                      *
-        !     *                                                               *
-        !     *                    FISHPACK90  Version 1.1                    *
-        !     *                                                               *
-        !     *                 A Package of Fortran 77 and 90                *
-        !     *                                                               *
-        !     *                Subroutines and Example Programs               *
-        !     *                                                               *
-        !     *               for Modeling Geophysical Processes              *
-        !     *                                                               *
-        !     *                             by                                *
-        !     *                                                               *
-        !     *        John Adams, Paul Swarztrauber and Roland Sweet         *
-        !     *                                                               *
-        !     *                             of                                *
-        !     *                                                               *
-        !     *         the National Center for Atmospheric Research          *
-        !     *                                                               *
-        !     *                Boulder, Colorado  (80307)  U.S.A.             *
-        !     *                                                               *
-        !     *                   which is sponsored by                       *
-        !     *                                                               *
-        !     *              the National Science Foundation                  *
-        !     *                                                               *
-        !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-        !
-        !
-        ! SUBROUTINE blktri(iflg, np, n, an, bn, cn, mp, m, am, bm, cm,
-        !            idimy, y, ierror, workspace)
-        !
-        !
-        !
-        ! DIMENSION OF           an(n), bn(n), cn(n), am(m), bm(m), cm(m), y(idimy, n)
-        ! ARGUMENTS
-        !
-        ! LATEST REVISION        April 2016
-        !
-        ! USAGE                  call blktri(iflg, np, n, an, bn, cn, mp, m, &
-        !                                   am, bm, cm, idimy, y, ierror, workspace)
-        !
-        ! PURPOSE                blktri solves a system of linear equations
-        !                        of the form
-        !
-        !                        an(j)*x(i, j-1) + am(i)*x(i-1, j) +
-        !                        (bn(j)+bm(i))*x(i, j) + cn(j)*x(i, j+1) +
-        !                        cm(i)*x(i+1, j) = y(i, j)
-        !
-        !                        for i = 1, 2, ..., m  and  j = 1, 2, ..., n.
-        !
-        !                        i+1 and i-1 are evaluated modulo m and
-        !                        j+1 and j-1 modulo n, i.e.,
-        !
-        !                        x(i, 0) = x(i, n),  x(i, n+1) = x(i, 1),
-        !                        x(0, j) = x(m, j),  x(m+1, j) = x(1, j).
-        !
-        !                        These equations usually result from the
-        !                        discretization of separable elliptic
-        !                        equations. Boundary conditions may be
-        !                        dirichlet, neumann, or periodic.
-        !
-        ! ARGUMENTS
-        !
-        ! ON INPUT               iflg
-        !
-        !                          = 0  Unitialization only.
-        !                               certain quantities that depend on np,
-        !                               n, an, bn, and cn are computed and
-        !                               stored in derived data type w (see
-        !                               description of w below)
-        !
-        !                          = 1  The quantities that were computed
-        !                               in the initialization are used
-        !                               to obtain the solution x(i, j).
-        !
-        !                               note:
-        !                               A call with iflg=0 takes
-        !                               approximately one half the time
-        !                               as a call with iflg = 1.
-        !                               however, the initialization does
-        !                               not have to be repeated unless np,
-        !                               n, an, bn, or cn change.
-        !
-        !                        np
-        !                          = 0  If an(1) and cn(n) are not zero,
-        !                               which corresponds to periodic
-        !                               bounary conditions.
-        !
-        !                          = 1  If an(1) and cn(n) are zero.
-        !
-        !                        n
-        !                          The number of unknowns in the j-direction.
-        !                          n must be greater than 4.
-        !                          The operation count is proportional to
-        !                          m*n*log2(n), hence n should be selected
-        !                          less than or equal to m.
-        !
-        !                        an, bn, cn
-        !                          One-dimensional arrays of length n
-        !                          that specify the coefficients in the
-        !                          linear equations given above.
-        !
-        !                        mp
-        !                          = 0  If am(1) and cm(m) are not zero,
-        !                               which corresponds to periodic
-        !                               boundary conditions.
-        !
-        !                          = 1  If am(1) = cm(m) = 0  .
-        !
-        !                        m
-        !                          The number of unknowns in the i-direction.
-        !                           m must be greater than 4.
-        !
-        !                        am, bm, cm
-        !                          One-dimensional arrays of length m that
-        !                          specify the coefficients in the linear
-        !                          equations given above.
-        !
-        !                        idimy
-        !                          The row (or first) dimension of the
-        !                          two-dimensional array y as it appears
-        !                          in the program calling blktri.
-        !                          This parameter is used to specify the
-        !                          variable dimension of y.
-        !                          idimy must be at least m.
-        !
-        !                        y
-        !                          A two-dimensional array that specifies
-        !                          the values of the right side of the linear
-        !                          system of equations given above.
-        !                          y must be dimensioned at least m*n.
-        !
-        !                        workspace
-        !                          An object of class (FishpackWorkspace)
-        !                          that must be declared by the user.  The first
-        !                          two declarative statements in the user program
-        !                          calling blktri must be:
-        !
-        !                               use type_FishpackWorkspace
-        !                               type (Fishpackworkspace) :: workspace
-        !
-        !                          The first statement makes the fishpack module
-        !                          defined in the file "type_FishpackWorkspace.f90"
-        !                          available to the user program calling blktri.
-        !                          The second statement declares a derived type variable
-        !                          (defined in the module "type_FishpackWorkspace.f90")
-        !                          which is used internally in blktri to dynamically
-        !                          allocate real and complex workspace used in solution.
-        !                          An error flag (ierror = 20) is set if the required
-        !                          workspace allocation fails (for example if n, m
-        !                          are too large). Real and complex values are set in
-        !                          the components of workspace on a initial (iflg=0)
-        !                          call to blktri.  These must be preserved on
-        !                          non-initial calls (iflg=1) to blktri.
-        !                          This eliminates redundant calculations
-        !                          and saves compute time.
-        !               ****       IMPORTANT!  The user program calling blktri should
-        !                          include the statement:
-        !
-        !                              call workspace%destroy()
-        !
-        !                          after the final approximation is generated by
-        !                          blktri. This will deallocate the real and complex
-        !                          array components of workspace. Failure to include this
-        !                          statement could result in serious memory leakage.
-        !
-        !
-        ! ARGUMENTS
-        !
-        ! ON OUTPUT              y
-        !                          Contains the solution x.
-        !
-        !                        ierror
-        !                          An error flag that indicates invalid
-        !                          input parameters.  except for number zer0,
-        !                          a solution is not attempted.
-        !
-        !                        = 0  no error.
-        !                        = 1  m < than 5
-        !                        = 2  n < than 5
-        !                        = 3  idimy < m.
-        !                        = 4  blktri failed while computing results
-        !                             that depend on the coefficient arrays
-        !                             an, bn, cn. Check these arrays.
-        !                        = 5  an(j)*cn(j-1) is less than 0 for some j.
-        !
-        !                             Possible reasons for this condition are
-        !                             1. The arrays an and cn are not correct
-        !                             2. Too large a grid spacing was used
-        !                                in the discretization of the elliptic
-        !                                equation.
-        !                             3. The linear equations resulted from a
-        !                                partial differential equation which
-        !                                was not elliptic.
-        !
-        !                        = 20 If the dynamic allocation of real and
-        !                             complex work space in the derived type
-        !                             (FishpackWorkspace) variable W fails (e.g.,
-        !                             if N, M are too large for the platform used)
-        !
-        !
-        !                        workspace
-        !                             The derived type (FishpackWorkspace) variable
-        !                             contains real and complex array components that
-        !                             must not be destroyed if blktri is called again with
-        !                             iflg=1.
-        !
-        !
-        ! SPECIAL CONDITIONS     The algorithm may fail if abs(bm(i)+bn(j))
-        !                        is less than abs(am(i))+abs(an(j))+
-        !                        abs(cm(i))+abs(cn(j))
-        !                        for some i and j. the algorithm will also
-        !                        fail if an(j)*cn(j-1) is less than zero for
-        !                        some j.
-        !                        see the description of the output parameter
-        !                        ierror.
-        !
-        ! I/O                    None
-        !
-        ! PRECISION              64-bit precision float and 32-bit precision integer
-        !
-        ! REQUIRED FILES         type_FishpackWorkspace.f90, comf.f90
-        !
-        ! STANDARD               Fortran 2008
-        !
-        ! HISTORY                * Written by Paul Swarztrauber at NCAR in the
-        !                          early 1970's.
-        !                        * Rewritten and released in libraries in January 1980.
-        !                        * Revised in June 2004 using Fortan 90 dynamically
-        !                          allocated workspace and derived data types to
-        !                          eliminate mixed mode conflicts in the earlier versions.
-        !                        * Revised in April 2016 to implement features of
-        !                          Fortran 2008
-        !
-        ! ALGORITHM              Generalized cyclic reduction
-        !
-        ! PORTABILITY            Approximate machine accuracy is obtained
-        !                        using the intrinsic epsilon function
-        !
-        ! REFERENCES             Swarztrauber, P. and R. Sweet, 'Efficient
-        !                        fortran subprograms for the solution of
-        !                        elliptic equations'
-        !                        NCAR TN/IA-109, July, 1975, 138 pp.
-        !
-        !                        Swarztrauber P. N., A direct method for
-        !                        the discrete solution of separable
-        !                        elliptic equations, SIAM
-        !                        J. Numer. Anal., 11(1974) pp. 1136-1150.
-        !
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
@@ -331,27 +331,21 @@ contains
         integer (ip)  :: irwk, icwk
         !--------------------------------------------------------------------------------
 
-        ! Initialize error flag
-        ierror = 0
-
-        ! Check if input values are valid - case 1
+        !
+        !==> Check validity of input arguments
+        !
         if (m < 5) then
             ierror = 1
             return
-        end if
-
-        ! Check if input values are valid - case 2
-        if (n < 3) then
+        else if (n < 3) then
             ierror = 2
             return
-        end if
-
-        ! Check if input values are valid - case 3
-        if (idimy < m) then
+        else if (idimy < m) then
             ierror = 3
             return
+        else
+            ierror = 0
         end if
-
 
         if (iflg == 0) then
 
@@ -363,13 +357,17 @@ contains
 
         end if
 
-        ! Solve system
+
         associate( &
             rew => workspace%real_workspace, &
             cxw => workspace%complex_workspace &
             )
+            !
+            !==> Solve system
+            !
             call blktrii(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, idimy, y, &
                 ierror, rew, cxw)
+
         end associate
 
     end subroutine blktri
@@ -406,52 +404,63 @@ contains
         ! test m and n for the proper form
         !
         nm = n
-        !     check again for solvers which call blktrii directly
+        !
+        !==> Check validity of calling arguments
+        !
         if (m < 5) then
             ierror = 1
             return
-        end if
-        if (nm < 3) then
+        else if (nm < 3) then
             ierror = 2
             return
-        end if
-        if (idimy < m) then
+        else if (idimy < m) then
             ierror = 3
             return
+        else
+            ierror = 0
         end if
 
         if (iflg == 0) then
-            nh = n
+
             npp = np
+
             if (npp /= 0) then
-                nh = nh + 1
+                nh = n + 1
+            else
+                nh = n
             end if
-            ik = 2
-            k = 1
-            ik = ik + ik
-            k = k + 1
-            do while(nh - ik > 0)
-                ik = ik + ik
+
+            ik = 4
+            k = 2
+
+            do while (nh - ik > 0)
+                ik = 2 * ik
                 k = k + 1
             end do
+
             nl = ik
-            ik = ik + ik
+            ik = 2 * ik
             nl = nl - 1
+
             iwah = (k - 2)*ik + k + 5
+
             if (npp == 0) then
-                iwbh = iwah + nm + nm
+                iwbh = iwah + 2 * nm
                 iw1 = iwbh
                 nm = n - 1
             else
                 iw1 = iwah
                 iwbh = iw1 + nm
             end if
-            !     set pointers in real, complex work space
+            !
+            !==> Set workspace pointer indices
+            !
             iw2 = iw1 + m
             iw3 = iw2 + m
             iwd = iw3 + m
             iww = iwd + m
             iwu = iww + m
+
             call compb(nl, ierror, an, bn, cn, w, wc, w(iwah), w(iwbh))
             return
         end if
@@ -472,7 +481,6 @@ contains
         end if
 
     contains
-
 
         subroutine blktr1(n, an, bn, cn, m, am, bm, cm, idimy, y, b, bc, &
             w1, w2, w3, wd, ww, wu, cw1, cw2, cw3, prdct, cprdct)
@@ -525,7 +533,7 @@ contains
             !-----------------------------------------------
 
             !
-            ! begin reduction phase
+            !==> begin reduction phase
             !
             kdo = k - 1
             do l = 1, kdo
