@@ -296,9 +296,7 @@ contains
         !
         call workspace%destroy()
 
-
     end subroutine genbun
-
 
 
     subroutine genbunn(nperod, n, mperod, m, a, b, c, idimy, y, ierror, w)
@@ -541,9 +539,7 @@ contains
 
 end associate
 
-
 contains
-
 
     pure subroutine check_input_arguments(nperod, n, mperod, m, idimy, ierror, a, b, c)
         !--------------------------------------------------------------------------------
@@ -1172,8 +1168,6 @@ subroutine poisn2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
             jstart = jr
             nrod = 1 - nrod
     end select
-
-107 continue
 
     jstop = nlast - jr
 
