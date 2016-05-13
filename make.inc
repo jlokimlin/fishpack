@@ -1,11 +1,6 @@
-
-LIB_NAME = modern_fishpack
-
-LIB = ../lib/lib$(LIB_NAME).a
+MAKE = /usr/bin/make
 
 AR = /usr/bin/ar
-
-MAKE = /usr/bin/make
 
 #EXTERNAL_LIBRARY_PATH = /usr/local/lib
 EXTERNAL_LIBRARY_PATH = /usr/local/lib64
@@ -16,15 +11,19 @@ OBJ := $(patsubst %.f90, %.o, $(wildcard *.f90))
 
 OBJ_DIRECTORY = ../objs
 
+OBJS = $(addprefix $(OBJ_DIRECTORY)/, $(OBJ))
+
 LIB_DIRECTORY = ../lib
+
+LIB_NAME = modern_fishpack
+
+LIB = $(LIB_DIRECTORY)/lib$(LIB_NAME).a
 
 MOD_DIRECTORY = $(LIB_DIRECTORY)
 
-OBJS = $(addprefix $(OBJ_DIRECTORY)/, $(OBJ))
-
 FC = gfortran
 
-FCFLAGS = \
+FFLAGS = \
 -O3\
 $(ENFORCE_64_BIT_PRECISION) \
 $(LANGUAGE_OPTIONS)

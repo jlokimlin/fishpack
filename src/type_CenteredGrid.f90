@@ -22,7 +22,7 @@ module type_CenteredGrid
     !---------------------------------------------------------------------------------
 
     ! Declare derived data type
-    type, extends( Grid ), public :: CenteredGrid
+    type, extends (Grid), public :: CenteredGrid
         !---------------------------------------------------------------------------------
         ! Class variables
         !---------------------------------------------------------------------------------
@@ -40,7 +40,31 @@ module type_CenteredGrid
     end type CenteredGrid
 
 
+    ! Declare constructor
+    interface CenteredGrid
+        module procedure centered_grid_constructor
+    end interface
+
+
+
 contains
+
+
+
+    function centered_grid_constructor(x_interval, y_interval, nx, ny) result (return_value)
+        !--------------------------------------------------------------------------------
+        ! Dictionary: calling arguments
+        !--------------------------------------------------------------------------------
+        real (wp), contiguous, intent (in) :: x_interval(:) !! Interval: A <= x <= B
+        real (wp), contiguous, intent (in) :: y_interval(:) !! Interval: C <= y <= D
+        integer (ip),          intent (in) :: nx  !! Number of horizontally staggered grid points in x
+        integer (ip),          intent (in) :: ny  !! Number of vertically staggered grid points in y
+        type (CenteredGrid)                :: return_value
+        !--------------------------------------------------------------------------------
+
+        call return_value%create(x_interval, y_interval, nx, ny)
+
+    end function centered_grid_constructor
 
 
     subroutine create_centered_grid(this, x_interval, y_interval, nx, ny )

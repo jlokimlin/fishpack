@@ -279,19 +279,8 @@ contains
         integer (ip), intent (out)  :: return_value
         !--------------------------------------------------------------------------------
 
-        ! Initialize return value
-        return_value = -1
-
         select case (type)
-            case (4)
-                return_value = type
-            case (3)
-                return_value = type
-            case (2)
-                return_value = type
-            case (1)
-                return_value = type
-            case (0)
+            case (0:4)
                 return_value = type
             case default
                 ! handle invalid boundary type

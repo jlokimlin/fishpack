@@ -41,10 +41,34 @@ module type_StaggeredGrid
     end type StaggeredGrid
 
 
+    ! Declare constructor
+    interface StaggeredGrid
+        module procedure staggered_grid_constructor
+    end interface
+
+
+
 contains
 
 
-    subroutine create_staggered_grid(this, x_interval, y_interval, nx, ny )
+
+    function staggered_grid_constructor(x_interval, y_interval, nx, ny) result (return_value)
+        !--------------------------------------------------------------------------------
+        ! Dictionary: calling arguments
+        !--------------------------------------------------------------------------------
+        real (wp), contiguous, intent (in) :: x_interval(:) !! Interval: A <= x <= B
+        real (wp), contiguous, intent (in) :: y_interval(:) !! Interval: C <= y <= D
+        integer (ip),          intent (in) :: nx  !! Number of horizontally staggered grid points in x
+        integer (ip),          intent (in) :: ny  !! Number of vertically staggered grid points in y
+        type (StaggeredGrid)               :: return_value
+        !--------------------------------------------------------------------------------
+
+        call return_value%create(x_interval, y_interval, nx, ny)
+
+    end function staggered_grid_constructor
+
+
+    subroutine create_staggered_grid(this, x_interval, y_interval, nx, ny)
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
@@ -63,7 +87,7 @@ contains
         this%NY = ny
 
         ! Create parent type
-        call this%create_grid( x_interval, y_interval, nx, ny )
+        call this%create_grid(x_interval, y_interval, nx, ny)
 
         associate( &
             A => x_interval(1), &

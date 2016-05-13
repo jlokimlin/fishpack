@@ -15,7 +15,7 @@ $(EXES): $(SRC)
 
 %.exe : %.f90
 	rm -f $@
-	$(FC) $(FCFLAGS) $< -o $@ $(LINKS)
+	$(FC) $(FFLAGS) $< -o $@ $(LINKS)
 	./$@
 
 clean:

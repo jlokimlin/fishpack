@@ -190,14 +190,16 @@ program tpoistg
     real (wp)                :: exact_solution
     !------------------------------------------------------------------------------
 
-    !
-    !==> Create staggered grid
-    !
+
     associate( &
         x_interval => [ -PI/2, PI/2 ], &
         y_interval => [ 0.0_wp, 1.0_wp ] &
         )
-        call staggered_grid%create( x_interval, y_interval, NX, NY )
+        !
+        !==> Allocate memory
+        !
+        staggered_grid = StaggeredGrid(x_interval, y_interval, NX, NY)
+
     end associate
 
     !

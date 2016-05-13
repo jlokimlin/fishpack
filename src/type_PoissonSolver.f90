@@ -45,7 +45,7 @@ contains
         real (wp),             intent (in out) :: source_term(:,:)
         real (wp),             intent (out)    :: solution(:,:)
         !--------------------------------------------------------------------------------
-        real (wp), parameter :: HELMHOLTZ_CONSTANT = nearest(1.0_wp, 1.0_wp)-nearest(1.0_wp, -1.0_wp)
+        real (wp), parameter :: HELMHOLTZ_CONSTANT = 0.0_wp
         !--------------------------------------------------------------------------------
 
         ! Check if object is usable
@@ -80,7 +80,7 @@ contains
         !--------------------------------------------------------------------------------
         ! Dictionary: local variables
         !--------------------------------------------------------------------------------
-        real (wp), parameter :: HELMHOLTZ_CONSTANT = nearest(1.0_wp, 1.0_wp)-nearest(1.0_wp, -1.0_wp)
+        real (wp), parameter :: HELMHOLTZ_CONSTANT = 0.0_wp
         !--------------------------------------------------------------------------------
 
         ! Check if object is usable

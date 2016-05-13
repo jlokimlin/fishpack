@@ -1,12 +1,12 @@
 
 include make.inc
 
-all: lib testlib
+all: clean lib testlib
 
 lib: 
 	mkdir -p ./lib
 	mkdir -p ./objs
-	( cd ./src; $(MAKE) clean; $(MAKE) )
+	( cd ./src; $(MAKE) clean; $(MAKE) all )
 
 testlib:
 	( cd ./test; $(MAKE) clean; $(MAKE) run )

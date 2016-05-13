@@ -40,8 +40,8 @@ module type_HelmholtzSolver
         !---------------------------------------------------------------------------------
         ! Class methods
         !---------------------------------------------------------------------------------
-        procedure,         public :: solve_2d_helmholtz_centered
-        procedure,         public :: solve_2d_helmholtz_staggered
+        procedure, public :: solve_2d_helmholtz_centered
+        procedure, public :: solve_2d_helmholtz_staggered
         final                     :: finalize_helmholtz_solver
         !---------------------------------------------------------------------------------
     end type HelmholtzSolver

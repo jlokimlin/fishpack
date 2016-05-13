@@ -169,14 +169,16 @@ program tgenbun
     real (wp)                :: exact_solution
     !------------------------------------------------------------------------------
 
-    !
-    !==> Create centered grid
-    !
+
     associate( &
         x_interval => [ 0.0_wp, 1.0_wp ], &
         y_interval => [ -PI, PI ] &
         )
-        call centered_grid%create( x_interval, y_interval, NX, NY )
+        !
+        !==> Allocate memory
+        !
+        centered_grid = CenteredGrid(x_interval, y_interval, NX, NY)
+
     end associate
 
     !
