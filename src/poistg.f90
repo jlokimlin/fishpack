@@ -1,3 +1,215 @@
+!
+!     file poistg.f
+!
+!     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+!     *                                                               *
+!     *                  copyright (c) 2005 by UCAR                   *
+!     *                                                               *
+!     *       University Corporation for Atmospheric Research         *
+!     *                                                               *
+!     *                      all rights reserved                      *
+!     *                                                               *
+!     *                    FISHPACK90  Version 1.1                    *
+!     *                                                               *
+!     *                 A Package of Fortran 77 and 90                *
+!     *                                                               *
+!     *                Subroutines and Example Programs               *
+!     *                                                               *
+!     *               for Modeling Geophysical Processes              *
+!     *                                                               *
+!     *                             by                                *
+!     *                                                               *
+!     *        John Adams, Paul Swarztrauber and Roland Sweet         *
+!     *                                                               *
+!     *                             of                                *
+!     *                                                               *
+!     *         the National Center for Atmospheric Research          *
+!     *                                                               *
+!     *                Boulder, Colorado  (80307)  U.S.A.             *
+!     *                                                               *
+!     *                   which is sponsored by                       *
+!     *                                                               *
+!     *              the National Science Foundation                  *
+!     *                                                               *
+!     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+!
+!
+! SUBROUTINE poistg(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
+!
+!
+! DIMENSION OF           a(m),  b(m),  c(m),  y(idimy, n)
+! ARGUMENTS
+!
+! LATEST REVISION        April 2016
+!
+! PURPOSE                Solves the linear system of equations
+!                        for unknown x values, where i=1, 2, ..., m
+!                        and j=1, 2, ..., n
+!
+!                        a(i)*x(i-1, j) + b(i)*x(i, j) + c(i)*x(i+1, j)
+!                        + x(i, j-1) - 2.*x(i, j) + x(i, j+1)
+!                        = y(i, j)
+!
+!                        The indices i+1 and i-1 are evaluated modulo m,
+!                        i.e. x(0, j) = x(m, j) and x(m+1, j) = x(1, j), and
+!                        x(i, 0) may be equal to x(i, 1) or -x(i, 1), and
+!                        x(i, n+1) may be equal to x(i, n) or -x(i, n),
+!                        depending on an input parameter.
+!
+! USAGE                  call poistg(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
+!
+! ARGUMENTS
+! ON INPUT
+!
+!                        nperod
+!                          Indicates values which x(i, 0) and x(i, n+1)
+!                          are assumed to have.
+!                          = 1 if x(i, 0) = -x(i, 1) and x(i, n+1) = -x(i, n
+!                          = 2 if x(i, 0) = -x(i, 1) and x(i, n+1) =  x(i, n
+!                          = 3 if x(i, 0) =  x(i, 1) and x(i, n+1) =  x(i, n
+!                          = 4 if x(i, 0) =  x(i, 1) and x(i, n+1) = -x(i, n
+!
+!                        n
+!                          the number of unknowns in the j-direction.
+!                          n must be greater than 2.
+!
+!                        mperod
+!                          = 0 if a(1) and c(m) are not zero
+!                          = 1 if a(1) = c(m) = 0
+!
+!                        m
+!                          the number of unknowns in the i-direction.
+!                          m must be greater than 2.
+!
+!                        a, b, c
+!                          One-dimensional arrays of length m that
+!                          specify the coefficients in the linear
+!                          equations given above. If mperod = 0 the
+!                          array elements must not depend on index i,
+!                          but must be constant. Specifically, the
+!                          subroutine checks the following condition
+!                            a(i) = c(1)
+!                            b(i) = b(1)
+!                            c(i) = c(1)
+!                          for i = 1, 2, ..., m.
+!
+!                        idimy
+!                          The row (or first) dimension of the two-
+!                          dimensional array y as it appears in the
+!                          program calling poistg. This parameter is
+!                          used to specify the variable dimension of y.
+!                          idimy must be at least m.
+!
+!                        y
+!                          A two-dimensional array that specifies the
+!                          values of the right side of the linear system
+!                          of equations given above.
+!                          y must be dimensioned at least m x n.
+!
+! ON OUTPUT
+!
+!                        Y
+!                          Contains the solution x.
+!
+!                        ierror
+!                          An error flag that indicates invalid input
+!                          parameters.  except for number zero, a
+!                          solution is not attempted.
+!                          = 0  no error
+!                          = 1  if m <= 2
+!                          = 2  if n <= 2
+!                          = 3  idimy < m
+!                          = 4  if nperod < 1 or nperod > 4
+!                          = 5  if mperod < 0 or mperod > 1
+!                          = 6  if mperod = 0 and a(i) /= c(1)
+!                               or b(i) /= b(1) or c(i) /= c(1)
+!                               for some i = 1, 2, ..., m.
+!                          = 7  if mperod == 1 and (a(1)/= 0 or c(m)/= 0)
+!                          = 20 If the dynamic allocation of real and
+!                               complex work space required for solution
+!                               fails (for example if n, m are too large
+!                               for your computer)
+!
+!                          Since this is the only means of indicating a
+!                          possibly incorrect call to pois3d, the user
+!                          should test ierror after the call.
+!
+!
+!
+! I/O                    None
+!
+! PRECISION              64-bit precision float and 32-bit precision integer
+!
+! REQUIRED FILES         type_FishpackWorkspace.f90, gnbnaux.f90, comf.f90
+!
+! STANDARD               Fortran 2008
+!
+! HISTORY                Written by Roland Sweet at NCAR in the late
+!                        1970's.  Released on NCAR'S public software
+!                        libraries in January, 1980.
+!                        Revised in June 2004 by John Adams using
+!                        Fortran 90 dynamically allocated work space.
+!                        * Revised in April 2016 by Jon Lo Kim Lin to
+!                        incorporate features of modern Fortran (2008+)
+!
+!
+! ALGORITHM              This subroutine is an implementation of the
+!                        algorithm presented in the reference below.
+!
+! TIMING                 For large m and n, the execution time is
+!                        roughly proportional to m*n*log2(n).
+!
+! ACCURACY               To measure the accuracy of the algorithm a
+!                        uniform random number generator was used to
+!                        create a solution array x for the system given
+!                        in the 'purpose' section above, with
+!
+!                          a(i) = c(i) = -0.5_wp * b(i) = 1,    i=1, 2, ..., m
+!                        and, when mperod = 1
+!                          a(1) = c(m) = 0
+!                          b(1) = b(m) =-1.
+!
+!                        The solution x was substituted into the given
+!                        system and, using double precision, a right sid
+!                        y was computed.  using this array y subroutine
+!                        poistg was called to produce an approximate
+!                        solution z.  then the relative error, defined a
+!
+!                         e = max(abs(z(i, j)-x(i, j)))/max(abs(x(i, j)))
+!
+!                        where the two maxima are taken over i=1, 2, ..., m
+!                        and j=1, 2, ..., n, was computed.  values of e are
+!                        given in the table below for some typical value
+!                        of m and n.
+!
+!                        m (=n)    mperod    nperod      e
+!                        ------    ------    ------    ------
+!
+!                          31        0-1       1-4     9.e-13
+!                          31        1         1       4.e-13
+!                          31        1         3       3.e-13
+!                          32        0-1       1-4     3.e-12
+!                          32        1         1       3.e-13
+!                          32        1         3       1.e-13
+!                          33        0-1       1-4     1.e-12
+!                          33        1         1       4.e-13
+!                          33        1         3       1.e-13
+!                          63        0-1       1-4     3.e-12
+!                          63        1         1       1.e-12
+!                          63        1         3       2.e-13
+!                          64        0-1       1-4     4.e-12
+!                          64        1         1       1.e-12
+!                          64        1         3       6.e-13
+!                          65        0-1       1-4     2.e-13
+!                          65        1         1       1.e-11
+!                          65        1         3       4.e-13
+!
+! REFERENCES             Schumann, U. and R. Sweet, "A direct method
+!                        for the solution of Poisson's equation with
+!                        Neumann boundary conditions on a staggered
+!                        grid of arbitrary size, " J. Comp. Phys.
+!                        20 (1976), pp. 171-182.
+!
 module module_poistg
 
     use, intrinsic :: iso_fortran_env, only: &
@@ -23,219 +235,7 @@ module module_poistg
 contains
 
 
-    subroutine poistg( nperod, n, mperod, m, a, b, c, idimy, y, ierror )
-        !
-        !     file poistg.f
-        !
-        !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-        !     *                                                               *
-        !     *                  copyright (c) 2005 by UCAR                   *
-        !     *                                                               *
-        !     *       University Corporation for Atmospheric Research         *
-        !     *                                                               *
-        !     *                      all rights reserved                      *
-        !     *                                                               *
-        !     *                    FISHPACK90  Version 1.1                    *
-        !     *                                                               *
-        !     *                 A Package of Fortran 77 and 90                *
-        !     *                                                               *
-        !     *                Subroutines and Example Programs               *
-        !     *                                                               *
-        !     *               for Modeling Geophysical Processes              *
-        !     *                                                               *
-        !     *                             by                                *
-        !     *                                                               *
-        !     *        John Adams, Paul Swarztrauber and Roland Sweet         *
-        !     *                                                               *
-        !     *                             of                                *
-        !     *                                                               *
-        !     *         the National Center for Atmospheric Research          *
-        !     *                                                               *
-        !     *                Boulder, Colorado  (80307)  U.S.A.             *
-        !     *                                                               *
-        !     *                   which is sponsored by                       *
-        !     *                                                               *
-        !     *              the National Science Foundation                  *
-        !     *                                                               *
-        !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-        !
-        !
-        ! SUBROUTINE poistg(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
-        !
-        !
-        ! DIMENSION OF           a(m),  b(m),  c(m),  y(idimy, n)
-        ! ARGUMENTS
-        !
-        ! LATEST REVISION        April 2016
-        !
-        ! PURPOSE                Solves the linear system of equations
-        !                        for unknown x values, where i=1, 2, ..., m
-        !                        and j=1, 2, ..., n
-        !
-        !                        a(i)*x(i-1, j) + b(i)*x(i, j) + c(i)*x(i+1, j)
-        !                        + x(i, j-1) - 2.*x(i, j) + x(i, j+1)
-        !                        = y(i, j)
-        !
-        !                        The indices i+1 and i-1 are evaluated modulo m,
-        !                        i.e. x(0, j) = x(m, j) and x(m+1, j) = x(1, j), and
-        !                        x(i, 0) may be equal to x(i, 1) or -x(i, 1), and
-        !                        x(i, n+1) may be equal to x(i, n) or -x(i, n),
-        !                        depending on an input parameter.
-        !
-        ! USAGE                  call poistg(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
-        !
-        ! ARGUMENTS
-        ! ON INPUT
-        !
-        !                        nperod
-        !                          Indicates values which x(i, 0) and x(i, n+1)
-        !                          are assumed to have.
-        !                          = 1 if x(i, 0) = -x(i, 1) and x(i, n+1) = -x(i, n
-        !                          = 2 if x(i, 0) = -x(i, 1) and x(i, n+1) =  x(i, n
-        !                          = 3 if x(i, 0) =  x(i, 1) and x(i, n+1) =  x(i, n
-        !                          = 4 if x(i, 0) =  x(i, 1) and x(i, n+1) = -x(i, n
-        !
-        !                        n
-        !                          the number of unknowns in the j-direction.
-        !                          n must be greater than 2.
-        !
-        !                        mperod
-        !                          = 0 if a(1) and c(m) are not zero
-        !                          = 1 if a(1) = c(m) = 0
-        !
-        !                        m
-        !                          the number of unknowns in the i-direction.
-        !                          m must be greater than 2.
-        !
-        !                        a, b, c
-        !                          One-dimensional arrays of length m that
-        !                          specify the coefficients in the linear
-        !                          equations given above. If mperod = 0 the
-        !                          array elements must not depend on index i,
-        !                          but must be constant. Specifically, the
-        !                          subroutine checks the following condition
-        !                            a(i) = c(1)
-        !                            b(i) = b(1)
-        !                            c(i) = c(1)
-        !                          for i = 1, 2, ..., m.
-        !
-        !                        idimy
-        !                          The row (or first) dimension of the two-
-        !                          dimensional array y as it appears in the
-        !                          program calling poistg. This parameter is
-        !                          used to specify the variable dimension of y.
-        !                          idimy must be at least m.
-        !
-        !                        y
-        !                          A two-dimensional array that specifies the
-        !                          values of the right side of the linear system
-        !                          of equations given above.
-        !                          y must be dimensioned at least m x n.
-        !
-        ! ON OUTPUT
-        !
-        !                        Y
-        !                          Contains the solution x.
-        !
-        !                        ierror
-        !                          An error flag that indicates invalid input
-        !                          parameters.  except for number zero, a
-        !                          solution is not attempted.
-        !                          = 0  no error
-        !                          = 1  if m <= 2
-        !                          = 2  if n <= 2
-        !                          = 3  idimy < m
-        !                          = 4  if nperod < 1 or nperod > 4
-        !                          = 5  if mperod < 0 or mperod > 1
-        !                          = 6  if mperod = 0 and a(i) /= c(1)
-        !                               or b(i) /= b(1) or c(i) /= c(1)
-        !                               for some i = 1, 2, ..., m.
-        !                          = 7  if mperod == 1 and (a(1)/= 0 or c(m)/= 0)
-        !                          = 20 If the dynamic allocation of real and
-        !                               complex work space required for solution
-        !                               fails (for example if n, m are too large
-        !                               for your computer)
-        !
-        !                          Since this is the only means of indicating a
-        !                          possibly incorrect call to pois3d, the user
-        !                          should test ierror after the call.
-        !
-        !
-        !
-        ! I/O                    None
-        !
-        ! PRECISION              64-bit precision float and 32-bit precision integer
-        !
-        ! REQUIRED FILES         type_FishpackWorkspace.f90, gnbnaux.f90, comf.f90
-        !
-        ! STANDARD               Fortran 2008
-        !
-        ! HISTORY                Written by Roland Sweet at NCAR in the late
-        !                        1970's.  Released on NCAR'S public software
-        !                        libraries in January, 1980.
-        !                        Revised in June 2004 by John Adams using
-        !                        Fortran 90 dynamically allocated work space.
-        !                        * Revised in April 2016 by Jon Lo Kim Lin to
-        !                        incorporate features of modern Fortran (2008+)
-        !
-        !
-        ! ALGORITHM              This subroutine is an implementation of the
-        !                        algorithm presented in the reference below.
-        !
-        ! TIMING                 For large m and n, the execution time is
-        !                        roughly proportional to m*n*log2(n).
-        !
-        ! ACCURACY               To measure the accuracy of the algorithm a
-        !                        uniform random number generator was used to
-        !                        create a solution array x for the system given
-        !                        in the 'purpose' section above, with
-        !
-        !                          a(i) = c(i) = -0.5_wp * b(i) = 1,    i=1, 2, ..., m
-        !                        and, when mperod = 1
-        !                          a(1) = c(m) = 0
-        !                          b(1) = b(m) =-1.
-        !
-        !                        The solution x was substituted into the given
-        !                        system and, using double precision, a right sid
-        !                        y was computed.  using this array y subroutine
-        !                        poistg was called to produce an approximate
-        !                        solution z.  then the relative error, defined a
-        !
-        !                         e = max(abs(z(i, j)-x(i, j)))/max(abs(x(i, j)))
-        !
-        !                        where the two maxima are taken over i=1, 2, ..., m
-        !                        and j=1, 2, ..., n, was computed.  values of e are
-        !                        given in the table below for some typical value
-        !                        of m and n.
-        !
-        !                        m (=n)    mperod    nperod      e
-        !                        ------    ------    ------    ------
-        !
-        !                          31        0-1       1-4     9.e-13
-        !                          31        1         1       4.e-13
-        !                          31        1         3       3.e-13
-        !                          32        0-1       1-4     3.e-12
-        !                          32        1         1       3.e-13
-        !                          32        1         3       1.e-13
-        !                          33        0-1       1-4     1.e-12
-        !                          33        1         1       4.e-13
-        !                          33        1         3       1.e-13
-        !                          63        0-1       1-4     3.e-12
-        !                          63        1         1       1.e-12
-        !                          63        1         3       2.e-13
-        !                          64        0-1       1-4     4.e-12
-        !                          64        1         1       1.e-12
-        !                          64        1         3       6.e-13
-        !                          65        0-1       1-4     2.e-13
-        !                          65        1         1       1.e-11
-        !                          65        1         3       4.e-13
-        !
-        ! REFERENCES             Schumann, U. and R. Sweet, "A direct method
-        !                        for the solution of Poisson's equation with
-        !                        Neumann boundary conditions on a staggered
-        !                        grid of arbitrary size, " J. Comp. Phys.
-        !                        20 (1976), pp. 171-182.
-        !
+    subroutine poistg(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
@@ -315,9 +315,7 @@ contains
         call check_input_arguments(nperod, n, mperod, m, idimy, ierror, a, b, c)
 
         ! Check error flag
-        if (ierror /= 0) then
-            return
-        end if
+        if (ierror /= 0) return
 
         !
         !==> Compute workspace indices
@@ -351,90 +349,73 @@ contains
             np = nperod
             mp = mperod + 1
 
-            select case (mp)
-                case (1)
-                    go to 110
-                case (2)
-                    go to 107
-            end select
+            if (mp == 1) then
+                mh = (m + 1)/2
+                mhm1 = mh - 1
 
-107     continue
+                if (mh*2 == m) then
+                    modd = 2
+                else
+                    modd = 1
+                end if
 
-        select case (nperod)
-            case (1:3)
-                go to 108
-            case (4)
-                go to 119
-        end select
+                do j = 1, n
+                    do i = 1, mhm1
+                        w(i) = y(mh-i, j) - y(i+mh, j)
+                        w(i+mh) = y(mh-i, j) + y(i+mh, j)
+                    end do
+                    w(mh) = 2.0_wp * y(mh, j)
+                    select case (modd)
+                        case (1)
+                            y(:m, j) = w(:m)
+                        case (2)
+                            w(m) = 2.0_wp * y(m, j)
+                            y(:m, j) = w(:m)
+                    end select
+                end do
 
-108 continue
+                k = iwbc + mhm1 - 1
+                i = iwba + mhm1
+                w(k) = 0.0_wp
+                w(i) = 0.0_wp
+                w(k+1) = 2.0_wp*w(k+1)
 
-    call postg2(np, n, m, w(iwba), w(iwbb), w(iwbc), idimy, y, &
-        w, w(iwb2), w(iwb3), w(iww1), w(iww2), w(iww3), &
-        w(iwd), w(iwtcos), w(iwp))
+                select case (modd)
+                    case (2)
+                        w(iwbb-1) = w(k+1)
+                    case default
+                        k = iwbb + mhm1 - 1
+                        w(k) = w(k) - w(i-1)
+                        w(iwbc-1) = w(iwbc-1) + w(iwbb-1)
+                end select
+            end if
 
-    ipstor = w(iww1)
-    irev = 2
+            loop_107: do
 
-    if (nperod == 4) then
-        go to 120
-    end if
+108         continue
 
+            if (nperod == 4) goto 119
 
-109 continue
+            call postg2(np, n, m, w(iwba), w(iwbb), w(iwbc), idimy, y, &
+                w, w(iwb2), w(iwb3), w(iww1), w(iww2), w(iww3), &
+                w(iwd), w(iwtcos), w(iwp))
 
-    select case (mp)
-        case (1)
-            go to 123
-        case (2)
-            w(1) = real(ipstor + iwp - 1, kind=wp)
-            return
-    end select
+            ipstor = w(iww1)
+            irev = 2
 
-110 continue
+            if (nperod == 4) go to 120
 
-    mh = (m + 1)/2
-    mhm1 = mh - 1
+109     continue
 
-    if (mh*2 == m) then
-        modd = 2
-    else
-        modd = 1
-    end if
-
-    do j = 1, n
-        do i = 1, mhm1
-            w(i) = y(mh-i, j) - y(i+mh, j)
-            w(i+mh) = y(mh-i, j) + y(i+mh, j)
-        end do
-        w(mh) = 2.0_wp * y(mh, j)
-        select case (modd)
+        select case (mp)
             case (1)
-                y(:m, j) = w(:m)
+                exit loop_107
             case (2)
-                w(m) = 2.0_wp * y(m, j)
-                y(:m, j) = w(:m)
+                w(1) = real(ipstor + iwp - 1, kind=wp)
+                return
         end select
-    end do
 
-    k = iwbc + mhm1 - 1
-    i = iwba + mhm1
-    w(k) = 0.0_wp
-    w(i) = 0.0_wp
-    w(k+1) = 2.0_wp*w(k+1)
-
-    select case (modd)
-        case default
-            k = iwbb + mhm1 - 1
-            w(k) = w(k) - w(i-1)
-            w(iwbc-1) = w(iwbc-1) + w(iwbb-1)
-        case (2)
-            w(iwbb-1) = w(k+1)
-    end select
-
-118 continue
-
-    go to 107
+        cycle loop_107
 
 119 continue
 
@@ -455,27 +436,28 @@ contains
 
     select case (irev)
         case (1)
-            go to 108
+            goto 108
         case (2)
-            go to 109
+            goto 109
     end select
 
-123 continue
+    exit loop_107
+end do loop_107
 
-    do j = 1, n
-        w(mh-1:mh-mhm1:(-1)) = 0.5_wp * (y(mh+1:mhm1+mh, j)+y(:mhm1, j))
-        w(mh+1:mhm1+mh) = 0.5_wp * (y(mh+1:mhm1+mh, j)-y(:mhm1, j))
-        w(mh) = 0.5_wp * y(mh, j)
-        select case (modd)
-            case (1)
-                y(:m, j) = w(:m)
-            case (2)
-                w(m) = 0.5_wp * y(m, j)
-                y(:m, j) = w(:m)
-        end select
-    end do
+do j = 1, n
+    w(mh-1:mh-mhm1:(-1)) = 0.5_wp * (y(mh+1:mhm1+mh, j)+y(:mhm1, j))
+    w(mh+1:mhm1+mh) = 0.5_wp * (y(mh+1:mhm1+mh, j)-y(:mhm1, j))
+    w(mh) = 0.5_wp * y(mh, j)
+    select case (modd)
+        case (1)
+            y(:m, j) = w(:m)
+        case (2)
+            w(m) = 0.5_wp * y(m, j)
+            y(:m, j) = w(:m)
+    end select
+end do
 
-    w(1) = real(ipstor + iwp - 1, kind=wp)
+w(1) = real(ipstor + iwp - 1, kind=wp)
 
 end associate
 
@@ -876,31 +858,29 @@ end if
                     k1 = 1
             end select
 
-147     continue
+            k2 = 1
+            k3 = 0
+            k4 = 0
 
-        k2 = 1
-        k3 = 0
-        k4 = 0
+            go to 150
 
-        go to 150
+148     continue
 
-148 continue
+        b(:mr) = q(:mr, 2)
+        b2(:mr) = q(:mr, 3)
+        b3(:mr) = q(:mr, 1)
 
-    b(:mr) = q(:mr, 2)
-    b2(:mr) = q(:mr, 3)
-    b3(:mr) = q(:mr, 1)
+        call genbun_aux%cosgen(3, 1, 0.5_wp, 0.0_wp, tcos)
 
-    call genbun_aux%cosgen(3, 1, 0.5_wp, 0.0_wp, tcos)
+        tcos(4) = -1.0_wp
+        tcos(5) = 1.0_wp
+        tcos(6) = -1.0_wp
+        tcos(7) = 1.0_wp
 
-    tcos(4) = -1.0_wp
-    tcos(5) = 1.0_wp
-    tcos(6) = -1.0_wp
-    tcos(7) = 1.0_wp
-
-    k1 = 3
-    k2 = 2
-    k3 = 1
-    k4 = 1
+        k1 = 3
+        k2 = 2
+        k3 = 1
+        k4 = 1
 
 150 continue
 

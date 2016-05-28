@@ -636,148 +636,163 @@ contains
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer :: i, j, isw, nb
-        real :: dth, dthsq, dr, x, y, a2, a1, a3
+        integer (ip) :: i, j, isw, nb
+        real (wp)    :: dth, dthsq, dr, x, y, a2, a1, a3
         !-----------------------------------------------
-        dth = (b - a)/real(m)
-        dthsq = dth*dth
+
+        dth = (b - a)/m
+        dthsq = dth**2
+
         do i = 1, m
-            snth(i) = SIN(a + (real(i) - 0.5)*dth)
+            snth(i) = sin(a + (real(i) - 0.5_wp)*dth)
         end do
-        dr = (d - c)/real(n)
+
+        dr = (d - c)/n
+
         do j = 1, n
-            rsq(j) = (c + (real(j) - 0.5)*dr)**2
+            rsq(j) = (c + (real(j) - 0.5_wp)*dr)**2
         end do
         !
-        !     MULTIPLY RIGHT SIDE BY R(J)**2
+        !     multiply right side by r(j)**2
         !
         do j = 1, n
-            x = RSQ(j)
-            f(:m, j) = x*F(:m, j)
+            x = rsq(j)
+            f(:m, j) = x*f(:m, j)
         end do
         !
-        !      DEFINE COEFFICIENTS AM, BM, CM
+        !      define coefficients am, bm, cm
         !
-        x = 1./(2.*COS(dth/2.))
-        am(2:m) = (SNTH(:m-1)+SNTH(2:m))*x
-        cm(:m-1) = AM(2:m)
-        am(1) = SIN(a)
-        cm(m) = SIN(b)
+        x = 1./(2.0_wp*cos(dth/2.))
+        am(2:m) = (snth(:m-1)+snth(2:m))*x
+        cm(:m-1) = am(2:m)
+        am(1) = sin(a)
+        cm(m) = sin(b)
         do i = 1, m
-            x = 1./SNTH(i)
+            x = 1./snth(i)
             y = x/dthsq
-            am(i) = AM(i)*y
-            cm(i) = CM(i)*y
-            bm(i) = elmbda*x*x - AM(i) - CM(i)
+            am(i) = am(i)*y
+            cm(i) = cm(i)*y
+            bm(i) = elmbda*x*x - am(i) - cm(i)
         end do
         !
-        !     DEFINE COEFFICIENTS AN, BN, CN
+        !==> Define coefficients an, bn, cn
         !
         x = c/dr
         do j = 1, n
-            an(j) = (x + real(j - 1))**2
-            cn(j) = (x + real(j))**2
-            bn(j) = -(AN(j)+CN(j))
+            an(j) = (x + real(j - 1, kind=wp))**2
+            cn(j) = (x + real(j, kind=wp))**2
+            bn(j) = -(an(j)+cn(j))
         end do
         isw = 1
         nb = nbdcnd
-        if (c==0. .and. nb==2) nb = 6
-        !
-        !     ENTER DATA ON THETA BOUNDARIES
-        !
-        go to (108, 108, 110, 110, 112, 112, 108, 110, 112) mbdcnd
-108 continue
-    bm(1) = BM(1) - AM(1)
-    x = 2.*AM(1)
-    f(1, :n) = F(1, :n) - x*BDA(:n)
-    go to 112
-110 continue
-    bm(1) = BM(1) + AM(1)
-    x = dth*AM(1)
-    f(1, :n) = F(1, :n) + x*BDA(:n)
-112 continue
-    go to (113, 115, 115, 113, 113, 115, 117, 117, 117) mbdcnd
-113 continue
-    bm(m) = BM(m) - CM(m)
-    x = 2.*CM(m)
-    f(m, :n) = F(m, :n) - x*BDB(:n)
-    go to 117
-115 continue
-    bm(m) = BM(m) + CM(m)
-    x = dth*CM(m)
-    f(m, :n) = F(m, :n) - x*BDB(:n)
-117 continue
-    go to (118, 118, 120, 120, 122, 122) nb
-118 continue
-    bn(1) = BN(1) - AN(1)
-    x = 2.*AN(1)
-    f(:m, 1) = F(:m, 1) - x*BDC(:m)
-    go to 122
-120 continue
-    bn(1) = BN(1) + AN(1)
-    x = dr*AN(1)
-    f(:m, 1) = F(:m, 1) + x*BDC(:m)
-122 continue
-    go to (123, 125, 125, 123, 123, 125) nb
-123 continue
-    bn(n) = BN(n) - CN(n)
-    x = 2.*CN(n)
-    f(:m, n) = F(:m, n) - x*BDD(:m)
-    go to 127
-125 continue
-    bn(n) = BN(n) + CN(n)
-    x = dr*CN(n)
-    f(:m, n) = F(:m, n) - x*BDD(:m)
-127 continue
-    pertrb = 0.
-    go to (137, 137, 128, 137, 137, 128, 137, 128, 128) mbdcnd
-128 continue
-    go to (137, 137, 129, 137, 137, 129) nb
-129 continue
-    if (elmbda >= 0.) then
-        if (elmbda /= 0.) then
-            ierr1 = 10
-        else
-            isw = 2
-            do i = 1, m
-                x = 0.
-                x = SUM(F(i, :n))
-                pertrb = pertrb + x*SNTH(i)
-            end do
-            x = 0.
-            x = SUM(RSQ(:n))
-            pertrb = 2.*(pertrb*SIN(dth/2.))/(x*(COS(a) - COS(b)))
-            do j = 1, n
-                x = RSQ(j)*pertrb
-                f(:m, j) = F(:m, j) - x
-            end do
-        end if
-    end if
-137 continue
-    a2 = SUM(F(:m, 1))
-    a2 = a2/RSQ(1)
-    !
-    !     INITIALIZE blktri
-    !
-    ierr1 = 0
-    if (intl == 0) call blktrii(0, 1, n, an, bn, cn, 1, m, am, bm, cm &
-        , idimf, f, ierr1, w, wc)
-    call blktriI(1, 1, n, an, bn, cn, 1, m, am, bm, cm, idimf, f, ierr1, w, wc)
-    if (.not.(isw/=2 .or. c/=0. .or. nbdcnd/=2)) then
-        a3 = 0.
-        a1 = DOT_PRODUCT(SNTH(:m), F(:m, 1))
-        a3 = SUM(SNTH(:m))
-        a1 = a1 + RSQ(1)*a2/2.
-        if(mbdcnd==3)a1=a1+(SIN(b)*BDB(1)-SIN(a)*BDA(1))/(2.*(b-a))
-        a1 = a1/a3
-        a1 = BDC(1) - a1
-        f(:m, :n) = F(:m, :n) + a1
-    end if
 
-end subroutine hstcs1
-    !
-    !*****************************************************************************************
-    !
+        if (c == 0. .and. nb == 2) nb = 6
+        !
+        !==> Enter data on theta boundaries
+        !
+        select case (mbdcnd)
+            case (1:2, 7)
+                bm(1) = bm(1) - am(1)
+                x = 2.0_wp*am(1)
+                f(1, :n) = f(1, :n) - x*bda(:n)
+            case (3:4, 8)
+                bm(1) = bm(1) + am(1)
+                x = dth*am(1)
+                f(1, :n) = f(1, :n) + x*bda(:n)
+        end select
+
+        select case (mbdcnd)
+            case (1, 4:5)
+                bm(m) = bm(m) - cm(m)
+                x = 2.0_wp*cm(m)
+                f(m, :n) = f(m, :n) - x*bdb(:n)
+            case (2:3, 6)
+                bm(m) = bm(m) + cm(m)
+                x = dth*cm(m)
+                f(m, :n) = f(m, :n) - x*bdb(:n)
+        end select
+
+        select case (nb)
+            case (1:2)
+                bn(1) = bn(1) - an(1)
+                x = 2.0_wp*an(1)
+                f(:m, 1) = f(:m, 1) - x*bdc(:m)
+            case (3:4)
+                bn(1) = bn(1) + an(1)
+                x = dr*an(1)
+                f(:m, 1) = f(:m, 1) + x*bdc(:m)
+        end select
+
+        select case (nb)
+            case (1, 4:5)
+                bn(n) = bn(n) - cn(n)
+                x = 2.0_wp*cn(n)
+                f(:m, n) = f(:m, n) - x*bdd(:m)
+            case (2:3, 6)
+                bn(n) = bn(n) + cn(n)
+                x = dr*cn(n)
+                f(:m, n) = f(:m, n) - x*bdd(:m)
+        end select
+
+        pertrb = 0.0_wp
+
+        case_block: block
+            select case (mbdcnd)
+                case (1:2, 4:5, 7)
+                    exit case_block
+                case (3, 6, 8:9)
+                    select case (nb)
+                        case (1:2, 4:5)
+                            exit case_block
+                        case (3, 6)
+                            if (elmbda >= 0.0_wp) then
+                                if (elmbda /= 0.0_wp) then
+                                    ierr1 = 10
+                                else
+                                    isw = 2
+                                    do i = 1, m
+                                        x = 0.0_wp
+                                        x = sum(f(i, :n))
+                                        pertrb = pertrb + x*snth(i)
+                                    end do
+                                    x = 0.0_wp
+                                    x = sum(rsq(:n))
+                                    pertrb = 2.0_wp*(pertrb*sin(dth/2.))/(x*(cos(a) - cos(b)))
+                                    do j = 1, n
+                                        x = rsq(j)*pertrb
+                                        f(:m, j) = f(:m, j) - x
+                                    end do
+                                end if
+                            end if
+                    end select
+            end select
+        end block case_block
+
+        a2 = sum(f(:m, 1))
+        a2 = a2/rsq(1)
+        !
+        !     initialize blktri
+        !
+        ierr1 = 0
+        if (intl == 0) call blktrii(0, 1, n, an, bn, cn, 1, m, am, bm, cm, idimf, f, ierr1, w, wc)
+
+        call blktrii(1, 1, n, an, bn, cn, 1, m, am, bm, cm, idimf, f, ierr1, w, wc)
+
+        if (.not.(isw /=2 .or. c /= 0. .or. nbdcnd /= 2)) then
+            a3 = 0.0_wp
+            a1 = dot_product(snth(:m), f(:m, 1))
+            a3 = sum(snth(:m))
+            a1 = a1 + rsq(1)*a2/2
+
+            if (mbdcnd == 3) a1=a1+(sin(b)*bdb(1)-sin(a)*bda(1))/(2.0_wp*(b-a))
+
+            a1 = a1/a3
+            a1 = bdc(1) - a1
+            f(:m, :n) = f(:m, :n) + a1
+        end if
+
+    end subroutine hstcs1
+
 end module module_hstcsp
 !
 ! REVISION HISTORY
