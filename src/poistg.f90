@@ -650,9 +650,7 @@ subroutine postg2(nperod, n, m, a, bb, c, idimq, q, b, b2, b3, w, &
                 jstart = 1
                 jstop = nlast - jr
 
-                if (nrod == 0) then
-                    jstop = jstop - i2r
-                end if
+                if (nrod == 0) jstop = jstop - i2r
 
                 i2rby2 = i2r/2
 
@@ -668,38 +666,35 @@ subroutine postg2(nperod, n, m, a, bb, c, idimq, q, b, b2, b3, w, &
                         jm2 = j - i2r
                         jm3 = jm2 - i2rby2
 
-                        if_block: block
-
-                            if (j == 1) then
-                                call genbun_aux%cosgen(i2r, 1, fnum, 0.5_wp, tcos)
-                                if (i2r == 1) then
+                        if (j == 1) then
+                            call genbun_aux%cosgen(i2r, 1, fnum, 0.5_wp, tcos)
+                            select case (i2r)
+                                case (1)
                                     b(:mr) = q(:mr, 1)
                                     q(:mr, 1) = q(:mr, 2)
-                                    exit if_block
-                                end if
-                                b(:mr) = q(:mr, 1) + 0.5_wp * (q(:mr, jp2)-q(:mr, jp1)-q(:mr, &
-                                    jp3))
-                                q(:mr, 1) = q(:mr, jp2) + q(:mr, 1) - q(:mr, jp1)
-                                exit if_block
-                            end if
-
+                                case default
+                                    b(:mr) = q(:mr, 1) + 0.5_wp * (q(:mr, jp2)-q(:mr, jp1)-q(:mr, &
+                                        jp3))
+                                    q(:mr, 1) = q(:mr, jp2) + q(:mr, 1) - q(:mr, jp1)
+                            end select
+                        else
                             if (ijump == 1) then
                                 ijump = 2
                                 call genbun_aux%cosgen(i2r, 1, 0.5_wp, 0.0_wp, tcos)
                             end if
 
-                            if (i2r == 1) then
-                                b(:mr) = 2.0_wp*q(:mr, j)
-                                q(:mr, j) = q(:mr, jm2) + q(:mr, jp2)
-                            else
-                                do i = 1, mr
-                                    fi = q(i, j)
-                                    q(i, j)=q(i, j)-q(i, jm1)-q(i, jp1)+q(i, jm2)+q(i, jp2)
-                                    b(i) = fi + q(i, j) - q(i, jm3) - q(i, jp3)
-                                end do
-                            end if
-
-                        end block if_block
+                            select case (i2r)
+                                case (1)
+                                    b(:mr) = 2.0_wp*q(:mr, j)
+                                    q(:mr, j) = q(:mr, jm2) + q(:mr, jp2)
+                                case default
+                                    do i = 1, mr
+                                        fi = q(i, j)
+                                        q(i, j)=q(i, j)-q(i, jm1)-q(i, jp1)+q(i, jm2)+q(i, jp2)
+                                        b(i) = fi + q(i, j) - q(i, jm3) - q(i, jp3)
+                                    end do
+                            end select
+                        end if
 
                         call genbun_aux%trix(i2r, 0, mr, a, bb, c, b, tcos, d, w)
 
@@ -723,24 +718,24 @@ subroutine postg2(nperod, n, m, a, bb, c, idimq, q, b, b2, b3, w, &
                     !
                     !==> Odd number of unknowns
                     !
-                    if (i2r == 1) then
-                        b(:mr) = q(:mr, j)
-                        q(:mr, j) = q(:mr, jm2)
-                    else
-                        b(:mr)=q(:mr, j)+0.5_wp * (q(:mr, jm2)-q(:mr, jm1)-q(:mr, jm3))
+                    select case (i2r)
+                        case (1)
+                            b(:mr) = q(:mr, j)
+                            q(:mr, j) = q(:mr, jm2)
+                        case default
+                            b(:mr)=q(:mr, j)+0.5_wp * (q(:mr, jm2)-q(:mr, jm1)-q(:mr, jm3))
 
-                        if (nrodpr == 0) then
-                            q(:mr, j) = q(:mr, jm2) + p(ipp+1:mr+ipp)
-                            ipp = ipp - mr
-                        else
-                            q(:mr, j) = q(:mr, j) - q(:mr, jm1) + q(:mr, jm2)
-                        end if
+                            select case (nrodpr)
+                                case (0)
+                                    q(:mr, j) = q(:mr, jm2) + p(ipp+1:mr+ipp)
+                                    ipp = ipp - mr
+                                case default
+                                    q(:mr, j) = q(:mr, j) - q(:mr, jm1) + q(:mr, jm2)
+                            end select
 
-                        if (lr /= 0) then
-                            call genbun_aux%cosgen(lr, 1, fnum2, 0.5_wp, tcos(kr+1))
-                        end if
+                            if (lr /= 0) call genbun_aux%cosgen(lr, 1, fnum2, 0.5_wp, tcos(kr+1))
 
-                    end if
+                    end select
 
                     call genbun_aux%cosgen(kr, 1, fnum2, 0.5_wp, tcos)
                     call genbun_aux%trix(kr, lr, mr, a, bb, c, b, tcos, d, w)
@@ -751,54 +746,59 @@ subroutine postg2(nperod, n, m, a, bb, c, idimq, q, b, b2, b3, w, &
                     jp1 = j + i2rby2
                     jp2 = j + i2r
 
-                    if (i2r == 1) then
+                    select case (i2r)
+                        case (1)
+                            b(:mr) = q(:mr, j)
+                            tcos(1) = 0.0_wp
 
-                        b(:mr) = q(:mr, j)
-                        tcos(1) = 0.0_wp
+                            call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
 
-                        call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
+                            ipp = 0
+                            ipstor = mr
+                            p(:mr) = b(:mr)
+                            b(:mr) = b(:mr) + q(:mr, n)
+                            tcos(1) = -1.0_wp + 2.0_wp*real(np/2, kind=wp)
+                            tcos(2) = 0.0_wp
 
-                        ipp = 0
-                        ipstor = mr
-                        p(:mr) = b(:mr)
-                        b(:mr) = b(:mr) + q(:mr, n)
-                        tcos(1) = -1.0_wp + 2.0_wp*real(np/2, kind=wp)
-                        tcos(2) = 0.0_wp
+                            call genbun_aux%trix(1, 1, mr, a, bb, c, b, tcos, d, w)
 
-                        call genbun_aux%trix(1, 1, mr, a, bb, c, b, tcos, d, w)
+                            q(:mr, j) = q(:mr, jm2) + p(:mr) + b(:mr)
 
-                        q(:mr, j) = q(:mr, jm2) + p(:mr) + b(:mr)
-                    else
-                        b(:mr) = q(:mr, j) + 0.5_wp * (q(:mr, jm2)-q(:mr, jm1)-q(:mr, jm3))
+                        case default
 
-                        if (nrodpr == 0) then
-                            b(:mr) = b(:mr) + p(ipp+1:mr+ipp)
-                        else
-                            b(:mr) = b(:mr) + q(:mr, jp2) - q(:mr, jp1)
-                        end if
+                            b(:mr) = q(:mr, j) + 0.5_wp * (q(:mr, jm2)-q(:mr, jm1)-q(:mr, jm3))
 
-                        call genbun_aux%cosgen(i2r, 1, 0.5_wp, 0.0_wp, tcos)
-                        call genbun_aux%trix(i2r, 0, mr, a, bb, c, b, tcos, d, w)
+                            select case (nrodpr)
+                                case (0)
+                                    b(:mr) = b(:mr) + p(ipp+1:mr+ipp)
+                                case default
+                                    b(:mr) = b(:mr) + q(:mr, jp2) - q(:mr, jp1)
+                            end select
 
-                        ipp = ipp + mr
-                        ipstor = max(ipstor, ipp + mr)
-                        p(ipp+1:mr+ipp) = b(:mr) &
-                            + 0.5_wp * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
-                        b(:mr) = p(ipp+1:mr+ipp) + q(:mr, jp2)
+                            call genbun_aux%cosgen(i2r, 1, 0.5_wp, 0.0_wp, tcos)
+                            call genbun_aux%trix(i2r, 0, mr, a, bb, c, b, tcos, d, w)
 
-                        if (lr /= 0) then
-                            call genbun_aux%cosgen(lr, 1, fnum2, 0.5_wp, tcos(i2r+1))
-                            call genbun_aux%merger(tcos, 0, i2r, i2r, lr, kr)
-                        else
-                            do i = 1, i2r
-                                ii = kr + i
-                                tcos(ii) = tcos(i)
-                            end do
-                        end if
-                        call genbun_aux%cosgen(kr, 1, fnum2, 0.5_wp, tcos)
-                        call genbun_aux%trix(kr, kr, mr, a, bb, c, b, tcos, d, w)
-                        q(:mr, j) = q(:mr, jm2) + p(ipp+1:mr+ipp) + b(:mr)
-                    end if
+                            ipp = ipp + mr
+                            ipstor = max(ipstor, ipp + mr)
+                            p(ipp+1:mr+ipp) = b(:mr) + 0.5_wp * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
+                            b(:mr) = p(ipp+1:mr+ipp) + q(:mr, jp2)
+
+                            if (lr /= 0) then
+                                call genbun_aux%cosgen(lr, 1, fnum2, 0.5_wp, tcos(i2r+1))
+                                call genbun_aux%merger(tcos, 0, i2r, i2r, lr, kr)
+                            else
+                                do i = 1, i2r
+                                    ii = kr + i
+                                    tcos(ii) = tcos(i)
+                                end do
+                            end if
+
+                            call genbun_aux%cosgen(kr, 1, fnum2, 0.5_wp, tcos)
+                            call genbun_aux%trix(kr, kr, mr, a, bb, c, b, tcos, d, w)
+
+                            q(:mr, j) = q(:mr, jm2) + p(ipp+1:mr+ipp) + b(:mr)
+
+                    end select
                     lr = kr
                     kr = kr + jr
                 end if
@@ -818,408 +818,361 @@ subroutine postg2(nperod, n, m, a, bb, c, idimq, q, b, b2, b3, w, &
         jm1 = j - i2r
         jp1 = j + i2r
         jm2 = nlast - i2r
-        if (nr /= 2) then
-            if (lr == 0) then
-                if (n == 3) then
+
+        if_block: block
+            if_nr:  if (nr /= 2) then
+                if_lr:  if (lr == 0) then
+                    if_n: if (n == 3) then
+                        !
+                        !==> case n = 3.
+                        !
+                        select case (np)
+                            case (1,3)
+                                b(:mr) = q(:mr, 2)
+                                b2(:mr) = q(:mr, 1) + q(:mr, 3)
+                                b3(:mr) = 0.0_wp
+
+                                select case (np)
+                                    case (1:2)
+                                        tcos(1) = -2.0_wp
+                                        tcos(2) = 1.0_wp
+                                        tcos(3) = -1.0_wp
+                                        k1 = 2
+                                    case default
+                                        tcos(1) = -1.0_wp
+                                        tcos(2) = 1.0_wp
+                                        k1 = 1
+                                end select
+
+                                k2 = 1
+                                k3 = 0
+                                k4 = 0
+                            case (2)
+                                b(:mr) = q(:mr, 2)
+                                b2(:mr) = q(:mr, 3)
+                                b3(:mr) = q(:mr, 1)
+
+                                call genbun_aux%cosgen(3, 1, 0.5_wp, 0.0_wp, tcos)
+
+                                tcos(4) = -1.0_wp
+                                tcos(5) = 1.0_wp
+                                tcos(6) = -1.0_wp
+                                tcos(7) = 1.0_wp
+
+                                k1 = 3
+                                k2 = 2
+                                k3 = 1
+                                k4 = 1
+                        end select
+
+
+                        call genbun_aux%tri3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
+
+                        b(:mr) = b(:mr) + b2(:mr) + b3(:mr)
+
+                        if (np == 3) then
+                            tcos(1) = 2.0_wp
+                            call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
+                        end if
+
+                        q(:mr, 2) = b(:mr)
+                        b(:mr) = q(:mr, 1) + b(:mr)
+                        tcos(1) = -1.0_wp + 4.0_wp*fnum
+
+                        call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
+
+                        q(:mr, 1) = b(:mr)
+                        jr = 1
+                        i2r = 0
+                        exit if_block
+                    end if if_n
                     !
-                    !==> case n = 3.
+                    !     case n = 2**p+1
                     !
+                    b(:mr)=q(:mr, j)+q(:mr, 1)-q(:mr, jm1)+q(:mr, nlast)-q(:mr, jm2)
+
                     select case (np)
-                        case (1,3)
-                            go to 143
+                        case (1, 3)
+                            b2(:mr) = q(:mr, 1) + q(:mr, nlast) &
+                                + q(:mr, j) - q(:mr, jm1) - q(:mr, jp1)
+                            b3(:mr) = 0.0_wp
+                            k1 = nlast - 1
+                            k2 = nlast + jr - 1
+
+                            call genbun_aux%cosgen(jr - 1, 1, 0.0_wp, 1.0_wp, tcos(nlast))
+
+                            tcos(k2) = 2.0_wp*real(np - 2, kind=wp)
+
+                            call genbun_aux%cosgen(jr, 1, 0.5_wp - fnum, 0.5_wp, tcos(k2+1))
+
+                            k3 = (3 - np)/2
+
+                            call genbun_aux%merger(tcos, k1, jr - k3, k2 - k3, jr + k3, 0)
+
+                            k1 = k1 - 1 + k3
+
+                            call genbun_aux%cosgen(jr, 1, fnum, 0.5_wp, tcos(k1+1))
+
+                            k2 = jr
+                            k3 = 0
+                            k4 = 0
                         case (2)
-                            go to 148
+                            do i = 1, mr
+                                fi = (q(i, j)-q(i, jm1)-q(i, jp1))/2
+                                b2(i) = q(i, 1) + fi
+                                b3(i) = q(i, nlast) + fi
+                            end do
+
+                            k1 = nlast + jr - 1
+                            k2 = k1 + jr - 1
+
+                            call genbun_aux%cosgen(jr - 1, 1, 0.0_wp, 1.0_wp, tcos(k1+1))
+                            call genbun_aux%cosgen(nlast, 1, 0.5_wp, 0.0_wp, tcos(k2+1))
+                            call genbun_aux%merger(tcos, k1, jr - 1, k2, nlast, 0)
+
+                            k3 = k1 + nlast - 1
+                            k4 = k3 + jr
+
+                            call genbun_aux%cosgen(jr, 1, 0.5_wp, 0.5_wp, tcos(k3+1))
+                            call genbun_aux%cosgen(jr, 1, 0.0_wp, 0.5_wp, tcos(k4+1))
+                            call genbun_aux%merger(tcos, k3, jr, k4, jr, k1)
+
+                            k2 = nlast - 1
+                            k3 = jr
+                            k4 = jr
                     end select
 
-143             continue
+                    call genbun_aux%tri3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
+                    b(:mr) = b(:mr) + b2(:mr) + b3(:mr)
 
-                b(:mr) = q(:mr, 2)
-                b2(:mr) = q(:mr, 1) + q(:mr, 3)
-                b3(:mr) = 0.0_wp
+                    if (np == 3) then
+                        tcos(1) = 2.0_wp
+                        call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
+                    end if
 
-                select case (np)
-                    case (1:2)
-                        tcos(1) = -2.0_wp
-                        tcos(2) = 1.0_wp
-                        tcos(3) = -1.0_wp
-                        k1 = 2
+                    q(:mr, j) = b(:mr) + 0.5_wp * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
+                    b(:mr) = q(:mr, j) + q(:mr, 1)
+
+                    call genbun_aux%cosgen(jr, 1, fnum, 0.5_wp, tcos)
+                    call genbun_aux%trix(jr, 0, mr, a, bb, c, b, tcos, d, w)
+
+                    q(:mr, 1) = q(:mr, 1) - q(:mr, jm1) + b(:mr)
+
+                    exit if_block
+                end if if_lr
+                !
+                !==> case of general n with nr = 3 .
+                !
+                b(:mr) = q(:mr, 1) - q(:mr, jm1) + q(:mr, j)
+
+                if (nrod == 0) then
+                    b(:mr) = b(:mr) + p(ipp+1:mr+ipp)
+                else
+                    b(:mr) = b(:mr) + q(:mr, nlast) - q(:mr, jm2)
+                end if
+
+                do i = 1, mr
+                    t = 0.5_wp * (q(i, j)-q(i, jm1)-q(i, jp1))
+                    q(i, j) = t
+                    b2(i) = q(i, nlast) + t
+                    b3(i) = q(i, 1) + t
+                end do
+
+                k1 = kr + 2*jr
+
+                call genbun_aux%cosgen(jr - 1, 1, 0.0_wp, 1.0_wp, tcos(k1+1))
+
+                k2 = k1 + jr
+                tcos(k2) = 2.0_wp*real(np - 2, kind=wp)
+                k4 = (np - 1)*(3 - np)
+                k3 = k2 + 1 - k4
+
+                call genbun_aux%cosgen(kr+jr+k4, 1, real(k4, kind=wp)/2, 1.0_wp-real(k4, kind=wp), tcos(k3))
+
+                k4 = 1 - np/3
+
+                call genbun_aux%merger(tcos, k1, jr - k4, k2 - k4, kr + jr + k4, 0)
+
+                if (np == 3) k1 = k1 - 1
+
+                k2 = kr + jr
+                k4 = k1 + k2
+
+                call genbun_aux%cosgen(kr, 1, fnum2, 0.5_wp, tcos(k4+1))
+
+                k3 = k4 + kr
+
+                call genbun_aux%cosgen(jr, 1, fnum, 0.5_wp, tcos(k3+1))
+                call genbun_aux%merger(tcos, k4, kr, k3, jr, k1)
+
+                k4 = k3 + jr
+
+                call genbun_aux%cosgen(lr, 1, fnum2, 0.5_wp, tcos(k4+1))
+                call genbun_aux%merger(tcos, k3, jr, k4, lr, k1 + k2)
+                call genbun_aux%cosgen(kr, 1, fnum2, 0.5_wp, tcos(k3+1))
+
+                k3 = kr
+                k4 = kr
+
+                call genbun_aux%tri3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
+
+                b(:mr) = b(:mr) + b2(:mr) + b3(:mr)
+
+                if (np == 3) then
+                    tcos(1) = 2.0_wp
+                    call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
+                end if
+
+                q(:mr, j) = q(:mr, j) + b(:mr)
+                b(:mr) = q(:mr, 1) + q(:mr, j)
+
+                call genbun_aux%cosgen(jr, 1, fnum, 0.5_wp, tcos)
+                call genbun_aux%trix(jr, 0, mr, a, bb, c, b, tcos, d, w)
+
+                if (jr == 1) then
+                    q(:mr, 1) = b(:mr)
+                    exit if_block
+                end if
+
+                q(:mr, 1) = q(:mr, 1) - q(:mr, jm1) + b(:mr)
+
+                exit if_block
+            end if if_nr
+
+            b3(:mr) = 0.0_wp
+            b(:mr) = q(:mr, 1) + p(ipp+1:mr+ipp)
+            q(:mr, 1) = q(:mr, 1) - q(:mr, jm1)
+            b2(:mr) = q(:mr, 1) + q(:mr, nlast)
+            k1 = kr + jr
+            k2 = k1 + jr
+
+            call genbun_aux%cosgen(jr - 1, 1, 0.0_wp, 1.0_wp, tcos(k1+1))
+
+            select case (np)
+                case (1, 3)
+                    tcos(k2) = 2.0_wp*real(np - 2, kind=wp)
+
+                    call genbun_aux%cosgen(kr, 1, 0.0_wp, 1.0_wp, tcos(k2+1))
+                case (2)
+                    call genbun_aux%cosgen(kr + 1, 1, 0.5_wp, 0.0_wp, tcos(k2))
+            end select
+
+            k4 = 1 - np/3
+
+            call genbun_aux%merger(tcos, k1, jr - k4, k2 - k4, kr + k4, 0)
+
+            if (np == 3) k1 = k1 - 1
+
+            k2 = kr
+
+            call genbun_aux%cosgen(kr, 1, fnum2, 0.5_wp, tcos(k1+1))
+
+            k4 = k1 + kr
+
+            call genbun_aux%cosgen(lr, 1, fnum2, 0.5_wp, tcos(k4+1))
+
+            k3 = lr
+            k4 = 0
+
+            call genbun_aux%tri3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
+
+            b(:mr) = b(:mr) + b2(:mr)
+
+            if (np == 3) then
+                tcos(1) = 2.0_wp
+                call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
+            end if
+
+            q(:mr, 1) = q(:mr, 1) + b(:mr)
+
+        end block if_block
+
+        loop_188: do
+
+            j = nlast - jr
+            b(:mr) = q(:mr, nlast) + q(:mr, j)
+            jm2 = nlast - i2r
+
+            if (jr == 1) then
+                q(:mr, nlast) = 0.0_wp
+            else
+                select case (nrod)
+                    case (0)
+                        q(:mr, nlast) = p(ipp+1:mr+ipp)
+                        ipp = ipp - mr
                     case default
-                        tcos(1) = -1.0_wp
-                        tcos(2) = 1.0_wp
-                        k1 = 1
+                        q(:mr, nlast) = q(:mr, nlast) - q(:mr, jm2)
                 end select
+            end if
 
-                k2 = 1
-                k3 = 0
-                k4 = 0
+            call genbun_aux%cosgen(kr, 1, fnum2, 0.5_wp, tcos)
+            call genbun_aux%cosgen(lr, 1, fnum2, 0.5_wp, tcos(kr+1))
+            call genbun_aux%trix(kr, lr, mr, a, bb, c, b, tcos, d, w)
 
-                go to 150
+            q(:mr, nlast) = q(:mr, nlast) + b(:mr)
+            nlastp = nlast
 
-148         continue
+            loop_197: do
 
-            b(:mr) = q(:mr, 2)
-            b2(:mr) = q(:mr, 3)
-            b3(:mr) = q(:mr, 1)
+                jstep = jr
+                jr = i2r
+                i2r = i2r/2
 
-            call genbun_aux%cosgen(3, 1, 0.5_wp, 0.0_wp, tcos)
+                if (jr == 0) then
+                    w(1) = real(ipstor, kind=wp)
+                    return
+                end if
 
-            tcos(4) = -1.0_wp
-            tcos(5) = 1.0_wp
-            tcos(6) = -1.0_wp
-            tcos(7) = 1.0_wp
+                jstart = 1 + jr
+                kr = kr - jr
 
-            k1 = 3
-            k2 = 2
-            k3 = 1
-            k4 = 1
+                if (nlast + jr <= n) then
+                    kr = kr - jr
+                    nlast = nlast + jr
+                    jstop = nlast - jstep
+                else
+                    jstop = nlast - jr
+                end if
 
-150     continue
+                lr = kr - jr
 
-        call genbun_aux%tri3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
+                call genbun_aux%cosgen(jr, 1, 0.5_wp, 0.0_wp, tcos)
 
-        b(:mr) = b(:mr) + b2(:mr) + b3(:mr)
+                do j = jstart, jstop, jstep
+                    jm2 = j - jr
+                    jp2 = j + jr
 
-        select case (np)
-            case (1:2)
-                go to 153
-            case (3)
-                go to 152
-        end select
+                    if (j == jr) then
+                        b(:mr) = q(:mr, j) + q(:mr, jp2)
+                    else
+                        b(:mr) = q(:mr, j) + q(:mr, jm2) + q(:mr, jp2)
+                    end if
 
-152 continue
+                    if (jr == 1) then
+                        q(:mr, j) = 0.0_wp
+                    else
+                        jm1 = j - i2r
+                        jp1 = j + i2r
+                        q(:mr, j) = 0.5_wp * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
+                    end if
 
-    tcos(1) = 2.0_wp
+                    call genbun_aux%trix(jr, 0, mr, a, bb, c, b, tcos, d, w)
 
-    call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
+                    q(:mr, j) = q(:mr, j) + b(:mr)
+                end do
 
-153 continue
+                if (nlast + i2r <= n) then
+                    nrod = 0
+                else
+                    nrod = 1
+                end if
 
-    q(:mr, 2) = b(:mr)
-    b(:mr) = q(:mr, 1) + b(:mr)
-    tcos(1) = -1.0_wp + 4.0_wp*fnum
+                if (nlastp /= nlast) cycle loop_188
 
-    call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
+            end do loop_197
+        end do loop_188
 
-    q(:mr, 1) = b(:mr)
-    jr = 1
-    i2r = 0
-    go to 188
-end if
-!
-!     case n = 2**p+1
-!
-b(:mr)=q(:mr, j)+q(:mr, 1)-q(:mr, jm1)+q(:mr, nlast)-q(:mr, jm2)
-
-select case (np)
-    case (1, 3)
-        go to 158
-    case (2)
-        go to 160
-end select
-
-158 continue
-
-    b2(:mr) = q(:mr, 1) + q(:mr, nlast) &
-        + q(:mr, j) - q(:mr, jm1) - q(:mr, jp1)
-    b3(:mr) = 0.0_wp
-    k1 = nlast - 1
-    k2 = nlast + jr - 1
-
-    call genbun_aux%cosgen(jr - 1, 1, 0.0_wp, 1.0_wp, tcos(nlast))
-
-    tcos(k2) = 2.0_wp*real(np - 2, kind=wp)
-
-    call genbun_aux%cosgen(jr, 1, 0.5_wp - fnum, 0.5_wp, tcos(k2+1))
-
-    k3 = (3 - np)/2
-
-    call genbun_aux%merger(tcos, k1, jr - k3, k2 - k3, jr + k3, 0)
-
-    k1 = k1 - 1 + k3
-
-    call genbun_aux%cosgen(jr, 1, fnum, 0.5_wp, tcos(k1+1))
-
-    k2 = jr
-    k3 = 0
-    k4 = 0
-
-    go to 162
-
-160 continue
-
-    do i = 1, mr
-        fi = (q(i, j)-q(i, jm1)-q(i, jp1))/2
-        b2(i) = q(i, 1) + fi
-        b3(i) = q(i, nlast) + fi
-    end do
-
-    k1 = nlast + jr - 1
-    k2 = k1 + jr - 1
-
-    call genbun_aux%cosgen(jr - 1, 1, 0.0_wp, 1.0_wp, tcos(k1+1))
-    call genbun_aux%cosgen(nlast, 1, 0.5_wp, 0.0_wp, tcos(k2+1))
-    call genbun_aux%merger(tcos, k1, jr - 1, k2, nlast, 0)
-
-    k3 = k1 + nlast - 1
-    k4 = k3 + jr
-
-    call genbun_aux%cosgen(jr, 1, 0.5_wp, 0.5_wp, tcos(k3+1))
-    call genbun_aux%cosgen(jr, 1, 0.0_wp, 0.5_wp, tcos(k4+1))
-    call genbun_aux%merger(tcos, k3, jr, k4, jr, k1)
-
-    k2 = nlast - 1
-    k3 = jr
-    k4 = jr
-
-162 continue
-
-    call genbun_aux%tri3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
-    b(:mr) = b(:mr) + b2(:mr) + b3(:mr)
-
-    if (np == 3) then
-        tcos(1) = 2.
-        call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
-    end if
-
-    q(:mr, j) = b(:mr) + 0.5_wp * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
-    b(:mr) = q(:mr, j) + q(:mr, 1)
-
-    call genbun_aux%cosgen(jr, 1, fnum, 0.5_wp, tcos)
-    call genbun_aux%trix(jr, 0, mr, a, bb, c, b, tcos, d, w)
-
-    q(:mr, 1) = q(:mr, 1) - q(:mr, jm1) + b(:mr)
-
-    go to 188
-end if
-!
-!==> case of general n with nr = 3 .
-!
-b(:mr) = q(:mr, 1) - q(:mr, jm1) + q(:mr, j)
-
-if (nrod == 0) then
-    b(:mr) = b(:mr) + p(ipp+1:mr+ipp)
-else
-    b(:mr) = b(:mr) + q(:mr, nlast) - q(:mr, jm2)
-end if
-
-do i = 1, mr
-    t = 0.5_wp * (q(i, j)-q(i, jm1)-q(i, jp1))
-    q(i, j) = t
-    b2(i) = q(i, nlast) + t
-    b3(i) = q(i, 1) + t
-end do
-
-k1 = kr + 2*jr
-
-call genbun_aux%cosgen(jr - 1, 1, 0.0_wp, 1.0_wp, tcos(k1+1))
-
-k2 = k1 + jr
-tcos(k2) = 2.0_wp*real(np - 2, kind=wp)
-k4 = (np - 1)*(3 - np)
-k3 = k2 + 1 - k4
-
-call genbun_aux%cosgen(kr+jr+k4, 1, real(k4, kind=wp)/2, 1.0_wp-real(k4, kind=wp), tcos(k3))
-
-k4 = 1 - np/3
-
-call genbun_aux%merger(tcos, k1, jr - k4, k2 - k4, kr + jr + k4, 0)
-
-if (np == 3) then
-    k1 = k1 - 1
-end if
-
-k2 = kr + jr
-k4 = k1 + k2
-
-call genbun_aux%cosgen(kr, 1, fnum2, 0.5_wp, tcos(k4+1))
-
-k3 = k4 + kr
-
-call genbun_aux%cosgen(jr, 1, fnum, 0.5_wp, tcos(k3+1))
-call genbun_aux%merger(tcos, k4, kr, k3, jr, k1)
-
-k4 = k3 + jr
-
-call genbun_aux%cosgen(lr, 1, fnum2, 0.5_wp, tcos(k4+1))
-call genbun_aux%merger(tcos, k3, jr, k4, lr, k1 + k2)
-call genbun_aux%cosgen(kr, 1, fnum2, 0.5_wp, tcos(k3+1))
-
-k3 = kr
-k4 = kr
-
-call genbun_aux%tri3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
-
-b(:mr) = b(:mr) + b2(:mr) + b3(:mr)
-
-if (np == 3) then
-    tcos(1) = 2.0_wp
-    call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
-end if
-
-q(:mr, j) = q(:mr, j) + b(:mr)
-b(:mr) = q(:mr, 1) + q(:mr, j)
-
-call genbun_aux%cosgen(jr, 1, fnum, 0.5_wp, tcos)
-call genbun_aux%trix(jr, 0, mr, a, bb, c, b, tcos, d, w)
-
-if (jr == 1) then
-    q(:mr, 1) = b(:mr)
-    go to 188
-end if
-
-q(:mr, 1) = q(:mr, 1) - q(:mr, jm1) + b(:mr)
-
-go to 188
-end if
-
-b3(:mr) = 0.0_wp
-b(:mr) = q(:mr, 1) + p(ipp+1:mr+ipp)
-q(:mr, 1) = q(:mr, 1) - q(:mr, jm1)
-b2(:mr) = q(:mr, 1) + q(:mr, nlast)
-k1 = kr + jr
-k2 = k1 + jr
-
-call genbun_aux%cosgen(jr - 1, 1, 0.0_wp, 1.0_wp, tcos(k1+1))
-
-select case (np)
-    case (1, 3)
-        go to 182
-    case (2)
-        go to 183
-end select
-
-182 continue
-
-    tcos(k2) = 2.0_wp*real(np - 2, kind=wp)
-
-    call genbun_aux%cosgen(kr, 1, 0.0_wp, 1.0_wp, tcos(k2+1))
-
-    go to 184
-
-183 continue
-
-    call genbun_aux%cosgen(kr + 1, 1, 0.5_wp, 0.0_wp, tcos(k2))
-
-184 continue
-
-    k4 = 1 - np/3
-
-    call genbun_aux%merger(tcos, k1, jr - k4, k2 - k4, kr + k4, 0)
-
-    if (np == 3) then
-        k1 = k1 - 1
-    end if
-
-    k2 = kr
-
-    call genbun_aux%cosgen(kr, 1, fnum2, 0.5_wp, tcos(k1+1))
-
-    k4 = k1 + kr
-
-    call genbun_aux%cosgen(lr, 1, fnum2, 0.5_wp, tcos(k4+1))
-
-    k3 = lr
-    k4 = 0
-
-    call genbun_aux%tri3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
-
-    b(:mr) = b(:mr) + b2(:mr)
-
-    if (np == 3) then
-        tcos(1) = 2.
-        call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
-    end if
-
-    q(:mr, 1) = q(:mr, 1) + b(:mr)
-
-188 continue
-
-    j = nlast - jr
-    b(:mr) = q(:mr, nlast) + q(:mr, j)
-    jm2 = nlast - i2r
-
-    if (jr == 1) then
-        q(:mr, nlast) = 0.0_wp
-    else
-        if (nrod == 0) then
-            q(:mr, nlast) = p(ipp+1:mr+ipp)
-            ipp = ipp - mr
-        else
-            q(:mr, nlast) = q(:mr, nlast) - q(:mr, jm2)
-        end if
-    end if
-
-    call genbun_aux%cosgen(kr, 1, fnum2, 0.5_wp, tcos)
-    call genbun_aux%cosgen(lr, 1, fnum2, 0.5_wp, tcos(kr+1))
-    call genbun_aux%trix(kr, lr, mr, a, bb, c, b, tcos, d, w)
-
-    q(:mr, nlast) = q(:mr, nlast) + b(:mr)
-    nlastp = nlast
-
-197 continue
-
-    jstep = jr
-    jr = i2r
-    i2r = i2r/2
-
-    if (jr == 0) then
-        w(1) = real(ipstor, kind=wp)
-        return
-    end if
-
-    jstart = 1 + jr
-    kr = kr - jr
-
-    if (nlast + jr <= n) then
-        kr = kr - jr
-        nlast = nlast + jr
-        jstop = nlast - jstep
-    else
-        jstop = nlast - jr
-    end if
-
-    lr = kr - jr
-
-    call genbun_aux%cosgen(jr, 1, 0.5_wp, 0.0_wp, tcos)
-
-    do j = jstart, jstop, jstep
-        jm2 = j - jr
-        jp2 = j + jr
-
-        if (j == jr) then
-            b(:mr) = q(:mr, j) + q(:mr, jp2)
-        else
-            b(:mr) = q(:mr, j) + q(:mr, jm2) + q(:mr, jp2)
-        end if
-
-        if (jr == 1) then
-            q(:mr, j) = 0.0_wp
-        else
-            jm1 = j - i2r
-            jp1 = j + i2r
-            q(:mr, j) = 0.5_wp * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
-        end if
-
-        call genbun_aux%trix(jr, 0, mr, a, bb, c, b, tcos, d, w)
-
-        q(:mr, j) = q(:mr, j) + b(:mr)
-    end do
-
-    if (nlast + i2r <= n) then
-        nrod = 0
-    else
-        nrod = 1
-    end if
-
-    if (nlastp /= nlast) then
-        go to 188
-    end if
-
-    go to 197
-
-    w(1) = real(ipstor, kind=wp)
-
-end associate
+    end associate
 
 end subroutine postg2
 
