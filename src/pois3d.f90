@@ -569,287 +569,285 @@ contains
 
         end function get_pois3dd_workspace_indices
 
-    end subroutine pois3dd
 
+        subroutine pos3d1(lp, l, mp, m, n, a, b, c, ldimf, mdimf, f, xrt, &
+            yrt, t, d, wx, wy, c1, c2, bb)
+            !--------------------------------------------------------------------------------
+            ! Dictionary: calling arguments
+            !--------------------------------------------------------------------------------
+            integer (ip), intent (in)     :: lp
+            integer (ip), intent (in)     :: l
+            integer (ip), intent (in)     :: mp
+            integer (ip), intent (in)     :: m
+            integer (ip), intent (in)     :: n
+            integer (ip), intent (in)     :: ldimf
+            integer (ip), intent (in)     :: mdimf
+            real (wp),    intent (in)     :: c1
+            real (wp),    intent (in)     :: c2
+            real (wp),    intent (in out) :: a(*)
+            real (wp),    intent (in)     :: b(*)
+            real (wp),    intent (in out) :: c(*)
+            real (wp),    intent (in out) :: f(ldimf, mdimf, 1)
+            real (wp),    intent (in out) :: xrt(*)
+            real (wp),    intent (in out) :: yrt(*)
+            real (wp),    intent (in out) :: t(*)
+            real (wp),    intent (in out) :: d(*)
+            real (wp),    intent (in out) :: wx(*)
+            real (wp),    intent (in out) :: wy(*)
+            real (wp),    intent (in out) :: bb(*)
+            !-----------------------------------------------
+            ! Dictionary: local variables
+            !-----------------------------------------------
+            integer (ip)         :: lr, mr, nr, lrdel, i, mrdel, j, ifwrd, is, k
+            real (wp), parameter :: PI = acos(-1.0_wp)
+            real (wp)            :: scalx, dx, di, scaly, dy, dj
+            type (FFTpack)       :: fft
+            !-----------------------------------------------
 
-    subroutine pos3d1(lp, l, mp, m, n, a, b, c, ldimf, mdimf, f, xrt, &
-        yrt, t, d, wx, wy, c1, c2, bb)
-        !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
-        !--------------------------------------------------------------------------------
-        integer (ip), intent (in)     :: lp
-        integer (ip), intent (in)     :: l
-        integer (ip), intent (in)     :: mp
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: ldimf
-        integer (ip), intent (in)     :: mdimf
-        real (wp),    intent (in)     :: c1
-        real (wp),    intent (in)     :: c2
-        real (wp),    intent (in out) :: a(*)
-        real (wp),    intent (in)     :: b(*)
-        real (wp),    intent (in out) :: c(*)
-        real (wp),    intent (in out) :: f(ldimf, mdimf, 1)
-        real (wp),    intent (in out) :: xrt(*)
-        real (wp),    intent (in out) :: yrt(*)
-        real (wp),    intent (in out) :: t(*)
-        real (wp),    intent (in out) :: d(*)
-        real (wp),    intent (in out) :: wx(*)
-        real (wp),    intent (in out) :: wy(*)
-        real (wp),    intent (in out) :: bb(*)
-        !-----------------------------------------------
-        ! Dictionary: local variables
-        !-----------------------------------------------
-        integer (ip)         :: lr, mr, nr, lrdel, i, mrdel, j, ifwrd, is, k
-        real (wp), parameter :: PI = acos(-1.0_wp)
-        real (wp)            :: scalx, dx, di, scaly, dy, dj
-        type (FFTpack)       :: fft
-        !-----------------------------------------------
+            lr = l
+            mr = m
+            nr = n
+            !
+            !==> generate transform roots
+            !
+            lrdel = ((lp - 1)*(lp - 3)*(lp - 5))/3
+            scalx = lr + lrdel
+            dx = PI/(2.0_wp*scalx)
 
-        lr = l
-        mr = m
-        nr = n
-        !
-        !==> generate transform roots
-        !
-        lrdel = ((lp - 1)*(lp - 3)*(lp - 5))/3
-        scalx = lr + lrdel
-        dx = PI/(2.0_wp*scalx)
+            select case (lp)
+                case (1)
+                    xrt(1) = 0.0_wp
+                    xrt(lr) = -4.0_wp*c1
 
-        select case (lp)
-            case (1)
-                xrt(1) = 0.0_wp
-                xrt(lr) = -4.0_wp*c1
+                    do i = 3, lr, 2
+                        xrt(i-1) = -4.0_wp*c1*sin(real(i - 1, kind=wp)*dx)**2
+                        xrt(i) = xrt(i-1)
+                    end do
 
-                do i = 3, lr, 2
-                    xrt(i-1) = -4.0_wp*c1*sin(real(i - 1)*dx)**2
-                    xrt(i) = xrt(i-1)
-                end do
+                    call fft%rffti(lr, wx)
 
-                call fft%rffti(lr, wx)
+                case default
 
-            case default
-
-                select case (lp)
-                    case (2)
-                        di = 0.0_wp
-                    case (3, 5)
-                        di = 0.5_wp
-                        scalx = 2.0_wp*scalx
-                    case (4)
-                        di = 1.0_wp
-                end select
-
-                do i = 1, lr
-                    xrt(i) = -4.0_wp*c1*sin((real(i, kind=wp) - di)*dx)**2
-                end do
-
-                scalx = 2.0_wp*scalx
-
-                if ( lp /= 1 ) then
                     select case (lp)
                         case (2)
-                            call fft%sinti(lr, wx)
-                        case (3)
-                            call fft%sinqi(lr, wx)
+                            di = 0.0_wp
+                        case (3, 5)
+                            di = 0.5_wp
+                            scalx = 2.0_wp*scalx
                         case (4)
-                            call fft%costi(lr, wx)
-                        case (5)
-                            call fft%cosqi(lr, wx)
-                        case default
+                            di = 1.0_wp
+                    end select
 
-                            xrt(1) = 0.0_wp
-                            xrt(lr) = -4.0_wp*c1
+                    do i = 1, lr
+                        xrt(i) = -4.0_wp*c1*sin((real(i, kind=wp) - di)*dx)**2
+                    end do
 
-                            do i = 3, lr, 2
-                                xrt(i-1) = -4.0_wp*c1*sin(real(i - 1)*dx)**2
-                                xrt(i) = xrt(i-1)
+                    scalx = 2.0_wp*scalx
+
+                    if ( lp /= 1 ) then
+                        select case (lp)
+                            case (2)
+                                call fft%sinti(lr, wx)
+                            case (3)
+                                call fft%sinqi(lr, wx)
+                            case (4)
+                                call fft%costi(lr, wx)
+                            case (5)
+                                call fft%cosqi(lr, wx)
+                            case default
+
+                                xrt(1) = 0.0_wp
+                                xrt(lr) = -4.0_wp*c1
+
+                                do i = 3, lr, 2
+                                    xrt(i-1) = -4.0_wp*c1*sin(real(i - 1)*dx)**2
+                                    xrt(i) = xrt(i-1)
+                                end do
+
+                                call fft%rffti(lr, wx)
+                        end select
+                    end if
+            end select
+
+            mrdel = ((mp - 1)*(mp - 3)*(mp - 5))/3
+            scaly = mr + mrdel
+            dy = PI/(2.0_wp*scaly)
+
+            select case (mp)
+                case (1)
+                    yrt(1) = 0.0_wp
+                    yrt(mr) = -4.0_wp*c2
+
+                    do j = 3, mr, 2
+                        yrt(j-1) = -4.0_wp*c2*sin(real(j - 1, kind=wp)*dy)**2
+                        yrt(j) = yrt(j-1)
+                    end do
+
+                    call fft%rffti(mr, wy)
+
+                case default
+
+                    select case (mp)
+                        case (2)
+                            dj = 0.0_wp
+                        case (3, 5)
+                            dj = 0.5_wp
+                            scaly = 2.0_wp*scaly
+                        case (4)
+                            dj = 1.0_wp
+                    end select
+
+                    do j = 1, mr
+                        yrt(j) = -4.0_wp*c2*sin((real(j, kind=wp) - dj)*dy)**2
+                    end do
+
+                    scaly = 2.0_wp * scaly
+
+                    select case (mp)
+                        case (1)
+                            yrt(1) = 0.0_wp
+                            yrt(mr) = -4.0_wp*c2
+
+                            do j = 3, mr, 2
+                                yrt(j-1) = -4.0_wp*c2*sin(real(j - 1, kind=wp)*dy)**2
+                                yrt(j) = yrt(j-1)
                             end do
 
-                            call fft%rffti(lr, wx)
+                            call fft%rffti(mr, wy)
+
+                        case default
+
+                            select case (mp)
+                                case (2)
+                                    call fft%sinti(mr, wy)
+                                case (3)
+                                    call fft%sinqi(mr, wy)
+                                case (4)
+                                    call fft%costi(mr, wy)
+                                case (5)
+                                    call fft%cosqi(mr, wy)
+                            end select
+
                     end select
-                end if
-        end select
+            end select
 
-        mrdel = ((mp - 1)*(mp - 3)*(mp - 5))/3
-        scaly = mr + mrdel
-        dy = PI/(2.0_wp*scaly)
+            ifwrd = 1
+            is = 1
 
-        select case (mp)
-            case (1)
-                yrt(1) = 0.0_wp
-                yrt(mr) = -4.0_wp*c2
-
-                do j = 3, mr, 2
-                    yrt(j-1) = -4.0_wp*c2*sin(real(j - 1, kind=wp)*dy)**2
-                    yrt(j) = yrt(j-1)
-                end do
-
-                call fft%rffti(mr, wy)
-
-            case default
-
-                select case (mp)
-                    case (2)
-                        dj = 0.0_wp
-                    case (3, 5)
-                        dj = 0.5_wp
-                        scaly = 2.0_wp*scaly
-                    case (4)
-                        dj = 1.0_wp
-                end select
-
-                do j = 1, mr
-                    yrt(j) = -4.0_wp*c2*sin((real(j, kind=wp) - dj)*dy)**2
-                end do
-
-                scaly = 2.0_wp * scaly
-
-                select case (mp)
-                    case (1)
-                        yrt(1) = 0.0_wp
-                        yrt(mr) = -4.0_wp*c2
-
-                        do j = 3, mr, 2
-                            yrt(j-1) = -4.0_wp*c2*sin(real(j - 1, kind=wp)*dy)**2
-                            yrt(j) = yrt(j-1)
-                        end do
-
-                        call fft%rffti(mr, wy)
-
-                    case default
-
-                        select case (mp)
-                            case (2)
-                                call fft%sinti(mr, wy)
-                            case (3)
-                                call fft%sinqi(mr, wy)
-                            case (4)
-                                call fft%costi(mr, wy)
-                            case (5)
-                                call fft%cosqi(mr, wy)
-                        end select
-
-                end select
-        end select
-
-        ifwrd = 1
-        is = 1
-
-        x_transform: do
-            !
-            !==> Transform x
-            !
-            do j=1, mr
-                do k=1, nr
-                    do i=1, lr
-                        t(i) = f(i, j, k)
-                    end do
-                    select case (lp)
-                        case (1)
-                            select case (ifwrd)
-                                case (1)
-                                    call fft%rfftf(lr, t, wx)
-                                case (2)
-                                    call fft%rfftb(lr, t, wx)
-                            end select
-                        case (2)
-                            call fft%sint(lr, t, wx)
-                        case (3)
-                            select case (ifwrd)
-                                case (1)
-                                    call fft%sinqf(lr, t, wx)
-                                case (2)
-                                    call fft%sinqb(lr, t, wx)
-                            end select
-                        case (4)
-                            call fft%cost(lr, t, wx)
-                        case (5)
-                            select case (ifwrd)
-                                case (1)
-                                    call fft%cosqf(lr, t, wx)
-                                case (2)
-                                    call fft%cosqb(lr, t, wx)
-                            end select
-                    end select
-
-                    do i=1, lr
-                        f(i, j, k) = t(i)
-                    end do
-                end do
-            end do
-
-            if (ifwrd == 2) then
-                f(:lr, :mr, :nr) = f(:lr, :mr, :nr)/(scalx*scaly)
-                return
-            end if
-
-            y_transform: do
+            x_transform: do
                 !
-                !==> Transform y
+                !==> Transform x
                 !
-                do i=1, lr
+                do j=1, mr
                     do k=1, nr
-                        t(1:mr) = f(i,1:mr, k)
-                        select case (mp)
+                        do i=1, lr
+                            t(i) = f(i, j, k)
+                        end do
+                        select case (lp)
                             case (1)
                                 select case (ifwrd)
                                     case (1)
-                                        call fft%rfftf(mr, t, wy)
+                                        call fft%rfftf(lr, t, wx)
                                     case (2)
-                                        call fft%rfftb(mr, t, wy)
+                                        call fft%rfftb(lr, t, wx)
                                 end select
                             case (2)
-                                call fft%sint(mr, t, wy)
+                                call fft%sint(lr, t, wx)
                             case (3)
                                 select case (ifwrd)
                                     case (1)
-                                        call fft%sinqf(mr, t, wy)
+                                        call fft%sinqf(lr, t, wx)
                                     case (2)
-                                        call fft%sinqb(mr, t, wy)
+                                        call fft%sinqb(lr, t, wx)
                                 end select
                             case (4)
-                                call fft%cost(mr, t, wy)
+                                call fft%cost(lr, t, wx)
                             case (5)
                                 select case (ifwrd)
                                     case (1)
-                                        call fft%cosqf(mr, t, wy)
+                                        call fft%cosqf(lr, t, wx)
                                     case (2)
-                                        call fft%cosqb(mr, t, wy)
+                                        call fft%cosqb(lr, t, wx)
                                 end select
                         end select
-                        f(i,1:mr, k) = t(1:mr)
+
+                        do i=1, lr
+                            f(i, j, k) = t(i)
+                        end do
                     end do
                 end do
 
-                select case (ifwrd)
-                    case (1)
-                        do i = 1, lr
-                            do j = 1, mr
-                                bb(:nr) = b(:nr) + xrt(i) + yrt(j)
-                                t(:nr) = f(i, j, :nr)
+                if (ifwrd == 2) then
+                    f(:lr, :mr, :nr) = f(:lr, :mr, :nr)/(scalx*scaly)
+                    return
+                end if
 
-                                call trid(nr, a, bb, c, t, d)
-
-                                f(i, j, :nr) = t(:nr)
-                            end do
+                y_transform: do
+                    !
+                    !==> Transform y
+                    !
+                    do i=1, lr
+                        do k=1, nr
+                            t(1:mr) = f(i,1:mr, k)
+                            select case (mp)
+                                case (1)
+                                    select case (ifwrd)
+                                        case (1)
+                                            call fft%rfftf(mr, t, wy)
+                                        case (2)
+                                            call fft%rfftb(mr, t, wy)
+                                    end select
+                                case (2)
+                                    call fft%sint(mr, t, wy)
+                                case (3)
+                                    select case (ifwrd)
+                                        case (1)
+                                            call fft%sinqf(mr, t, wy)
+                                        case (2)
+                                            call fft%sinqb(mr, t, wy)
+                                    end select
+                                case (4)
+                                    call fft%cost(mr, t, wy)
+                                case (5)
+                                    select case (ifwrd)
+                                        case (1)
+                                            call fft%cosqf(mr, t, wy)
+                                        case (2)
+                                            call fft%cosqb(mr, t, wy)
+                                    end select
+                            end select
+                            f(i,1:mr, k) = t(1:mr)
                         end do
-                        ifwrd = 2
-                        is = -1
-                        cycle y_transform
-                    case (2)
-                        cycle x_transform
-                end select
+                    end do
 
-                exit y_transform
-            end do y_transform
+                    select case (ifwrd)
+                        case (1)
+                            do i = 1, lr
+                                do j = 1, mr
+                                    bb(:nr) = b(:nr) + xrt(i) + yrt(j)
+                                    t(:nr) = f(i, j, :nr)
 
-            exit x_transform
-        end do x_transform
+                                    call trid(nr, a, bb, c, t, d)
 
-        f(:lr, :mr, :nr) = f(:lr, :mr, :nr)/(scalx*scaly)
+                                    f(i, j, :nr) = t(:nr)
+                                end do
+                            end do
+                            ifwrd = 2
+                            is = -1
+                            cycle y_transform
+                        case (2)
+                            cycle x_transform
+                    end select
 
-    contains
+                    exit y_transform
+                end do y_transform
+
+                exit x_transform
+            end do x_transform
+
+            f(:lr, :mr, :nr) = f(:lr, :mr, :nr)/(scalx*scaly)
+
+        end subroutine pos3d1
 
 
         subroutine trid(mr, a, b, c, y, d)
@@ -897,7 +895,8 @@ contains
 
         end subroutine trid
 
-    end subroutine pos3d1
+
+    end subroutine pois3dd
 
 end module module_pois3d
 !

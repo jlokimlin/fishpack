@@ -334,7 +334,7 @@ module module_hstcyl
         ip => INT32
 
     use type_FishpackWorkspace, only: &
-        FishpackWorkspace
+        Fish => FishpackWorkspace
 
     use module_genbun, only: &
         genbunn
@@ -358,44 +358,42 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip),          intent (in)     :: m
-        integer (ip),          intent (in)     :: mbdcnd
-        integer (ip),          intent (in)     :: n
-        integer (ip),          intent (in)     :: nbdcnd
-        integer (ip),          intent (in)     :: idimf
-        integer (ip),          intent (out)    :: ierror
-        real (wp),             intent (in)     :: a
-        real (wp),             intent (in)     :: b
-        real (wp),             intent (in)     :: c
-        real (wp),             intent (in)     :: d
-        real (wp),             intent (in)     :: elmbda
-        real (wp),             intent (out)    :: pertrb
-        real (wp), contiguous, intent (in)     :: bda(:)
-        real (wp), contiguous, intent (in)     :: bdb(:)
-        real (wp), contiguous, intent (in)     :: bdc(:)
-        real (wp), contiguous, intent (in)     :: bdd(:)
-        real (wp), contiguous, intent (in out) :: f(:,:)
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: mbdcnd
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: nbdcnd
+        integer (ip), intent (in)     :: idimf
+        integer (ip), intent (out)    :: ierror
+        real (wp),    intent (in)     :: a
+        real (wp),    intent (in)     :: b
+        real (wp),    intent (in)     :: c
+        real (wp),    intent (in)     :: d
+        real (wp),    intent (in)     :: elmbda
+        real (wp),    intent (out)    :: pertrb
+        real (wp),    intent (in)     :: bda(:)
+        real (wp),    intent (in)     :: bdb(:)
+        real (wp),    intent (in)     :: bdc(:)
+        real (wp),    intent (in)     :: bdd(:)
+        real (wp),    intent (in out) :: f(:,:)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer                  :: irwk
-        type (FishpackWorkspace) :: workspace
+        integer (ip) :: irwk, icwk
+        type (Fish)  :: workspace
         !-----------------------------------------------
 
         !
         !==> Allocate memory
         !
-        associate( icwk => 0)
 
-            ! Calculate required real workspace size for genbun
-            call workspace%get_genbun_workspace_dimensions(n, m, irwk)
+        ! Calculate required real workspace size for genbun
+        call workspace%get_genbun_workspace_dimensions(n, m, irwk)
 
-            ! Adjust for hstcyll
-            irwk = irwk + 3 * m
+        ! Adjust for hstcyll
+        icwk = 0
+        irwk = irwk + 3 * m
 
-            call workspace%create(irwk, icwk)
-
-        end associate
+        call workspace%create(irwk, icwk)
 
         !
         !==> Solve system
@@ -412,174 +410,168 @@ contains
         !
         call workspace%destroy()
 
-    end subroutine hstcyl
+    contains
 
+        subroutine hstcyll(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
+            bdd, elmbda, f, idimf, pertrb, ierror, w)
+            !-----------------------------------------------
+            ! Dictionary: calling arguments
+            !-----------------------------------------------
+            integer (ip), intent (in)     :: m
+            integer (ip), intent (in)     :: mbdcnd
+            integer (ip), intent (in)     :: n
+            integer (ip), intent (in)     :: nbdcnd
+            integer (ip), intent (in)     :: idimf
+            integer (ip), intent (out)    :: ierror
+            real (wp),    intent (in)     :: a
+            real (wp),    intent (in)     :: b
+            real (wp),    intent (in)     :: c
+            real (wp),    intent (in)     :: d
+            real (wp),    intent (in)     :: elmbda
+            real (wp),    intent (out)    :: pertrb
+            real (wp),    intent (in)     :: bda(*)
+            real (wp),    intent (in)     :: bdb(*)
+            real (wp),    intent (in)     :: bdc(*)
+            real (wp),    intent (in)     :: bdd(*)
+            real (wp),    intent (in out) :: f(idimf,*)
+            real (wp),    intent (in out) :: w(*)
+            !-----------------------------------------------
+            ! Dictionary: local variables
+            !-----------------------------------------------
+            integer (ip) :: np, iwb, iwc, iwr, i, j, k, lp, ierr1
+            real (wp)    :: dr, dr2, dt, dt2, temp
+            !-----------------------------------------------
 
+            !
+            !==> Check validity of calling arguments
+            !
+            call check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, &
+                elmbda, idimf, ierror)
 
-    subroutine hstcyll(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
-        bdd, elmbda, f, idimf, pertrb, ierror, w)
-        !-----------------------------------------------
-        ! Dictionary: calling arguments
-        !-----------------------------------------------
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: mbdcnd
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: nbdcnd
-        integer (ip), intent (in)     :: idimf
-        integer (ip), intent (out)    :: ierror
-        real (wp),    intent (in)     :: a
-        real (wp),    intent (in)     :: b
-        real (wp),    intent (in)     :: c
-        real (wp),    intent (in)     :: d
-        real (wp),    intent (in)     :: elmbda
-        real (wp),    intent (out)    :: pertrb
-        real (wp),    intent (in)     :: bda(*)
-        real (wp),    intent (in)     :: bdb(*)
-        real (wp),    intent (in)     :: bdc(*)
-        real (wp),    intent (in)     :: bdd(*)
-        real (wp),    intent (in out) :: f(idimf,*)
-        real (wp),    intent (in out) :: w(*)
-        !-----------------------------------------------
-        ! Dictionary: local variables
-        !-----------------------------------------------
-        integer (ip) :: np, iwb, iwc, iwr, i, j, k, lp, ierr1
-        real (wp)    :: dr, dr2, dt, dt2, temp
-        !-----------------------------------------------
+            ! Check error flag
+            if (ierror /= 0) return
 
-        !
-        !==> Check validity of calling arguments
-        !
-        call check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, &
-            elmbda, idimf, ierror)
+            ! Set radial mesh
+            dr = (b - a)/m
+            dr2 = dr**2
 
-        ! Check error flag
-        if (ierror /= 0) then
-            return
-        end if
+            ! Set polar mesh
+            dt = (d - c)/n
+            dt2 = dt**2
 
-        ! Set radial mesh
-        dr = (b - a)/m
-        dr2 = dr**2
+            np = nbdcnd + 1
 
-        ! Set polar mesh
-        dt = (d - c)/n
-        dt2 = dt**2
-
-        np = nbdcnd + 1
-
-        !
-        !==> Define a, b, c coefficients in w-array.
-        !
-        iwb = m
-        iwc = iwb + m
-        iwr = iwc + m
-        do i = 1, m
-            j = iwr + i
-            w(j) = a + (real(i, kind=wp) - 0.5_wp)*dr
-            w(i) = (a + real(i - 1, kind=wp)*dr)/(dr2*w(j))
-            k = iwc + i
-            w(k) = (a + real(i, kind=wp)*dr)/(dr2*w(j))
-            k = iwb + i
-            w(k) = elmbda/w(j)**2 - 2.0_wp/dr2
-        end do
-        !
-        !==> Enter boundary data for r-boundaries.
-        !
-        select case (mbdcnd)
-            case (1:2)
-                temp = 2.0_wp *w(1)
-                w(iwb+1) = w(iwb+1) - w(1)
-                f(1, :n) = f(1, :n) - temp*bda(:n)
-            case (3:4)
-                temp = dr*w(1)
-                w(iwb+1) = w(iwb+1) + w(1)
-                f(1, :n) = f(1, :n) + temp * bda(:n)
-        end select
-
-        select case (mbdcnd)
-            case (1, 4:5)
-                w(iwc) = w(iwc) - w(iwr)
-                temp = 2.0_wp * w(iwr)
-                f(m, :n) = f(m, :n) - temp * bdb(:n)
-            case (2:3, 6)
-                w(iwc) = w(iwc) + w(iwr)
-                temp = dr * w(iwr)
-                f(m, :n) = f(m, :n) - temp * bdb(:n)
-        end select
-
-        !
-        !==> Enter boundary data for theta-boundaries.
-        !
-        temp = 2.0_wp/dt2
-
-        if (n /= 1) then
-
-            select case (np)
-                case (2:3)
-                    f(:m, 1) = f(:m, 1) - temp*bdc(:m)
-                case (4:5)
-                    temp = 1.0_wp/dt
-                    f(:m, 1) = f(:m, 1) + temp*bdc(:m)
+            !
+            !==> Define a, b, c coefficients in w-array.
+            !
+            iwb = m
+            iwc = iwb + m
+            iwr = iwc + m
+            do i = 1, m
+                j = iwr + i
+                w(j) = a + (real(i, kind=wp) - 0.5_wp)*dr
+                w(i) = (a + real(i - 1, kind=wp)*dr)/(dr2*w(j))
+                k = iwc + i
+                w(k) = (a + real(i, kind=wp)*dr)/(dr2*w(j))
+                k = iwb + i
+                w(k) = elmbda/w(j)**2 - 2.0_wp/dr2
+            end do
+            !
+            !==> Enter boundary data for r-boundaries.
+            !
+            select case (mbdcnd)
+                case (1:2)
+                    temp = 2.0_wp *w(1)
+                    w(iwb+1) = w(iwb+1) - w(1)
+                    f(1, :n) = f(1, :n) - temp*bda(:n)
+                case (3:4)
+                    temp = dr*w(1)
+                    w(iwb+1) = w(iwb+1) + w(1)
+                    f(1, :n) = f(1, :n) + temp * bda(:n)
             end select
 
+            select case (mbdcnd)
+                case (1, 4:5)
+                    w(iwc) = w(iwc) - w(iwr)
+                    temp = 2.0_wp * w(iwr)
+                    f(m, :n) = f(m, :n) - temp * bdb(:n)
+                case (2:3, 6)
+                    w(iwc) = w(iwc) + w(iwr)
+                    temp = dr * w(iwr)
+                    f(m, :n) = f(m, :n) - temp * bdb(:n)
+            end select
+
+            !
+            !==> Enter boundary data for theta-boundaries.
+            !
             temp = 2.0_wp/dt2
 
-            select case (np)
-                case (2, 5)
-                    f(:m, n) = f(:m, n) - temp*bdd(:m)
-                case (3:4)
-                    temp = 1.0_wp/dt
-                    f(:m, n) = f(:m, n) - temp*bdd(:m)
-            end select
+            if (n /= 1) then
 
-        end if
-
-        pertrb = 0.0_wp
-
-        if (elmbda >= 0.0_wp ) then
-            if (elmbda /= 0.0_wp ) then
-                ierror = 11
-                return
-            else
-                select case (mbdcnd)
-                    case (3, 6)
-                        select case (np)
-                            case (1, 4)
-                                do i = 1, m
-                                    temp = 0.0_wp
-                                    temp = sum(f(i, :n))
-                                    j = iwr + i
-                                    pertrb = pertrb + temp * w(j)
-                                end do
-                                pertrb = pertrb/(real(m * n, kind=wp) &
-                                    * 0.5_wp * (a + b))
-                                f(:m, :n) = f(:m, :n) - pertrb
-                        end select
+                select case (np)
+                    case (2:3)
+                        f(:m, 1) = f(:m, 1) - temp*bdc(:m)
+                    case (4:5)
+                        temp = 1.0_wp/dt
+                        f(:m, 1) = f(:m, 1) + temp*bdc(:m)
                 end select
+
+                temp = 2.0_wp/dt2
+
+                select case (np)
+                    case (2, 5)
+                        f(:m, n) = f(:m, n) - temp*bdd(:m)
+                    case (3:4)
+                        temp = 1.0_wp/dt
+                        f(:m, n) = f(:m, n) - temp*bdd(:m)
+                end select
+
             end if
-        end if
 
-        w(:m) = w(:m) * dt2
-        w(iwc+1:m+iwc) = w(iwc+1:m+iwc) * dt2
-        w(iwb+1:m+iwb) = w(iwb+1:m+iwb) * dt2
-        f(:m, :n) = f(:m, :n)*dt2
-        lp = nbdcnd
-        w(1) = 0.0_wp
-        w(iwr) = 0.0_wp
-        !
-        !==> Solve the system of equations.
-        !
-        ierr1 = 0
-        if (nbdcnd /= 0) then
-            call poistgg(lp, n, 1, m, w, w(iwb+1), w(iwc+1), idimf, f, &
-                ierr1, w(iwr+1))
-        else
-            call genbunn(lp, n, 1, m, w, w(iwb+1), w(iwc+1), idimf, f, &
-                ierr1, w(iwr+1))
-        end if
+            pertrb = 0.0_wp
+
+            if (elmbda >= 0.0_wp ) then
+                if (elmbda /= 0.0_wp ) then
+                    ierror = 11
+                    return
+                else
+                    select case (mbdcnd)
+                        case (3, 6)
+                            select case (np)
+                                case (1, 4)
+                                    do i = 1, m
+                                        temp = 0.0_wp
+                                        temp = sum(f(i, :n))
+                                        j = iwr + i
+                                        pertrb = pertrb + temp * w(j)
+                                    end do
+                                    pertrb = pertrb/(real(m * n, kind=wp) &
+                                        * 0.5_wp * (a + b))
+                                    f(:m, :n) = f(:m, :n) - pertrb
+                            end select
+                    end select
+                end if
+            end if
+
+            w(:m) = w(:m) * dt2
+            w(iwc+1:m+iwc) = w(iwc+1:m+iwc) * dt2
+            w(iwb+1:m+iwb) = w(iwb+1:m+iwb) * dt2
+            f(:m, :n) = f(:m, :n)*dt2
+            lp = nbdcnd
+            w(1) = 0.0_wp
+            w(iwr) = 0.0_wp
+            !
+            !==> Solve the system of equations.
+            !
+            ierr1 = 0
+            if (nbdcnd /= 0) then
+                call poistgg(lp, n, 1, m, w, w(iwb+1), w(iwc+1), idimf, f, ierr1, w(iwr+1))
+            else
+                call genbunn(lp, n, 1, m, w, w(iwb+1), w(iwc+1), idimf, f, ierr1, w(iwr+1))
+            end if
 
 
-    contains
+        end subroutine hstcyll
 
 
         pure subroutine check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, &
@@ -599,85 +591,47 @@ contains
             real (wp),    intent (in)  :: d
             real (wp),    intent (in)  :: elmbda
             !--------------------------------------------------------------------------------
-            ! Dictionary: local variables
-            !--------------------------------------------------------------------------------
-            
-            !--------------------------------------------------------------------------------
 
-            !
-            !==> Initialize error flag
-            !
-            ierror = 0
-
-            ! Case 1
             if (a < 0.0_wp) then
                 ierror = 1
                 return
-            end if
-
-            ! Case 2
-            if (a >= b) then
+            else if (a >= b) then
                 ierror = 2
                 return
-            end if
-
-            ! Case 3
-            if (mbdcnd <= 0 .or. mbdcnd >= 7) then
+            else if (mbdcnd <= 0 .or. mbdcnd >= 7) then
                 ierror = 3
                 return
-            end if
-
-            ! Case 4
-            if (c >= d) then
+            else if (c >= d) then
                 ierror = 4
                 return
-            end if
-
-            ! Case 5
-            if (n <= 2) then
+            else if (n <= 2) then
                 ierror = 5
                 return
-            end if
-
-            ! Case 6
-            if (nbdcnd < 0 .or. nbdcnd >= 5) then
+            else if (nbdcnd < 0 .or. nbdcnd >= 5) then
                 ierror = 6
                 return
-            end if
-
-            ! Case 7
-            if (a == 0.0_wp .and. mbdcnd /= 5 .and. mbdcnd /= 6) then
+            else if (a == 0.0_wp .and. mbdcnd /= 5 .and. mbdcnd /= 6) then
                 ierror = 7
                 return
-            end if
-
-            ! Case 8
-            if (a > 0.0_wp .and. mbdcnd >= 5) then
+            else if (a > 0.0_wp .and. mbdcnd >= 5) then
                 ierror = 8
                 return
-            end if
-
-            ! Case 9
-            if (m <= 2) then
+            else if (m <= 2) then
                 ierror = 9
                 return
-            end if
-
-            ! Case 10
-            if (idimf < m) then
+            else if (idimf < m) then
                 ierror = 10
                 return
-            end if
-
-            ! Case 12
-            if (a == 0.0_wp .and. mbdcnd >= 5 .and. elmbda /= 0.0_wp) then
+            else if (a == 0.0_wp .and. mbdcnd >= 5 .and. elmbda /= 0.0_wp) then
                 ierror = 12
                 return
+            else
+                ierror = 0
             end if
 
         end subroutine check_input_arguments
 
-    end subroutine hstcyll
+    end subroutine hstcyl
 
 
 end module module_hstcyl

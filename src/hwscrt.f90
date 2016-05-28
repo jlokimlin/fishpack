@@ -587,44 +587,7 @@ contains
             if ( elmbda /= 0.0_wp ) then
                 ierror = 6
             else
-                if ((nbdcnd==0 .or. nbdcnd==3).and.(mbdcnd==0 .or. mbdcnd ==3)) then
-                    !
-                    !==> For singular problems must adjust data to
-                    !    insure that a solution will exist.
-                    !
-                    a1 = 1.0_wp
-                    a2 = 1.0_wp
 
-                    if (nbdcnd == 3) then
-                        a2 = 2.0_wp
-                    end if
-
-                    if (mbdcnd == 3) then
-                        a1 = 2.0_wp
-                    end if
-
-                    s1 = 0.0_wp
-                    msp1 = mstart + 1
-                    mstm1 = mstop - 1
-                    nsp1 = nstart + 1
-                    nstm1 = nstop - 1
-
-                    do j = nsp1, nstm1
-                        s = 0.0_wp
-                        s = sum(f(msp1:mstm1, j))
-                        s1 = s1 + s*a1 + f(mstart, j) + f(mstop, j)
-                    end do
-
-                    s1 = a2*s1
-                    s = 0.0_wp
-                    s = sum(f(msp1:mstm1, nstart) + f(msp1:mstm1, nstop))
-                    s1 = s1 + s*a1 + f(mstart, nstart) + f(mstart, nstop) &
-                        + f( mstop, nstart) + f(mstop, nstop)
-                    s = (2.0_wp + real(nunk - 2, kind=wp)*a2) * (2.0_wp + real(munk - 2, kind=wp)*a1)
-                    pertrb = s1/s
-                    f(mstart:mstop, nstart:nstop) = f(mstart:mstop, nstart: nstop) - pertrb
-                    pertrb = pertrb/delysq
-                end if
             end if
         end if
 
