@@ -489,15 +489,15 @@ contains
                     ipi2 = i + i2
                     ipi3 = i + i3
                     call cindxc (i, ir, idxc, nc)
-                    if (i - iif >= 0) cycle
-                    call cindxa (i, ir, idxa, na)
+                    if (i >= iif) cycle
+                    call cindxa(i, ir, idxa, na)
                     call cindxb(i - i1, irm1, im1, nm1)
                     call cindxb(ipi2, ir, ip2, np2)
                     call cindxb(ipi1, irm1, ip1, np1)
                     call cindxb(ipi3, irm1, ip3, np3)
                     call prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa), w3, &
                         w1, m, am, bm, cm, wd, ww, wu)
-                    if (ipi2 - nm > 0) then
+                    if (ipi2 > nm) then
                         w3(:m) = 0.0_wp
                         w2(:m) = 0.0_wp
                     else
@@ -529,7 +529,7 @@ contains
                     i2 = 2**ir
                     i1 = i2/2
                     i = i2
-                    call cindxc (i, ir, idxc, nc)
+                    call cindxc(i, ir, idxc, nc)
                     call cindxb(i, ir, iz, nz)
                     call cindxb(i - i1, ir - 1, im1, nm1)
                     call cindxb(i + i1, ir - 1, ip1, np1)
@@ -553,7 +553,7 @@ contains
 
                         if (i > nm) cycle loop_118
 
-                        call cindxa (i, ir, idxa, na)
+                        call cindxa(i, ir, idxa, na)
                         call cindxb(i, ir, iz, nz)
                         call cindxb(i - i1, ir - 1, im1, nm1)
                         call cindxb(i + i1, ir - 1, ip1, np1)
@@ -567,161 +567,142 @@ contains
                     end do
                 end do loop_118
 
-119         continue
+                y(:m, nm+1) = y(:m, nm+1) - cn(nm+1)*w1(:m) - an(nm+1)*w2(:m)
 
-            y(:m, nm+1) = y(:m, nm+1) - cn(nm+1)*w1(:m) - an(nm+1)*w2(:m)
+                call cindxb(iif/2, k - 1, im1, nm1)
+                call cindxb(iif, k - 1, iip, np)
 
-            call cindxb(iif/2, k - 1, im1, nm1)
-            call cindxb(iif, k - 1, iip, np)
+                select case (ncmplx)
+                    case (0)
+                        call prdct(nm + 1, b(iip), nm1, b(im1), 0, dum, 0, dum, &
+                            y(1,nm+1), y(1, nm+1), m, am, bm, cm, wd, ww, wu)
+                    case default
+                        call cprdct(nm + 1, bc(iip), nm1, b(im1), 0, dum, 0, dum, &
+                            y(1,nm+1), y(1, nm+1), m, am, bm, cm, w1, w3, ww)
+                end select
 
-            select case (ncmplx)
-                case (0)
-                    call prdct(nm + 1, b(iip), nm1, b(im1), 0, dum, 0, dum, &
-                        y(1,nm+1), y(1, nm+1), m, am, bm, cm, wd, ww, wu)
-                case default
-                    call cprdct(nm + 1, bc(iip), nm1, b(im1), 0, dum, 0, dum, &
-                        y(1,nm+1), y(1, nm+1), m, am, bm, cm, w1, w3, ww)
-            end select
+                w1(:m) = an(1)*y(:m, nm+1)
+                w2(:m) = cn(nm)*y(:m, nm+1)
+                y(:m, 1) = y(:m, 1) - w1(:m)
+                y(:m, nm) = y(:m, nm) - w2(:m)
 
-            w1(:m) = an(1)*y(:m, nm+1)
-            w2(:m) = cn(nm)*y(:m, nm+1)
-            y(:m, 1) = y(:m, 1) - w1(:m)
-            y(:m, nm) = y(:m, nm) - w2(:m)
+                do l = 1, kdo
+                    ir = l - 1
+                    i2 = 2**ir
+                    i4 = i2 + i2
+                    i1 = i2/2
+                    i = i4
+                    call cindxa(i, ir, idxa, na)
+                    call cindxb(i - i2, ir, im2, nm2)
+                    call cindxb(i - i2 - i1, ir - 1, im3, nm3)
+                    call cindxb(i - i1, ir - 1, im1, nm1)
+                    call prdct(nm2, b(im2), nm3, b(im3), nm1, b(im1), 0, dum, &
+                        w1, w1, m, am, bm, cm, wd, ww, wu)
+                    call prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa), w1, &
+                        w1, m, am, bm, cm, wd, ww, wu)
+                    y(:m, i) = y(:m, i) - w1(:m)
+                end do
 
-            do l = 1, kdo
+                izr = nm
+                loop_131: do l = 1, kdo
+                    ir = l - 1
+                    i2 = 2**ir
+                    i1 = i2/2
+                    i3 = i2 + i1
+                    i4 = i2 + i2
+                    irm1 = ir - 1
+                    do i = i4, iif, i4
+                        ipi1 = i + i1
+                        ipi2 = i + i2
+                        ipi3 = i + i3
+
+                        if (ipi2 /= izr) then
+                            if (i /= izr) cycle
+                            cycle  loop_131
+                        end if
+
+                        call cindxc (i, ir, idxc, nc)
+                        call cindxb(ipi2, ir, ip2, np2)
+                        call cindxb(ipi1, irm1, ip1, np1)
+                        call cindxb(ipi3, irm1, ip3, np3)
+                        call prdct(np2, b(ip2), np1, b(ip1), np3, b(ip3), 0, dum, &
+                            w2, w2, m, am, bm, cm, wd, ww, wu)
+                        call prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc), w2, &
+                            w2, m, am, bm, cm, wd, ww, wu)
+                        y(:m, i) = y(:m, i) - w2(:m)
+                        izr = i
+                        cycle  loop_131
+                    end do
+                end do loop_131
+            end if
+            !
+            ! begin back substitution phase
+            !
+            do ll = 1, k
+                l = k - ll + 1
                 ir = l - 1
-                i2 = 2**ir
-                i4 = i2 + i2
-                i1 = i2/2
-                i = i4
-                call cindxa(i, ir, idxa, na)
-                call cindxb(i - i2, ir, im2, nm2)
-                call cindxb(i - i2 - i1, ir - 1, im3, nm3)
-                call cindxb(i - i1, ir - 1, im1, nm1)
-                call prdct(nm2, b(im2), nm3, b(im3), nm1, b(im1), 0, dum, &
-                    w1, w1, m, am, bm, cm, wd, ww, wu)
-                call prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa), w1, &
-                    w1, m, am, bm, cm, wd, ww, wu)
-                y(:m, i) = y(:m, i) - w1(:m)
-            end do
-
-            izr = nm
-            loop_131: do l = 1, kdo
-                ir = l - 1
-                i2 = 2**ir
-                i1 = i2/2
-                i3 = i2 + i1
-                i4 = i2 + i2
                 irm1 = ir - 1
-                do i = i4, iif, i4
+                i2 = 2**ir
+                i1 = i2/2
+                i4 = i2 + i2
+                ifd = iif - i2
+                do i = i2, ifd, i4
+                    if (i > nm) cycle
+                    imi1 = i - i1
+                    imi2 = i - i2
                     ipi1 = i + i1
                     ipi2 = i + i2
-                    ipi3 = i + i3
+                    call cindxa(i, ir, idxa, na)
+                    call cindxc(i, ir, idxc, nc)
+                    call cindxb(i, ir, iz, nz)
+                    call cindxb(imi1, irm1, im1, nm1)
+                    call cindxb(ipi1, irm1, ip1, np1)
 
-                    if (ipi2 /= izr) then
-                        if (i /= izr) cycle
-                        cycle  loop_131
+                    if (i <= i2) then
+                        w1(:m) = 0.0_wp
+                    else
+                        call prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa), &
+                            y(1,imi2), w1, m, am, bm, cm, wd, ww, wu)
                     end if
 
-                    call cindxc (i, ir, idxc, nc)
-                    call cindxb(ipi2, ir, ip2, np2)
-                    call cindxb(ipi1, irm1, ip1, np1)
-                    call cindxb(ipi3, irm1, ip3, np3)
-                    call prdct(np2, b(ip2), np1, b(ip1), np3, b(ip3), 0, dum, &
-                        w2, w2, m, am, bm, cm, wd, ww, wu)
-                    call prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc), w2, &
-                        w2, m, am, bm, cm, wd, ww, wu)
-                    y(:m, i) = y(:m, i) - w2(:m)
-                    izr = i
-                    cycle  loop_131
+                    if (ipi2 > nm) then
+                        w2(:m) = 0.0_wp
+                    else
+                        call prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc), y( &
+                            1, ipi2), w2, m, am, bm, cm, wd, ww, wu)
+                    end if
+                    w1(:m) = y(:m, i) + w1(:m) + w2(:m)
+                    call prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dum, w1, &
+                        y(1, i), m, am, bm, cm, wd, ww, wu)
                 end do
-            end do loop_131
-        end if
-        !
-        ! begin back substitution phase
-        !
-        do ll = 1, k
-            l = k - ll + 1
-            ir = l - 1
-            irm1 = ir - 1
-            i2 = 2**ir
-            i1 = i2/2
-            i4 = i2 + i2
-            ifd = iif - i2
-            do i = i2, ifd, i4
-                if (i > nm) cycle
-                imi1 = i - i1
-                imi2 = i - i2
-                ipi1 = i + i1
-                ipi2 = i + i2
-                call cindxa(i, ir, idxa, na)
-                call cindxc(i, ir, idxc, nc)
-                call cindxb(i, ir, iz, nz)
-                call cindxb(imi1, irm1, im1, nm1)
-                call cindxb(ipi1, irm1, ip1, np1)
-
-                if (i <= i2) then
-                    w1(:m) = 0.0_wp
-                else
-                    call prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa), &
-                        y(1,imi2), w1, m, am, bm, cm, wd, ww, wu)
-                end if
-
-                if (ipi2 > nm) then
-                    w2(:m) = 0.0_wp
-                else
-                    call prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc), y( &
-                        1, ipi2), w2, m, am, bm, cm, wd, ww, wu)
-                end if
-                w1(:m) = y(:m, i) + w1(:m) + w2(:m)
-                call prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dum, w1, &
-                    y(1, i), m, am, bm, cm, wd, ww, wu)
             end do
-        end do
 
-    end subroutine cblkt1
-
+        end subroutine cblkt1
 
 
-    function cbsrh(xll, xrr, iz, c, a, bh, f, sgn) result(return_value)
-        !-----------------------------------------------
-        ! Dictionary: calling arguments
-        !-----------------------------------------------
-        integer (ip)           :: iz
-        real (wp), intent (in) :: xll
-        real (wp), intent (in) :: xrr
-        real (wp)              :: f
-        real (wp), intent (in) :: sgn
-        real (wp)              :: c(*)
-        real (wp)              :: a(*)
-        real (wp)              :: bh(*)
-        real (wp)              :: return_value
-        !-----------------------------------------------
-        ! Dictionary: local variables
-        !-----------------------------------------------
-        real (wp) :: r1, xl, xr, dx, x
-        !-----------------------------------------------
 
-        xl = xll
-        xr = xrr
-        dx = 0.5_wp*abs(xr - xl)
-        x = 0.5_wp*(xl + xr)
-        r1 = sgn*f(x, iz, c, a, bh)
+        function cbsrh(xll, xrr, iz, c, a, bh, f, sgn) result(return_value)
+            !-----------------------------------------------
+            ! Dictionary: calling arguments
+            !-----------------------------------------------
+            integer (ip)           :: iz
+            real (wp), intent (in) :: xll
+            real (wp), intent (in) :: xrr
+            real (wp)              :: f
+            real (wp), intent (in) :: sgn
+            real (wp)              :: c(*)
+            real (wp)              :: a(*)
+            real (wp)              :: bh(*)
+            real (wp)              :: return_value
+            !-----------------------------------------------
+            ! Dictionary: local variables
+            !-----------------------------------------------
+            real (wp) :: r1, xl, xr, dx, x
+            !-----------------------------------------------
 
-        if (r1 >= 0.0_wp) then
-            if (r1 == 0.0_wp) then
-                return_value = 0.5_wp*(xl + xr)
-                return
-            end if
-            xr = x
-        else
-            xl = x
-        end if
-
-        dx = 0.5_wp * dx
-
-        do while (dx > cnv)
-
+            xl = xll
+            xr = xrr
+            dx = 0.5_wp*abs(xr - xl)
             x = 0.5_wp*(xl + xr)
             r1 = sgn*f(x, iz, c, a, bh)
 
@@ -734,213 +715,230 @@ contains
             else
                 xl = x
             end if
-            dx = 0.5_wp*dx
-        end do
 
-        return_value = 0.5_wp*(xl + xr)
+            dx = 0.5_wp * dx
 
-    end function cbsrh
+            do while (dx > cnv)
+
+                x = 0.5_wp*(xl + xr)
+                r1 = sgn*f(x, iz, c, a, bh)
+
+                if (r1 >= 0.0_wp) then
+                    if (r1 == 0.0_wp) then
+                        return_value = 0.5_wp*(xl + xr)
+                        return
+                    end if
+                    xr = x
+                else
+                    xl = x
+                end if
+                dx = 0.5_wp*dx
+            end do
+
+            return_value = 0.5_wp*(xl + xr)
+
+        end function cbsrh
 
 
-    subroutine ccompb(n, ierror, an, bn, cn, b, bc, ah, bh)
-        !
-        ! Purpose:
-        !
-        ! ccompb computes the roots of the b polynomials using subroutine
-        ! ctevls which is a modification the eispack program tqlrat.
-        ! ierror is set to 4 if either ctevls fails or if a(j+1)*c(j) is
-        ! less than zero for some j.  ah, bh are temporary work arrays.
-        !
-        !-----------------------------------------------
-        ! Dictionary: calling arguments
-        !-----------------------------------------------
-        integer (ip) :: n
-        integer (ip) :: ierror
-        real (wp) :: an(*)
-        real (wp), intent (in) :: bn(*)
-        real (wp) :: cn(*)
-        real (wp) :: b(*)
-        real (wp) :: ah(*)
-        real (wp) :: bh(*)
-        complex (wp) :: bc(*)
-        !-----------------------------------------------
-        ! Dictionary: local variables
-        !-----------------------------------------------
-        integer (ip) :: j, if_rename, kdo, l, ir, i2, i4
-        integer (ip) ::  ipl, ifd, i, ib, nb, js, jf
-        integer (ip) ::  ls, lh, nmp, l1, l2, j2, j1, n2m2
-        real (wp)    :: bnorm, arg, d1, d2, d3
-        real (wp), parameter :: eps = epsilon(1.0_wp)
-        !-----------------------------------------------
+        subroutine ccompb(n, ierror, an, bn, cn, b, bc, ah, bh)
+            !
+            ! Purpose:
+            !
+            ! ccompb computes the roots of the b polynomials using subroutine
+            ! ctevls which is a modification the eispack program tqlrat.
+            ! ierror is set to 4 if either ctevls fails or if a(j+1)*c(j) is
+            ! less than zero for some j.  ah, bh are temporary work arrays.
+            !
+            !-----------------------------------------------
+            ! Dictionary: calling arguments
+            !-----------------------------------------------
+            integer (ip) :: n
+            integer (ip) :: ierror
+            real (wp) :: an(*)
+            real (wp), intent (in) :: bn(*)
+            real (wp) :: cn(*)
+            real (wp) :: b(*)
+            real (wp) :: ah(*)
+            real (wp) :: bh(*)
+            complex (wp) :: bc(*)
+            !-----------------------------------------------
+            ! Dictionary: local variables
+            !-----------------------------------------------
+            integer (ip) :: j, if_rename, kdo, l, ir, i2, i4
+            integer (ip) ::  ipl, ifd, i, ib, nb, js, jf
+            integer (ip) ::  ls, lh, nmp, l1, l2, j2, j1, n2m2
+            real (wp)    :: bnorm, arg, d1, d2, d3
+            real (wp), parameter :: eps = epsilon(1.0_wp)
+            !-----------------------------------------------
 
-        bnorm = abs(bn(1))
+            bnorm = abs(bn(1))
 
-        do j = 2, nm
-            bnorm = max(bnorm, abs(bn(j)))
-            arg = an(j)*cn(j-1)
-            if (arg < 0.0_wp) then
-                ierror = 5
-                return
-            end if
-            b(j) = sign(sqrt(arg), an(j))
-        end do
+            do j = 2, nm
+                bnorm = max(bnorm, abs(bn(j)))
+                arg = an(j)*cn(j-1)
+                if (arg < 0.0_wp) then
+                    ierror = 5
+                    return
+                end if
+                b(j) = sign(sqrt(arg), an(j))
+            end do
 
-        cnv = eps*bnorm
-        if_rename = 2**k
-        kdo = k - 1
+            cnv = eps*bnorm
+            if_rename = 2**k
+            kdo = k - 1
 
-        outer_loop: do l = 1, kdo
+            outer_loop: do l = 1, kdo
 
-            ir = l - 1
-            i2 = 2**ir
-            i4 = i2 + i2
-            ipl = i4 - 1
-            ifd = if_rename - i4
+                ir = l - 1
+                i2 = 2**ir
+                i4 = i2 + i2
+                ipl = i4 - 1
+                ifd = if_rename - i4
 
-            do i = i4, ifd, i4
+                do i = i4, ifd, i4
 
-                call cindxb(i, l, ib, nb)
+                    call cindxb(i, l, ib, nb)
 
-                if (nb <= 0) cycle outer_loop
+                    if (nb <= 0) cycle outer_loop
 
-                js = i - ipl
-                jf = js + nb - 1
-                ls = 0
-                bh(:jf-js+1) = bn(js:jf)
-                ah(:jf-js+1) = b(js:jf)
+                    js = i - ipl
+                    jf = js + nb - 1
+                    ls = 0
+                    bh(:jf-js+1) = bn(js:jf)
+                    ah(:jf-js+1) = b(js:jf)
 
-                call ctevls(nb, bh, ah, ierror)
+                    call ctevls(nb, bh, ah, ierror)
+
+                    if (ierror /= 0) then
+                        ierror = 4
+                        return
+                    end if
+
+                    lh = ib - 1
+
+                    if (nb > 0) then
+                        b(lh+1:nb+lh) = -bh(:nb)
+                        lh = nb + lh
+                    end if
+
+                end do
+            end do outer_loop
+
+            b(:nm) = -bn(:nm)
+
+            if (npp == 0) then
+                nmp = nm + 1
+                nb = nm + nmp
+                do j = 1, nb
+                    l1 = mod(j - 1, nmp) + 1
+                    l2 = mod(j + nm - 1, nmp) + 1
+                    arg = an(l1)*cn(l2)
+
+                    if (arg < 0.0_wp) then
+                        ierror = 5
+                        return
+                    end if
+
+                    bh(j) = sign(sqrt(arg), (-an(l1)))
+                    ah(j) = -bn(l1)
+                end do
+
+                call ctevls (nb, ah, bh, ierror)
 
                 if (ierror /= 0) then
                     ierror = 4
                     return
                 end if
 
-                lh = ib - 1
+                call cindxb(if_rename, k - 1, j2, lh)
+                call cindxb(if_rename/2, k - 1, j1, lh)
 
-                if (nb > 0) then
-                    b(lh+1:nb+lh) = -bh(:nb)
-                    lh = nb + lh
+                j2 = j2 + 1
+                lh = j2
+                n2m2 = j2 + nm + nm - 2
+
+114         continue
+
+            d1 = abs(b(j1)-b(j2-1))
+            d2 = abs(b(j1)-b(j2))
+            d3 = abs(b(j1)-b(j2+1))
+
+            if (d2 >= d1 .or. d2 >= d3) then
+                b(lh) = b(j2)
+                j2 = j2 + 1
+                lh = lh + 1
+                if (j2 <= n2m2) then
+                    goto 114
                 end if
-
-            end do
-        end do outer_loop
-
-        b(:nm) = -bn(:nm)
-
-        if (npp == 0) then
-            nmp = nm + 1
-            nb = nm + nmp
-            do j = 1, nb
-                l1 = mod(j - 1, nmp) + 1
-                l2 = mod(j + nm - 1, nmp) + 1
-                arg = an(l1)*cn(l2)
-
-                if (arg < 0.0_wp) then
-                    ierror = 5
-                    return
+            else
+                j2 = j2 + 1
+                j1 = j1 + 1
+                if (j2 <= n2m2) then
+                    goto 114
                 end if
-
-                bh(j) = sign(sqrt(arg), (-an(l1)))
-                ah(j) = -bn(l1)
-            end do
-
-            call ctevls (nb, ah, bh, ierror)
-
-            if (ierror /= 0) then
-                ierror = 4
-                return
             end if
 
-            call cindxb(if_rename, k - 1, j2, lh)
-            call cindxb(if_rename/2, k - 1, j1, lh)
+            b(lh) = b(n2m2+1)
 
-            j2 = j2 + 1
-            lh = j2
-            n2m2 = j2 + nm + nm - 2
+            call cindxb(if_rename, k - 1, j1, j2)
 
-114     continue
+            j2 = j1 + nmp + nmp
 
-        d1 = abs(b(j1)-b(j2-1))
-        d2 = abs(b(j1)-b(j2))
-        d3 = abs(b(j1)-b(j2+1))
+            call cppadd(nm + 1, ierror, an, cn, cmplx(b(j1:j1)), real(bc(j1:j1)), b(j2))
 
-        if (d2 >= d1 .or. d2 >= d3) then
-            b(lh) = b(j2)
-            j2 = j2 + 1
-            lh = lh + 1
-            if (j2 <= n2m2) then
-                goto 114
-            end if
-        else
-            j2 = j2 + 1
-            j1 = j1 + 1
-            if (j2 <= n2m2) then
-                goto 114
-            end if
         end if
 
-        b(lh) = b(n2m2+1)
 
-        call cindxb(if_rename, k - 1, j1, j2)
-
-        j2 = j1 + nmp + nmp
-
-        call cppadd(nm + 1, ierror, an, cn, cmplx(b(j1:j1)), real(bc(j1:j1)), b(j2))
-
-    end if
+    end subroutine ccompb
 
 
-end subroutine ccompb
-
-
-subroutine cproc(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, w, yy)
-    !-----------------------------------------------
-    ! Dictionary: calling arguments
-    !-----------------------------------------------
-    integer (ip), intent (in) :: nd
-    integer (ip), intent (in) :: nm1
-    integer (ip), intent (in) :: nm2
-    integer (ip), intent (in) :: na
-    integer (ip), intent (in) :: m
-    real (wp), intent (in) :: bm1(*)
-    real (wp), intent (in) :: bm2(*)
-    real (wp), intent (in) :: aa(*)
-    complex (wp), intent (in) :: bd(*)
-    complex (wp), intent (in) :: x(*)
-    complex (wp), intent (in out) :: y(*)
-    complex (wp), intent (in) :: a(*)
-    complex (wp), intent (in) :: b(*)
-    complex (wp), intent (in) :: c(*)
-    complex (wp), intent (in out) :: d(*)
-    complex (wp), intent (in out) :: w(*)
-    complex (wp) :: yy(*)
-    !-----------------------------------------------
-    ! Dictionary: local variables
-    !-----------------------------------------------
-    integer (ip) :: j, mm, id, m1, m2, ia, iflg, k
-    real (wp) :: rt
-    complex (wp) :: crt, den, y1, y2
-    !-----------------------------------------------
-    !
-    ! proc applies a sequence of matrix operations to the vector x and
-    ! stores the result in y
-    ! aa   array containing scalar multipliers of the vector x
-    ! nd, nm1, nm2 are the lengths of the arrays bd, bm1, bm2 respectively
-    ! bd, bm1, bm2 are arrays containing roots of certian b polynomials
-    ! na is the length of the array aa
-    ! x, y the matrix operations are applied to x and the result is y
-    ! a, b, c  are arrays which contain the tridiagonal matrix
-    ! m  is the order of the matrix
-    ! d, w are work arrays
-    ! isgn  determines whether or not a change in sign is made
-    !
-    y(:m) = x(:m)
-    mm = m - 1
-    id = nd
-    m1 = nm1
-    m2 = nm2
-    ia = na
+    subroutine cproc(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, w, yy)
+        !-----------------------------------------------
+        ! Dictionary: calling arguments
+        !-----------------------------------------------
+        integer (ip), intent (in) :: nd
+        integer (ip), intent (in) :: nm1
+        integer (ip), intent (in) :: nm2
+        integer (ip), intent (in) :: na
+        integer (ip), intent (in) :: m
+        real (wp), intent (in) :: bm1(*)
+        real (wp), intent (in) :: bm2(*)
+        real (wp), intent (in) :: aa(*)
+        complex (wp), intent (in) :: bd(*)
+        complex (wp), intent (in) :: x(*)
+        complex (wp), intent (in out) :: y(*)
+        complex (wp), intent (in) :: a(*)
+        complex (wp), intent (in) :: b(*)
+        complex (wp), intent (in) :: c(*)
+        complex (wp), intent (in out) :: d(*)
+        complex (wp), intent (in out) :: w(*)
+        complex (wp) :: yy(*)
+        !-----------------------------------------------
+        ! Dictionary: local variables
+        !-----------------------------------------------
+        integer (ip) :: j, mm, id, m1, m2, ia, iflg, k
+        real (wp) :: rt
+        complex (wp) :: crt, den, y1, y2
+        !-----------------------------------------------
+        !
+        ! proc applies a sequence of matrix operations to the vector x and
+        ! stores the result in y
+        ! aa   array containing scalar multipliers of the vector x
+        ! nd, nm1, nm2 are the lengths of the arrays bd, bm1, bm2 respectively
+        ! bd, bm1, bm2 are arrays containing roots of certian b polynomials
+        ! na is the length of the array aa
+        ! x, y the matrix operations are applied to x and the result is y
+        ! a, b, c  are arrays which contain the tridiagonal matrix
+        ! m  is the order of the matrix
+        ! d, w are work arrays
+        ! isgn  determines whether or not a change in sign is made
+        !
+        y(:m) = x(:m)
+        mm = m - 1
+        id = nd
+        m1 = nm1
+        m2 = nm2
+        ia = na
 102 continue
     iflg = 0
     if (id > 0) then
@@ -1064,86 +1062,95 @@ subroutine cprocp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, u, yy
     m1 = nm1
     m2 = nm2
     ia = na
-102 continue
-    iflg = 0
-    if (id > 0) then
-        crt = bd(id)
-        id = id - 1
-        iflg = 1
-        !
-        ! begin solution to system
-        !
-        bh = b(m) - crt
-        ym = y(m)
-        den = b(1) - crt
-        d(1) = c(1)/den
-        u(1) = a(1)/den
-        y(1) = y(1)/den
-        v = c(m)
-        if (mm2 >= 2) then
-            do j = 2, mm2
-                den = b(j) - crt - a(j)*d(j-1)
-                d(j) = c(j)/den
-                u(j) = -a(j)*u(j-1)/den
-                y(j) = (y(j)-a(j)*y(j-1))/den
-                bh = bh - v*u(j-1)
-                ym = ym - v*y(j-1)
-                v = -v*d(j-1)
+
+    main_loop: do
+
+        iflg = 0
+        if (id > 0) then
+            crt = bd(id)
+            id = id - 1
+            iflg = 1
+            !
+            !==>  begin solution to system
+            !
+            bh = b(m) - crt
+            ym = y(m)
+            den = b(1) - crt
+            d(1) = c(1)/den
+            u(1) = a(1)/den
+            y(1) = y(1)/den
+            v = c(m)
+            if (mm2 >= 2) then
+                do j = 2, mm2
+                    den = b(j) - crt - a(j)*d(j-1)
+                    d(j) = c(j)/den
+                    u(j) = -a(j)*u(j-1)/den
+                    y(j) = (y(j)-a(j)*y(j-1))/den
+                    bh = bh - v*u(j-1)
+                    ym = ym - v*y(j-1)
+                    v = -v*d(j-1)
+                end do
+            end if
+            den = b(m-1) - crt - a(m-1)*d(m-2)
+            d(m-1) = (c(m-1)-a(m-1)*u(m-2))/den
+            y(m-1) = (y(m-1)-a(m-1)*y(m-2))/den
+            am = a(m) - v*d(m-2)
+            bh = bh - v*u(m-2)
+            ym = ym - v*y(m-2)
+            den = bh - am*d(m-1)
+            if (abs(den) /= 0.0_wp) then
+                y(m) = (ym - am*y(m-1))/den
+            else
+                y(m) = cmplx(1.0_wp, 0.0_wp, kind=wp)
+            end if
+            y(m-1) = y(m-1) - d(m-1)*y(m)
+            do j = 2, mm
+                k = m - j
+                y(k) = y(k) - d(k)*y(k+1) - u(k)*y(m)
             end do
         end if
-        den = b(m-1) - crt - a(m-1)*d(m-2)
-        d(m-1) = (c(m-1)-a(m-1)*u(m-2))/den
-        y(m-1) = (y(m-1)-a(m-1)*y(m-2))/den
-        am = a(m) - v*d(m-2)
-        bh = bh - v*u(m-2)
-        ym = ym - v*y(m-2)
-        den = bh - am*d(m-1)
-        if (abs(den) /= 0.) then
-            y(m) = (ym - am*y(m-1))/den
+
+        if (m1 <= 0) then
+            if (m2 <= 0) goto 123
+            rt = bm2(m2)
+            m2 = m2 - 1
         else
-            y(m) = (1., 0.)
-        end if
-        y(m-1) = y(m-1) - d(m-1)*y(m)
-        do j = 2, mm
-            k = m - j
-            y(k) = y(k) - d(k)*y(k+1) - u(k)*y(m)
-        end do
-    end if
-    if (m1 <= 0) then
-        if (m2 <= 0) goto 123
-        rt = bm2(m2)
-        m2 = m2 - 1
-    else
-        if (m2 <= 0) then
-            rt = bm1(m1)
-            m1 = m1 - 1
-        else
-            if (abs(bm1(m1)) - abs(bm2(m2)) > 0.) then
+            if (m2 <= 0) then
                 rt = bm1(m1)
                 m1 = m1 - 1
             else
-                rt = bm2(m2)
-                m2 = m2 - 1
-            !
-            ! matrix multiplication
-            !
+                if (abs(bm1(m1)) - abs(bm2(m2)) > 0.) then
+                    rt = bm1(m1)
+                    m1 = m1 - 1
+                else
+                    rt = bm2(m2)
+                    m2 = m2 - 1
+                !
+                ! matrix multiplication
+                !
+                end if
             end if
         end if
-    end if
-    yh = y(1)
-    y1 = (b(1)-rt)*y(1) + c(1)*y(2) + a(1)*y(m)
-    if (mm - 2 >= 0) then
-        do j = 2, mm
-            y2 = a(j)*y(j-1) + (b(j)-rt)*y(j) + c(j)*y(j+1)
-            y(j-1) = y1
-            y1 = y2
-        end do
-    end if
-    y(m) = a(m)*y(m-1) + (b(m)-rt)*y(m) + c(m)*yh
-    y(m-1) = y1
-    iflg = 1
-    goto 102
+
+        yh = y(1)
+        y1 = (b(1)-rt)*y(1) + c(1)*y(2) + a(1)*y(m)
+
+        if (mm - 2 >= 0) then
+            do j = 2, mm
+                y2 = a(j)*y(j-1) + (b(j)-rt)*y(j) + c(j)*y(j+1)
+                y(j-1) = y1
+                y1 = y2
+            end do
+        end if
+
+        y(m) = a(m)*y(m-1) + (b(m)-rt)*y(m) + c(m)*yh
+        y(m-1) = y1
+        iflg = 1
+
+        cycle main_loop
+
 123 continue
+
     if (ia > 0) then
         rt = aa(ia)
         ia = ia - 1
@@ -1153,8 +1160,11 @@ subroutine cprocp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, u, yy
         !
         y(:m) = rt*y(:m)
     end if
-    if (iflg > 0) goto 102
-    return
+
+    if (iflg <= 0) exit main_loop
+
+end do main_loop
+
 end subroutine cprocp
 
 subroutine cindxa(i, ir, idxa, na)
@@ -1162,8 +1172,8 @@ subroutine cindxa(i, ir, idxa, na)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer (ip), intent (in) :: i
-    integer (ip), intent (in) :: ir
+    integer (ip), intent (in)  :: i
+    integer (ip), intent (in)  :: ir
     integer (ip), intent (out) :: idxa
     integer (ip), intent (out) :: na
     !-----------------------------------------------
@@ -1225,17 +1235,15 @@ subroutine cindxc(i, ir, idxc, nc)
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
-    integer (ip), intent (in) :: i
-    integer (ip), intent (in) :: ir
+    integer (ip), intent (in)  :: i
+    integer (ip), intent (in)  :: ir
     integer (ip), intent (out) :: idxc
     integer (ip), intent (out) :: nc
     !-----------------------------------------------
 
     nc = 2**ir
     idxc = i
-    if (idxc + nc - 1 - nm > 0) then
-        nc = 0
-    end if
+    if (idxc + nc - 1 > nm) nc = 0
 
 end subroutine cindxc
 
