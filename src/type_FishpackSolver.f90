@@ -43,6 +43,9 @@ module type_FishpackSolver
 
     use module_sepx4, only: sepx4
 
+    ! Explicit typing only
+    implicit none
+
     ! Everything is private unless stated otherwise
     private
     public :: FishpackSolver
@@ -77,3 +80,6 @@ module type_FishpackSolver
 
 
 end module type_FishpackSolver
+
+
+

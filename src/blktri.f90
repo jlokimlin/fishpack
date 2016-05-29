@@ -162,6 +162,7 @@
 !                          non-initial calls (iflg=1) to blktri.
 !                          This eliminates redundant calculations
 !                          and saves compute time.
+!
 !               ****       IMPORTANT!  The user program calling blktri should
 !                          include the statement:
 !
@@ -262,7 +263,7 @@ module module_blktri
         ip => INT32
 
     use type_FishpackWorkspace, only: &
-        FishpackWorkspace
+        Fish => FishpackWorkspace
 
     use module_comf, only: &
         ComfAux, &
@@ -298,7 +299,6 @@ module module_blktri
     ! Dictionary: global variables confined to the module
     !---------------------------------------------------------------------------------
     integer (ip)         :: npp, k, nm, ncmplx, ik
-    real (wp), parameter :: EPS = epsilon(1.0_wp)
     real (wp)            :: cnv
     !---------------------------------------------------------------------------------
 
@@ -311,46 +311,41 @@ contains
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
-        integer (ip),          intent (in)     :: iflg
-        integer (ip),          intent (in)     :: np
-        integer (ip),          intent (in)     :: n
-        integer (ip),          intent (in)     :: mp
-        integer (ip),          intent (in)     :: m
-        integer (ip),          intent (in)     :: idimy
-        integer (ip),          intent (out)    :: ierror
-        real (wp), contiguous, intent (in out) :: an(:)
-        real (wp), contiguous, intent (in out) :: bn(:)
-        real (wp), contiguous, intent (in out) :: cn(:)
-        real (wp), contiguous, intent (in out) :: am(:)
-        real (wp), contiguous, intent (in out) :: bm(:)
-        real (wp), contiguous, intent (in out) :: cm(:)
-        real (wp), contiguous, intent (in out) :: y(:,:)
-        class (FishpackWorkspace)              :: workspace
+        integer (ip), intent (in)     :: iflg
+        integer (ip), intent (in)     :: np
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: mp
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: idimy
+        integer (ip), intent (out)    :: ierror
+        real (wp),    intent (in out) :: an(:)
+        real (wp),    intent (in out) :: bn(:)
+        real (wp),    intent (in out) :: cn(:)
+        real (wp),    intent (in out) :: am(:)
+        real (wp),    intent (in out) :: bm(:)
+        real (wp),    intent (in out) :: cm(:)
+        real (wp),    intent (in out) :: y(:,:)
+        class (Fish), intent (in out) :: workspace
         !--------------------------------------------------------------------------------
         ! Dictionary: local variables
         !--------------------------------------------------------------------------------
         integer (ip)  :: irwk, icwk
         !--------------------------------------------------------------------------------
 
-        ! Initialize error flag
-        ierror = 0
-
-        ! Check if input values are valid - case 1
+        !
+        !==> Check validity of input arguments
+        !
         if (m < 5) then
             ierror = 1
             return
-        end if
-
-        ! Check if input values are valid - case 2
-        if (n < 3) then
+        else if (n < 3) then
             ierror = 2
             return
-        end if
-
-        ! Check if input values are valid - case 3
-        if (idimy < m) then
+        else if (idimy < m) then
             ierror = 3
             return
+        else
+            ierror = 0
         end if
 
 
@@ -364,13 +359,16 @@ contains
 
         end if
 
-        ! Solve system
         associate( &
             rew => workspace%real_workspace, &
             cxw => workspace%complex_workspace &
             )
+            !
+            !==> Solve system
+            !
             call blktrii(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, idimy, y, &
                 ierror, rew, cxw)
+
         end associate
 
     end subroutine blktri
@@ -411,14 +409,14 @@ contains
         if (m < 5) then
             ierror = 1
             return
-        end if
-        if (nm < 3) then
+        else if (nm < 3) then
             ierror = 2
             return
-        end if
-        if (idimy < m) then
+        else if (idimy < m) then
             ierror = 3
             return
+        else
+            ierror = 0
         end if
 
         if (iflg == 0) then
@@ -503,7 +501,7 @@ contains
             real (wp),    intent (in)     :: am(*)
             real (wp),    intent (in)     :: bm(*)
             real (wp),    intent (in)     :: cm(*)
-            real (wp),    intent (in out) :: y(idimy,1)
+            real (wp),    intent (in out) :: y(idimy,*)
             real (wp),    intent (in)     :: b(*)
             real (wp),    intent (in out) :: w1(*)
             real (wp),    intent (in out) :: w2(*)
@@ -522,11 +520,11 @@ contains
             integer (ip) :: im1, nm1, i0, iif, i, ipi1, ipi2, ipi3, idxc, nc, idxa, na, ip2
             integer (ip) :: np2, ip1, np1, ip3, np3, iz, nz, izr, ll, ifd, iip, np
             integer (ip) :: imi1, imi2
-            real (wp) :: dum
+            real (wp)    :: dum
             !-----------------------------------------------
 
             !
-            ! begin reduction phase
+            !==> begin reduction phase
             !
             kdo = k - 1
             do l = 1, kdo
@@ -548,21 +546,18 @@ contains
                 iif = 2**k
 
                 do i = i4, iif, i4
-                    if (i - nm > 0) then
-                        cycle
-                    end if
+
+                    if (i > nm) cycle
 
                     ipi1 = i + i1
                     ipi2 = i + i2
                     ipi3 = i + i3
 
-                    call indxc (i, ir, idxc, nc)
+                    call indxc(i, ir, idxc, nc)
 
-                    if (i - iif >= 0) then
-                        cycle
-                    end if
+                    if (i >= iif) cycle
 
-                    call indxa (i, ir, idxa, na)
+                    call indxa(i, ir, idxa, na)
                     call indxb(i - i1, irm1, im1, nm1)
                     call indxb(ipi2, ir, ip2, np2)
                     call indxb(ipi1, irm1, ip1, np1)
@@ -570,7 +565,7 @@ contains
                     call prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa), w3, &
                         w1, m, am, bm, cm, wd, ww, wu)
 
-                    if (ipi2 - nm > 0) then
+                    if (ipi2 > nm) then
                         w3(:m) = 0.0_wp
                         w2(:m) = 0.0_wp
                     else
@@ -582,10 +577,12 @@ contains
                     y(:m, i) = w1(:m) + w2(:m) + y(:m, i)
                 end do
             end do
+
             if (npp == 0) then
                 iif = 2**k
                 i = iif/2
                 i1 = i/2
+
                 call indxb(i - i1, k - 2, im1, nm1)
                 call indxb(i + i1, k - 2, ip1, np1)
                 call indxb(i, k - 1, iz, nz)
@@ -593,6 +590,7 @@ contains
                     , w1, m, am, bm, cm, wd, ww, wu)
                 izr = i
                 w2(:m) = w1(:m)
+
                 do ll = 2, k
                     l = k - ll + 1
                     ir = l - 1
@@ -621,13 +619,10 @@ contains
                     i4 = i2 + i2
                     ifd = iif - i2
                     inner_loop: do i = i2, ifd, i4
-                        if (i - i2 - izr /= 0) then
-                            cycle inner_loop
-                        end if
 
-                        if (i - nm > 0) then
-                            cycle outer_loop
-                        end if
+                        if (i - i2 - izr /= 0) cycle inner_loop
+
+                        if (i > nm) cycle outer_loop
 
                         call indxa (i, ir, idxa, na)
                         call indxb(i, ir, iz, nz)
@@ -643,9 +638,7 @@ contains
 
                         izr = i
 
-                        if (i - nm == 0) then
-                            exit outer_loop
-                        end if
+                        if (i == nm) exit outer_loop
 
                     end do inner_loop
                 end do outer_loop
@@ -700,18 +693,23 @@ contains
                         ipi1 = i + i1
                         ipi2 = i + i2
                         ipi3 = i + i3
-                        if (ipi2 - izr /= 0) then
-                            if (i - izr /= 0) then
-                                cycle loop_132
-                            end if
+
+                        if (ipi2 /= izr) then
+
+                            if (i /= izr) cycle loop_132
+
                             cycle loop_131
+
                         end if
-                        call indxc (i, ir, idxc, nc)
+
+                        call indxc(i, ir, idxc, nc)
                         call indxb(ipi2, ir, ip2, np2)
                         call indxb(ipi1, irm1, ip1, np1)
                         call indxb(ipi3, irm1, ip3, np3)
+
                         call prdct(np2, b(ip2), np1, b(ip1), np3, b(ip3), 0, &
                             dum, w2, w2, m, am, bm, cm, wd, ww, wu)
+
                         call prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc), &
                             w2, w2, m, am, bm, cm, wd, ww, wu)
 
@@ -735,9 +733,7 @@ contains
                 ifd = iif - i2
                 inner_back_sub: do i = i2, ifd, i4
 
-                    if (i - nm > 0) then
-                        cycle inner_back_sub
-                    end if
+                    if (i > nm) cycle inner_back_sub
 
                     imi1 = i - i1
                     imi2 = i - i2
@@ -750,14 +746,14 @@ contains
                     call indxb(imi1, irm1, im1, nm1)
                     call indxb(ipi1, irm1, ip1, np1)
 
-                    if (i - i2 <= 0) then
+                    if (i <= i2) then
                         w1(:m) = 0.0_wp
                     else
                         call prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa), &
                             y(1,imi2), w1, m, am, bm, cm, wd, ww, wu)
                     end if
 
-                    if (ipi2 - nm > 0) then
+                    if (ipi2 > nm) then
                         w2(:m) = 0.0_wp
                     else
                         call prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc), &
@@ -857,9 +853,10 @@ contains
             !-----------------------------------------------
             ! Dictionary: local variables
             !-----------------------------------------------
-            integer (ip) :: j, if, kdo, l, ir, i2, i4, ipl, ifd, i, ib, nb, js, jf
-            integer (ip) ::  ls, lh, nmp, l1, l2, j2, j1, n2m2
-            real (wp)    :: bnorm, arg, d1, d2, d3
+            integer (ip)         :: j, if, kdo, l, ir, i2, i4, ipl, ifd, i, ib, nb, js, jf
+            integer (ip)         ::  ls, lh, nmp, l1, l2, j2, j1, n2m2
+            real (wp)            :: bnorm, arg, d1, d2, d3
+            real (wp), parameter :: EPS = epsilon(1.0_wp)
             !-----------------------------------------------
 
             bnorm = abs(bn(1))
@@ -889,9 +886,7 @@ contains
                 do i = i4, ifd, i4
                     call indxb(i, l, ib, nb)
 
-                    if (nb <= 0) then
-                        cycle  outer_loop
-                    end if
+                    if (nb <= 0) cycle outer_loop
 
                     js = i - ipl
                     jf = js + nb - 1
@@ -923,10 +918,12 @@ contains
                     l1 = mod(j - 1, nmp) + 1
                     l2 = mod(j + nm - 1, nmp) + 1
                     arg = an(l1)*cn(l2)
+
                     if (arg < 0.0_wp) then
                         ierror = 5
                         return
                     end if
+
                     bh(j) = sign(sqrt(arg), (-an(l1)))
                     ah(j) = -bn(l1)
                 end do
@@ -945,7 +942,7 @@ contains
                 lh = j2
                 n2m2 = j2 + nm + nm - 2
 
-                do while (j2 - n2m2 > 0)
+                do while (j2 > n2m2)
 
                     d1 = abs(b(j1)-b(j2-1))
                     d2 = abs(b(j1)-b(j2))
@@ -1034,40 +1031,211 @@ contains
             m1 = nm1
             m2 = nm2
             ia = na
+
+            main_loop: do
+
+                iflg = 0
+
+                if (id > 0) then
+                    crt = bd(id)
+                    id = id - 1
+                    !
+                    !==> begin solution to system
+                    !
+                    d(m) = a(m)/(b(m)-crt)
+                    w(m) = y(m)/(b(m)-crt)
+
+                    do j = 2, mm
+                        k = m - j
+                        den = b(k+1) - crt - c(k+1)*d(k+2)
+                        d(k+1) = a(k+1)/den
+                        w(k+1) = (y(k+1)-c(k+1)*w(k+2))/den
+                    end do
+
+                    den = b(1) - crt - c(1)*d(2)
+
+                    if (abs(den) /= 0.0_wp) then
+                        y(1) = (y(1)-c(1)*w(2))/den
+                    else
+                        y(1) = cmplx(1.0_wp, 0.0_wp, kind=wp)
+                    end if
+
+                    y(2:m) = w(2:m) - d(2:m)*y(1:m-1)
+
+                end if
+
+                block_121: block
+
+                    if (m1 <= 0) then
+
+                        if (m2 <= 0) exit block_121
+
+                        rt = bm2(m2)
+                        m2 = m2 - 1
+                    else
+                        if (m2 <= 0) then
+                            rt = bm1(m1)
+                            m1 = m1 - 1
+                        else
+                            if (abs(bm1(m1)) - abs(bm2(m2)) > 0.0_wp) then
+                                rt = bm1(m1)
+                                m1 = m1 - 1
+                            else
+                                rt = bm2(m2)
+                                m2 = m2 - 1
+                            end if
+                        end if
+                    end if
+
+                    y1 = (b(1)-rt)*y(1) + c(1)*y(2)
+
+                    if (mm - 2 >= 0) then
+                        do j = 2, mm
+                            y2 = a(j)*y(j-1) + (b(j)-rt)*y(j) + c(j)*y(j+1)
+                            y(j-1) = y1
+                            y1 = y2
+                        end do
+                    end if
+
+                    y(m) = a(m)*y(m-1) + (b(m)-rt)*y(m)
+                    y(m-1) = y1
+                    iflg = 1
+                    cycle main_loop
+
+                end block block_121
+
+                if (ia > 0) then
+                    rt = aa(ia)
+                    ia = ia - 1
+                    iflg = 1
+                    !
+                    !==> scalar multiplication
+                    !
+                    y(:m) = rt*y(:m)
+                end if
+
+                if (iflg <= 0) exit main_loop
+
+            end do main_loop
+
+            yy(1:m) = real(y(1:m), kind=wp)
+
+
+        end subroutine cprod
+
+
+        subroutine cprodp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, &
+            b, c, d, u, y)
+            !
+            ! Purpose:
+            !
+            ! cprodp applies a sequence of matrix operations to the vector x and
+            ! stores the result in yy       periodic boundary conditions
+            ! and  complex  case
+            !
+            ! bd, bm1, bm2 are arrays containing roots of certian b polynomials
+            ! nd, nm1, nm2 are the lengths of the arrays bd, bm1, bm2 respectively
+            ! aa   array containing scalar multipliers of the vector x
+            ! na is the length of the array aa
+            ! x, yy the matrix operations are applied to x and the result is yy
+            ! a, b, c  are arrays which contain the tridiagonal matrix
+            ! m  is the order of the matrix
+            ! d, u, y are working arrays
+            ! isgn  determines whether or not a change in sign is made
+            !
+            !-----------------------------------------------
+            ! Dictionary: calling arguments
+            !-----------------------------------------------
+            integer (ip), intent (in)     :: nd
+            integer (ip), intent (in)     :: nm1
+            integer (ip), intent (in)     :: nm2
+            integer (ip), intent (in)     :: na
+            integer (ip), intent (in)     :: m
+            real (wp),    intent (in)     :: bm1(*)
+            real (wp),    intent (in)     :: bm2(*)
+            real (wp),    intent (in)     :: aa(*)
+            real (wp),    intent (in)     :: x(*)
+            real (wp),    intent (out)    :: yy(*)
+            real (wp),    intent (in)     :: a(*)
+            real (wp),    intent (in)     :: b(*)
+            real (wp),    intent (in)     :: c(*)
+            complex (wp), intent (in)     :: bd(*)
+            complex (wp), intent (in out) :: d(*)
+            complex (wp), intent (in out) :: u(*)
+            complex (wp), intent (in out) :: y(*)
+            !-----------------------------------------------
+            ! Dictionary: local variables
+            !-----------------------------------------------
+            integer (ip) :: j, mm, mm2, id, m1, m2, ia, iflg, k
+            real (wp)    :: rt
+            complex (wp) :: v, den, bh, ym, am, y1, y2, yh, crt
+            !-----------------------------------------------
+
+            y(1:m) = cmplx(x(1:m), 0.0_wp, kind=wp)
+
+            mm = m - 1
+            mm2 = m - 2
+            id = nd
+            m1 = nm1
+            m2 = nm2
+            ia = na
+
 102     continue
+
         iflg = 0
 
         if (id > 0) then
             crt = bd(id)
             id = id - 1
+            iflg = 1
             !
-            ! begin solution to system
+            !==> begin solution to system
             !
-            d(m) = a(m)/(b(m)-crt)
-            w(m) = y(m)/(b(m)-crt)
-            do j = 2, mm
-                k = m - j
-                den = b(k+1) - crt - c(k+1)*d(k+2)
-                d(k+1) = a(k+1)/den
-                w(k+1) = (y(k+1)-c(k+1)*w(k+2))/den
-            end do
-            den = b(1) - crt - c(1)*d(2)
+            bh = b(m) - crt
+            ym = y(m)
+            den = b(1) - crt
+            d(1) = c(1)/den
+            u(1) = a(1)/den
+            y(1) = y(1)/den
+            v = cmplx(c(m), 0.0_wp, kind=wp)
 
-            if (abs(den) /= 0.0_wp) then
-                y(1) = (y(1)-c(1)*w(2))/den
-            else
-                y(1) = (1.0_wp, 0.0_wp)
+            if (mm2 - 2 >= 0) then
+                do j = 2, mm2
+                    den = b(j) - crt - a(j)*d(j-1)
+                    d(j) = c(j)/den
+                    u(j) = -a(j)*u(j-1)/den
+                    y(j) = (y(j)-a(j)*y(j-1))/den
+                    bh = bh - v*u(j-1)
+                    ym = ym - v*y(j-1)
+                    v = -v*d(j-1)
+                end do
             end if
 
-            do j = 2, m
-                y(j) = w(j) - d(j)*y(j-1)
-            end do
+            den = b(m-1) - crt - a(m-1)*d(m-2)
+            d(m-1) = (c(m-1)-a(m-1)*u(m-2))/den
+            y(m-1) = (y(m-1)-a(m-1)*y(m-2))/den
+            am = a(m) - v*d(m-2)
+            bh = bh - v*u(m-2)
+            ym = ym - v*y(m-2)
+            den = bh - am*d(m-1)
 
+            if (abs(den) /= 0.0_wp) then
+                y(m) = (ym - am*y(m-1))/den
+            else
+                y(m) = (1.0_wp, 0.0_wp)
+            end if
+
+            y(m-1) = y(m-1) - d(m-1)*y(m)
+
+            do j = 2, mm
+                k = m - j
+                y(k) = y(k) - d(k)*y(k+1) - u(k)*y(m)
+            end do
         end if
 
         if (m1 <= 0) then
             if (m2 <= 0) then
-                go to 121
+                go to 123
             end if
             rt = bm2(m2)
             m2 = m2 - 1
@@ -1082,11 +1250,15 @@ contains
                 else
                     rt = bm2(m2)
                     m2 = m2 - 1
+                !
+                ! matrix multiplication
+                !
                 end if
             end if
         end if
 
-        y1 = (b(1)-rt)*y(1) + c(1)*y(2)
+        yh = y(1)
+        y1 = (b(1)-rt)*y(1) + c(1)*y(2) + a(1)*y(m)
 
         if (mm - 2 >= 0) then
             do j = 2, mm
@@ -1096,180 +1268,11 @@ contains
             end do
         end if
 
-        y(m) = a(m)*y(m-1) + (b(m)-rt)*y(m)
+        y(m) = a(m)*y(m-1) + (b(m)-rt)*y(m) + c(m)*yh
         y(m-1) = y1
         iflg = 1
+
         go to 102
-121 continue
-    if (ia > 0) then
-        rt = aa(ia)
-        ia = ia - 1
-        iflg = 1
-        !
-        ! scalar multiplication
-        !
-        y(:m) = rt*y(:m)
-    end if
-
-    if (iflg > 0) then
-        go to 102
-    end if
-
-    yy(1:m) = real(y(1:m), kind=wp)
-
-
-end subroutine cprod
-
-
-subroutine cprodp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, &
-    b, c, d, u, y)
-    !
-    ! Purpose:
-    !
-    ! cprodp applies a sequence of matrix operations to the vector x and
-    ! stores the result in yy       periodic boundary conditions
-    ! and  complex  case
-    !
-    ! bd, bm1, bm2 are arrays containing roots of certian b polynomials
-    ! nd, nm1, nm2 are the lengths of the arrays bd, bm1, bm2 respectively
-    ! aa   array containing scalar multipliers of the vector x
-    ! na is the length of the array aa
-    ! x, yy the matrix operations are applied to x and the result is yy
-    ! a, b, c  are arrays which contain the tridiagonal matrix
-    ! m  is the order of the matrix
-    ! d, u, y are working arrays
-    ! isgn  determines whether or not a change in sign is made
-    !
-    !-----------------------------------------------
-    ! Dictionary: calling arguments
-    !-----------------------------------------------
-    integer (ip), intent (in)     :: nd
-    integer (ip), intent (in)     :: nm1
-    integer (ip), intent (in)     :: nm2
-    integer (ip), intent (in)     :: na
-    integer (ip), intent (in)     :: m
-    real (wp),    intent (in)     :: bm1(*)
-    real (wp),    intent (in)     :: bm2(*)
-    real (wp),    intent (in)     :: aa(*)
-    real (wp),    intent (in)     :: x(*)
-    real (wp),    intent (out)    :: yy(*)
-    real (wp),    intent (in)     :: a(*)
-    real (wp),    intent (in)     :: b(*)
-    real (wp),    intent (in)     :: c(*)
-    complex (wp), intent (in)     :: bd(*)
-    complex (wp), intent (in out) :: d(*)
-    complex (wp), intent (in out) :: u(*)
-    complex (wp), intent (in out) :: y(*)
-    !-----------------------------------------------
-    ! Dictionary: local variables
-    !-----------------------------------------------
-    integer (ip) :: j, mm, mm2, id, m1, m2, ia, iflg, k
-    real (wp)    :: rt
-    complex (wp) :: v, den, bh, ym, am, y1, y2, yh, crt
-    !-----------------------------------------------
-
-    y(1:m) = cmplx(x(1:m), 0.0_wp, kind=wp)
-
-    mm = m - 1
-    mm2 = m - 2
-    id = nd
-    m1 = nm1
-    m2 = nm2
-    ia = na
-
-102 continue
-
-    iflg = 0
-
-    if (id > 0) then
-        crt = bd(id)
-        id = id - 1
-        iflg = 1
-        !
-        !==> begin solution to system
-        !
-        bh = b(m) - crt
-        ym = y(m)
-        den = b(1) - crt
-        d(1) = c(1)/den
-        u(1) = a(1)/den
-        y(1) = y(1)/den
-        v = cmplx(c(m), 0.0_wp, kind=wp)
-
-        if (mm2 - 2 >= 0) then
-            do j = 2, mm2
-                den = b(j) - crt - a(j)*d(j-1)
-                d(j) = c(j)/den
-                u(j) = -a(j)*u(j-1)/den
-                y(j) = (y(j)-a(j)*y(j-1))/den
-                bh = bh - v*u(j-1)
-                ym = ym - v*y(j-1)
-                v = -v*d(j-1)
-            end do
-        end if
-
-        den = b(m-1) - crt - a(m-1)*d(m-2)
-        d(m-1) = (c(m-1)-a(m-1)*u(m-2))/den
-        y(m-1) = (y(m-1)-a(m-1)*y(m-2))/den
-        am = a(m) - v*d(m-2)
-        bh = bh - v*u(m-2)
-        ym = ym - v*y(m-2)
-        den = bh - am*d(m-1)
-
-        if (abs(den) /= 0.0_wp) then
-            y(m) = (ym - am*y(m-1))/den
-        else
-            y(m) = (1.0_wp, 0.0_wp)
-        end if
-
-        y(m-1) = y(m-1) - d(m-1)*y(m)
-
-        do j = 2, mm
-            k = m - j
-            y(k) = y(k) - d(k)*y(k+1) - u(k)*y(m)
-        end do
-    end if
-
-    if (m1 <= 0) then
-        if (m2 <= 0) then
-            go to 123
-        end if
-        rt = bm2(m2)
-        m2 = m2 - 1
-    else
-        if (m2 <= 0) then
-            rt = bm1(m1)
-            m1 = m1 - 1
-        else
-            if (abs(bm1(m1)) - abs(bm2(m2)) > 0.0_wp) then
-                rt = bm1(m1)
-                m1 = m1 - 1
-            else
-                rt = bm2(m2)
-                m2 = m2 - 1
-            !
-            ! matrix multiplication
-            !
-            end if
-        end if
-    end if
-
-    yh = y(1)
-    y1 = (b(1)-rt)*y(1) + c(1)*y(2) + a(1)*y(m)
-
-    if (mm - 2 >= 0) then
-        do j = 2, mm
-            y2 = a(j)*y(j-1) + (b(j)-rt)*y(j) + c(j)*y(j+1)
-            y(j-1) = y1
-            y1 = y2
-        end do
-    end if
-
-    y(m) = a(m)*y(m-1) + (b(m)-rt)*y(m) + c(m)*yh
-    y(m-1) = y1
-    iflg = 1
-
-    go to 102
 
 123 continue
 
@@ -1408,6 +1411,7 @@ subroutine ppadd(n, ierror, a, c, cbp, bp, bh)
     integer (ip)   :: iif, ig, it, icv, i3, i2, nhalf
     real (wp)      :: r4, r5, r6, scnv, xl, db, sgn, xr, xm, psg
     real (wp)      :: temp
+    real (wp), parameter :: EPS = epsilon(1.0_wp)
     complex (wp)   :: cx, fsg, hsg, dd, f, fp, fpp, cdis, r1, r2, r3
     type (ComfAux) :: comf_aux
     !-----------------------------------------------
@@ -1432,7 +1436,7 @@ subroutine ppadd(n, ierror, a, c, cbp, bp, bh)
     is = 1
 
     if (modiz /= 0) then
-        if (.not.(a(1) < 0.0_wp)) then
+        if (a(1) >= 0.0_wp) then
             if (a(1) == 0.0_wp) then
                 ierror = 4
                 return
@@ -1464,7 +1468,7 @@ subroutine ppadd(n, ierror, a, c, cbp, bp, bh)
     iif = iz - 1
 
     if (modiz /= 0) then
-        if (.not.(a(1) > 0.0_wp)) then
+        if (a(1) <= 0.0_wp) then
             if (a(1) == 0.0_wp) then
                 ierror = 4
                 return
@@ -2042,6 +2046,7 @@ subroutine tevls(n, d, e2, ierr)
     !-----------------------------------------------
     integer (ip) :: i, j, l, m, ii, l1, mml, nhalf, ntop
     real (wp) :: b, c, f, g, h, p, r, s, dhold
+    real (wp), parameter :: EPS = epsilon(1.0_wp)
     !-----------------------------------------------
 
     ierr = 0
