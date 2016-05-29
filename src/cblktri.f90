@@ -752,10 +752,10 @@ contains
             !-----------------------------------------------
             ! Dictionary: calling arguments
             !-----------------------------------------------
-            integer (ip) :: n
-            integer (ip) :: ierror
-            real (wp) :: an(*)
-            real (wp), intent (in) :: bn(*)
+            integer (ip), intent (in)  :: n
+            integer (ip), intent (out) :: ierror
+            real (wp)                  :: an(*)
+            real (wp),    intent (in)  :: bn(*)
             real (wp) :: cn(*)
             real (wp) :: b(*)
             real (wp) :: ah(*)
@@ -893,35 +893,10 @@ contains
 
 
     subroutine cproc(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, w, yy)
-        !-----------------------------------------------
-        ! Dictionary: calling arguments
-        !-----------------------------------------------
-        integer (ip), intent (in) :: nd
-        integer (ip), intent (in) :: nm1
-        integer (ip), intent (in) :: nm2
-        integer (ip), intent (in) :: na
-        integer (ip), intent (in) :: m
-        real (wp), intent (in) :: bm1(*)
-        real (wp), intent (in) :: bm2(*)
-        real (wp), intent (in) :: aa(*)
-        complex (wp), intent (in) :: bd(*)
-        complex (wp), intent (in) :: x(*)
-        complex (wp), intent (in out) :: y(*)
-        complex (wp), intent (in) :: a(*)
-        complex (wp), intent (in) :: b(*)
-        complex (wp), intent (in) :: c(*)
-        complex (wp), intent (in out) :: d(*)
-        complex (wp), intent (in out) :: w(*)
-        complex (wp) :: yy(*)
-        !-----------------------------------------------
-        ! Dictionary: local variables
-        !-----------------------------------------------
-        integer (ip) :: j, mm, id, m1, m2, ia, iflg, k
-        real (wp) :: rt
-        complex (wp) :: crt, den, y1, y2
-        !-----------------------------------------------
         !
-        ! proc applies a sequence of matrix operations to the vector x and
+        ! Purpose:
+        !
+        ! Applies a sequence of matrix operations to the vector x and
         ! stores the result in y
         ! aa   array containing scalar multipliers of the vector x
         ! nd, nm1, nm2 are the lengths of the arrays bd, bm1, bm2 respectively
@@ -933,80 +908,125 @@ contains
         ! d, w are work arrays
         ! isgn  determines whether or not a change in sign is made
         !
+        !-----------------------------------------------
+        ! Dictionary: calling arguments
+        !-----------------------------------------------
+        integer (ip), intent (in)     :: nd
+        integer (ip), intent (in)     :: nm1
+        integer (ip), intent (in)     :: nm2
+        integer (ip), intent (in)     :: na
+        integer (ip), intent (in)     :: m
+        real (wp),    intent (in)     :: bm1(*)
+        real (wp),    intent (in)     :: bm2(*)
+        real (wp),    intent (in)     :: aa(*)
+        complex (wp), intent (in)     :: bd(*)
+        complex (wp), intent (in)     :: x(*)
+        complex (wp), intent (in out) :: y(*)
+        complex (wp), intent (in)     :: a(*)
+        complex (wp), intent (in)     :: b(*)
+        complex (wp), intent (in)     :: c(*)
+        complex (wp), intent (in out) :: d(*)
+        complex (wp), intent (in out) :: w(*)
+        complex (wp)                  :: yy(*)
+        !-----------------------------------------------
+        ! Dictionary: local variables
+        !-----------------------------------------------
+        integer (ip) :: j, mm, id, m1, m2, ia, iflg, k
+        real (wp)    :: rt
+        complex (wp) :: crt, den, y1, y2
+        !-----------------------------------------------
+
         y(:m) = x(:m)
         mm = m - 1
         id = nd
         m1 = nm1
         m2 = nm2
         ia = na
-102 continue
-    iflg = 0
-    if (id > 0) then
-        crt = bd(id)
-        id = id - 1
-        !
-        ! begin solution to system
-        !
-        d(m) = a(m)/(b(m)-crt)
-        w(m) = y(m)/(b(m)-crt)
-        do j = 2, mm
-            k = m - j
-            den = b(k+1) - crt - c(k+1)*d(k+2)
-            d(k+1) = a(k+1)/den
-            w(k+1) = (y(k+1)-c(k+1)*w(k+2))/den
-        end do
-        den = b(1) - crt - c(1)*d(2)
-        if (abs(den) /= 0.) then
-            y(1) = (y(1)-c(1)*w(2))/den
-        else
-            y(1) = (1., 0.)
-        end if
-        do j = 2, m
-            y(j) = w(j) - d(j)*y(j-1)
-        end do
-    end if
-    if (m1 <= 0) then
-        if (m2 <= 0) goto 121
-        rt = bm2(m2)
-        m2 = m2 - 1
-    else
-        if (m2 <= 0) then
-            rt = bm1(m1)
-            m1 = m1 - 1
-        else
-            if (abs(bm1(m1)) - abs(bm2(m2)) > 0.) then
-                rt = bm1(m1)
-                m1 = m1 - 1
-            else
+
+        main_loop: do
+
+            iflg = 0
+            if (id > 0) then
+                crt = bd(id)
+                id = id - 1
+                !
+                ! begin solution to system
+                !
+                d(m) = a(m)/(b(m)-crt)
+                w(m) = y(m)/(b(m)-crt)
+
+                do j = 2, mm
+                    k = m - j
+                    den = b(k+1) - crt - c(k+1)*d(k+2)
+                    d(k+1) = a(k+1)/den
+                    w(k+1) = (y(k+1)-c(k+1)*w(k+2))/den
+                end do
+
+                den = b(1) - crt - c(1)*d(2)
+
+                if (abs(den) /= 0.0_wp) then
+                    y(1) = (y(1)-c(1)*w(2))/den
+                else
+                    y(1) = cmplx(1.0_wp, 0.0_wp, kind=wp)
+                end if
+
+                do j = 2, m
+                    y(j) = w(j) - d(j)*y(j-1)
+                end do
+
+            end if
+
+            if (m1 <= 0) then
+                if (m2 <= 0) goto 121
                 rt = bm2(m2)
                 m2 = m2 - 1
+            else
+                if (m2 <= 0) then
+                    rt = bm1(m1)
+                    m1 = m1 - 1
+                else
+                    if (abs(bm1(m1)) - abs(bm2(m2)) > 0.) then
+                        rt = bm1(m1)
+                        m1 = m1 - 1
+                    else
+                        rt = bm2(m2)
+                        m2 = m2 - 1
+                    end if
+                end if
             end if
+
+            y1 = (b(1)-rt)*y(1) + c(1)*y(2)
+
+            if (mm >= 2) then
+                do j = 2, mm
+                    y2 = a(j)*y(j-1) + (b(j)-rt)*y(j) + c(j)*y(j+1)
+                    y(j-1) = y1
+                    y1 = y2
+                end do
+            end if
+
+            y(m) = a(m)*y(m-1) + (b(m)-rt)*y(m)
+            y(m-1) = y1
+            iflg = 1
+
+            cycle main_loop
+
+121     continue
+
+        if (ia > 0) then
+            rt = aa(ia)
+            ia = ia - 1
+            iflg = 1
+            !
+            ! scalar multiplication
+            !
+            y(:m) = rt*y(:m)
         end if
-    end if
-    y1 = (b(1)-rt)*y(1) + c(1)*y(2)
-    if (mm - 2 >= 0) then
-        do j = 2, mm
-            y2 = a(j)*y(j-1) + (b(j)-rt)*y(j) + c(j)*y(j+1)
-            y(j-1) = y1
-            y1 = y2
-        end do
-    end if
-    y(m) = a(m)*y(m-1) + (b(m)-rt)*y(m)
-    y(m-1) = y1
-    iflg = 1
-    goto 102
-121 continue
-    if (ia > 0) then
-        rt = aa(ia)
-        ia = ia - 1
-        iflg = 1
-        !
-        ! scalar multiplication
-        !
-        y(:m) = rt*y(:m)
-    end if
-    if (iflg > 0) goto 102
-    return
+
+        if (iflg <= 0) exit main_loop
+
+    end do main_loop
+
 end subroutine cproc
 
 
