@@ -559,31 +559,19 @@ contains
         mp1 = m + 1
         mp = mbdcnd + 1
 
-        !
-        ! GCC 5.3 does not support Fortran 2008 the exit statement within
-        ! a select case construct yet.
-        !
-        exit_select_case_1: do exit_counter = 1,1
-            select case (mp)
-                case (1)
-                    exit exit_select_case_1
-                case (2:3)
-                    mstart = 2
-                    select case (mp)
-                        case (1:2, 5)
-                            exit exit_select_case_1
-                        case (3:4)
-                            mstop = mp1
-                    end select
-                case (4:5)
-                    select case (mp)
-                        case (1:2, 5)
-                            exit exit_select_case_1
-                        case (3:4)
-                            mstop = mp1
-                    end select
-            end select
-        end do exit_select_case_1
+        select case (mp)
+            case (2:3)
+                mstart = 2
+                select case (mp)
+                    case (3:4)
+                        mstop = mp1
+                end select
+            case (4:5)
+                select case (mp)
+                    case (3:4)
+                        mstop = mp1
+                end select
+        end select
 
         munk = mstop - mstart + 1
         dz = (zf - zs)/n
@@ -723,100 +711,79 @@ contains
         w(iwc:nunk-1+iwc) = c3
         w(iwb:nunk-1+iwb) = (-2.*c3) + elmbda
 
-        !
-        ! GCC 5.3 does not support Fortran 2008 the exit statement within
-        ! a select case construct yet.
-        !
-        exit_select_case_3: do exit_counter = 1,1
-            select case (np)
-                case (1:2)
-                    exit exit_select_case_3
-                case (3)
-                    w(iwb-1) = 2.0_wp*c3
-                case (4:5)
-                    w(iwc) = 2.0_wp*c3
-                    select case (np)
-                        case (4)
-                            w(iwb-1) = 2.0_wp*c3
-                        case (5)
-                            exit exit_select_case_3
-                    end select
-            end select
-        end do exit_select_case_3
+        select case (np)
+            case (3)
+                w(iwb-1) = 2.0_wp*c3
+            case (4:5)
+                w(iwc) = 2.0_wp*c3
+                select case (np)
+                    case (4)
+                        w(iwb-1) = 2.0_wp*c3
+                end select
+        end select
 
         pertrb = 0.0_wp
         !
         !==> For singular problems adjust data to insure a solution will exist.
         !
         !
-        ! GCC 5.3 does not support Fortran 2008 the exit statement within
-        ! a select case construct yet.
-        !
-        exit_select_case_4: do exit_counter = 1,1
-            select case (lp)
-                case (1, 4)
-                    select case (mp)
-                        case (1, 4)
-                            select case (np)
-                                case (1, 4)
-                                    if (elmbda >= 0.0_wp) then
-                                        if (elmbda /= 0.0_wp) then
-                                            ierror = 12
-                                            return
-                                        else
-                                            mstpm1 = mstop - 1
-                                            lstpm1 = lstop - 1
-                                            nstpm1 = nstop - 1
-                                            xlp = (2 + lp)/3
-                                            ylp = (2 + mp)/3
-                                            zlp = (2 + np)/3
-                                            s1 = 0.0_wp
+        select case (lp)
+            case (1, 4)
+                select case (mp)
+                    case (1, 4)
+                        select case (np)
+                            case (1, 4)
+                                if (elmbda >= 0.0_wp) then
+                                    if (elmbda /= 0.0_wp) then
+                                        ierror = 12
+                                        return
+                                    else
+                                        mstpm1 = mstop - 1
+                                        lstpm1 = lstop - 1
+                                        nstpm1 = nstop - 1
+                                        xlp = (2 + lp)/3
+                                        ylp = (2 + mp)/3
+                                        zlp = (2 + np)/3
+                                        s1 = 0.0_wp
 
-                                            do k = 2, nstpm1
-                                                do j = 2, mstpm1
-                                                    s1 = s1 + sum(f(2:lstpm1, j, k))
-                                                    s1 = s1 + (f(1, j, k)+f(lstop, j, k))/xlp
-                                                end do
-                                                s2 = sum(f(2:lstpm1, 1, k)+f(2:lstpm1, mstop, k))
-                                                s2 = (s2 + (f(1, 1, k) + f(1, mstop, k) &
-                                                    +f(lstop, 1, k) + f(lstop,mstop, k))/xlp)/ylp
-                                                s1 = s1 + s2
-                                            end do
-
-                                            s = (f(1, 1, 1)+f(lstop, 1, 1) &
-                                                + f(1, 1, nstop)+f(lstop, 1, nstop) &
-                                                + f(1, mstop, 1)+f(lstop, mstop, 1) &
-                                                + f(1, mstop, nstop)+f(lstop, mstop, nstop))/(xlp*ylp)
-
+                                        do k = 2, nstpm1
                                             do j = 2, mstpm1
-                                                s = s + sum(f(2:lstpm1, j, 1)+f(2:lstpm1, j, nstop))
+                                                s1 = s1 + sum(f(2:lstpm1, j, k))
+                                                s1 = s1 + (f(1, j, k)+f(lstop, j, k))/xlp
                                             end do
+                                            s2 = sum(f(2:lstpm1, 1, k)+f(2:lstpm1, mstop, k))
+                                            s2 = (s2 + (f(1, 1, k) + f(1, mstop, k) &
+                                                +f(lstop, 1, k) + f(lstop,mstop, k))/xlp)/ylp
+                                            s1 = s1 + s2
+                                        end do
 
-                                            s2 = 0.0_wp
-                                            s2 = sum(f(2:lstpm1, 1, 1)+f(2:lstpm1, 1, nstop) &
-                                                + f(2:lstpm1, mstop, 1)+f(2:lstpm1, mstop, nstop))
-                                            s = s2/ylp + s
-                                            s2 = 0.0_wp
-                                            s2 = sum(f(1, 2:mstpm1, 1)+f(1, 2:mstpm1, nstop) &
-                                                + f(lstop, 2:mstpm1, 1)+f(lstop, 2:mstpm1, nstop))
-                                            s = s2/xlp + s
-                                            pertrb = &
-                                                (s/zlp + s1)/((real(lunk + 1) - xlp) &
-                                                *(real(munk + 1) - ylp)*(real(nunk + 1) - zlp))
-                                            f(:lunk, :munk, :nunk) = &
-                                                f(:lunk, :munk, :nunk) - pertrb
-                                        end if
+                                        s = (f(1, 1, 1)+f(lstop, 1, 1) &
+                                            + f(1, 1, nstop)+f(lstop, 1, nstop) &
+                                            + f(1, mstop, 1)+f(lstop, mstop, 1) &
+                                            + f(1, mstop, nstop)+f(lstop, mstop, nstop))/(xlp*ylp)
+
+                                        do j = 2, mstpm1
+                                            s = s + sum(f(2:lstpm1, j, 1)+f(2:lstpm1, j, nstop))
+                                        end do
+
+                                        s2 = 0.0_wp
+                                        s2 = sum(f(2:lstpm1, 1, 1)+f(2:lstpm1, 1, nstop) &
+                                            + f(2:lstpm1, mstop, 1)+f(2:lstpm1, mstop, nstop))
+                                        s = s2/ylp + s
+                                        s2 = 0.0_wp
+                                        s2 = sum(f(1, 2:mstpm1, 1)+f(1, 2:mstpm1, nstop) &
+                                            + f(lstop, 2:mstpm1, 1)+f(lstop, 2:mstpm1, nstop))
+                                        s = s2/xlp + s
+                                        pertrb = &
+                                            (s/zlp + s1)/((real(lunk + 1) - xlp) &
+                                            *(real(munk + 1) - ylp)*(real(nunk + 1) - zlp))
+                                        f(:lunk, :munk, :nunk) = &
+                                            f(:lunk, :munk, :nunk) - pertrb
                                     end if
-                                case (2:3, 5)
-                                    exit exit_select_case_4
-                            end select
-                        case (2:3, 5)
-                            exit exit_select_case_4
-                    end select
-                case (2:3, 5)
-                    exit exit_select_case_4
-            end select
-        end do exit_select_case_4
+                                end if
+                        end select
+                end select
+        end select
 
         if (nbdcnd /= 0) then
             nperod = 1
