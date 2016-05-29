@@ -405,7 +405,9 @@ contains
         ! test m and n for the proper form
         !
         nm = n
-        !     check again for solvers which call blktrii directly
+        !
+        !==> Check again for solvers which call blktrii directly
+        !
         if (m < 5) then
             ierror = 1
             return
@@ -419,56 +421,61 @@ contains
             ierror = 0
         end if
 
-        if (iflg == 0) then
-            nh = n
-            npp = np
-            if (npp /= 0) then
-                nh = nh + 1
-            end if
-            ik = 2
-            k = 1
-            ik = ik + ik
-            k = k + 1
-            do while(nh - ik > 0)
-                ik = ik + ik
-                k = k + 1
-            end do
-            nl = ik
-            ik = ik + ik
-            nl = nl - 1
-            iwah = (k - 2)*ik + k + 5
-            if (npp == 0) then
-                iwbh = iwah + nm + nm
-                iw1 = iwbh
-                nm = n - 1
-            else
-                iw1 = iwah
-                iwbh = iw1 + nm
-            end if
-            !     set pointers in real, complex work space
-            iw2 = iw1 + m
-            iw3 = iw2 + m
-            iwd = iw3 + m
-            iww = iwd + m
-            iwu = iww + m
-            call compb(nl, ierror, an, bn, cn, w, wc, w(iwah), w(iwbh))
-            return
-        end if
+        select case (iflg)
+            case (0)
+                nh = n
+                npp = np
 
-        ! *** important to reset nm for np = 0
-        if (npp == 0) then
-            nm = n - 1
-        end if
+                if (npp /= 0)  nh = nh + 1
 
-        if (mp /= 0) then
-            call blktr1(nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, &
-                w(iw1), w(iw2), w(iw3), w(iwd), w(iww), w(iwu), wc(iw1), &
-                wc(iw2), wc(iw3), prod, cprod)
-        else
-            call blktr1(nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, &
-                w(iw1), w(iw2), w(iw3), w(iwd), w(iww), w(iwu), wc(iw1), &
-                wc(iw2), wc(iw3), prodp, cprodp)
-        end if
+                ik = 4
+                k = 2
+
+                do while (nh > ik)
+                    ik = 2*ik
+                    k = k + 1
+                end do
+
+                nl = ik
+                ik = 2*ik
+                nl = nl - 1
+                iwah = (k - 2)*ik + k + 5
+
+                if (npp == 0) then
+                    iwbh = iwah + 2*nm
+                    iw1 = iwbh
+                    nm = n - 1
+                else
+                    iw1 = iwah
+                    iwbh = iw1 + nm
+                end if
+                !
+                !==> Set workspace indices
+                !
+                iw2 = iw1 + m
+                iw3 = iw2 + m
+                iwd = iw3 + m
+                iww = iwd + m
+                iwu = iww + m
+
+                call compb(nl, ierror, an, bn, cn, w, wc, w(iwah), w(iwbh))
+
+            case default
+
+                ! *** Important to reset nm for np = 0
+                if (npp == 0) nm = n - 1
+
+                select case (mp)
+                    case (0)
+                        call blktr1(nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, &
+                            w(iw1), w(iw2), w(iw3), w(iwd), w(iww), w(iwu), wc(iw1), &
+                            wc(iw2), wc(iw3), prodp, cprodp)
+                    case default
+                        call blktr1(nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, &
+                            w(iw1), w(iw2), w(iw3), w(iwd), w(iww), w(iwu), wc(iw1), &
+                            wc(iw2), wc(iw3), prod, cprod)
+                end select
+        end select
 
     contains
 
@@ -807,7 +814,7 @@ contains
 
             dx = 0.5_wp * dx
 
-            do while(dx - cnv > 0.0_wp)
+            do while (dx - cnv > 0.0_wp)
 
                 x = 0.5_wp * (xl + xr)
                 r1 = sgn * f(x, iz, c, a, bh)
@@ -940,7 +947,7 @@ contains
 
                 j2 = j2 + 1
                 lh = j2
-                n2m2 = j2 + nm + nm - 2
+                n2m2 = j2 + 2*nm - 2
 
                 do while (j2 > n2m2)
 
@@ -1483,19 +1490,13 @@ contains
                 xm = bsrh(xl, xr, iz, c, a, bh, ppspf, sgn)
                 psg = comf_aux%psgf(xm, iz, c, a, bh)
 
-                if (abs(psg) - EPS <= 0.0_wp) then
-                    goto 118
-                end if
+                if (abs(psg) <= EPS) goto 118
 
                 r6 = psg*comf_aux%psgf(xm, iz, c, a, bh)
 
-                if (r6 > 0.0_wp) then
-                    goto 119
-                end if
+                if (r6 > 0.0_wp) goto 119
 
-                if (r6 == 0.0_wp) then
-                    goto 118
-                end if
+                if (r6 == 0.0_wp) goto 118
 
                 sgn = 1.0_wp
                 temp = bsrh(bh(ig), xm, iz, c, a, bh, psgf, sgn)
@@ -1602,7 +1603,7 @@ contains
         goto 120
     end if
 
-    if (.not.(icv > 0)) then
+    if (icv <= 0) then
         icv = 1
         goto 120
     end if
