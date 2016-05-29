@@ -571,7 +571,7 @@ contains
             !-----------------------------------------------
             integer :: mp1, np1, i, inp, isp, mbr, its, itf, itsp, itfm, munk &
                 , iid, ii, nbr, jps, jpf, jpsp, jpfm, nunk, ising, j, ierror
-            real :: fn, fm, dth, hdth, tdt, dphi, tdp, &
+            real :: fn, fm, dth, half_dth, two_dth, dphi, two_dphi, &
                 dphi2, edp2, dth2, cp, wp_rename, fim1, theta, t1, at, ct, wts, wtf, &
                 wps, wpf, fjj, cf, summation, sum1, hne, yhld, sum2, dfn, dnn, dsn, &
                 cnp, hld, dfs, dss, dns, csp, rtn, rts, den
@@ -583,434 +583,292 @@ contains
             fn = n
             fm = m
             dth = (tf - ts)/fm
-            hdth = dth/2.
-            tdt = dth + dth
+            half_dth = dth/2
+            two_dth = 2.0_wp * dth
             dphi = (pf - ps)/fn
-            tdp = dphi + dphi
-            dphi2 = dphi*dphi
+            two_dphi = 2.0_wp * dphi
+            dphi2 = dphi**2
             edp2 = elmbda*dphi2
-            dth2 = dth*dth
-            cp = 4./(fn*dth2)
-            wp_rename = fn*sin(hdth)/4.
+            dth2 = dth**2
+            cp = 4.0_wp/(fn*dth2)
+            wp_rename = fn*sin(half_dth)/4
+
             do i = 1, mp1
                 fim1 = i - 1
                 theta = fim1*dth + ts
                 sint(i) = sin(theta)
-                if (sint(i) == 0.) cycle
-                t1 = 1./(dth2*sint(i))
-                am(i) = t1*sin(theta - hdth)
-                cm(i) = t1*sin(theta + hdth)
+
+                if (sint(i) == 0.0_wp) cycle
+
+                t1 = 1.0_wp/(dth2*sint(i))
+                am(i) = t1*sin(theta - half_dth)
+                cm(i) = t1*sin(theta + half_dth)
                 bm(i) = (-am(i)) - cm(i) + elmbda
             end do
             inp = 0
             isp = 0
             !
-            ! boundary condition at theta=ts
+            !==> boundary condition at theta=ts
             !
             mbr = mbdcnd + 1
             select case (mbr)
                 case (1)
-                    goto 103
-                case (2)
-                    goto 104
-                case (3)
-                    goto 104
-                case (4)
-                    goto 105
-                case (5)
-                    goto 105
-                case (6)
-                    goto 106
-                case (7)
-                    goto 106
-                case (8)
-                    goto 104
-                case (9)
-                    goto 105
-                case (10)
-                    goto 106
+                    its = 1
+                case (2:3, 8)
+                    at = am(2)
+                    its = 2
+                case (4:5, 9)
+                    at = am(1)
+                    its = 1
+                    cm(1) = am(1) + cm(1)
+                case (6:7, 10)
+                    at = am(2)
+                    inp = 1
+                    its = 2
             end select
-103     continue
-        its = 1
-        goto 107
-104 continue
-    at = am(2)
-    its = 2
-    goto 107
-105 continue
-    at = am(1)
-    its = 1
-    cm(1) = am(1) + cm(1)
-    goto 107
-106 continue
-    at = am(2)
-    inp = 1
-    its = 2
-!
-! boundary condition theta=tf
-!
-107 continue
-    select case (mbr)
-        case (1)
-            goto 108
-        case (2)
-            goto 109
-        case (3)
-            goto 110
-        case (4)
-            goto 110
-        case (5)
-            goto 109
-        case (6)
-            goto 109
-        case (7)
-            goto 110
-        case (8)
-            goto 111
-        case (9)
-            goto 111
-        case (10)
-            goto 111
-    end select
-108 continue
-    itf = m
-    goto 112
-109 continue
-    ct = cm(m)
-    itf = m
-    goto 112
-110 continue
-    ct = cm(m+1)
-    am(m+1) = am(m+1) + cm(m+1)
-    itf = m + 1
-    goto 112
-111 continue
-    itf = m
-    isp = 1
-    ct = cm(m)
-!
-! compute homogeneous solution with solution at pole equal to one
-!
-112 continue
-    itsp = its + 1
-    itfm = itf - 1
-    wts = sint(its+1)*am(its+1)/cm(its)
-    wtf = sint(itf-1)*cm(itf-1)/am(itf)
-    munk = itf - its + 1
-    if (isp > 0) then
-        d(its) = cm(its)/bm(its)
-        do i = itsp, m
-            d(i) = cm(i)/(bm(i)-am(i)*d(i-1))
-        end do
-        ss(m) = -d(m)
-        iid = m - its
-        do ii = 1, iid
-            i = m - ii
-            ss(i) = -d(i)*ss(i+1)
-        end do
-        ss(m+1) = 1.
-    end if
-    if (inp > 0) then
-        sn(1) = 1.
-        d(itf) = am(itf)/bm(itf)
-        iid = itf - 2
-        do ii = 1, iid
-            i = itf - ii
-            d(i) = am(i)/(bm(i)-cm(i)*d(i+1))
-        end do
-        sn(2) = -d(2)
-        do i = 3, itf
-            sn(i) = -d(i)*sn(i-1)
-        end do
-    end if
-    !
-    ! boundary conditions at phi=ps
-    !
-    nbr = nbdcnd + 1
-    wps = 1.
-    wpf = 1.
-    select case (nbr)
-        case default
-            jps = 1
-        case (2:3)
-            jps = 2
-        case (4:5)
-            jps = 1
-            wps = 0.5
-    end select
-!
-! boundary condition at phi=pf
-!
-124 continue
-    select case (nbr)
-        case (1)
-            goto 125
-        case (2)
-            goto 126
-        case (3)
-            goto 127
-        case (4)
-            goto 127
-        case (5)
-            goto 126
-    end select
-125 continue
-    jpf = n
-    goto 128
-126 continue
-    jpf = n
-    goto 128
-127 continue
-    wpf = 0.5
-    jpf = n + 1
-128 continue
-    jpsp = jps + 1
-    jpfm = jpf - 1
-    nunk = jpf - jps + 1
-    fjj = jpfm - jpsp + 1
-    !
-    ! scale coefficients for subroutine genbun
-    !
-    do i = its, itf
-        cf = dphi2*sint(i)*sint(i)
-        am(i) = cf*am(i)
-        bm(i) = cf*bm(i)
-        cm(i) = cf*cm(i)
-    end do
-    am(its) = 0.
-    cm(itf) = 0.
-    ising = 0
-    select case (mbr)
-        case (1)
-            goto 130
-        case (2)
-            goto 138
-        case (3)
-            goto 138
-        case (4)
-            goto 130
-        case (5)
-            goto 138
-        case (6)
-            goto 138
-        case (7)
-            goto 130
-        case (8)
-            goto 138
-        case (9)
-            goto 130
-        case (10)
-            goto 130
-    end select
-130 continue
-    select case (nbr)
-        case (1)
-            goto 131
-        case (2)
-            goto 138
-        case (3)
-            goto 138
-        case (4)
-            goto 131
-        case (5)
-            goto 138
-    end select
-131 continue
-    if (elmbda >= 0.) then
-        ising = 1
-        summation = wts*wps + wts*wpf + wtf*wps + wtf*wpf
-        if (inp > 0) then
-            summation = summation + wp_rename
-        end if
-        if (isp > 0) then
-            summation = summation + wp_rename
-        end if
-        sum1 = 0.
-        do i = itsp, itfm
-            sum1 = sum1 + sint(i)
-        end do
-        summation = summation + fjj*(sum1 + wts + wtf)
-        summation = summation + (wps + wpf)*sum1
-        hne = summation
-    end if
-138 continue
-    select case (mbr)
-        case (1)
-            goto 146
-        case (2)
-            goto 142
-        case (3)
-            goto 142
-        case (4)
-            goto 144
-        case (5)
-            goto 144
-        case (6)
-            goto 139
-        case (7)
-            goto 139
-        case (8)
-            goto 142
-        case (9)
-            goto 144
-        case (10)
-            goto 139
-    end select
-139 continue
-    if (nbdcnd - 3 /= 0) goto 146
-    yhld = f(1,jps) - 4./(fn*dphi*dth2)*(bdpf(2)-bdps(2))
-    f(1,:np1) = yhld
-    goto 146
-142 continue
-    f(2,jps:jpf) = f(2,jps:jpf) - at*f(1,jps:jpf)
-    goto 146
-144 continue
-    f(1,jps:jpf) = f(1,jps:jpf) + tdt*bdts(jps:jpf)*at
-146 continue
-    select case (mbr)
-        case (1)
-            goto 154
-        case (2)
-            goto 150
-        case (3)
-            goto 152
-        case (4)
-            goto 152
-        case (5)
-            goto 150
-        case (6)
-            goto 150
-        case (7)
-            goto 152
-        case (8)
-            goto 147
-        case (9)
-            goto 147
-        case (10)
-            goto 147
-    end select
-147 continue
-    if (nbdcnd - 3 /= 0) goto 154
-    yhld = f(m+1,jps) - 4./(fn*dphi*dth2)*(bdpf(m)-bdps(m))
-    f(m+1,:np1) = yhld
-    goto 154
-150 continue
-    f(m,jps:jpf) = f(m,jps:jpf) - ct*f(m+1,jps:jpf)
-    goto 154
-152 continue
-    f(m+1,jps:jpf) = f(m+1,jps:jpf) - tdt*bdtf(jps:jpf)*ct
-154 continue
-    select case (nbr)
-        case (1)
-            goto 159
-        case (2)
-            goto 155
-        case (3)
-            goto 155
-        case (4)
-            goto 157
-        case (5)
-            goto 157
-    end select
-155 continue
-    f(its:itf,2) = f(its:itf,2) - f(its:itf,1)/(dphi2*sint(its:itf)* &
-        sint(its:itf))
-    goto 159
-157 continue
-    f(its:itf,1) = f(its:itf,1) + tdp*bdps(its:itf)/(dphi2*sint(its: &
-        itf)*sint(its:itf))
-159 continue
-    select case (nbr)
-        case (1)
-            goto 164
-        case (2)
-            goto 160
-        case (3)
-            goto 162
-        case (4)
-            goto 162
-        case (5)
-            goto 160
-    end select
-160 continue
-    f(its:itf,n) = f(its:itf,n) - f(its:itf,n+1)/(dphi2*sint(its:itf)* &
-        sint(its:itf))
-    goto 164
-162 continue
-    f(its:itf,n+1) = f(its:itf,n+1) - tdp*bdpf(its:itf)/(dphi2*sint( &
-        its:itf)*sint(its:itf))
-164 continue
-    pertrb = 0.
-    if (ising /= 0) then
-        summation = wts*wps*f(its,jps) + wts*wpf*f(its,jpf) + wtf*wps*f(itf, &
-            jps) + wtf*wpf*f(itf,jpf)
-        if (inp > 0) then
-            summation = summation + wp_rename*f(1,jps)
-        end if
-        if (isp > 0) then
-            summation = summation + wp_rename*f(m+1,jps)
-        end if
-        do i = itsp, itfm
-            sum1 = 0.
-            do j = jpsp, jpfm
-                sum1 = sum1 + f(i,j)
+
+            !
+            !==> boundary condition theta=tf
+            !
+            select case (mbr)
+                case (1)
+                    itf = m
+                case (2, 5:6)
+                    ct = cm(m)
+                    itf = m
+                case (3:4, 7)
+                    ct = cm(m+1)
+                    am(m+1) = am(m+1) + cm(m+1)
+                    itf = m + 1
+                case (8:10)
+                    itf = m
+                    isp = 1
+                    ct = cm(m)
+            end select
+
+            !
+            !==> compute homogeneous solution with solution at pole equal to one
+            !
+            itsp = its + 1
+            itfm = itf - 1
+            wts = sint(its+1)*am(its+1)/cm(its)
+            wtf = sint(itf-1)*cm(itf-1)/am(itf)
+            munk = itf - its + 1
+
+            if (isp > 0) then
+                d(its) = cm(its)/bm(its)
+                do i = itsp, m
+                    d(i) = cm(i)/(bm(i)-am(i)*d(i-1))
+                end do
+                ss(m) = -d(m)
+                iid = m - its
+                do ii = 1, iid
+                    i = m - ii
+                    ss(i) = -d(i)*ss(i+1)
+                end do
+                ss(m+1) = 1.0_wp
+            end if
+
+            if (inp > 0) then
+                sn(1) = 1.0_wp
+                d(itf) = am(itf)/bm(itf)
+                iid = itf - 2
+                do ii = 1, iid
+                    i = itf - ii
+                    d(i) = am(i)/(bm(i)-cm(i)*d(i+1))
+                end do
+                sn(2) = -d(2)
+                do i = 3, itf
+                    sn(i) = -d(i)*sn(i-1)
+                end do
+            end if
+            !
+            !==> boundary conditions at phi=ps
+            !
+            nbr = nbdcnd + 1
+            wps = 1.0_wp
+            wpf = 1.0_wp
+            select case (nbr)
+                case default
+                    jps = 1
+                case (2:3)
+                    jps = 2
+                case (4:5)
+                    jps = 1
+                    wps = 0.5_wp
+            end select
+            !
+            !==> boundary condition at phi=pf
+            !
+            select case (nbr)
+                case (1)
+                    jpf = n
+                case (2, 5)
+                    jpf = n
+                case (3:4)
+                    wpf = 0.5_wp
+                    jpf = n + 1
+            end select
+
+            jpsp = jps + 1
+            jpfm = jpf - 1
+            nunk = jpf - jps + 1
+            fjj = jpfm - jpsp + 1
+            !
+            !==> scale coefficients for subroutine genbun
+            !
+            do i = its, itf
+                cf = dphi2*sint(i)*sint(i)
+                am(i) = cf*am(i)
+                bm(i) = cf*bm(i)
+                cm(i) = cf*cm(i)
             end do
-            summation = summation + sint(i)*sum1
-        end do
-        sum1 = 0.
-        sum2 = 0.
-        do j = jpsp, jpfm
-            sum1 = sum1 + f(its,j)
-            sum2 = sum2 + f(itf,j)
-        end do
-        summation = summation + wts*sum1 + wtf*sum2
-        sum1 = 0.
-        sum2 = 0.
-        sum1 = dot_product(sint(itsp:itfm),f(itsp:itfm,jps))
-        sum2 = dot_product(sint(itsp:itfm),f(itsp:itfm,jpf))
-        summation = summation + wps*sum1 + wpf*sum2
-        pertrb = summation/hne
-        f(:mp1,:np1) = f(:mp1,:np1) - pertrb
-    end if
-    !
-    ! scale right side for subroutine genbun
-    !
-    do i = its, itf
-        cf = dphi2*sint(i)*sint(i)
-        f(i,jps:jpf) = cf*f(i,jps:jpf)
-    end do
 
-    call genbunn(nbdcnd, nunk, 1, munk, am(its), bm(its), cm(its), &
-        idimf, f(its,jps), ierror, d)
+            am(its) = 0.0_wp
+            cm(itf) = 0.0_wp
+            ising = 0
 
-    if (ising <= 0) goto 186
-    if (inp > 0) then
-        if (isp > 0) goto 186
-        f(1,:np1) = 0.
-        goto 209
-    end if
-    if (isp <= 0) goto 186
-    f(m+1,:np1) = 0.
-    goto 209
-186 continue
-    if (inp > 0) then
-        summation = wps*f(its,jps) + wpf*f(its,jpf)
-        do j = jpsp, jpfm
-            summation = summation + f(its,j)
-        end do
-        dfn = cp*summation
-        dnn = cp*((wps + wpf + fjj)*(sn(2)-1.)) + elmbda
-        dsn = cp*(wps + wpf + fjj)*sn(m)
-        if (isp > 0) goto 194
-        cnp = (f(1,1)-dfn)/dnn
-        do i = its, itf
-            hld = cnp*sn(i)
-            f(i,jps:jpf) = f(i,jps:jpf) + hld
-        end do
-        f(1,:np1) = cnp
-        goto 209
-    end if
-    if (isp <= 0) goto 209
+            select case (mbr)
+                case (1, 4, 7, 9:10)
+                    select case (nbr)
+                        case (1, 4)
+                            if (elmbda >= 0.0_wp) then
+                                ising = 1
+                                summation = wts*wps + wts*wpf + wtf*wps + wtf*wpf
+
+                                if (inp > 0) summation = summation + wp_rename
+
+                                if (isp > 0) summation = summation + wp_rename
+
+                                sum1 = 0.0_wp
+
+                                do i = itsp, itfm
+                                    sum1 = sum1 + sint(i)
+                                end do
+
+                                summation = summation + fjj*(sum1 + wts + wtf)
+                                summation = summation + (wps + wpf)*sum1
+                                hne = summation
+                            end if
+                    end select
+            end select
+
+            select case (mbr)
+                case (2:3, 8)
+                    f(2,jps:jpf) = f(2,jps:jpf) - at*f(1,jps:jpf)
+                case (4:5, 9)
+                    f(1,jps:jpf) = f(1,jps:jpf) + two_dth*bdts(jps:jpf)*at
+                case (6:7, 10)
+                    if (nbdcnd == 3) then
+                        yhld = f(1,jps) - 4.0_wp/(fn*dphi*dth2)*(bdpf(2)-bdps(2))
+                        f(1,:np1) = yhld
+                    end if
+            end select
+
+            select case (mbr)
+                case (2, 5:6)
+                    f(m,jps:jpf) = f(m,jps:jpf) - ct*f(m+1,jps:jpf)
+                case (3:4, 7)
+                    f(m+1,jps:jpf) = f(m+1,jps:jpf) - two_dth*bdtf(jps:jpf)*ct
+                case (8:10)
+                    if (nbdcnd == 3) then
+                        yhld = f(m+1,jps) - 4.0_wp/(fn*dphi*dth2)*(bdpf(m)-bdps(m))
+                        f(m+1,:np1) = yhld
+                    end if
+            end select
+
+            select case (nbr)
+                case (2:3)
+                    f(its:itf,2) = f(its:itf,2) - f(its:itf,1)/(dphi2*sint(its:itf)* &
+                        sint(its:itf))
+                case (4:5)
+                    f(its:itf,1) = f(its:itf,1) + two_dphi*bdps(its:itf)/(dphi2*sint(its: &
+                        itf)*sint(its:itf))
+            end select
+
+            select case (nbr)
+                case (2, 5)
+                    f(its:itf,n) = f(its:itf,n) - f(its:itf,n+1)/(dphi2*sint(its:itf)* &
+                        sint(its:itf))
+                case (3:4)
+                    f(its:itf,n+1) = f(its:itf,n+1) - two_dphi*bdpf(its:itf)/(dphi2*sint( &
+                        its:itf)*sint(its:itf))
+            end select
+
+            pertrb = 0.0_wp
+
+            if (ising /= 0) then
+                summation = &
+                    wts*wps*f(its,jps) + wts*wpf*f(its,jpf) &
+                    + wtf*wps*f(itf,jps) + wtf*wpf*f(itf,jpf)
+
+                if (inp > 0) summation = summation + wp_rename*f(1,jps)
+
+                if (isp > 0) summation = summation + wp_rename*f(m+1,jps)
+
+                do i = itsp, itfm
+                    sum1 = 0.0_wp
+                    do j = jpsp, jpfm
+                        sum1 = sum1 + f(i,j)
+                    end do
+                    summation = summation + sint(i)*sum1
+                end do
+
+                sum1 = 0.0_wp
+                sum2 = 0.0_wp
+                do j = jpsp, jpfm
+                    sum1 = sum1 + f(its,j)
+                    sum2 = sum2 + f(itf,j)
+                end do
+
+                summation = summation + wts*sum1 + wtf*sum2
+                sum1 = 0.0_wp
+                sum2 = 0.0_wp
+                sum1 = dot_product(sint(itsp:itfm),f(itsp:itfm,jps))
+                sum2 = dot_product(sint(itsp:itfm),f(itsp:itfm,jpf))
+                summation = summation + wps*sum1 + wpf*sum2
+                pertrb = summation/hne
+                f(:mp1,:np1) = f(:mp1,:np1) - pertrb
+            end if
+            !
+            !==> scale right side for subroutine genbunn
+            !
+            do i = its, itf
+                cf = dphi2*sint(i)*sint(i)
+                f(i,jps:jpf) = cf*f(i,jps:jpf)
+            end do
+
+            call genbunn(nbdcnd, nunk, 1, munk, am(its), bm(its), cm(its), &
+                idimf, f(its,jps), ierror, d)
+
+            if (ising <= 0) goto 186
+            if (inp > 0) then
+                if (isp > 0) goto 186
+                f(1,:np1) = 0.
+                goto 209
+            end if
+            if (isp <= 0) goto 186
+            f(m+1,:np1) = 0.
+            goto 209
+186     continue
+        if (inp > 0) then
+            summation = wps*f(its,jps) + wpf*f(its,jpf)
+            do j = jpsp, jpfm
+                summation = summation + f(its,j)
+            end do
+            dfn = cp*summation
+            dnn = cp*((wps + wpf + fjj)*(sn(2)-1.)) + elmbda
+            dsn = cp*(wps + wpf + fjj)*sn(m)
+            if (isp > 0) goto 194
+            cnp = (f(1,1)-dfn)/dnn
+            do i = its, itf
+                hld = cnp*sn(i)
+                f(i,jps:jpf) = f(i,jps:jpf) + hld
+            end do
+            f(1,:np1) = cnp
+            goto 209
+        end if
+        if (isp <= 0) goto 209
 194 continue
     summation = wps*f(itf,jps) + wpf*f(itf,jpf)
     do j = jpsp, jpfm
