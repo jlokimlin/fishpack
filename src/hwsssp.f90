@@ -398,7 +398,7 @@ module module_hwsssp
         stdout => OUTPUT_UNIT
 
     use type_FishpackWorkspace, only: &
-        FishpackWorkspace
+        Fish => FishpackWorkspace
 
     use module_genbun, only: &
         genbunn
@@ -439,35 +439,68 @@ contains
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        type (FishpackWorkspace) :: workspace
-        integer (ip)             :: irwk, icwk
-        real (wp), parameter     :: pi = acos(-1.0_wp)
-        real (wp), parameter     :: two_pi = 2.0_wp * pi
+        type (Fish)           :: workspace
+        integer (ip)          :: irwk, icwk
+        real (wp), parameter  :: pi = acos(-1.0_wp)
+        real (wp), parameter  :: two_pi = 2.0_wp * pi
         !-----------------------------------------------
 
-        ! initialize error flag
-        ierror = 0
-
-        ! Check if input values are valid
-        if (ts < 0.0_wp .or. tf > pi) ierror = 1
-        if (ts >= tf) ierror = 2
-        if (mbdcnd < 1 .or. mbdcnd > 9) ierror = 3
-        if (ps < 0.0_wp .or. pf > two_pi) ierror = 4
-        if (ps >= pf) ierror = 5
-        if (n < 5) ierror = 6
-        if (m < 5) ierror = 7
-        if (nbdcnd < 0 .or. nbdcnd > 4) ierror = 8
-        if (elmbda > 0.0_wp) ierror = 9
-        if (idimf < m + 1) ierror = 10
-        if ((nbdcnd == 1 .or. nbdcnd == 2 .or. nbdcnd == 4) .and. mbdcnd >= 5) ierror = 11
-        if(ts == 0.0_wp .and. (mbdcnd==3.or. mbdcnd==4 .or. mbdcnd == 8))ierror=12
-        if(tf == pi .and. (mbdcnd==2.or. mbdcnd == 3 .or. mbdcnd == 6))ierror=13
-        if((mbdcnd == 5.or.mbdcnd == 6.or.mbdcnd == 9) .and. ts/=0.0_wp)ierror=14
-        if (mbdcnd >= 7 .and. tf /= pi) ierror = 15
-        if (ierror /= 0 .and. ierror /= 9) return
 
         !
-        !==> Allocate generous work space estimate
+        !==> Check if input values are valid
+        !
+        if (ts < 0.0_wp .or. tf > pi) then
+            ierror = 1
+            return
+        else if (ts >= tf) then
+            ierror = 2
+            return
+        else if (mbdcnd < 1 .or. mbdcnd > 9) then
+            ierror = 3
+            return
+        else if (ps < 0.0_wp .or. pf > two_pi) then
+            ierror = 4
+            return
+        else if (ps >= pf) then
+            ierror = 5
+            return
+        else if (n < 5) then
+            ierror = 6
+            return
+        else if (m < 5) then
+            ierror = 7
+            return
+        else if (nbdcnd < 0 .or. nbdcnd > 4) then
+            ierror = 8
+            return
+        else if (elmbda > 0.0_wp) then
+            ierror = 9
+            return
+        else if (idimf < m + 1) then
+            ierror = 10
+            return
+        else if ((nbdcnd == 1 .or. nbdcnd == 2 .or. nbdcnd == 4) .and. mbdcnd >= 5) then
+            ierror = 11
+            return
+        else if (ts == 0.0_wp .and. (mbdcnd==3.or. mbdcnd==4 .or. mbdcnd == 8)) then
+            ierror = 12
+            return
+        else if (tf == pi .and. (mbdcnd==2.or. mbdcnd == 3 .or. mbdcnd == 6)) then
+            ierror = 13
+            return
+        else if ((mbdcnd == 5.or.mbdcnd == 6.or.mbdcnd == 9) .and. ts /= 0.0_wp) then
+            ierror = 14
+            return
+        else if (mbdcnd >= 7 .and. tf /= pi) then
+            ierror = 15
+            return
+        else
+            ierror = 0
+        end if
+
+        !
+        !==> Allocate memory
+        !
         irwk = 4 * (n + 1) + (16 + int(log(real(n+1,kind=wp))/log(2.0_wp), kind=ip)) * (m + 1)
         icwk = 0
         call workspace%create(irwk, icwk, ierror)
@@ -475,13 +508,19 @@ contains
         ! check that allocation was successful
         if (ierror == 20) return
 
-        ! solve system
         associate( rew => workspace%real_workspace )
+
+            !
+            !==> Solve system
+            !
             call hwssspp(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, bdps, &
                 bdpf, elmbda, f, idimf, pertrb, ierror, rew)
+
         end associate
 
-        ! Release memory
+        !
+        !==> Release memory
+        !
         call workspace%destroy()
 
     contains
@@ -537,6 +576,7 @@ contains
 
         end function get_workspace_indices
 
+
         subroutine hwsss1(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
             bdps, bdpf, elmbda, f, idimf, pertrb, am, bm, cm, sn, ss, &
             sint, d)
@@ -569,14 +609,13 @@ contains
             !-----------------------------------------------
             ! Dictionary: local variables
             !-----------------------------------------------
-            integer :: mp1, np1, i, inp, isp, mbr, its, itf, itsp, itfm, munk &
-                , iid, ii, nbr, jps, jpf, jpsp, jpfm, nunk, ising, j, ierror
-            real :: fn, fm, dth, half_dth, two_dth, dphi, two_dphi, &
-                dphi2, edp2, dth2, cp, wp_rename, fim1, theta, t1, at, ct, wts, wtf, &
-                wps, wpf, fjj, cf, summation, sum1, hne, yhld, sum2, dfn, dnn, dsn, &
-                cnp, hld, dfs, dss, dns, csp, rtn, rts, den
+            integer (ip) :: mp1, np1, i, inp, isp, mbr, its, itf, itsp, itfm, munk
+            integer (ip) :: iid, ii, nbr, jps, jpf, jpsp, jpfm, nunk, ising, local_error_flag
+            real (wp)    :: fn, fm, dth, half_dth, two_dth, dphi, two_dphi
+            real (wp)    :: dphi2, edp2, dth2, cp, wp_rename, fim1, theta, t1, at, ct, wts, wtf
+            real (wp)    :: wps, wpf, fjj, cf, summation, sum1, hne, yhld, sum2, dfn, dnn, dsn
+            real (wp)    :: cnp, hld, dfs, dss, dns, csp, rtn, rts, den
             !-----------------------------------------------
-            !
 
             mp1 = m + 1
             np1 = n + 1
@@ -740,12 +779,7 @@ contains
 
                                 if (isp > 0) summation = summation + wp_rename
 
-                                sum1 = 0.0_wp
-
-                                do i = itsp, itfm
-                                    sum1 = sum1 + sint(i)
-                                end do
-
+                                sum1 = sum(sint(itsp:itfm))
                                 summation = summation + fjj*(sum1 + wts + wtf)
                                 summation = summation + (wps + wpf)*sum1
                                 hne = summation
@@ -779,20 +813,20 @@ contains
 
             select case (nbr)
                 case (2:3)
-                    f(its:itf,2) = f(its:itf,2) - f(its:itf,1)/(dphi2*sint(its:itf)* &
-                        sint(its:itf))
+                    f(its:itf,2) = f(its:itf,2) &
+                        - f(its:itf,1)/(dphi2*sint(its:itf)*sint(its:itf))
                 case (4:5)
-                    f(its:itf,1) = f(its:itf,1) + two_dphi*bdps(its:itf)/(dphi2*sint(its: &
-                        itf)*sint(its:itf))
+                    f(its:itf,1) = f(its:itf,1) &
+                        + two_dphi*bdps(its:itf)/(dphi2*sint(its:itf)*sint(its:itf))
             end select
 
             select case (nbr)
                 case (2, 5)
-                    f(its:itf,n) = f(its:itf,n) - f(its:itf,n+1)/(dphi2*sint(its:itf)* &
-                        sint(its:itf))
+                    f(its:itf,n) = f(its:itf,n) &
+                        - f(its:itf,n+1)/(dphi2*sint(its:itf)*sint(its:itf))
                 case (3:4)
-                    f(its:itf,n+1) = f(its:itf,n+1) - two_dphi*bdpf(its:itf)/(dphi2*sint( &
-                        its:itf)*sint(its:itf))
+                    f(its:itf,n+1) = f(its:itf,n+1) &
+                        - two_dphi*bdpf(its:itf)/(dphi2*sint(its:itf)*sint(its:itf))
             end select
 
             pertrb = 0.0_wp
@@ -807,20 +841,11 @@ contains
                 if (isp > 0) summation = summation + wp_rename*f(m+1,jps)
 
                 do i = itsp, itfm
-                    sum1 = 0.0_wp
-                    do j = jpsp, jpfm
-                        sum1 = sum1 + f(i,j)
-                    end do
-                    summation = summation + sint(i)*sum1
+                    summation = summation + sint(i)*sum(f(i,jpsp:jpfm))
                 end do
 
-                sum1 = 0.0_wp
-                sum2 = 0.0_wp
-                do j = jpsp, jpfm
-                    sum1 = sum1 + f(its,j)
-                    sum2 = sum2 + f(itf,j)
-                end do
-
+                sum1 = sum(f(its,jpsp:jpfm))
+                sum2 = sum(f(itf,jpsp:jpfm))
                 summation = summation + wts*sum1 + wtf*sum2
                 sum1 = 0.0_wp
                 sum2 = 0.0_wp
@@ -838,86 +863,79 @@ contains
                 f(i,jps:jpf) = cf*f(i,jps:jpf)
             end do
 
+            !
+            !==> Invoke genbunn solver
+            !
             call genbunn(nbdcnd, nunk, 1, munk, am(its), bm(its), cm(its), &
-                idimf, f(its,jps), ierror, d)
+                idimf, f(its,jps), local_error_flag, d)
 
-            if (ising <= 0) goto 186
-            if (inp > 0) then
-                if (isp > 0) goto 186
-                f(1,:np1) = 0.
-                goto 209
-            end if
-            if (isp <= 0) goto 186
-            f(m+1,:np1) = 0.
-            goto 209
-186     continue
-        if (inp > 0) then
-            summation = wps*f(its,jps) + wpf*f(its,jpf)
-            do j = jpsp, jpfm
-                summation = summation + f(its,j)
-            end do
-            dfn = cp*summation
-            dnn = cp*((wps + wpf + fjj)*(sn(2)-1.)) + elmbda
-            dsn = cp*(wps + wpf + fjj)*sn(m)
-            if (isp > 0) goto 194
-            cnp = (f(1,1)-dfn)/dnn
-            do i = its, itf
-                hld = cnp*sn(i)
-                f(i,jps:jpf) = f(i,jps:jpf) + hld
-            end do
-            f(1,:np1) = cnp
-            goto 209
-        end if
-        if (isp <= 0) goto 209
-194 continue
-    summation = wps*f(itf,jps) + wpf*f(itf,jpf)
-    do j = jpsp, jpfm
-        summation = summation + f(itf,j)
-    end do
-    dfs = cp*summation
-    dss = cp*((wps + wpf + fjj)*(ss(m)-1.)) + elmbda
-    dns = cp*(wps + wpf + fjj)*ss(2)
-    if (inp <= 0) then
-        csp = (f(m+1,1)-dfs)/dss
-        do i = its, itf
-            hld = csp*ss(i)
-            f(i,jps:jpf) = f(i,jps:jpf) + hld
-        end do
-        f(m+1,:np1) = csp
-    else
-        rtn = f(1,1) - dfn
-        rts = f(m+1,1) - dfs
-        if (ising > 0) then
-            csp = 0.
-            cnp = rtn/dnn
-        else
-            if (abs(dnn) - abs(dsn) > 0.) then
-                den = dss - dns*dsn/dnn
-                rts = rts - rtn*dsn/dnn
-                csp = rts/den
-                cnp = (rtn - csp*dns)/dnn
+            if (ising > 0 .and. inp > 0 .and. isp <= 0) then
+                f(1,:np1) = 0.0_wp
+            else if (isp > 0) then
+                f(m+1,:np1) = 0.0_wp
+            else if (inp > 0) then
+
+                summation = wps*f(its,jps) + wpf*f(its,jpf) + sum(f(its,jpsp:jpfm))
+                dfn = cp*summation
+                dnn = cp*((wps + wpf + fjj)*(sn(2)-1.0_wp)) + elmbda
+                dsn = cp*(wps + wpf + fjj)*sn(m)
+
+                if (isp > 0) then
+                    cnp = (f(1,1)-dfn)/dnn
+                    do i = its, itf
+                        hld = cnp*sn(i)
+                        f(i,jps:jpf) = f(i,jps:jpf) + hld
+                    end do
+                    f(1,:np1) = cnp
+                end if
+
             else
-                den = dns - dss*dnn/dsn
-                rtn = rtn - rts*dnn/dsn
-                csp = rtn/den
-                cnp = (rts - dss*csp)/dsn
+
+                summation = wps*f(itf,jps) + wpf*f(itf,jpf) + sum(f(itf,jpsp:jpfm))
+                dfs = cp*summation
+                dss = cp*((wps + wpf + fjj)*(ss(m)-1.0_wp)) + elmbda
+                dns = cp*(wps + wpf + fjj)*ss(2)
+
+                if (inp <= 0) then
+                    csp = (f(m+1,1)-dfs)/dss
+                    do i = its, itf
+                        hld = csp*ss(i)
+                        f(i,jps:jpf) = f(i,jps:jpf) + hld
+                    end do
+                    f(m+1,:np1) = csp
+                else
+                    rtn = f(1,1) - dfn
+                    rts = f(m+1,1) - dfs
+                    if (ising > 0) then
+                        csp = 0.0_wp
+                        cnp = rtn/dnn
+                    else
+                        if (abs(dnn) - abs(dsn) > 0.0_wp) then
+                            den = dss - dns*dsn/dnn
+                            rts = rts - rtn*dsn/dnn
+                            csp = rts/den
+                            cnp = (rtn - csp*dns)/dnn
+                        else
+                            den = dns - dss*dnn/dsn
+                            rtn = rtn - rts*dnn/dsn
+                            csp = rtn/den
+                            cnp = (rts - dss*csp)/dsn
+                        end if
+                    end if
+                    do i = its, itf
+                        hld = cnp*sn(i) + csp*ss(i)
+                        f(i,jps:jpf) = f(i,jps:jpf) + hld
+                    end do
+                    f(1,:np1) = cnp
+                    f(m+1,:np1) = csp
+                end if
             end if
-        end if
-        do i = its, itf
-            hld = cnp*sn(i) + csp*ss(i)
-            f(i,jps:jpf) = f(i,jps:jpf) + hld
-        end do
-        f(1,:np1) = cnp
-        f(m+1,:np1) = csp
-    end if
-209 continue
-    if (nbdcnd == 0) then
-        f(:mp1,jpf+1) = f(:mp1,jps)
-    end if
 
-end subroutine hwsss1
+            if (nbdcnd == 0) f(:mp1,jpf+1) = f(:mp1,jps)
 
-end subroutine hwsssp
+        end subroutine hwsss1
+
+    end subroutine hwsssp
 
 end module module_hwsssp
 !
@@ -930,4 +948,4 @@ end module module_hwsssp
 ! February  1985    Documentation upgrade
 ! November  1988    Version 3.2, FORTRAN 77 changes
 ! June      2004    Version 5.0, Fortran 90 Changes
-!-----------------------------------------------------------------------
+! May       2016    Fortran 2008 changes
