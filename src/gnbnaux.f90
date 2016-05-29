@@ -76,10 +76,6 @@ module module_gnbnaux
 
     ! Everything is private unless stated otherwise
     private
-    public :: cosgen
-    public :: merger
-    public :: trix
-    public :: tri3
     public :: GenbunAux
 
     type, public :: GenbunAux
@@ -138,32 +134,40 @@ contains
         !-----------------------------------------------
         integer (ip)         :: k3, k4, k, k1, k5, i, k2, np1
         real (wp), parameter :: PI = acos( -1.0_wp)
-        real (wp)            :: dum, pibyn, x, y
+        real (wp)            :: pibyn, x, y
         !-----------------------------------------------
 
         if (n /= 0) then
-            if (ijump /= 1) then
-                k3 = n/ijump + 1
-                k4 = k3 - 1
-                pibyn = PI/(n + ijump)
-                do k = 1, ijump
-                    k1 = (k - 1)*k3
-                    k5 = (k - 1)*k4
-                    do i = 1, k4
-                        x = k1 + i
-                        k2 = k5 + i
-                        a(k2) = -2.0_wp * cos(x*pibyn)
-                    end do
-                end do
-            else
-                np1 = n + 1
-                y = PI/(real(n, kind=wp) + fden)
+            select case (ijump)
+                case (1)
+                    !
+                    !==> ijump == 1
+                    !
+                    np1 = n + 1
+                    y = PI/(real(n, kind=wp) + fden)
 
-                do i = 1, n
-                    x = real(np1 - i, kind=wp) - fnum
-                    a(i) = 2.0_wp * cos(x*y)
-                end do
-            end if
+                    do i = 1, n
+                        x = real(np1 - i, kind=wp) - fnum
+                        a(i) = 2.0_wp * cos(x*y)
+                    end do
+
+                case default
+                    !
+                    !==> ijump /= 1
+                    !
+                    k3 = n/ijump + 1
+                    k4 = k3 - 1
+                    pibyn = PI/(n + ijump)
+                    do k = 1, ijump
+                        k1 = (k - 1)*k3
+                        k5 = (k - 1)*k4
+                        do i = 1, k4
+                            x = k1 + i
+                            k2 = k5 + i
+                            a(k2) = -2.0_wp * cos(x*pibyn)
+                        end do
+                    end do
+            end select
         end if
 
     end subroutine cosgen
@@ -237,9 +241,7 @@ contains
                 y(m-ip) = y(m-ip) - d(m-ip)*y(m+1-ip)
             end do
 
-            if (k /= l) then
-                cycle outer_loop
-            end if
+            if (k /= l) cycle outer_loop
 
             y(:m) = y(:m) + w(:m)
             lint = lint + 1
@@ -339,9 +341,7 @@ contains
                 y3(m-ipp) = y3(m-ipp) - d(m-ipp)*y3(m+1-ipp)
             end do
 
-            if (k2k3k4 == 0) then
-                cycle outer_loop
-            end if
+            if (k2k3k4 == 0) cycle outer_loop
 
             if (n == l1) then
                 i = lint1 + kint1
@@ -359,9 +359,7 @@ contains
                 l2 = (lint2*if1)/if3
             end if
 
-            if (n /= l3) then
-                cycle outer_loop
-            end if
+            if (n /= l3) cycle outer_loop
 
             i = lint3 + kint3
             xx = x - tcos(i)
@@ -403,79 +401,64 @@ contains
         j1 = 1
         j2 = 1
         j = i3
-        if (m1 == 0) then
-            go to 107
-        end if
 
-        if (m2 == 0) then
-            go to 104
-        end if
+        if_block: block
+            if (m1 /= 0) then
+                if (m2 /= 0) then
 
-101 continue
+                    outer_loop: do
 
-    j11 = j1
-    j3 = max(m1, j11)
+                        j11 = j1
+                        j3 = max(m1, j11)
 
-    do j1 = j11, j3
-        j = j + 1
-        l = j1 + i1
-        x = tcos(l)
-        l = j2 + i2
-        y = tcos(l)
+                        do_block: block
+                            do j1 = j11, j3
+                                j = j + 1
+                                l = j1 + i1
+                                x = tcos(l)
+                                l = j2 + i2
+                                y = tcos(l)
 
-        if (x - y > 0.0_wp) then
-            go to 103
-        end if
+                                if (x - y > 0.0_wp) exit do_block
 
-        tcos(j) = x
-    end do
+                                tcos(j) = x
+                            end do
 
-    go to 106
+                            if (j2 > m2) return
+                            exit if_block
 
-103 continue
+                        end block do_block
 
-    tcos(j) = y
-    j2 = j2 + 1
+                        tcos(j) = y
+                        j2 = j2 + 1
 
-    if (j2 <= m2) then
-        go to 101
-    end if
+                        if (j2 > m2) exit outer_loop
 
-    if (j1 > m1) then
-        return
-    end if
+                    end do outer_loop
+                    if (j1 > m1) return
+                end if
 
+                k = j - j1 + 1
 
-104 continue
+                do j = j1, m1
+                    m = k + j
+                    l = j + i1
+                    tcos(m) = tcos(l)
+                end do
+                return
+            end if
+        end block if_block
 
-    k = j - j1 + 1
+        k = j - j2 + 1
 
-    do j = j1, m1
-        m = k + j
-        l = j + i1
-        tcos(m) = tcos(l)
-    end do
-
-    return
-
-106 continue
-
-    if (j2 > m2) then
-        return
-    end if
-
-107 continue
-
-    k = j - j2 + 1
-
-    do j = j2, m2
-        m = k + j
-        l = j + i2
-        tcos(m) = tcos(l)
-    end do
+        do j = j2, m2
+            m = k + j
+            l = j + i2
+            tcos(m) = tcos(l)
+        end do
 
 
-end subroutine merger
+    end subroutine merger
 
 
 end module module_gnbnaux
@@ -486,8 +469,8 @@ end module module_gnbnaux
 ! April     1976    Version 2
 ! January   1978    Version 3
 ! December  1979    Version 3.1
-! OCTOBER   1980    CHANGED SEVERAL DIVIDES OF FLOATING INTEGERS
-!                   TO INTEGER DIVIDES TO ACCOMODATE CRAY-1 ARITHMETIC.
+! October   1980    Changed several divides of floating integers
+!                   to integer divides to accomodate cray-1 arithmetic.
 ! February  1985    Documentation upgrade
 ! November  1988    Version 3.2, FORTRAN 77 changes
-!-----------------------------------------------------------------------
+! May       2016    Fortran 2008 changes
