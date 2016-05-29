@@ -329,9 +329,7 @@ contains
         call check_input_arguments(nperod, n, mperod, m, idimy, ierror, a, b, c)
 
         ! Check error flag
-        if (ierror /=0) then
-            return
-        end if
+        if (ierror /=0) return
 
         !
         !==> Compute workspace indices
