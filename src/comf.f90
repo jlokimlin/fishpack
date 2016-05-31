@@ -48,7 +48,7 @@
 !
 ! I/O                    None
 !
-! PRECISION              64-bit precision floats and 32-bit precision integer
+! PRECISION              64-bit double precision
 !
 ! REQUIRED LIBRARY       None
 ! FILES

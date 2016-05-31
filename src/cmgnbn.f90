@@ -1,12 +1,230 @@
+!
+!     file cmgnbn.f90
+!
+!     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+!     *                                                               *
+!     *                  copyright (c) 2005 by UCAR                   *
+!     *                                                               *
+!     *       University Corporation for Atmospheric Research         *
+!     *                                                               *
+!     *                      all rights reserved                      *
+!     *                                                               *
+!     *                    FISHPACK90  Version 1.1                    *
+!     *                                                               *
+!     *                      A Package of Fortran                     *
+!     *                                                               *
+!     *                Subroutines and Example Programs               *
+!     *                                                               *
+!     *               for Modeling Geophysical Processes              *
+!     *                                                               *
+!     *                             by                                *
+!     *                                                               *
+!     *        John Adams, Paul Swarztrauber and Roland Sweet         *
+!     *                                                               *
+!     *                             of                                *
+!     *                                                               *
+!     *         the National Center for Atmospheric Research          *
+!     *                                                               *
+!     *                Boulder, Colorado  (80307)  U.S.A.             *
+!     *                                                               *
+!     *                   which is sponsored by                       *
+!     *                                                               *
+!     *              the National Science Foundation                  *
+!     *                                                               *
+!     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+!
+!     SUBROUTINE cmgnbn(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
+!
+!
+! DIMENSION OF           a(m), b(m), c(m), y(idimy, n)
+! ARGUMENTS
+!
+! LATEST REVISION        May 2016
+!
+! PURPOSE                The name of this package is a mnemonic for the
+!                        complex generalized Buneman algorithm.
+!                        it solves the complex linear system of equation
+!
+!                        a(i)*x(i-1, j) + b(i)*x(i, j) + c(i)*x(i+1, j)
+!                        + x(i, j-1) - 2.0_wp * x(i, j) + x(i, j+1) = y(i, j)
+!
+!                        for i = 1, 2, ..., m  and  j = 1, 2, ..., n.
+!
+!                        indices i+1 and i-1 are evaluated modulo m,
+!                        i.e., x(0, j) = x(m, j) and x(m+1, j) = x(1, j),
+!                        and x(i, 0) may equal 0, x(i, 2), or x(i, n),
+!                        and x(i, n+1) may equal 0, x(i, n-1), or x(i, 1)
+!                        depending on an input parameter.
+!
+! USAGE                  call cmgnbn (nperod, n, mperod, m, a, b, c, idimy, y,
+!                                     ierror)
+!
+! ARGUMENTS
+!
+! ON INPUT               nperod
+!
+!                          indicates the values that x(i, 0) and
+!                          x(i, n+1) are assumed to have.
+!
+!                          = 0  if x(i, 0) = x(i, n) and x(i, n+1) =
+!                               x(i, 1).
+!                          = 1  if x(i, 0) = x(i, n+1) = 0  .
+!                          = 2  if x(i, 0) = 0 and x(i, n+1) = x(i, n-1).
+!                          = 3  if x(i, 0) = x(i, 2) and x(i, n+1) =
+!                               x(i, n-1).
+!                          = 4  if x(i, 0) = x(i, 2) and x(i, n+1) = 0.
+!
+!                        n
+!                          the number of unknowns in the j-direction.
+!                          n must be greater than 2.
+!
+!                        mperod
+!                          = 0 if a(1) and c(m) are not zero
+!                          = 1 if a(1) = c(m) = 0
+!
+!                        m
+!                          the number of unknowns in the i-direction.
+!                          n must be greater than 2.
+!
+!                        a, b, c
+!                          one-dimensional complex arrays of length m
+!                          that specify the coefficients in the linear
+!                          equations given above.  if mperod = 0
+!                          the array elements must not depend upon
+!                          the index i, but must be constant.
+!                          specifically, the subroutine checks the
+!                          following condition .
+!
+!                            a(i) = c(1)
+!                            c(i) = c(1)
+!                            b(i) = b(1)
+!
+!                          for i=1, 2, ..., m.
+!
+!                        idimy
+!                          the row (or first) dimension of the
+!                          two-dimensional array y as it appears
+!                          in the program calling cmgnbn.
+!                          this parameter is used to specify the
+!                          variable dimension of y.
+!                          idimy must be at least m.
+!
+!                        y
+!                          a two-dimensional complex array that
+!                          specifies the values of the right side
+!                          of the linear system of equations given
+!                          above.
+!                          y must be dimensioned at least m*n.
+!
+!
+!  ON OUTPUT             y
+!
+!                          contains the solution x.
+!
+!                        ierror
+!                          an error flag which indicates invalid
+!                          input parameters  except for number
+!                          zero, a solution is not attempted.
+!
+!                          = 0  no error.
+!                          = 1  m <= 2  .
+!                          = 2  n <= 2
+!                          = 3  idimy < m
+!                          = 4  nperod < 0 or nperod > 4
+!                          = 5  mperod < 0 or mperod > 1
+!                          = 6  a(i) /= c(1) or c(i) /= c(1) or
+!                               b(i) /= b(1) for
+!                               some i=1, 2, ..., m.
+!                          = 7  a(1) /= 0 or c(m) /= 0 and
+!                                 mperod = 1
+!                          = 20 if the dynamic allocation of real and
+!                               complex work space required for solution
+!                               fails (for example if n, m are too large
+!                               for your computer)
+!
+! SPECIAL CONDITONS      None
+!
+! I/O                    None
+!
+! PRECISION              64-bit double precision
+!
+! REQUIRED LIBRARY       comf.f90, type_FishpackWorkspace.f90
+! FILES
+!
+! STANDARD               Fortran 2008
+!
+! HISTORY                Written in 1979 by Roland Sweet of NCAR'S
+!                        scientific computing division.  Made available
+!                        on NCAR's public libraries in January, 1980.
+!                        Revised in June 2004 by John Adams using
+!                        Fortran 90 dynamically allocated work space.
+!
+! ALGORITHM              The linear system is solved by a cyclic
+!                        reduction algorithm described in the
+!                        reference below.
+!
+! REFERENCES             Sweet, R., 'A cyclic reduction algorithm for
+!                        solving block tridiagonal systems of arbitrary
+!                        dimensions, ' SIAM J. on Numer. Anal.,
+!                          14(Sept., 1977), pp. 706-720.
+!
+! ACCURACY               this test was performed on a platform with
+!                        64 bit floating point arithmetic.
+!                        a uniform random number generator was used
+!                        to create a solution array x for the system
+!                        given in the 'purpose' description above
+!                        with
+!                          a(i) = c(i) = -0.5_wp * b(i) = 1, i=1, 2, ..., m
+!
+!                        and, when mperod = 1
+!
+!                          a(1) = c(m) = 0
+!                          a(m) = c(1) = 2.
+!
+!                        the solution x was substituted into the
+!                        given system  and a right side y was
+!                        computed.  using this array y, subroutine
+!                        cmgnbn was called to produce approximate
+!                        solution z.  then relative error
+!                          e = max(abs(z(i, j)-x(i, j)))/
+!                              max(abs(x(i, j)))
+!                        was computed, where the two maxima are taken
+!                        over i=1, 2, ..., m and j=1, ..., n.
+!
+!                        the value of e is given in the table
+!                        below for some typical values of m and n.
+!
+!                   m (=n)    mperod    nperod       e
+!                   ------    ------    ------     ------
+!
+!                     31        0         0        1.e-12
+!                     31        1         1        4.e-13
+!                     31        1         3        2.e-12
+!                     32        0         0        7.e-14
+!                     32        1         1        5.e-13
+!                     32        1         3        2.e-13
+!                     33        0         0        6.e-13
+!                     33        1         1        5.e-13
+!                     33        1         3        3.e-12
+!                     63        0         0        5.e-12
+!                     63        1         1        6.e-13
+!                     63        1         3        1.e-11
+!                     64        0         0        1.e-13
+!                     64        1         1        3.e-12
+!                     64        1         3        3.e-13
+!                     65        0         0        2.e-12
+!                     65        1         1        5.e-13
+!                     65        1         3        1.e-11
+!
+!
 module module_cmgnbn
 
     use, intrinsic :: iso_fortran_env, only: &
         wp => REAL64, &
-        ip => INT32, &
-        stdout => OUTPUT_UNIT
+        ip => INT32
 
     use type_FishpackWorkspace, only: &
-        FishpackWorkspace
+        Fish => FishpackWorkspace
 
     ! Explicit typing only
     implicit None
@@ -20,302 +238,6 @@ contains
 
 
     subroutine cmgnbn(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
-        !
-        !     file cmgnbn.f
-        !
-        !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-        !     *                                                               *
-        !     *                  copyright (c) 2005 by UCAR                   *
-        !     *                                                               *
-        !     *       University Corporation for Atmospheric Research         *
-        !     *                                                               *
-        !     *                      all rights reserved                      *
-        !     *                                                               *
-        !     *                    FISHPACK90  Version 1.1                    *
-        !     *                                                               *
-        !     *                      A Package of Fortran                     *
-        !     *                                                               *
-        !     *                Subroutines and Example Programs               *
-        !     *                                                               *
-        !     *               for Modeling Geophysical Processes              *
-        !     *                                                               *
-        !     *                             by                                *
-        !     *                                                               *
-        !     *        John Adams, Paul Swarztrauber and Roland Sweet         *
-        !     *                                                               *
-        !     *                             of                                *
-        !     *                                                               *
-        !     *         the National Center for Atmospheric Research          *
-        !     *                                                               *
-        !     *                Boulder, Colorado  (80307)  U.S.A.             *
-        !     *                                                               *
-        !     *                   which is sponsored by                       *
-        !     *                                                               *
-        !     *              the National Science Foundation                  *
-        !     *                                                               *
-        !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-        !
-        !     SUBROUTINE cmgnbn (NPEROD, N, MPEROD, M, A, B, C, IDIMY, Y, ierror)
-        !
-        !
-        ! DIMENSION OF           A(M), B(M), C(M), Y(IDIMY, N)
-        ! ARGUMENTS
-        !
-        ! LATEST REVISION        November 2004
-        !
-        ! PURPOSE                THE NAME OF THIS PACKAGE IS A MNEMONIC FOR THE
-        !                        COMPLEX GENERALIZED BUNEMAN ALGORITHM.
-        !                        IT SOLVES THE COMPLEX LINEAR SYSTEM OF EQUATION
-        !
-        !                        A(I)*X(I-1, J) + B(I)*X(I, J) + C(I)*X(I+1, J)
-        !                        + X(I, J-1) - 2.0_wp * X(I, J) + X(I, J+1) = Y(I, J)
-        !
-        !                        FOR I = 1, 2, ..., M  AND  J = 1, 2, ..., N.
-        !
-        !                        INDICES I+1 AND I-1 ARE EVALUATED MODULO M,
-        !                        I.E., X(0, J) = X(M, J) AND X(M+1, J) = X(1, J),
-        !                        AND X(I, 0) MAY EQUAL 0, X(I, 2), OR X(I, N),
-        !                        AND X(I, N+1) MAY EQUAL 0, X(I, N-1), OR X(I, 1)
-        !                        DEPENDING ON AN INPUT PARAMETER.
-        !
-        ! USAGE                  CALL cmgnbn (NPEROD, N, MPEROD, M, A, B, C, IDIMY, Y,
-        !                                     ierror)
-        !
-        ! ARGUMENTS
-        !
-        ! ON INPUT               NPEROD
-        !
-        !                          INDICATES THE VALUES THAT X(I, 0) AND
-        !                          X(I, N+1) ARE ASSUMED TO HAVE.
-        !
-        !                          = 0  IF X(I, 0) = X(I, N) AND X(I, N+1) =
-        !                               X(I, 1).
-        !                          = 1  IF X(I, 0) = X(I, N+1) = 0  .
-        !                          = 2  IF X(I, 0) = 0 AND X(I, N+1) = X(I, N-1).
-        !                          = 3  IF X(I, 0) = X(I, 2) AND X(I, N+1) =
-        !                               X(I, N-1).
-        !                          = 4  IF X(I, 0) = X(I, 2) AND X(I, N+1) = 0.
-        !
-        !                        N
-        !                          THE NUMBER OF UNKNOWNS IN THE J-DIRECTION.
-        !                          N MUST BE GREATER THAN 2.
-        !
-        !                        MPEROD
-        !                          = 0 IF A(1) AND C(M) ARE NOT ZERO
-        !                          = 1 IF A(1) = C(M) = 0
-        !
-        !                        M
-        !                          THE NUMBER OF UNKNOWNS IN THE I-DIRECTION.
-        !                          N MUST BE GREATER THAN 2.
-        !
-        !                        A, B, C
-        !                          ONE-DIMENSIONAL COMPLEX ARRAYS OF LENGTH M
-        !                          THAT SPECIFY THE COEFFICIENTS IN THE LINEAR
-        !                          EQUATIONS GIVEN ABOVE.  IF MPEROD = 0
-        !                          THE ARRAY ELEMENTS MUST NOT DEPEND UPON
-        !                          THE INDEX I, BUT MUST BE CONSTANT.
-        !                          SPECIFICALLY, THE SUBROUTINE CHECKS THE
-        !                          FOLLOWING CONDITION .
-        !
-        !                            A(I) = C(1)
-        !                            C(I) = C(1)
-        !                            B(I) = B(1)
-        !
-        !                          FOR I=1, 2, ..., M.
-        !
-        !                        IDIMY
-        !                          THE ROW (OR FIRST) DIMENSION OF THE
-        !                          TWO-DIMENSIONAL ARRAY Y AS IT APPEARS
-        !                          IN THE PROGRAM CALLING cmgnbn.
-        !                          THIS PARAMETER IS USED TO SPECIFY THE
-        !                          VARIABLE DIMENSION OF Y.
-        !                          IDIMY MUST BE AT LEAST M.
-        !
-        !                        Y
-        !                          A TWO-DIMENSIONAL COMPLEX ARRAY THAT
-        !                          SPECIFIES THE VALUES OF THE RIGHT SIDE
-        !                          OF THE LINEAR SYSTEM OF EQUATIONS GIVEN
-        !                          ABOVE.
-        !                          Y MUST BE DIMENSIONED AT LEAST M*N.
-        !
-        !
-        !  ON OUTPUT             Y
-        !
-        !                          CONTAINS THE SOLUTION X.
-        !
-        !                        ierror
-        !                          AN ERROR FLAG WHICH INDICATES INVALID
-        !                          INPUT PARAMETERS  EXCEPT FOR NUMBER
-        !                          ZERO, A SOLUTION IS NOT ATTEMPTED.
-        !
-        !                          = 0  NO ERROR.
-        !                          = 1  M <= 2  .
-        !                          = 2  N <= 2
-        !                          = 3  IDIMY < M
-        !                          = 4  NPEROD < 0 OR NPEROD > 4
-        !                          = 5  MPEROD < 0 OR MPEROD > 1
-        !                          = 6  A(I) /= C(1) OR C(I) /= C(1) OR
-        !                               B(I) /= B(1) FOR
-        !                               SOME I=1, 2, ..., M.
-        !                          = 7  A(1) /= 0 OR C(M) /= 0 AND
-        !                                 MPEROD = 1
-        !                          = 20 If the dynamic allocation of real and
-        !                               complex work space required for solution
-        !                               fails (for example if N, M are too large
-        !                               for your computer)
-        !
-        ! SPECIAL CONDITONS      None
-        !
-        ! I/O                    None
-        !
-        ! PRECISION              64-bit double precision
-        !
-        ! REQUIRED LIBRARY       comf.f, fish.f
-        ! FILES
-        !
-        ! STANDARD               Fortran 2008
-        !
-        ! HISTORY                WRITTEN IN 1979 BY ROLAND SWEET OF NCAR'S
-        !                        SCIENTIFIC COMPUTING DIVISION.  MADE AVAILABLE
-        !                        ON NCAR'S PUBLIC LIBRARIES IN January, 1980.
-        !                        Revised in June 2004 by John Adams using
-        !                        Fortran 90 dynamically allocated work space.
-        !
-        ! ALGORITHM              THE LINEAR SYSTEM IS SOLVED BY A CYCLIC
-        !                        REDUCTION ALGORITHM DESCRIBED IN THE
-        !                        REFERENCE BELOW.
-        !
-        ! PORTABILITY            FORTRAN 90.  ALL MACHINE DEPENDENT CONSTANTS
-        !                        ARE DEFINED IN FUNCTION P1MACH.
-        !
-        ! REFERENCES             SWEET, R., 'A CYCLIC REDUCTION ALGORITHM FOR
-        !                        SOLVING BLOCK TRIDIAGONAL SYSTEMS OF ARBITRARY
-        !                        DIMENSIONS, ' SIAM J. ON NUMER. ANAL.,
-        !                          14(SEPT., 1977), PP. 706-720.
-        !
-        ! ACCURACY               THIS TEST WAS PERFORMED ON A Platform with
-        !                        64 bit floating point arithmetic.
-        !                        A UNIFORM RANDOM NUMBER GENERATOR WAS USED
-        !                        TO CREATE A SOLUTION ARRAY X FOR THE SYSTEM
-        !                        GIVEN IN THE 'PURPOSE' DESCRIPTION ABOVE
-        !                        WITH
-        !                          A(I) = C(I) = -0.5_wp * B(I) = 1, I=1, 2, ..., M
-        !
-        !                        AND, WHEN MPEROD = 1
-        !
-        !                          A(1) = C(M) = 0
-        !                          A(M) = C(1) = 2.
-        !
-        !                        THE SOLUTION X WAS SUBSTITUTED INTO THE
-        !                        GIVEN SYSTEM  AND A RIGHT SIDE Y WAS
-        !                        COMPUTED.  USING THIS ARRAY Y, SUBROUTINE
-        !                        cmgnbn WAS CALLED TO PRODUCE APPROXIMATE
-        !                        SOLUTION Z.  THEN RELATIVE ERROR
-        !                          E = MAX(abs(Z(I, J)-X(I, J)))/
-        !                              MAX(abs(X(I, J)))
-        !                        WAS COMPUTED, WHERE THE TWO MAXIMA ARE TAKEN
-        !                        OVER I=1, 2, ..., M AND J=1, ..., N.
-        !
-        !                        THE VALUE OF E IS GIVEN IN THE TABLE
-        !                        BELOW FOR SOME TYPICAL VALUES OF M AND N.
-        !
-        !                   M (=N)    MPEROD    NPEROD       E
-        !                   ------    ------    ------     ------
-        !
-        !                     31        0         0        1.E-12
-        !                     31        1         1        4.E-13
-        !                     31        1         3        2.E-12
-        !                     32        0         0        7.E-14
-        !                     32        1         1        5.E-13
-        !                     32        1         3        2.E-13
-        !                     33        0         0        6.E-13
-        !                     33        1         1        5.E-13
-        !                     33        1         3        3.E-12
-        !                     63        0         0        5.E-12
-        !                     63        1         1        6.E-13
-        !                     63        1         3        1.E-11
-        !                     64        0         0        1.E-13
-        !                     64        1         1        3.E-12
-        !                     64        1         3        3.E-13
-        !                     65        0         0        2.E-12
-        !                     65        1         1        5.E-13
-        !                     65        1         3        1.E-11
-        !
-        !
-        !-----------------------------------------------
-        ! Dictionary: calling arguments
-        !-----------------------------------------------
-        integer (ip),             intent (in)     :: nperod
-        integer (ip),             intent (in)     :: n
-        integer (ip),             intent (in)     :: mperod
-        integer (ip),             intent (in)     :: m
-        integer (ip),             intent (in)     :: idimy
-        integer (ip),             intent (out)    :: ierror
-        complex (wp), contiguous, intent (in)     :: a(:)
-        complex (wp), contiguous, intent (in)     :: b(:)
-        complex (wp), contiguous, intent (in)     :: c(:)
-        complex (wp), contiguous, intent (in out) :: y(:,:)
-        !-----------------------------------------------
-        ! Dictionary: local variables
-        !-----------------------------------------------
-        integer (ip)             :: i !! counter
-        type (FishpackWorkspace) :: workspace
-        !-----------------------------------------------
-
-        ! initialize error flag
-        ierror = 0
-
-        ! Check input arguments
-        if (m <= 2) ierror = 1
-        if (n <= 2) ierror = 2
-        if (idimy < m) ierror = 3
-        if (nperod < 0 .or. nperod > 4) ierror = 4
-        if (mperod < 0 .or. mperod > 1) ierror = 5
-
-        if (mperod /= 1) then
-            do i = 2, m
-                if (abs(a(i)-c(1)) /= 0.) then
-                    ierror = 6
-                    exit
-                end if
-                if (abs(c(i)-c(1)) /= 0.) then
-                    ierror = 6
-                    exit
-                end if
-                if (abs(b(i)-b(1)) /= 0.) then
-                    ierror = 6
-                    exit
-                end if
-            end do
-        end if
-
-        if (abs(a(1))/=0. .and. abs(c(m))/=0.) then
-            ierror = 7
-        end if
-
-        if (ierror /= 0) return
-
-        ! allocate required workspace
-        associate( &
-            icwk => (10 + int(log(real(n))/log(2.0)))*m + 4*n, &
-            irwk => 0 &
-            )
-            call workspace%create( irwk, icwk, ierror )
-        end associate
-
-        ! Solve system
-        associate( cxw => workspace%complex_workspace )
-            call cmgnbnn(nperod, n, mperod, m, a, b, c, idimy, y, cxw)
-        end associate
-
-        ! Release memory
-        call workspace%destroy()
-
-    end subroutine cmgnbn
-
-
-    subroutine cmgnbnn(nperod, n, mperod, m, a, b, c, idimy, y, w)
-
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
@@ -324,43 +246,148 @@ contains
         integer (ip), intent (in)     :: mperod
         integer (ip), intent (in)     :: m
         integer (ip), intent (in)     :: idimy
-        complex (wp), intent (in)     :: a(*)
-        complex (wp), intent (in)     :: b(*)
-        complex (wp), intent (in)     :: c(*)
-        complex (wp), intent (in out) :: y(idimy, *)
-        complex (wp), intent (in out) :: w(*)
+        integer (ip), intent (out)    :: ierror
+        complex (wp), intent (in)     :: a(:)
+        complex (wp), intent (in)     :: b(:)
+        complex (wp), intent (in)     :: c(:)
+        complex (wp), intent (in out) :: y(:,:)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer (ip) :: iwba, iwbb, iwbc, iwb2, iwb3, iww1, iww2, iww3, iwd, &
-            iwtcos, iwp, i, k, j, mp, np, ipstor, irev, mh, mhm1, modd, nby2, mskip
-        complex (wp) :: a1
+        integer (ip) :: i, irwk, icwk
+        type (Fish)  :: workspace
         !-----------------------------------------------
-        iwba = m + 1
-        iwbb = iwba + m
-        iwbc = iwbb + m
-        iwb2 = iwbc + m
-        iwb3 = iwb2 + m
-        iww1 = iwb3 + m
-        iww2 = iww1 + m
-        iww3 = iww2 + m
-        iwd = iww3 + m
-        iwtcos = iwd + m
-        iwp = iwtcos + 4*n
-        do i = 1, m
-            k = iwba + i - 1
-            w(k) = -a(i)
-            k = iwbc + i - 1
-            w(k) = -c(i)
-            k = iwbb + i - 1
-            w(k) = 2. - b(i)
-            y(i, :n) = -y(i, :n)
-        end do
-        mp = mperod + 1
-        np = nperod + 1
-        go to (114, 107) mp
-107 continue
-    go to (108, 109, 110, 111, 123) np
+
+        !
+        !==> Check validity of input arguments
+        !
+        if (m <= 2) then
+            ierror = 1
+            return
+        else if (n <= 2) then
+            ierror = 2
+            return
+        else if (idimy < m) then
+            ierror = 3
+            return
+        else if (nperod < 0 .or. nperod > 4) then
+            ierror = 4
+            return
+        else if (mperod < 0 .or. mperod > 1) then
+            ierror = 5
+            return
+        else if (mperod /= 1) then
+            do i = 2, m
+                if (abs(a(i)-c(1)) /= 0.0_wp) then
+                    ierror = 6
+                    return
+                end if
+                if (abs(c(i)-c(1)) /= 0.0_wp) then
+                    ierror = 6
+                    return
+                end if
+                if (abs(b(i)-b(1)) /= 0.0_wp) then
+                    ierror = 6
+                    return
+                end if
+            end do
+        else if (abs(a(1))/=0.0 .and. abs(c(m))/=0.0) then
+            ierror = 7
+            return
+        else
+            ierror = 0
+        end if
+
+        !
+        !==> Allocate memory
+        !
+        irwk = 0
+        icwk = (10 + int(log(real(n, kind=wp))/log(2.0_wp), kind=ip))*m + 4*n
+        call workspace%create(irwk, icwk, ierror)
+
+        ! Check if allocation was succesful
+        if (ierror == 20) return
+
+        associate( cxw => workspace%complex_workspace )
+            !
+            !==> Solve system
+            !
+            call cmgnbnn(nperod, n, mperod, m, a, b, c, idimy, y, cxw)
+
+        end associate
+
+        !
+        !==> Release memory
+        !
+        call workspace%destroy()
+
+    contains
+
+        subroutine cmgnbnn(nperod, n, mperod, m, a, b, c, idimy, y, w)
+
+            !-----------------------------------------------
+            ! Dictionary: calling arguments
+            !-----------------------------------------------
+            integer (ip), intent (in)     :: nperod
+            integer (ip), intent (in)     :: n
+            integer (ip), intent (in)     :: mperod
+            integer (ip), intent (in)     :: m
+            integer (ip), intent (in)     :: idimy
+            complex (wp), intent (in)     :: a(:)
+            complex (wp), intent (in)     :: b(:)
+            complex (wp), intent (in)     :: c(:)
+            complex (wp), intent (in out) :: y(idimy, *)
+            complex (wp), intent (in out) :: w(*)
+            !-----------------------------------------------
+            ! Dictionary: local variables
+            !-----------------------------------------------
+            integer (ip) :: iwba, iwbb, iwbc, iwb2, iwb3, iww1, iww2, iww3, iwd
+            integer (ip) :: iwtcos, iwp, i, k, j, mp, np, ipstor
+            integer (ip) :: irev, mh, mhm1, modd, nby2, mskip
+            complex (wp) :: a1
+            !-----------------------------------------------
+
+            iwba = m + 1
+            iwbb = iwba + m
+            iwbc = iwbb + m
+            iwb2 = iwbc + m
+            iwb3 = iwb2 + m
+            iww1 = iwb3 + m
+            iww2 = iww1 + m
+            iww3 = iww2 + m
+            iwd = iww3 + m
+            iwtcos = iwd + m
+            iwp = iwtcos + 4*n
+            do i = 1, m
+                k = iwba + i - 1
+                w(k) = -a(i)
+                k = iwbc + i - 1
+                w(k) = -c(i)
+                k = iwbb + i - 1
+                w(k) = 2. - b(i)
+                y(i, :n) = -y(i, :n)
+            end do
+            mp = mperod + 1
+            np = nperod + 1
+            select case (mp)
+                case (1)
+                    go to 114
+                case (2)
+                    go to 107
+            end select
+107     continue
+        select case (np)
+            case (1)
+                go to 108
+            case (2)
+                go to 109
+            case (3)
+                go to 110
+            case (4)
+                go to 111
+            case (5)
+                go to 123
+        end select
 108 continue
     call cmposp (m, n, w(iwba), w(iwbb), w(iwbc), y, idimy, w, w(iwb2) &
         , w(iwb3), w(iww1), w(iww2), w(iww3), w(iwd), w(iwtcos), w(iwp) &
@@ -384,7 +411,12 @@ contains
     irev = 2
     if (nperod == 4) go to 124
 113 continue
-    go to (127, 133) mp
+    select case (mp)
+        case (1)
+            go to 127
+        case (2)
+            go to 133
+    end select
 114 continue
     mh = (m + 1)/2
     mhm1 = mh - 1
@@ -396,7 +428,12 @@ contains
             w(i+mh) = y(mh-i, j) + y(i+mh, j)
         end do
         w(mh) = 2.0_wp * y(mh, j)
-        go to (117, 116) modd
+        select case (modd)
+            case (1)
+                go to 117
+            case (2)
+                go to 116
+        end select
 116 continue
     w(m) = 2.0_wp * y(m, j)
 117 continue
@@ -404,8 +441,8 @@ contains
 end do
 k = iwbc + mhm1 - 1
 i = iwba + mhm1
-w(k) = (0., 0.)
-w(i) = (0., 0.)
+w(k) = 0.0_wp
+w(i) = 0.0_wp
 w(k+1) = 2.0_wp * w(k+1)
 select case (modd)
     case default
@@ -432,13 +469,23 @@ end select
             y(i, mskip) = a1
         end do
     end do
-    go to (110, 113) irev
+    select case (irev)
+        case (1)
+            go to 110
+        case (2)
+            go to 113
+    end select
 127 continue
     do j = 1, n
         w(mh-1:mh-mhm1:(-1)) = 0.5_wp * (y(mh+1:mhm1+mh, j)+y(:mhm1, j))
         w(mh+1:mhm1+mh) = 0.5_wp * (y(mh+1:mhm1+mh, j)-y(:mhm1, j))
         w(mh) = 0.5_wp * y(mh, j)
-        go to (130, 129) modd
+        select case (modd)
+            case (1)
+                go to 130
+            case (2)
+                go to 129
+        end select
 129 continue
     w(m) = 0.5_wp * y(m, j)
 130 continue
@@ -494,7 +541,7 @@ subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
             kr = 0
             irreg = 1
             if (n > 1) go to 106
-            tcos(1) = (0., 0.)
+            tcos(1) = 0.0_wp
         case (2)
             kr = 1
             jstsav = 1
@@ -510,7 +557,7 @@ subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
 106 continue
     lr = 0
     do i = 1, m
-        p(i) = CMPLX(0., 0.)
+        p(i) = 0.0_wp
     end do
     nun = n
     jst = 1
@@ -577,7 +624,7 @@ subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
     if (jst /= 1) go to 123
     do i = 1, m
         b(i) = Q(i, j)
-        q(i, j) = CMPLX(0., 0.)
+        q(i, j) = 0.0_wp
     end do
     go to 130
 123 continue
@@ -794,7 +841,7 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
     ! Dictionary: local variables
     !-----------------------------------------------
     integer (ip) :: k(4)
-    integer (ip) :: k1, k2, k3, k4, mr, ip_rename
+    integer (ip) :: k1, k2, k3, k4, mr, iip
     integer (ip) :: ipstor, i2r, jr, nr, nlast, kr
     integer (ip) :: lr, i, nrod, jstart, jstop, i2rby2, j, jp1, jp2, jp3, jm1
     integer (ip) :: jm2, jm3, nrodpr, ii, i1, i2, jr2, nlastp, jstep
@@ -807,7 +854,7 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
     fnum = 1./real(istag)
     fden = 0.5_wp * real(istag - 1)
     mr = m
-    ip_rename = -mr
+    iip = -mr
     ipstor = 0
     i2r = 1
     jr = 2
@@ -888,8 +935,8 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
         else
             b(:mr) = q(:mr, j) + 0.5_wp * (q(:mr, jm2)-q(:mr, jm1)-q(:mr, jm3))
             if (nrodpr == 0) then
-                q(:mr, j) = q(:mr, jm2) + p(ip_rename+1:mr+ip_rename)
-                ip_rename = ip_rename - mr
+                q(:mr, j) = q(:mr, jm2) + p(iip+1:mr+iip)
+                iip = iip - mr
             else
                 q(:mr, j) = q(:mr, j) - q(:mr, jm1) + q(:mr, jm2)
             end if
@@ -909,14 +956,14 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
         if (i2r == 1) then
             b(:mr) = q(:mr, j)
             call cmptrx (1, 0, mr, a, bb, c, b, tcos, d, w)
-            ip_rename = 0
+            iip = 0
             ipstor = mr
             select case (istag)
                 case default
                     p(:mr) = b(:mr)
                     b(:mr) = b(:mr) + q(:mr, n)
                     tcos(1) = cmplx(1., 0.)
-                    tcos(2) = cmplx(0., 0.)
+                    tcos(2) = 0.0_wp
                     call cmptrx (1, 1, mr, a, bb, c, b, tcos, d, w)
                     q(:mr, j) = q(:mr, jm2) + p(:mr) + b(:mr)
                     go to 150
@@ -928,15 +975,15 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
         end if
         b(:mr) = q(:mr, j) + 0.5_wp * (q(:mr, jm2)-q(:mr, jm1)-q(:mr, jm3))
         if (nrodpr == 0) then
-            b(:mr) = b(:mr) + p(ip_rename+1:mr+ip_rename)
+            b(:mr) = b(:mr) + p(iip+1:mr+iip)
         else
             b(:mr) = b(:mr) + q(:mr, jp2) - q(:mr, jp1)
         end if
         call cmptrx (i2r, 0, mr, a, bb, c, b, tcos, d, w)
-        ip_rename = ip_rename + mr
-        ipstor = max(ipstor, ip_rename + mr)
-        p(ip_rename+1:mr+ip_rename) = b(:mr) + 0.5_wp * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
-        b(:mr) = p(ip_rename+1:mr+ip_rename) + q(:mr, jp2)
+        iip = iip + mr
+        ipstor = max(ipstor, iip + mr)
+        p(iip+1:mr+iip) = b(:mr) + 0.5_wp * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
+        b(:mr) = p(iip+1:mr+iip) + q(:mr, jp2)
         if (lr /= 0) then
             call cmpcsg (lr, 1, 0.5, fden, tcos(i2r+1))
             call cmpmrg (tcos, 0, i2r, i2r, lr, kr)
@@ -956,7 +1003,7 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
 146 continue
     b(:mr) = fistag*b(:mr)
 148 continue
-    q(:mr, j) = q(:mr, jm2) + p(ip_rename+1:mr+ip_rename) + b(:mr)
+    q(:mr, j) = q(:mr, jm2) + p(iip+1:mr+iip) + b(:mr)
 150 continue
     lr = kr
     kr = kr + jr
@@ -987,7 +1034,7 @@ end select
             go to (156, 168) istag
 156     continue
         b(:mr) = q(:mr, 2)
-        tcos(1) = cmplx(0., 0.)
+        tcos(1) = 0.0_wp
         call cmptrx (1, 0, mr, a, bb, c, b, tcos, d, w)
         q(:mr, 2) = b(:mr)
         b(:mr) = 4.*b(:mr) + q(:mr, 1) + 2.0_wp * q(:mr, 3)
@@ -998,7 +1045,7 @@ end select
         call cmptrx (i1, i2, mr, a, bb, c, b, tcos, d, w)
         q(:mr, 2) = q(:mr, 2) + b(:mr)
         b(:mr) = q(:mr, 1) + 2.0_wp * q(:mr, 2)
-        tcos(1) = (0., 0.)
+        tcos(1) = 0.0_wp
         call cmptrx (1, 0, mr, a, bb, c, b, tcos, d, w)
         q(:mr, 1) = b(:mr)
         jr = 1
@@ -1031,7 +1078,7 @@ end select
 !
 168 continue
     b(:mr) = q(:mr, 2)
-    q(:mr, 2) = (0., 0.)
+    q(:mr, 2) = 0.0_wp
     b2(:mr) = q(:mr, 3)
     b3(:mr) = q(:mr, 1)
     jr = 1
@@ -1041,7 +1088,7 @@ end select
 170 continue
     b(:mr) = 0.5_wp * q(:mr, 1) - q(:mr, jm1) + q(:mr, j)
     if (nrod == 0) then
-        b(:mr) = b(:mr) + p(ip_rename+1:mr+ip_rename)
+        b(:mr) = b(:mr) + p(iip+1:mr+iip)
     else
         b(:mr) = b(:mr) + q(:mr, nlast) - q(:mr, jm2)
     end if
@@ -1092,7 +1139,7 @@ if (n == 2) then
     !     case  n = 2
     !
     b(:mr) = q(:mr, 1)
-    tcos(1) = (0., 0.)
+    tcos(1) = 0.0_wp
     call cmptrx (1, 0, mr, a, bb, c, b, tcos, d, w)
     q(:mr, 1) = b(:mr)
     b(:mr) = 2.0_wp * (q(:mr, 2)+b(:mr))*fistag
@@ -1104,8 +1151,8 @@ if (n == 2) then
     i2r = 0
     go to 194
 end if
-b3(:mr) = (0., 0.)
-b(:mr) = q(:mr, 1) + 2.0_wp * p(ip_rename+1:mr+ip_rename)
+b3(:mr) = 0.0_wp
+b(:mr) = q(:mr, 1) + 2.0_wp * p(iip+1:mr+iip)
 q(:mr, 1) = 0.5_wp * q(:mr, 1) - q(:mr, jm1)
 b2(:mr) = 2.0_wp * (q(:mr, 1)+q(:mr, nlast))
 k1 = kr + jr - 1
@@ -1136,11 +1183,11 @@ go to 194
 196 continue
     jm2 = nlast - i2r
     if (jr == 1) then
-        q(:mr, nlast) = (0., 0.)
+        q(:mr, nlast) = 0.0_wp
     else
         if (nrod == 0) then
-            q(:mr, nlast) = p(ip_rename+1:mr+ip_rename)
-            ip_rename = ip_rename - mr
+            q(:mr, nlast) = p(iip+1:mr+iip)
+            iip = iip - mr
         else
             q(:mr, nlast) = q(:mr, nlast) - q(:mr, jm2)
         end if
@@ -1184,7 +1231,7 @@ go to 194
             b(:mr) = q(:mr, j) + q(:mr, jm2) + q(:mr, jp2)
         end if
         if (jr == 1) then
-            q(:mr, j) = (0., 0.)
+            q(:mr, j) = 0.0_wp
         else
             jm1 = j - i2r
             jp1 = j + i2r
@@ -1311,7 +1358,7 @@ subroutine cmposp(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
         ipstor = real(w(1))
 
         call cmposn(mr, nr, 2, 1, a, bb, c, q(1, nr), idimq, b, b2, b3, &
-             w, w2, w3, d, tcos, p)
+            w, w2, w3, d, tcos, p)
 
         ipstor = max(ipstor, real(w(1)))
 
@@ -1528,7 +1575,7 @@ subroutine cmptrx(idegbr, idegcr, m, a, b, c, y, tcos, d, w)
         end do
         z = B(m) - x - A(m)*D(mm1)
         if (abs(z) == 0.) then
-            y(m) = (0., 0.)
+            y(m) = 0.0_wp
         else
             y(m) = (Y(m)-A(m)*Y(mm1))/z
         end if
@@ -1647,6 +1694,8 @@ subroutine cmptr3(m, a, b, c, k, y1, y2, y3, tcos, d, w1, w2, w3)
 
 end subroutine cmptr3
 
+end subroutine cmgnbn
+
 end module module_cmgnbn
 !
 ! REVISION HISTORY
@@ -1658,4 +1707,4 @@ end module module_cmgnbn
 ! February  1985    Documentation upgrade
 ! November  1988    Version 3.2, FORTRAN 77 changes
 ! June      2004    Version 5.0, Fortran 90 changes
-!-----------------------------------------------------------------------
+! May       2016    Fortran 2008 changes

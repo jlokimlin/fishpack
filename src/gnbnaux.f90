@@ -309,18 +309,15 @@ contains
         end if
 
         outer_loop: do n = 1, k1
+
             x = tcos(n)
+
             if (k2k3k4 /= 0) then
-                if (n == l1) then
-                    w1(:m) = y1(:m)
-                end if
-                if (n == l2) then
-                    w2(:m) = y2(:m)
-                end if
-                if (n == l3) then
-                    w3(:m) = y3(:m)
-                end if
+                if (n == l1) w1(:m) = y1(:m)
+                if (n == l2) w2(:m) = y2(:m)
+                if (n == l3) w3(:m) = y3(:m)
             end if
+
             z = 1.0_wp/(b(1)-x)
             d(1) = c(1)*z
             y1(1) = y1(1)*z
