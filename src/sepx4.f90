@@ -11,7 +11,7 @@
 !     *                                                               *
 !     *                    FISHPACK90  Version 1.1                    *
 !     *                                                               *
-!     *                 A Package of Fortran 77 and 90                *
+!     *                      A Package of Fortran                     *
 !     *                                                               *
 !     *                Subroutines and Example Programs               *
 !     *                                                               *
@@ -63,7 +63,7 @@
 !
 !                          af(x)=c1, bf(x)=0, cf(x)=c2 for all x.
 !
-!                        here c1, c2 are constants, c1.gt.0.
+!                        here c1, c2 are constants, c1>0.
 !
 !                        the possible boundary conditions are:
 !                        in the x-direction:
@@ -239,7 +239,7 @@
 !                          equation at x.  if boundary conditions in
 !                          the x direction are periodic then the
 !                          coefficients must satisfy af(x)=c1, bf(x)=0,
-!                          cf(x)=c2 for all x.  here c1.gt.0
+!                          cf(x)=c2 for all x.  here c1>0
 !                          and c2 are constants.
 !
 !                          note that cofx must be declared external
@@ -446,7 +446,7 @@ module module_sepx4
         get_coefficients
 
     ! Explicit typing only!
-    implicit none
+    implicit None
 
     ! Everything is private unless stated otherwise
     private

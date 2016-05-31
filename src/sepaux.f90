@@ -1,5 +1,5 @@
 !
-!     file sepaux.f
+!     file sepaux.f90
 !
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
@@ -11,7 +11,7 @@
 !     *                                                               *
 !     *                    FISHPACK90  Version 1.1                    *
 !     *                                                               *
-!     *                 A Package of Fortran 77 and 90                *
+!     *                      A Package of Fortran                     *
 !     *                                                               *
 !     *                Subroutines and Example Programs               *
 !     *                                                               *
@@ -34,36 +34,35 @@
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
 !
-! PACKAGE SEPAUX         CONTAINS NO USER ENTRY POINTS.
+! PACKAGE SEPAUX         Contains no user entry points.
 !
 ! LATEST REVISION        April 2016
 !
-! PURPOSE                THIS PACKAGE CONTAINS AUXILIARY class FOR
-!                        THE FISHPACK SOLVERS sepeli AND sepx4.
+! PURPOSE                This package contains auxiliary class for
+!                        the solvers sepeli and sepx4.
 !
-! USAGE                  SINCE THIS PACKAGE CONTAINS NO USER ENTRIES,
-!                        NO USAGE INSTRUCTIONS OR ARGUMENT DESCRIPTIONS
-!                        ARE GIVEN HERE.
+! USAGE                  Since this package contains no user entries,
+!                        no usage instructions or argument descriptions
+!                        are given here.
 !
-! SPECIAL CONDITIONS     NONE
+! SPECIAL CONDITIONS     None
 !
-! I/O                    NONE
+! I/O                    None
 !
-! PRECISION              64-bit float and 32-bit integer
+! PRECISION              64-bit double precision
 !
-! REQUIRED LIBRARY       NONE
+! REQUIRED LIBRARY       None
 ! FILES
 !
-! LANGUAGE               Fortran 2008
+! STANDARD               Fortran 2008
 !
-! HISTORY                * DEVELOPED IN THE LATE 1970'S BY JOHN C. ADAMS
-!                        OF NCAR'S SCIENTTIFIC COMPUTING DIVISION.
+! HISTORY                * Developed in the late 1970's by John C. Adams
+!                        of NCAR's scienttific computing division.
 !                        * Revised in June 2004 incorporating fortran 90
 !                        features
 !                        * Revised in April 2016 incorporating Fortran 2008
 !                        features
 !
-! PORTABILITY            Fortran 2008
 !
 module module_sepaux
 
@@ -72,7 +71,7 @@ module module_sepaux
         wp => REAL64
 
     ! Explicit typing only
-    implicit none
+    implicit None
 
     ! Everything is private unless stated otherwise
     private

@@ -9,7 +9,7 @@ module module_cmgnbn
         FishpackWorkspace
 
     ! Explicit typing only
-    implicit none
+    implicit None
 
     ! Everything is private unless stated otherwise
     private
@@ -33,7 +33,7 @@ contains
         !     *                                                               *
         !     *                    FISHPACK90  Version 1.1                    *
         !     *                                                               *
-        !     *                 A Package of Fortran 77 and 90                *
+        !     *                      A Package of Fortran                     *
         !     *                                                               *
         !     *                Subroutines and Example Programs               *
         !     *                                                               *
@@ -149,31 +149,31 @@ contains
         !                          ZERO, A SOLUTION IS NOT ATTEMPTED.
         !
         !                          = 0  NO ERROR.
-        !                          = 1  M .LE. 2  .
-        !                          = 2  N .LE. 2
-        !                          = 3  IDIMY .LT. M
-        !                          = 4  NPEROD .LT. 0 OR NPEROD .GT. 4
-        !                          = 5  MPEROD .LT. 0 OR MPEROD .GT. 1
-        !                          = 6  A(I) .NE. C(1) OR C(I) .NE. C(1) OR
-        !                               B(I) .NE. B(1) FOR
+        !                          = 1  M <= 2  .
+        !                          = 2  N <= 2
+        !                          = 3  IDIMY < M
+        !                          = 4  NPEROD < 0 OR NPEROD > 4
+        !                          = 5  MPEROD < 0 OR MPEROD > 1
+        !                          = 6  A(I) /= C(1) OR C(I) /= C(1) OR
+        !                               B(I) /= B(1) FOR
         !                               SOME I=1, 2, ..., M.
-        !                          = 7  A(1) .NE. 0 OR C(M) .NE. 0 AND
+        !                          = 7  A(1) /= 0 OR C(M) /= 0 AND
         !                                 MPEROD = 1
         !                          = 20 If the dynamic allocation of real and
         !                               complex work space required for solution
         !                               fails (for example if N, M are too large
         !                               for your computer)
         !
-        ! SPECIAL CONDITONS      NONE
+        ! SPECIAL CONDITONS      None
         !
-        ! I/O                    NONE
+        ! I/O                    None
         !
-        ! PRECISION              SINGLE
+        ! PRECISION              64-bit double precision
         !
         ! REQUIRED LIBRARY       comf.f, fish.f
         ! FILES
         !
-        ! LANGUAGE               FORTRAN 90
+        ! STANDARD               Fortran 2008
         !
         ! HISTORY                WRITTEN IN 1979 BY ROLAND SWEET OF NCAR'S
         !                        SCIENTIFIC COMPUTING DIVISION.  MADE AVAILABLE
@@ -1347,9 +1347,9 @@ pure subroutine cmpcsg(n, ijump, fnum, fden, a)
     ! Purpose:
     !
     !     this subroutine computes required cosine values in ascending
-    !     order.  when ijump .gt. 1 the routine computes values
+    !     order.  when ijump > 1 the routine computes values
     !
-    !        2*cos(j*pi/l) , j=1, 2, ..., l and j .ne. 0(mod n/ijump+1)
+    !        2*cos(j*pi/l) , j=1, 2, ..., l and j /= 0(mod n/ijump+1)
     !
     !     where l = ijump*(n/ijump+1).
     !

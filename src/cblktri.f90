@@ -11,7 +11,7 @@
 !     *                                                               *
 !     *                    FISHPACK90  Version 1.1                    *
 !     *                                                               *
-!     *                 A Package of Fortran 77 and 90                *
+!     *                      A Package of Fortran                     *
 !     *                                                               *
 !     *                Subroutines and Example Programs               *
 !     *                                                               *
@@ -268,7 +268,7 @@ module module_cblktri
         Fish => FishpackWorkspace
 
     ! Explicit typing only
-    implicit none
+    implicit None
 
     ! Everything is private unless stated otherwise
     private
@@ -277,8 +277,8 @@ module module_cblktri
     !---------------------------------------------------------------------------------
     ! Dictionary: global variables confined to the module
     !---------------------------------------------------------------------------------
-    integer, save :: npp, k, nm, ncmplx, ik
-    real,    save :: cnv
+    integer (ip), save :: npp, k, nm, ncmplx, ik
+    real (wp),    save :: cnv
     !---------------------------------------------------------------------------------
 
 

@@ -44,7 +44,7 @@ module type_FishpackSolver
     use module_sepx4, only: sepx4
 
     ! Explicit typing only
-    implicit none
+    implicit None
 
     ! Everything is private unless stated otherwise
     private

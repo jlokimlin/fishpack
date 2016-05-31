@@ -11,7 +11,7 @@
 !     *                                                               *
 !     *                    FISHPACK90  Version 1.1                    *
 !     *                                                               *
-!     *                 A Package of Fortran 77 and 90                *
+!     *                      A Package of Fortran                     *
 !     *                                                               *
 !     *                Subroutines and Example Programs               *
 !     *                                                               *
@@ -46,11 +46,11 @@
 !                        to be called by users, but rather by routines
 !                        in packages genbun and poistg.
 !
-! Special conditions     none
+! Special conditions     None
 !
-! I/O                    none
+! I/O                    None
 !
-! Precision              64-bit float and 32-bit integer
+! Precision              64-bit double precision
 !
 !
 ! Language               Fortran 2008
@@ -72,7 +72,7 @@ module module_gnbnaux
         wp => REAL64
 
     ! Explicit typing only
-    implicit none
+    implicit None
 
     ! Everything is private unless stated otherwise
     private
@@ -104,7 +104,7 @@ contains
         !     this subroutine computes required cosine values in ascending
         !     order.  when ijump >= 1 the routine computes values
         !
-        !        2*cos(j*pi/l) , j=1, 2, ..., l and j .ne. 0(mod n/ijump+1)
+        !        2*cos(j*pi/l) , j=1, 2, ..., l and j /= 0(mod n/ijump+1)
         !
         !     where l = ijump*(n/ijump+1).
         !

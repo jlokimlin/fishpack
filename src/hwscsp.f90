@@ -12,7 +12,7 @@ module module_hwscsp
         BlktriAux
 
     ! Explicit typing only
-    implicit none
+    implicit None
 
     ! Everything is private unless stated otherwise
     private
@@ -37,7 +37,7 @@ contains
         !     *                                                               *
         !     *                    FISHPACK90  Version 1.1                    *
         !     *                                                               *
-        !     *                 A Package of Fortran 77 and 90                *
+        !     *                      A Package of Fortran                     *
         !     *                                                               *
         !     *                Subroutines and Example Programs               *
         !     *                                                               *
@@ -110,7 +110,7 @@ contains
         !
         !                        TS, TF
         !                          THE RANGE OF THETA (COLATITUDE), I.E.,
-        !                          TS .LE. THETA .LE. TF. TS MUST BE LESS
+        !                          TS <= THETA <= TF. TS MUST BE LESS
         !                          THAN TF.  TS AND TF ARE IN RADIANS. A TS OF
         !                          ZERO CORRESPONDS TO THE NORTH POLE AND A
         !                          TF OF PI CORRESPONDS TO THE SOUTH POLE.
@@ -205,7 +205,7 @@ contains
         !                          A DUMMY VARIABLE.
         !
         !                        RS, RF
-        !                          THE RANGE OF R, I.E., RS .LE. R .LT. RF.
+        !                          THE RANGE OF R, I.E., RS <= R < RF.
         !                          RS MUST BE LESS THAN RF.  RS MUST BE
         !                          NON-NEGATIVE.
         !
@@ -278,7 +278,7 @@ contains
         !
         !                        ELMBDA
         !                          THE CONSTANT LAMBDA IN THE HELMHOLTZ
-        !                          EQUATION.  IF LAMBDA .GT. 0, A SOLUTION
+        !                          EQUATION.  IF LAMBDA > 0, A SOLUTION
         !                          MAY NOT EXIST.  HOWEVER, hwscsp WILL
         !                          ATTEMPT TO FIND A SOLUTION.  IF NBDCND = 5
         !                          OR 6 OR  MBDCND = 5, 6, 7, 8, OR 9, ELMBDA
@@ -394,24 +394,24 @@ contains
         !                          PARAMETERS.  EXCEPT FOR NUMBERS 0 AND 10,
         !                          A SOLUTION IS NOT ATTEMPTED.
         !
-        !                          = 1  TS.LT.0. OR TF.GT.PI
-        !                          = 2  TS.GE.TF
-        !                          = 3  M.LT.5
-        !                          = 4  MBDCND.LT.1 OR MBDCND.GT.9
-        !                          = 5  RS.LT.0
-        !                          = 6  RS.GE.RF
-        !                          = 7  N.LT.5
-        !                          = 8  NBDCND.LT.1 OR NBDCND.GT.6
-        !                          = 9  ELMBDA.GT.0
-        !                          = 10 IDIMF.LT.M+1
-        !                          = 11 ELMBDA.NE.0 AND MBDCND.GE.5
-        !                          = 12 ELMBDA.NE.0 AND NBDCND EQUALS 5 OR 6
-        !                          = 13 MBDCND EQUALS 5, 6 OR 9 AND TS.NE.0
-        !                          = 14 MBDCND.GE.7 AND TF.NE.PI
+        !                          = 1  TS<0. OR TF>PI
+        !                          = 2  TS>=TF
+        !                          = 3  M<5
+        !                          = 4  MBDCND<1 OR MBDCND>9
+        !                          = 5  RS<0
+        !                          = 6  RS>=RF
+        !                          = 7  N<5
+        !                          = 8  NBDCND<1 OR NBDCND>6
+        !                          = 9  ELMBDA>0
+        !                          = 10 IDIMF<M+1
+        !                          = 11 ELMBDA/=0 AND MBDCND>=5
+        !                          = 12 ELMBDA/=0 AND NBDCND EQUALS 5 OR 6
+        !                          = 13 MBDCND EQUALS 5, 6 OR 9 AND TS/=0
+        !                          = 14 MBDCND>=7 AND TF/=PI
         !                          = 15 TS.EQ.0 AND MBDCND EQUALS 3, 4 OR 8
         !                          = 16 TF.EQ.PI AND MBDCND EQUALS 2, 3 OR 6
-        !                          = 17 NBDCND.GE.5 AND RS.NE.0
-        !                          = 18 NBDCND.GE.5 AND MBDCND EQUALS 1, 2, 4, 5 OR
+        !                          = 17 NBDCND>=5 AND RS/=0
+        !                          = 18 NBDCND>=5 AND MBDCND EQUALS 1, 2, 4, 5 OR
         !                          = 20 If the dynamic allocation of real and
         !                               complex work space in the derived type
         !                               (FishpackWorkspace) variable W fails (e.g.,
@@ -427,15 +427,15 @@ contains
         !                          be destroyed if hwscsp is called again with
         !                          INTL=1.
         !
-        ! SPECIAL CONDITIONS     NONE
+        ! SPECIAL CONDITIONS     None
         !
-        ! I/O                    NONE
+        ! I/O                    None
         !
-        ! PRECISION              SINGLE
+        ! PRECISION              64-bit double precision
         !
         ! REQUIRED files         fish.f, blktri.f, comf.f
         !
-        ! LANGUAGE               FORTRAN 90
+        ! STANDARD               Fortran 2008
         !
         ! HISTORY                WRITTEN BY ROLAND SWEET AT NCAR IN THE LATE
         !                        1970'S.  RELEASED ON NCAR'S PUBLIC SOFTWARE

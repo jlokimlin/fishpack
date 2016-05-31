@@ -25,7 +25,7 @@ module type_HelmholtzSolver
         StaggeredGrid
 
     ! Explicit typing only
-    implicit none
+    implicit None
 
     ! Everything is private unless stated otherwise
     private

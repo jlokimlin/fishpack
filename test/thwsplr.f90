@@ -11,7 +11,7 @@
 !     *                                                               *
 !     *                    FISHPACK90  Version 1.1                    *
 !     *                                                               *
-!     *                 A Package of Fortran 77 and 90                *
+!     *                      A Package of Fortran                     *
 !     *                                                               *
 !     *                Subroutines and Example Programs               *
 !     *                                                               *
@@ -41,14 +41,14 @@
 !
 !     (1/r)(d/dr)(r*(du/dr)) + (1/r**2)(d/dtheta)(du/dtheta) = 16*r**2
 !
-!     on the quarter-disk 0 .lt. r .lt. 1, 0 .lt. theta .lt. pi/2 with
+!     on the quarter-disk 0 < r < 1, 0 < theta < pi/2 with
 !     with the boundary conditions
 !
-!     u(1, theta) = 1 - cos(4*theta), 0 .le. theta .le. 1
+!     u(1, theta) = 1 - cos(4*theta), 0 <= theta <= 1
 !
 !     and
 !
-!     (du/dtheta)(r, 0) = (du/dtheta)(r, pi/2) = 0,  0 .le. r .le. 1.
+!     (du/dtheta)(r, 0) = (du/dtheta)(r, pi/2) = 0,  0 <= r <= 1.
 !
 !     (note that the solution u is unspecified at r = 0.)
 !          the r-interval will be divided into 50 panels and the
@@ -68,7 +68,7 @@ program thwsplr
         FishpackSolver
 
     ! Explicit typing only
-    implicit none
+    implicit None
 
     !-----------------------------------------------
     ! Dictionary

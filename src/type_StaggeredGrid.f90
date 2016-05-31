@@ -9,7 +9,7 @@ module type_StaggeredGrid
         Grid
 
     ! Explicit typing only
-    implicit none
+    implicit None
 
     ! Everything is private unless stated otherwise
     private

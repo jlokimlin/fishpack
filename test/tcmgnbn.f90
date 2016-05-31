@@ -11,7 +11,7 @@
 !     *                                                               *
 !     *                    FISHPACK90  Version 1.1                    *
 !     *                                                               *
-!     *                 A Package of Fortran 77 and 90                *
+!     *                      A Package of Fortran                     *
 !     *                                                               *
 !     *                Subroutines and Example Programs               *
 !     *                                                               *
@@ -43,11 +43,11 @@
 !
 !             - sqrt(-1)*u = (3 - sqrt(-1))*(1+x)**4*sin(y)         (1)
 !
-!     on the rectangle 0 .lt. x .lt. 1 and -pi .lt. y .lt. pi
+!     on the rectangle 0 < x < 1 and -pi < y < pi
 !     with the boundary conditions
 !
 !     (du/dx)(0, y) = 4sin(y)                               (2)
-!                                -pi .le. y .le. pi
+!                                -pi <= y <= pi
 !     u(1, y) = 16sin(y)                                    (3)
 !
 !     and with u periodic in y using finite differences on a
@@ -148,7 +148,7 @@ program tcmgnbn
         FishpackSolver
 
     ! Explicit typing only
-    implicit none
+    implicit None
 
     !-----------------------------------------------
     ! Dictionary: local variables

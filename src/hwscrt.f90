@@ -11,7 +11,7 @@
 !     *                                                               *
 !     *                    FISHPACK90  Version 1.1                    *
 !     *                                                               *
-!     *                 A Package of Fortran 77 and 90                *
+!     *                      A Package of Fortran                     *
 !     *                                                               *
 !     *                Subroutines and Example Programs               *
 !     *                                                               *
@@ -56,7 +56,7 @@
 ! ARGUMENTS
 ! ON INPUT               a, b
 !
-!                          the range of x, i.e., a .le. x .le. b.
+!                          the range of x, i.e., a <= x <= b.
 !                          a must be less than b.
 !
 !                        m
@@ -113,7 +113,7 @@
 !                          dummy variable.
 !
 !                        c, d
-!                          the range of y, i.e., c .le. y .le. d.
+!                          the range of y, i.e., c <= y <= d.
 !                          c must be less than d.
 !
 !                        n
@@ -171,7 +171,7 @@
 !
 !                        elmbda
 !                          the constant lambda in the helmholtz
-!                          equation.  if lambda .gt. 0, a solution
+!                          equation.  if lambda > 0, a solution
 !                          may not exist.  however, hwscrt will
 !                          attempt to find a solution.
 !
@@ -251,14 +251,14 @@
 !                          a solution is not attempted.
 !
 !                          = 0  no error
-!                          = 1  a .ge. b
-!                          = 2  mbdcnd .lt. 0 or mbdcnd .gt. 4
-!                          = 3  c .ge. d
-!                          = 4  n .le. 3
-!                          = 5  nbdcnd .lt. 0 or nbdcnd .gt. 4
-!                          = 6  lambda .gt. 0
-!                          = 7  idimf .lt. m+1
-!                          = 8  m .le. 3
+!                          = 1  a >= b
+!                          = 2  mbdcnd < 0 or mbdcnd > 4
+!                          = 3  c >= d
+!                          = 4  n <= 3
+!                          = 5  nbdcnd < 0 or nbdcnd > 4
+!                          = 6  lambda > 0
+!                          = 7  idimf < m+1
+!                          = 8  m <= 3
 !                          = 20 If the dynamic allocation of real and
 !                               complex work space required for solution
 !                               fails (for example if n, m are too large
@@ -325,7 +325,7 @@ module module_hwscrt
         genbunn
 
     ! Explicit typing only
-    implicit none
+    implicit None
 
     ! Everything is private unless stated otherwise
     private

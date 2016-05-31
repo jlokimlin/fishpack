@@ -10,7 +10,7 @@
 !     *                                                               *
 !     *                    FISHPACK90  Version 1.1                    *
 !     *                                                               *
-!     *                 A Package of Fortran 77 and 90                *
+!     *                      A Package of Fortran                     *
 !     *                                                               *
 !     *                Subroutines and Example Programs               *
 !     *                                                               *
@@ -37,14 +37,14 @@
 !
 !    (1/r)(d/dr)(r*du/dr) + (d/dz)(du/dz) = (2*r*z)**2*(4*z**2 + 3*r**2)
 !
-!     on the rectangle 0 .lt. r .lt. 1 , 0 .lt. z .lt. 1 with the
+!     on the rectangle 0 < r < 1 , 0 < z < 1 with the
 !     boundary conditions
 !
-!     (du/dr)(1, z) = 4*z**2  for  0 .le. z .le. 1
+!     (du/dr)(1, z) = 4*z**2  for  0 <= z <= 1
 !
 !     and
 !
-!     (du/dz)(r, 0) = 0 and (du/dz)(r, 1) = 4*r**2  for  0 .le. r .le. 1 .
+!     (du/dz)(r, 0) = 0 and (du/dz)(r, 1) = 4*r**2  for  0 <= r <= 1 .
 !
 !     the solution to this problem is not unique.  it is a
 !     one-parameter family of solutions given by
@@ -65,7 +65,7 @@ program thstcyl
         FishpackSolver
 
     ! Explicit typing only
-    implicit none
+    implicit None
 
     !-----------------------------------------------
     ! Dictionary: local variables

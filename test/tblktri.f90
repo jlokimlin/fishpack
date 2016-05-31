@@ -10,7 +10,7 @@
 !     *                                                               *
 !     *                    FISHPACK90  Version 1.1                    *
 !     *                                                               *
-!     *                 A Package of Fortran 77 and 90                *
+!     *                      A Package of Fortran                     *
 !     *                                                               *
 !     *                Subroutines and Example Programs               *
 !     *                                                               *
@@ -39,17 +39,17 @@
 !                                                          (1)
 !                   = 15/4*s*t*(s**4+t**4)
 !
-!     on the rectangle 0 .lt. s .lt. 1 and 0 .lt. t .lt. 1
+!     on the rectangle 0 < s < 1 and 0 < t < 1
 !     with the boundary conditions
 !
 !     u(0, t) = 0
-!                            0 .le. t .le. 1
+!                            0 <= t <= 1
 !     u(1, t) = t**5
 !
 !     and
 !
 !     u(s, 0) = 0
-!                            0 .le. s .le. 1
+!                            0 <= s <= 1
 !     u(s, 1) = s**5
 !
 !     the exact solution of this problem is u(s, t) = (s*t)**5
@@ -94,7 +94,7 @@ program tblktri
         FishpackWorkspace
 
     ! Explicit typing only
-    implicit none
+    implicit None
 
     !-----------------------------------------------
     ! Dictionary

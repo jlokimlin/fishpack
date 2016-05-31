@@ -113,7 +113,7 @@ module type_MacGrid
         Grid
 
     ! Explicit typing only
-    implicit none
+    implicit None
 
     ! Everything is private unless stated otherwise
     private

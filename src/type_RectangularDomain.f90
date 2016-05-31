@@ -6,7 +6,7 @@ module type_RectangularDomain
         stderr => ERROR_UNIT
 
     ! Explicit typing only
-    implicit none
+    implicit None
 
     ! Everything is private unless stated otherwise
     private

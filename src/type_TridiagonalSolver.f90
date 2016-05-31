@@ -25,7 +25,7 @@ module type_TridiagonalSolver
         poistg
 
     ! Explicit typing only
-    implicit none
+    implicit None
 
     ! Everything is private unless stated otherwise
     private

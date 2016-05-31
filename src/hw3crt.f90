@@ -11,7 +11,7 @@ module module_hw3crt
         pois3dd
 
     ! Explicit typing only
-    implicit none
+    implicit None
 
     ! Everything is private unless stated otherwise
     private
@@ -37,7 +37,7 @@ contains
         !     *                                                               *
         !     *                    FISHPACK90  Version 1.1                    *
         !     *                                                               *
-        !     *                 A Package of Fortran 77 and 90                *
+        !     *                      A Package of Fortran                     *
         !     *                                                               *
         !     *                Subroutines and Example Programs               *
         !     *                                                               *
@@ -88,7 +88,7 @@ contains
         !
         ! ON INPUT               xs, xf
         !
-        !                          the range of x, i.e. xs .le. x .le. xf .
+        !                          the range of x, i.e. xs <= x <= xf .
         !                          xs must be less than xf.
         !
         !                        l
@@ -149,7 +149,7 @@ contains
         !                          dimensioned at least (m+1)*(n+1).
         !
         !                        ys, yf
-        !                          the range of y, i.e. ys .le. y .le. yf.
+        !                          the range of y, i.e. ys <= y <= yf.
         !                          ys must be less than yf.
         !
         !                        m
@@ -210,7 +210,7 @@ contains
         !                          dimensioned at least (l+1)*(n+1).
         !
         !                        zs, zf
-        !                          The range of z, i.e. zs .le. z .le. zf.
+        !                          The range of z, i.e. zs <= z <= zf.
         !                          zs must be less than zf.
         !
         !                        n

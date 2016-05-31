@@ -11,7 +11,7 @@
 !     *                                                               *
 !     *                    FISHPACK90  Version 1.1                    *
 !     *                                                               *
-!     *                 A Package of Fortran 77 and 90                *
+!     *                      A Package of Fortran                     *
 !     *                                                               *
 !     *                Subroutines and Example Programs               *
 !     *                                                               *
@@ -176,7 +176,7 @@
 !
 ! I/O                    None
 !
-! PRECISION              64-bit float and 32-bit integer
+! PRECISION              64-bit double precision
 !
 ! REQUIRED files         type_FishpackWorkspace.f90, comf.f90, type_FFTpack.f90
 !
@@ -243,13 +243,13 @@ module module_pois3d
         wp => REAL64
 
     use type_FishpackWorkspace, only: &
-        FishpackWorkspace
+        Fish => FishpackWorkspace
 
     use type_FFTpack, only: &
         FFTpack
 
     ! Explicit typing only
-    implicit none
+    implicit None
 
     ! Everything is private unless stated otherwise
     private
@@ -283,8 +283,8 @@ contains
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer (ip)             :: irwk, icwk
-        type (FishpackWorkspace) :: workspace
+        integer (ip)  :: irwk, icwk
+        type (Fish)   :: workspace
         !-----------------------------------------------
 
         !

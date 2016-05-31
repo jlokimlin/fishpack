@@ -10,7 +10,7 @@
 !     *                                                               *
 !     *                    FISHPACK90  Version 1.1                    *
 !     *                                                               *
-!     *                 A Package of Fortran 77 and 90                *
+!     *                      A Package of Fortran                     *
 !     *                                                               *
 !     *                Subroutines and Example Programs               *
 !     *                                                               *
@@ -151,7 +151,7 @@ program tgenbun
         CenteredGrid
 
     ! Explicit typing only
-    implicit none
+    implicit None
 
     !--------------------------------------------------------------------------------
     ! Dictionary

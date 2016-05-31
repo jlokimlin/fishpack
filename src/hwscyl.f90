@@ -1,3 +1,329 @@
+!
+!     file hwscyl.f90
+!
+!     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+!     *                                                               *
+!     *                  copyright (c) 2005 by UCAR                   *
+!     *                                                               *
+!     *       University Corporation for Atmospheric Research         *
+!     *                                                               *
+!     *                      all rights reserved                      *
+!     *                                                               *
+!     *                    FISHPACK90  Version 1.1                    *
+!     *                                                               *
+!     *                      A Package of Fortran                     *
+!     *                                                               *
+!     *                Subroutines and Example Programs               *
+!     *                                                               *
+!     *               for Modeling Geophysical Processes              *
+!     *                                                               *
+!     *                             by                                *
+!     *                                                               *
+!     *        John Adams, Paul Swarztrauber and Roland Sweet         *
+!     *                                                               *
+!     *                             of                                *
+!     *                                                               *
+!     *         the National Center for Atmospheric Research          *
+!     *                                                               *
+!     *                Boulder, Colorado  (80307)  U.S.A.             *
+!     *                                                               *
+!     *                   which is sponsored by                       *
+!     *                                                               *
+!     *              the National Science Foundation                  *
+!     *                                                               *
+!     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+!
+!     SUBROUTINE hwscyl(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd,
+!                       elmbda, f, idimf, pertrb, ierror)
+!
+!
+! DIMENSION OF           bda(n), bdb(n), bdc(m), bdd(m), f(idimf, n+1)
+! ARGUMENTS
+!
+! LATEST REVISION        May 2016
+!
+! PURPOSE                Slves a finite difference approximation
+!                        to the helmholtz equation in cylindrical
+!                        coordinates.  this modified helmholtz equation
+!
+!                          (1/r)(d/dr)(r(du/dr)) + (d/dz)(du/dz)
+!
+!                          + (lambda/r**2)u = f(r, z)
+!
+!                        results from the fourier transform of the
+!                        three-dimensional poisson equation.
+!
+! USAGE                  call hwscyl(a, b, m, mbdcnd, bda, bdb, c, d, n,
+!                                    nbdcnd, bdc, bdd, elmbda, f, idimf,
+!                                    pertrb, ierror, w)
+!
+! ARGUMENTS
+! ON INPUT               a, b
+!                          the range of r, i.e., a <= r <= b.
+!                          a must be less than b and a must be
+!                          non-negative.
+!
+!                        m
+!                          the number of panels into which the
+!                          interval (a, b) is subdivided.  hence,
+!                          there will be m+1 grid points in the
+!                          r-direction given by r(i) = a+(i-1)dr,
+!                          for i = 1, 2, ..., m+1, where dr = (b-a)/m
+!                          is the panel width. m must be greater
+!                          than 3.
+!
+!                        mbdcnd
+!                          indicates the type of boundary conditions
+!                          at r = a and r = b.
+!
+!                          = 1  if the solution is specified at
+!                               r = a and r = b.
+!                          = 2  if the solution is specified at
+!                               r = a and the derivative of the
+!                               solution with respect to r is
+!                               specified at r = b.
+!                          = 3  if the derivative of the solution
+!                               with respect to r is specified at
+!                               r = a (see note below) and r = b.
+!                          = 4  if the derivative of the solution
+!                               with respect to r is specified at
+!                               r = a (see note below) and the
+!                               solution is specified at r = b.
+!                          = 5  if the solution is unspecified at
+!                               r = a = 0 and the solution is
+!                               specified at r = b.
+!                          = 6  if the solution is unspecified at
+!                               r = a = 0 and the derivative of the
+!                               solution with respect to r is specified
+!                               at r = b.
+!
+!                          if a = 0, do not use mbdcnd = 3 or 4,
+!                          but instead use mbdcnd = 1, 2, 5, or 6  .
+!
+!                        bda
+!                          a one-dimensional array of length n+1 that
+!                          specifies the values of the derivative of
+!                          the solution with respect to r at r = a.
+!
+!                          when mbdcnd = 3 or 4,
+!                            bda(j) = (d/dr)u(a, z(j)), j = 1, 2, ..., n+1.
+!
+!                          when mbdcnd has any other value, bda is
+!                          a dummy variable.
+!
+!                        bdb
+!                          a one-dimensional array of length n+1 that
+!                          specifies the values of the derivative
+!                          of the solution with respect to r at r = b.
+!
+!                          when mbdcnd = 2, 3, or 6,
+!                            bdb(j) = (d/dr)u(b, z(j)), j = 1, 2, ..., n+1.
+!
+!                          when mbdcnd has any other value, bdb is
+!                          a dummy variable.
+!
+!                        c, d
+!                          the range of z, i.e., c <= z <= d.
+!                          c must be less than d.
+!
+!                        n
+!                          the number of panels into which the
+!                          interval (c, d) is subdivided.  hence,
+!                          there will be n+1 grid points in the
+!                          z-direction given by z(j) = c+(j-1)dz,
+!                          for j = 1, 2, ..., n+1,
+!                          where dz = (d-c)/n is the panel width.
+!                          n must be greater than 3.
+!
+!                        nbdcnd
+!                          indicates the type of boundary conditions
+!                          at z = c and z = d.
+!
+!                          = 0  if the solution is periodic in z,
+!                               i.e., u(i, 1) = u(i, n+1).
+!                          = 1  if the solution is specified at
+!                               z = c and z = d.
+!                          = 2  if the solution is specified at
+!                               z = c and the derivative of
+!                               the solution with respect to z is
+!                               specified at z = d.
+!                          = 3  if the derivative of the solution
+!                               with respect to z is
+!                               specified at z = c and z = d.
+!                          = 4  if the derivative of the solution
+!                               with respect to z is specified at
+!                               z = c and the solution is specified
+!                               at z = d.
+!
+!                        bdc
+!                          a one-dimensional array of length m+1 that
+!                          specifies the values of the derivative
+!                          of the solution with respect to z at z = c.
+!
+!                          when nbdcnd = 3 or 4,
+!                            bdc(i) = (d/dz)u(r(i), c), i = 1, 2, ..., m+1.
+!
+!                          when nbdcnd has any other value, bdc is
+!                          a dummy variable.
+!
+!                        bdd
+!                          a one-dimensional array of length m+1 that
+!                          specifies the values of the derivative of
+!                          the solution with respect to z at z = d.
+!
+!                          when nbdcnd = 2 or 3,
+!                            bdd(i) = (d/dz)u(r(i), d), i = 1, 2, ..., m+1
+!
+!                          when nbdcnd has any other value, bdd is
+!                          a dummy variable.
+!
+!                        elmbda
+!                          the constant lambda in the helmholtz
+!                          equation.  if lambda > 0, a solution
+!                          may not exist.  however, hwscyl will
+!                          attempt to find a solution.  lambda must
+!                          be zero when mbdcnd = 5 or 6  .
+!
+!                        f
+!                          a two-dimensional array, of dimension at
+!                          least (m+1)*(n+1), specifying values
+!                          of the right side of the helmholtz
+!                          equation and boundary data (if any).
+!
+!                          on the interior, f is defined as follows:
+!                          for i = 2, 3, ..., m and j = 2, 3, ..., n
+!                          f(i, j) = f(r(i), z(j)).
+!
+!                          on the boundaries f is defined as follows:
+!                          for j = 1, 2, ..., n+1 and i = 1, 2, ..., m+1
+!
+!                          mbdcnd   f(1, j)            f(m+1, j)
+!                          ------   ---------         ---------
+!
+!                            1      u(a, z(j))         u(b, z(j))
+!                            2      u(a, z(j))         f(b, z(j))
+!                            3      f(a, z(j))         f(b, z(j))
+!                            4      f(a, z(j))         u(b, z(j))
+!                            5      f(0, z(j))         u(b, z(j))
+!                            6      f(0, z(j))         f(b, z(j))
+!
+!                          nbdcnd   f(i, 1)            f(i, n+1)
+!                          ------   ---------         ---------
+!
+!                            0      f(r(i), c)         f(r(i), c)
+!                            1      u(r(i), c)         u(r(i), d)
+!                            2      u(r(i), c)         f(r(i), d)
+!                            3      f(r(i), c)         f(r(i), d)
+!                            4      f(r(i), c)         u(r(i), d)
+!
+!                          note:
+!                          if the table calls for both the solution
+!                          u and the right side f at a corner then
+!                          the solution must be specified.
+!
+!                        idimf
+!                          the row (or first) dimension of the array
+!                          f as it appears in the program calling
+!                          hwscyl.  this parameter is used to specify
+!                          the variable dimension of f.  idimf must
+!                          be at least m+1  .
+!
+!
+! ON OUTPUT              f
+!                          contains the solution u(i, j) of the finite
+!                          difference approximation for the grid point
+!                          (r(i), z(j)), i =1, 2, ..., m+1, j =1, 2, ..., n+1.
+!
+!                        pertrb
+!                          if one specifies a combination of periodic,
+!                          derivative, and unspecified boundary
+!                          conditions for a poisson equation
+!                          (lambda = 0), a solution may not exist.
+!                          pertrb is a constant, calculated and
+!                          subtracted from f, which ensures that a
+!                          solution exists.  hwscyl then computes
+!                          this solution, which is a least squares
+!                          solution to the original approximation.
+!                          this solution plus any constant is also
+!                          a solution.  hence, the solution is not
+!                          unique. the value of pertrb should be
+!                          small compared to the right side f.
+!                          otherwise, a solution is obtained to an
+!                          essentially different problem.  this
+!                          comparison should always be made to insure
+!                          that a meaningful solution has been obtained.
+!
+!                        ierror
+!                          an error flag which indicates invalid input
+!                          parameters.  except for numbers 0 and 11,
+!                          a solution is not attempted.
+!
+!                          =  0  no error.
+!                          =  1  a < 0  .
+!                          =  2  a >= b.
+!                          =  3  mbdcnd < 1 or mbdcnd > 6  .
+!                          =  4  c >= d.
+!                          =  5  n <= 3
+!                          =  6  nbdcnd < 0 or nbdcnd > 4  .
+!                          =  7  a = 0, mbdcnd = 3 or 4  .
+!                          =  8  a > 0, mbdcnd >= 5  .
+!                          =  9  a = 0, lambda /= 0, mbdcnd >= 5  .
+!                          = 10  idimf < m+1  .
+!                          = 11  lambda > 0  .
+!                          = 12  m <= 3
+!                          = 20 if the dynamic allocation of real and
+!                               complex work space required for solution
+!                               fails (for example if n, m are too large
+!                               for your computer)
+!
+!                          since this is the only means of indicating
+!                          a possibly incorrect call to hwscyl, the
+!                          user should test ierror after the call.
+!
+!
+! SPECIAL CONDITIONS     None
+!
+! I/O                    None
+!
+! PRECISION              64-bit double precision
+!
+! REQUIRED files         type_FishpackWorkspace.f90, genbun.f90, gnbnaux.f90, comf.f90
+!
+! STANDARD               Fortran 2008
+!
+! HISTORY                Written by Roland Sweet at NCAR in the late
+!                        1970's.  Released on NCAR's public software
+!                        libraries in January 1980.
+!                        Revised in June 2004 by John Adams using
+!                        Fortran 90 dynamically allocated work space.
+!
+!
+!
+! ALGORITHM              The routine defines the finite difference
+!                        equations, incorporates boundary data, and
+!                        adjusts the right side of singular systems
+!                        and then calls genbun to solve the system.
+!
+! TIMING                 For large  m and n, the operation count
+!                        is roughly proportional to
+!
+!                          m*n*(log2(n)
+!
+!                        but also depends on input parameters nbdcnd
+!                        and mbdcnd.
+!
+! ACCURACY               The solution process employed results in a loss
+!                        of no more than three significant digits for n
+!                        and m as large as 64.  more details about
+!                        accuracy can be found in the documentation for
+!                        subroutine genbun which is the routine that
+!                        solves the finite difference equations.
+!
+! REFERENCES             Swarztrauber, P. and R. Sweet, "Efficient
+!                        FORTRAN subprograms for the solution of
+!                        elliptic equations"
+!                        NCAR TN/IA-109, July, 1975, 138 pp.
+!
 module module_hwscyl
 
     use, intrinsic :: iso_fortran_env, only: &
@@ -6,13 +332,13 @@ module module_hwscyl
         stdout => OUTPUT_UNIT
 
     use type_FishpackWorkspace, only: &
-        FishpackWorkspace
+        Fish => FishpackWorkspace
 
     use module_genbun, only: &
         genbunn
 
     ! Explicit typing only
-    implicit none
+    implicit None
 
     ! Everything is private unless stated otherwise
     private
@@ -24,330 +350,6 @@ contains
 
     subroutine hwscyl(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror)
-        !
-        !     file hwscyl.f
-        !
-        !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-        !     *                                                               *
-        !     *                  copyright (c) 2005 by UCAR                   *
-        !     *                                                               *
-        !     *       University Corporation for Atmospheric Research         *
-        !     *                                                               *
-        !     *                      all rights reserved                      *
-        !     *                                                               *
-        !     *                    FISHPACK90  Version 1.1                    *
-        !     *                                                               *
-        !     *                 A Package of Fortran 77 and 90                *
-        !     *                                                               *
-        !     *                Subroutines and Example Programs               *
-        !     *                                                               *
-        !     *               for Modeling Geophysical Processes              *
-        !     *                                                               *
-        !     *                             by                                *
-        !     *                                                               *
-        !     *        John Adams, Paul Swarztrauber and Roland Sweet         *
-        !     *                                                               *
-        !     *                             of                                *
-        !     *                                                               *
-        !     *         the National Center for Atmospheric Research          *
-        !     *                                                               *
-        !     *                Boulder, Colorado  (80307)  U.S.A.             *
-        !     *                                                               *
-        !     *                   which is sponsored by                       *
-        !     *                                                               *
-        !     *              the National Science Foundation                  *
-        !     *                                                               *
-        !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-        !
-        !     SUBROUTINE hwscyl (A, B, M, MBDCND, BDA, BDB, C, D, N, NBDCND, BDC, BDD,
-        !    +                   ELMBDA, F, IDIMF, PERTRB, ierror)
-        !
-        !
-        ! DIMENSION OF           BDA(N), BDB(N), BDC(M), BDD(M), F(IDIMF, N+1)
-        ! ARGUMENTS
-        !
-        ! LATEST REVISION        June 2004
-        !
-        ! PURPOSE                SOLVES A FINITE DIFFERENCE APPROXIMATION
-        !                        TO THE HELMHOLTZ EQUATION IN CYLINDRICAL
-        !                        COORDINATES.  THIS MODIFIED HELMHOLTZ EQUATION
-        !
-        !                          (1/R)(D/DR)(R(DU/DR)) + (D/DZ)(DU/DZ)
-        !
-        !                          + (LAMBDA/R**2)U = F(R, Z)
-        !
-        !                        RESULTS FROM THE FOURIER TRANSFORM OF THE
-        !                        THREE-DIMENSIONAL POISSON EQUATION.
-        !
-        ! USAGE                  CALL hwscyl (A, B, M, MBDCND, BDA, BDB, C, D, N,
-        !                                     NBDCND, BDC, BDD, ELMBDA, F, IDIMF,
-        !                                     PERTRB, ierror, W)
-        !
-        ! ARGUMENTS
-        ! ON INPUT               A, B
-        !                          THE RANGE OF R, I.E., A .LE. R .LE. B.
-        !                          A MUST BE LESS THAN B AND A MUST BE
-        !                          NON-NEGATIVE.
-        !
-        !                        M
-        !                          THE NUMBER OF PANELS INTO WHICH THE
-        !                          INTERVAL (A, B) IS SUBDIVIDED.  HENCE,
-        !                          THERE WILL BE M+1 GRID POINTS IN THE
-        !                          R-DIRECTION GIVEN BY R(I) = A+(I-1)DR,
-        !                          FOR I = 1, 2, ..., M+1, WHERE DR = (B-A)/M
-        !                          IS THE PANEL WIDTH. M MUST BE GREATER
-        !                          THAN 3.
-        !
-        !                        MBDCND
-        !                          INDICATES THE TYPE OF BOUNDARY CONDITIONS
-        !                          AT R = A AND R = B.
-        !
-        !                          = 1  IF THE SOLUTION IS SPECIFIED AT
-        !                               R = A AND R = B.
-        !                          = 2  IF THE SOLUTION IS SPECIFIED AT
-        !                               R = A AND THE DERIVATIVE OF THE
-        !                               SOLUTION WITH RESPECT TO R IS
-        !                               SPECIFIED AT R = B.
-        !                          = 3  IF THE DERIVATIVE OF THE SOLUTION
-        !                               WITH RESPECT TO R IS SPECIFIED AT
-        !                               R = A (SEE NOTE BELOW) AND R = B.
-        !                          = 4  IF THE DERIVATIVE OF THE SOLUTION
-        !                               WITH RESPECT TO R IS SPECIFIED AT
-        !                               R = A (SEE NOTE BELOW) AND THE
-        !                               SOLUTION IS SPECIFIED AT R = B.
-        !                          = 5  IF THE SOLUTION IS UNSPECIFIED AT
-        !                               R = A = 0 AND THE SOLUTION IS
-        !                               SPECIFIED AT R = B.
-        !                          = 6  IF THE SOLUTION IS UNSPECIFIED AT
-        !                               R = A = 0 AND THE DERIVATIVE OF THE
-        !                               SOLUTION WITH RESPECT TO R IS SPECIFIED
-        !                               AT R = B.
-        !
-        !                          IF A = 0, DO NOT USE MBDCND = 3 OR 4,
-        !                          BUT INSTEAD USE MBDCND = 1, 2, 5, OR 6  .
-        !
-        !                        BDA
-        !                          A ONE-DIMENSIONAL ARRAY OF LENGTH N+1 THAT
-        !                          SPECIFIES THE VALUES OF THE DERIVATIVE OF
-        !                          THE SOLUTION WITH RESPECT TO R AT R = A.
-        !
-        !                          WHEN MBDCND = 3 OR 4,
-        !                            BDA(J) = (D/DR)U(A, Z(J)), J = 1, 2, ..., N+1.
-        !
-        !                          WHEN MBDCND HAS ANY OTHER VALUE, BDA IS
-        !                          A DUMMY VARIABLE.
-        !
-        !                        BDB
-        !                          A ONE-DIMENSIONAL ARRAY OF LENGTH N+1 THAT
-        !                          SPECIFIES THE VALUES OF THE DERIVATIVE
-        !                          OF THE SOLUTION WITH RESPECT TO R AT R = B.
-        !
-        !                          WHEN MBDCND = 2, 3, OR 6,
-        !                            BDB(J) = (D/DR)U(B, Z(J)), J = 1, 2, ..., N+1.
-        !
-        !                          WHEN MBDCND HAS ANY OTHER VALUE, BDB IS
-        !                          A DUMMY VARIABLE.
-        !
-        !                        C, D
-        !                          THE RANGE OF Z, I.E., C .LE. Z .LE. D.
-        !                          C MUST BE LESS THAN D.
-        !
-        !                        N
-        !                          THE NUMBER OF PANELS INTO WHICH THE
-        !                          INTERVAL (C, D) IS SUBDIVIDED.  HENCE,
-        !                          THERE WILL BE N+1 GRID POINTS IN THE
-        !                          Z-DIRECTION GIVEN BY Z(J) = C+(J-1)DZ,
-        !                          FOR J = 1, 2, ..., N+1,
-        !                          WHERE DZ = (D-C)/N IS THE PANEL WIDTH.
-        !                          N MUST BE GREATER THAN 3.
-        !
-        !                        NBDCND
-        !                          INDICATES THE TYPE OF BOUNDARY CONDITIONS
-        !                          AT Z = C AND Z = D.
-        !
-        !                          = 0  IF THE SOLUTION IS PERIODIC IN Z,
-        !                               I.E., U(I, 1) = U(I, N+1).
-        !                          = 1  IF THE SOLUTION IS SPECIFIED AT
-        !                               Z = C AND Z = D.
-        !                          = 2  IF THE SOLUTION IS SPECIFIED AT
-        !                               Z = C AND THE DERIVATIVE OF
-        !                               THE SOLUTION WITH RESPECT TO Z IS
-        !                               SPECIFIED AT Z = D.
-        !                          = 3  IF THE DERIVATIVE OF THE SOLUTION
-        !                               WITH RESPECT TO Z IS
-        !                               SPECIFIED AT Z = C AND Z = D.
-        !                          = 4  IF THE DERIVATIVE OF THE SOLUTION
-        !                               WITH RESPECT TO Z IS SPECIFIED AT
-        !                               Z = C AND THE SOLUTION IS SPECIFIED
-        !                               AT Z = D.
-        !
-        !                        BDC
-        !                          A ONE-DIMENSIONAL ARRAY OF LENGTH M+1 THAT
-        !                          SPECIFIES THE VALUES OF THE DERIVATIVE
-        !                          OF THE SOLUTION WITH RESPECT TO Z AT Z = C.
-        !
-        !                          WHEN NBDCND = 3 OR 4,
-        !                            BDC(I) = (D/DZ)U(R(I), C), I = 1, 2, ..., M+1.
-        !
-        !                          WHEN NBDCND HAS ANY OTHER VALUE, BDC IS
-        !                          A DUMMY VARIABLE.
-        !
-        !                        BDD
-        !                          A ONE-DIMENSIONAL ARRAY OF LENGTH M+1 THAT
-        !                          SPECIFIES THE VALUES OF THE DERIVATIVE OF
-        !                          THE SOLUTION WITH RESPECT TO Z AT Z = D.
-        !
-        !                          WHEN NBDCND = 2 OR 3,
-        !                            BDD(I) = (D/DZ)U(R(I), D), I = 1, 2, ..., M+1
-        !
-        !                          WHEN NBDCND HAS ANY OTHER VALUE, BDD IS
-        !                          A DUMMY VARIABLE.
-        !
-        !                        ELMBDA
-        !                          THE CONSTANT LAMBDA IN THE HELMHOLTZ
-        !                          EQUATION.  IF LAMBDA .GT. 0, A SOLUTION
-        !                          MAY NOT EXIST.  HOWEVER, hwscyl WILL
-        !                          ATTEMPT TO FIND A SOLUTION.  LAMBDA MUST
-        !                          BE ZERO WHEN MBDCND = 5 OR 6  .
-        !
-        !                        F
-        !                          A TWO-DIMENSIONAL ARRAY, OF DIMENSION AT
-        !                          LEAST (M+1)*(N+1), SPECIFYING VALUES
-        !                          OF THE RIGHT SIDE OF THE HELMHOLTZ
-        !                          EQUATION AND BOUNDARY DATA (IF ANY).
-        !
-        !                          ON THE INTERIOR, F IS DEFINED AS FOLLOWS:
-        !                          FOR I = 2, 3, ..., M AND J = 2, 3, ..., N
-        !                          F(I, J) = F(R(I), Z(J)).
-        !
-        !                          ON THE BOUNDARIES F IS DEFINED AS FOLLOWS:
-        !                          FOR J = 1, 2, ..., N+1 AND I = 1, 2, ..., M+1
-        !
-        !                          MBDCND   F(1, J)            F(M+1, J)
-        !                          ------   ---------         ---------
-        !
-        !                            1      U(A, Z(J))         U(B, Z(J))
-        !                            2      U(A, Z(J))         F(B, Z(J))
-        !                            3      F(A, Z(J))         F(B, Z(J))
-        !                            4      F(A, Z(J))         U(B, Z(J))
-        !                            5      F(0, Z(J))         U(B, Z(J))
-        !                            6      F(0, Z(J))         F(B, Z(J))
-        !
-        !                          NBDCND   F(I, 1)            F(I, N+1)
-        !                          ------   ---------         ---------
-        !
-        !                            0      F(R(I), C)         F(R(I), C)
-        !                            1      U(R(I), C)         U(R(I), D)
-        !                            2      U(R(I), C)         F(R(I), D)
-        !                            3      F(R(I), C)         F(R(I), D)
-        !                            4      F(R(I), C)         U(R(I), D)
-        !
-        !                          NOTE:
-        !                          IF THE TABLE CALLS FOR BOTH THE SOLUTION
-        !                          U AND THE RIGHT SIDE F AT A CORNER THEN
-        !                          THE SOLUTION MUST BE SPECIFIED.
-        !
-        !                        IDIMF
-        !                          THE ROW (OR FIRST) DIMENSION OF THE ARRAY
-        !                          F AS IT APPEARS IN THE PROGRAM CALLING
-        !                          hwscyl.  THIS PARAMETER IS USED TO SPECIFY
-        !                          THE VARIABLE DIMENSION OF F.  IDIMF MUST
-        !                          BE AT LEAST M+1  .
-        !
-        !
-        ! ON OUTPUT              F
-        !                          CONTAINS THE SOLUTION U(I, J) OF THE FINITE
-        !                          DIFFERENCE APPROXIMATION FOR THE GRID POINT
-        !                          (R(I), Z(J)), I =1, 2, ..., M+1, J =1, 2, ..., N+1.
-        !
-        !                        PERTRB
-        !                          IF ONE SPECIFIES A COMBINATION OF PERIODIC,
-        !                          DERIVATIVE, AND UNSPECIFIED BOUNDARY
-        !                          CONDITIONS FOR A POISSON EQUATION
-        !                          (LAMBDA = 0), A SOLUTION MAY NOT EXIST.
-        !                          PERTRB IS A CONSTANT, CALCULATED AND
-        !                          SUBTRACTED FROM F, WHICH ENSURES THAT A
-        !                          SOLUTION EXISTS.  hwscyl THEN COMPUTES
-        !                          THIS SOLUTION, WHICH IS A LEAST SQUARES
-        !                          SOLUTION TO THE ORIGINAL APPROXIMATION.
-        !                          THIS SOLUTION PLUS ANY CONSTANT IS ALSO
-        !                          A SOLUTION.  HENCE, THE SOLUTION IS NOT
-        !                          UNIQUE. THE VALUE OF PERTRB SHOULD BE
-        !                          SMALL COMPARED TO THE RIGHT SIDE F.
-        !                          OTHERWISE, A SOLUTION IS OBTAINED TO AN
-        !                          ESSENTIALLY DIFFERENT PROBLEM.  THIS
-        !                          COMPARISON SHOULD ALWAYS BE MADE TO INSURE
-        !                          THAT A MEANINGFUL SOLUTION HAS BEEN OBTAINED.
-        !
-        !                        ierror
-        !                          AN ERROR FLAG WHICH INDICATES INVALID INPUT
-        !                          PARAMETERS.  EXCEPT FOR NUMBERS 0 AND 11,
-        !                          A SOLUTION IS NOT ATTEMPTED.
-        !
-        !                          =  0  NO ERROR.
-        !                          =  1  A .LT. 0  .
-        !                          =  2  A .GE. B.
-        !                          =  3  MBDCND .LT. 1 OR MBDCND .GT. 6  .
-        !                          =  4  C .GE. D.
-        !                          =  5  N .LE. 3
-        !                          =  6  NBDCND .LT. 0 OR NBDCND .GT. 4  .
-        !                          =  7  A = 0, MBDCND = 3 OR 4  .
-        !                          =  8  A .GT. 0, MBDCND .GE. 5  .
-        !                          =  9  A = 0, LAMBDA .NE. 0, MBDCND .GE. 5  .
-        !                          = 10  IDIMF .LT. M+1  .
-        !                          = 11  LAMBDA .GT. 0  .
-        !                          = 12  M .LE. 3
-        !                          = 20 If the dynamic allocation of real and
-        !                               complex work space required for solution
-        !                               fails (for example if N, M are too large
-        !                               for your computer)
-        !
-        !                          SINCE THIS IS THE ONLY MEANS OF INDICATING
-        !                          A POSSIBLY INCORRECT CALL TO hwscyl, THE
-        !                          USER SHOULD TEST ierror AFTER THE CALL.
-        !
-        !
-        ! SPECIAL CONDITIONS     NONE
-        !
-        ! I/O                    NONE
-        !
-        ! PRECISION              SINGLE
-        !
-        ! REQUIRED files         fish.f, genbun.f, gnbnaux.f, comf.f
-        !
-        ! LANGUAGE               FORTRAN 90
-        !
-        ! HISTORY                WRITTEN BY ROLAND SWEET AT NCAR IN THE LATE
-        !                        1970'S.  RELEASED ON NCAR'S PUBLIC SOFTWARE
-        !                        LIBRARIES IN January 1980.
-        !                        Revised in June 2004 by John Adams using
-        !                        Fortran 90 dynamically allocated work space.
-        !
-        !
-        ! PORTABILITY            FORTRAN 90
-        !
-        ! ALGORITHM              THE ROUTINE DEFINES THE FINITE DIFFERENCE
-        !                        EQUATIONS, INCORPORATES BOUNDARY DATA, AND
-        !                        ADJUSTS THE RIGHT SIDE OF SINGULAR SYSTEMS
-        !                        AND THEN CALLS genbun TO SOLVE THE SYSTEM.
-        !
-        ! TIMING                 FOR LARGE  M AND N, THE OPERATION COUNT
-        !                        IS ROUGHLY PROPORTIONAL TO
-        !                          M*N*(LOG2(N)
-        !                        BUT ALSO DEPENDS ON INPUT PARAMETERS NBDCND
-        !                        AND MBDCND.
-        !
-        ! ACCURACY               THE SOLUTION PROCESS EMPLOYED RESULTS IN A LOSS
-        !                        OF NO MORE THAN THREE SIGNIFICANT DIGITS FOR N
-        !                        AND M AS LARGE AS 64.  MORE DETAILS ABOUT
-        !                        ACCURACY CAN BE FOUND IN THE DOCUMENTATION FOR
-        !                        SUBROUTINE genbun WHICH IS THE ROUTINE THAT
-        !                        SOLVES THE FINITE DIFFERENCE EQUATIONS.
-        !
-        ! REFERENCES             SWARZTRAUBER, P. AND R. SWEET, "EFFICIENT
-        !                        FORTRAN SUBPROGRAMS FOR THE SOLUTION OF
-        !                        ELLIPTIC EQUATIONS"
-        !                          NCAR TN/IA-109, JULY, 1975, 138 PP.
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
@@ -371,252 +373,308 @@ contains
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        type (FishpackWorkspace) :: workspace
-        integer (ip)             :: irwk
+        type (Fish)  :: workspace
+        integer (ip) :: irwk, icwk
         !-----------------------------------------------
 
-        ! initialize error flag
-        ierror = 0
+        !
+        !==> Check validity of input arguments
+        !
+        if (a < 0.0_wp) then
+            ierror = 1
+            return
+        else if (a >= b) then
+            ierror = 2
+            return
+        else if (mbdcnd <= 0 .or. mbdcnd >= 7) then
+            ierror = 3
+            return
+        else if (c >= d) then
+            ierror = 4
+            return
+        else if (n <= 3) then
+            ierror = 5
+            return
+        else if (nbdcnd <= (-1) .or. nbdcnd >= 5) then
+            ierror = 6
+            return
+        else if (a == 0.0_wp .and. (mbdcnd == 3 .or. mbdcnd == 4)) then
+            ierror = 7
+            return
+        else if (a > 0.0_wp .and. mbdcnd >= 5) then
+            ierror = 8
+            return
+        else if (a == 0.0_wp .and. elmbda /= 0.0_wp .and. mbdcnd >= 5) then
+            ierror = 9
+            return
+        else if (idimf < m + 1) then
+            ierror = 10
+            return
+        else if (m <= 3) then
+            ierror = 12
+            return
+        else
+            ierror = 0
+        end if
 
-        ! check if input values are valid
-        if (a < 0.) ierror = 1
-        if (a >= b) ierror = 2
-        if (mbdcnd<=0 .or. mbdcnd>=7) ierror = 3
-        if (c >= d) ierror = 4
-        if (n <= 3) ierror = 5
-        if (nbdcnd<=(-1) .or. nbdcnd>=5) ierror = 6
-        if (a==0. .and. (mbdcnd==3 .or. mbdcnd==4)) ierror = 7
-        if (a>0. .and. mbdcnd>=5) ierror = 8
-        if (a==0. .and. elmbda/=0. .and. mbdcnd>=5) ierror = 9
-        if (idimf < m + 1) ierror = 10
-        if (m <= 3) ierror = 12
-        if (ierror /= 0) return
-
-        ! compute real workspace size
+        !
+        !==> Allocate memory
+        !
         call workspace%get_genbun_workspace_dimensions(n, m, irwk)
-
-        ! Allocate workspace
         irwk = irwk + 3*m
-        associate( icwk => 0 )
-            call workspace%create( irwk, icwk, ierror )
-        end associate
+        icwk = 0
+
+        call workspace%create(irwk, icwk, ierror)
 
         ! Check if allocation was succcessful
         if (ierror == 20) return
 
-        ! solve system
         associate( rew => workspace%real_workspace )
+            !
+            !==> Solve system
+            !
             call hwscyll(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
                 elmbda, f, idimf, pertrb, ierror, rew)
         end associate
 
-        ! Release memory
+        !
+        !==> Release memory
+        !
         call workspace%destroy()
 
+    contains
+
+        subroutine hwscyll(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
+            bdd, elmbda, f, idimf, pertrb, ierror, w)
+            !-----------------------------------------------
+            ! Dictionary: calling arguments
+            !-----------------------------------------------
+            integer (ip), intent (in)     :: m
+            integer (ip), intent (in)     :: mbdcnd
+            integer (ip), intent (in)     :: n
+            integer (ip), intent (in)     :: nbdcnd
+            integer (ip), intent (in)     :: idimf
+            integer (ip), intent (out)    :: ierror
+            real (wp),    intent (in)     :: a
+            real (wp),    intent (in)     :: b
+            real (wp),    intent (in)     :: c
+            real (wp),    intent (in)     :: d
+            real (wp),    intent (in)     :: elmbda
+            real (wp),    intent (out)    :: pertrb
+            real (wp),    intent (in)     :: bda(:)
+            real (wp),    intent (in)     :: bdb(:)
+            real (wp),    intent (in)     :: bdc(:)
+            real (wp),    intent (in)     :: bdd(:)
+            real (wp),    intent (in out) :: f(idimf,*)
+            real (wp),    intent (in out) :: w(*)
+            !-----------------------------------------------
+            ! Dictionary: local variables
+            !-----------------------------------------------
+            integer (ip) :: mp1, np1, np, mstart, mstop, munk, nstart, nstop, nunk
+            integer (ip) :: id2, id3, id4, id5, id6, istart
+            integer (ip) :: ij, i, j, k, l, nsp1, nstm1
+            integer (ip) :: local_error_flag, i1
+            real (wp)    :: dr, half_dr, dr2, dth, dth2
+            real (wp)    :: a1, r, a2, s, s1, s2
+            !-----------------------------------------------
+
+            mp1 = m + 1
+            dr = (b - a)/m
+            half_dr = dr/2
+            dr2 = dr**2
+            np1 = n + 1
+            dth = (d - c)/n
+            dth2 = dth**2
+            np = nbdcnd + 1
+            !
+            !==> Define range of indices i and j for unknowns u(i, j).
+            !
+            mstart = 2
+            mstop = m
+            select case (mbdcnd)
+                case (2)
+                    mstop = mp1
+                case (3, 6)
+                    mstart = 1
+                    mstop = mp1
+                case (4:5)
+                    mstart = 1
+            end select
+
+            munk = mstop - mstart + 1
+            nstart = 1
+            nstop = n
+            select case (np)
+                case (2)
+                    nstart = 2
+                case (3)
+                    nstart = 2
+                    nstop = np1
+                case (4)
+                    nstop = np1
+            end select
+
+            nunk = nstop - nstart + 1
+            !
+            !==> Define a, b, c coefficients in w-array.
+            !
+            id2 = munk
+            id3 = id2 + munk
+            id4 = id3 + munk
+            id5 = id4 + munk
+            id6 = id5 + munk
+            istart = 1
+            a1 = 2.0_wp/dr2
+            ij = 0
+
+            if (mbdcnd==3 .or. mbdcnd==4) ij = 1
+
+            if (mbdcnd > 4) then
+                w(1) = 0.
+                w(id2+1) = -2.0_wp*a1
+                w(id3+1) = 2.0_wp*a1
+                istart = 2
+                ij = 1
+            end if
+
+            do i = istart, munk
+                r = a + real(i - ij, kind=wp)*dr
+                j = id5 + i
+                w(j) = r
+                j = id6 + i
+                w(j) = 1.0_wp/r**2
+                w(i) = (r - half_dr)/(r*dr2)
+                j = id3 + i
+                w(j) = (r + half_dr)/(r*dr2)
+                k = id6 + i
+                j = id2 + i
+                w(j) = (-a1) + elmbda*w(k)
+            end do
+
+            select case (mbdcnd)
+                case (2)
+                    w(id2) = a1
+                case (3, 6)
+                    w(id2) = a1
+                    w(id3+1) = a1*real(istart, kind=wp)
+                case (4)
+                    w(id3+1) = a1*real(istart, kind=wp)
+            end select
+
+            select case (mbdcnd)
+                case (1:2)
+                    a1 = w(1)
+                    f(2, nstart:nstop) = f(2, nstart:nstop) - a1*f(1, nstart:nstop)
+                case (3:4)
+                    a1 = 2.0_wp*dr*w(1)
+                    f(1, nstart:nstop) = f(1, nstart:nstop) + a1*bda(nstart:nstop)
+            end select
+
+            select case (mbdcnd)
+                case (1, 4:5)
+                    a1 = w(id4)
+                    f(m, nstart:nstop) = f(m, nstart:nstop) - a1*f(mp1, nstart:nstop)
+                case (2:3, 6)
+                    a1 = 2.0_wp*dr*w(id4)
+                    f(mp1, nstart:nstop) = f(mp1, nstart:nstop) - a1*bdb(nstart:nstop)
+            end select
+
+
+            !
+            !==> Enter boundary data for z-boundaries.
+            !
+            a1 = 1.0_wp/dth2
+            l = id5 - mstart + 1
+
+            if (np /= 1) then
+                select case (np)
+                    case (2:3)
+                        f(mstart:mstop, 2) = f(mstart:mstop, 2) - a1*f(mstart:mstop, 1)
+                    case (4:5)
+                        a1 = 2./dth
+                        f(mstart:mstop, 1) = f(mstart:mstop, 1) + a1*bdc(mstart:mstop)
+                end select
+
+                a1 = 1.0_wp/dth2
+                select case (np)
+                    case (2, 5)
+                        f(mstart:mstop, n) = f(mstart:mstop, n) - a1*f(mstart:mstop, np1)
+                    case (3:4)
+                        a1 = 2./dth
+                        f(mstart:mstop, np1) = f(mstart:mstop, np1) - a1*bdd(mstart:mstop)
+                end select
+            end if
+
+            if_block: block
+                pertrb = 0.0_wp
+                if (elmbda >= 0.0_wp) then
+                    if (elmbda /= 0.0_wp) then
+                        ierror = 11
+                        return
+                    else
+                        w(id5+1) = 0.5_wp*(w(id5+2)-half_dr)
+
+                        select case (mbdcnd)
+                            case (1:2, 4:5)
+                                exit if_block
+                            case (6)
+                                w(id5+1) = 0.5_wp*w(id5+1)
+                        end select
+
+                        select case (np)
+                            case (1)
+                                a2 = 1.0_wp
+                            case (2:3, 5)
+                                exit if_block
+                            case (4)
+                                a2 = 2.0_wp
+                        end select
+
+                        k = id5 + munk
+                        w(k) = 0.5_wp*(w(k-1)+half_dr)
+                        s = 0.0_wp
+
+                        do i = mstart, mstop
+                            s1 = 0.0_wp
+                            nsp1 = nstart + 1
+                            nstm1 = nstop - 1
+                            s1 = sum(f(i, nsp1:nstm1))
+                            k = i + l
+                            s = s + (a2*s1 + f(i, nstart)+f(i, nstop))*w(k)
+                        end do
+
+                        s2 = real(m, kind=wp)*a + (0.75_wp + real((m - 1)*(m + 1), kind=wp))*half_dr
+
+                        if (mbdcnd == 3) s2 = s2 + 0.25_wp*half_dr
+
+                        s1 = (2.0_wp + a2*real(nunk - 2, kind=wp))*s2
+
+                        pertrb = s/s1
+                        f(mstart:mstop, nstart:nstop) = &
+                            f(mstart:mstop, nstart:nstop) - pertrb
+                    end if
+                end if
+            end block if_block
+
+            w(:mstop-mstart+1) = w(:mstop-mstart+1)*dth2
+            w(id2+1:mstop-mstart+1+id2) = w(id2+1:mstop-mstart+1+id2)*dth2
+            w(id3+1:mstop-mstart+1+id3) = w(id3+1:mstop-mstart+1+id3)*dth2
+            f(mstart:mstop, nstart:nstop) = f(mstart:mstop, nstart:nstop)*dth2
+            w(1) = 0.0_wp
+            w(id4) = 0.0_wp
+            !
+            !==> Solve the system of equations.
+            !
+            local_error_flag = 0
+            i1 = 1
+            call genbunn(nbdcnd, nunk, i1, munk, w(1), w(id2+1), w(id3+1), &
+                idimf, f(mstart, nstart), local_error_flag, w(id4+1))
+
+            if (nbdcnd == 0) f(mstart:mstop, np1) = f(mstart:mstop, 1)
+
+        end subroutine hwscyll
+
     end subroutine hwscyl
-
-    subroutine hwscylL(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
-        bdd, elmbda, f, idimf, pertrb, ierror, w)
-        !-----------------------------------------------
-        ! Dictionary: calling arguments
-        !-----------------------------------------------
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: mbdcnd
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: nbdcnd
-        integer (ip), intent (in)     :: idimf
-        integer (ip), intent (out)    :: ierror
-        real (wp),    intent (in)     :: a
-        real (wp),    intent (in)     :: b
-        real (wp),    intent (in)     :: c
-        real (wp),    intent (in)     :: d
-        real (wp),    intent (in)     :: elmbda
-        real (wp),    intent (out)    :: pertrb
-        real (wp),    intent (in)     :: bda(*)
-        real (wp),    intent (in)     :: bdb(*)
-        real (wp),    intent (in)     :: bdc(*)
-        real (wp),    intent (in)     :: bdd(*)
-        real (wp),    intent (in out) :: f(idimf,*)
-        real (wp),    intent (in out) :: w(*)
-        !-----------------------------------------------
-        ! Dictionary: local variables
-        !-----------------------------------------------
-        integer (ip) :: mp1, np1, np, mstart, mstop, munk, nstart, nstop, nunk &
-            , id2, id3, id4, id5, id6, istart, ij, i, j, k, l, nsp1, nstm1 &
-            , ierr1, i1
-        real::deltar, dlrby2, dlrsq, deltht, dlthsq, a1, r, a2, s, s1, s2
-        !-----------------------------------------------
-        mp1 = m + 1
-        deltar = (b - a)/real(m)
-        dlrby2 = deltar/2.
-        dlrsq = deltar**2
-        np1 = n + 1
-        deltht = (d - c)/real(n)
-        dlthsq = deltht**2
-        np = nbdcnd + 1
-        !
-        !     DEFINE RANGE OF INDICES I AND J FOR UNKNOWNS U(I, J).
-        !
-        mstart = 2
-        mstop = m
-        go to (104, 103, 102, 101, 101, 102) mbdcnd
-101 continue
-    mstart = 1
-    go to 104
-102 continue
-    mstart = 1
-103 continue
-    mstop = mp1
-104 continue
-    munk = mstop - mstart + 1
-    nstart = 1
-    nstop = n
-    go to (108, 105, 106, 107, 108) np
-105 continue
-    nstart = 2
-    go to 108
-106 continue
-    nstart = 2
-107 continue
-    nstop = np1
-108 continue
-    nunk = nstop - nstart + 1
-    !
-    !     DEFINE A, B, C COEFFICIENTS IN W-ARRAY.
-    !
-    id2 = munk
-    id3 = id2 + munk
-    id4 = id3 + munk
-    id5 = id4 + munk
-    id6 = id5 + munk
-    istart = 1
-    a1 = 2./dlrsq
-    ij = 0
-    if (mbdcnd==3 .or. mbdcnd==4) ij = 1
-    if (mbdcnd > 4) then
-        w(1) = 0.
-        w(id2+1) = -2.*a1
-        w(id3+1) = 2.*a1
-        istart = 2
-        ij = 1
-    end if
-    do i = istart, munk
-        r = a + real(i - ij)*deltar
-        j = id5 + i
-        w(j) = r
-        j = id6 + i
-        w(j) = 1./r**2
-        w(i) = (r - dlrby2)/(r*dlrsq)
-        j = id3 + i
-        w(j) = (r + dlrby2)/(r*dlrsq)
-        k = id6 + i
-        j = id2 + i
-        w(j) = (-a1) + elmbda*W(k)
-    end do
-    go to (114, 111, 112, 113, 114, 112) mbdcnd
-111 continue
-    w(id2) = a1
-    go to 114
-112 continue
-    w(id2) = a1
-113 continue
-    w(id3+1) = a1*real(istart)
-114 continue
-    go to (115, 115, 117, 117, 119, 119) mbdcnd
-115 continue
-    a1 = W(1)
-    f(2, nstart:nstop) = F(2, nstart:nstop) - a1*F(1, nstart:nstop)
-    go to 119
-117 continue
-    a1 = 2.*deltar*W(1)
-    f(1, nstart:nstop) = F(1, nstart:nstop) + a1*BDA(nstart:nstop)
-119 continue
-    go to (120, 122, 122, 120, 120, 122) mbdcnd
-120 continue
-    a1 = W(id4)
-    f(m, nstart:nstop) = F(m, nstart:nstop) - a1*F(mp1, nstart:nstop)
-    go to 124
-122 continue
-    a1 = 2.*deltar*W(id4)
-    f(mp1, nstart:nstop) = F(mp1, nstart:nstop) - a1*BDB(nstart:nstop)
-!
-!     ENTER BOUNDARY DATA FOR Z-BOUNDARIES.
-!
-124 continue
-    a1 = 1./dlthsq
-    l = id5 - mstart + 1
-    go to (134, 125, 125, 127, 127) np
-125 continue
-    f(mstart:mstop, 2) = F(mstart:mstop, 2) - a1*F(mstart:mstop, 1)
-    go to 129
-127 continue
-    a1 = 2./deltht
-    f(mstart:mstop, 1) = F(mstart:mstop, 1) + a1*BDC(mstart:mstop)
-129 continue
-    a1 = 1./dlthsq
-    go to (134, 130, 132, 132, 130) np
-130 continue
-    f(mstart:mstop, n) = F(mstart:mstop, n) - a1*F(mstart:mstop, np1)
-    go to 134
-132 continue
-    a1 = 2./deltht
-    f(mstart:mstop, np1) = F(mstart:mstop, np1) - a1*BDD(mstart:mstop)
-134 continue
-    pertrb = 0.
-    if (elmbda >= 0.) then
-        if (elmbda /= 0.) then
-            ierror = 11
-        else
-            w(id5+1) = 0.5*(W(id5+2)-dlrby2)
-            go to (146, 146, 138, 146, 146, 137) mbdcnd
-137     continue
-        w(id5+1) = 0.5*W(id5+1)
-138 continue
-    go to (140, 146, 146, 139, 146) np
-139 continue
-    a2 = 2.
-    go to 141
-140 continue
-    a2 = 1.
-141 continue
-    k = id5 + munk
-    w(k) = 0.5*(W(k-1)+dlrby2)
-    s = 0.
-    do i = mstart, mstop
-        s1 = 0.
-        nsp1 = nstart + 1
-        nstm1 = nstop - 1
-        s1 = SUM(F(i, nsp1:nstm1))
-        k = i + l
-        s = s + (a2*s1 + F(i, nstart)+F(i, nstop))*W(k)
-    end do
-    s2 = real(m)*a + (0.75 + real((m - 1)*(m + 1)))*dlrby2
-    if (mbdcnd == 3) s2 = s2 + 0.25*dlrby2
-    s1 = (2. + a2*real(nunk - 2))*s2
-    pertrb = s/s1
-    f(mstart:mstop, nstart:nstop) = F(mstart:mstop, nstart:nstop) &
-        - pertrb
-end if
-end if
-146 continue
-    w(:mstop-mstart+1) = W(:mstop-mstart+1)*dlthsq
-    w(id2+1:mstop-mstart+1+id2) = W(id2+1:mstop-mstart+1+id2)*dlthsq
-    w(id3+1:mstop-mstart+1+id3) = W(id3+1:mstop-mstart+1+id3)*dlthsq
-    f(mstart:mstop, nstart:nstop) = F(mstart:mstop, nstart:nstop)*dlthsq
-    w(1) = 0.
-    w(id4) = 0.
-    !
-    !     SOLVE THE SYSTEM OF EQUATIONS.
-    !
-    ierr1 = 0
-    i1 = 1
-    call genbunn(nbdcnd, nunk, i1, munk, W(1), W(id2+1), W(id3+1), &
-        idimf, F(mstart, nstart), ierr1, W(id4+1))
-    if (nbdcnd == 0) then
-        f(mstart:mstop, np1) = F(mstart:mstop, 1)
-    end if
-
-end subroutine hwscylL
 
 end module module_hwscyl
 !
