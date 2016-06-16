@@ -2,6 +2,9 @@ program main
 
     use fishpack_library
 
-    print '(A)', 'Successful build!'
+    ! Explicit typing only
+    implicit none
+
+    print '(a)', 'Successful build!'
 
 end program main

@@ -675,245 +675,231 @@ contains
         ipstor = 0
 
         select case (istag)
-            case default
-                kr = 0
-                irreg = 1
-                if (n > 1) then
-                    go to 106
-                end if
-                tcos(1) = 0.0_wp
             case (2)
                 kr = 1
                 jstsav = 1
                 irreg = 2
-                if (n > 1) then
-                    go to 106
+                if (n <= 1) then
+                    tcos(1) = -1.0_wp
+                    b(:m) = q(:m, 1)
+                    call genbun_aux%trix(1, 0, m, ba, bb, bc, b, tcos, d, w)
+                    q(:m, 1) = b(:m)
+                    w(1) = ipstor
+                    return
                 end if
-                tcos(1) = -1.0_wp
+            case default
+                kr = 0
+                irreg = 1
+                if (n <= 1) then
+                    tcos(1) = 0.0_wp
+                    b(:m) = q(:m, 1)
+                    call genbun_aux%trix(1, 0, m, ba, bb, bc, b, tcos, d, w)
+                    q(:m, 1) = b(:m)
+                    w(1) = ipstor
+                    return
+                end if
         end select
 
-103 continue
+        lr = 0
+        p(:m) = 0.0_wp
+        nun = n
+        jst = 1
+        jsp = n
+        !
+        !==> irreg = 1 when no irregularities have occurred, otherwise it is 2.
+        !
+        loop_108: do
 
-    b(:m) = q(:m, 1)
+            l = 2*jst
+            nodd = 2 - 2*((nun + 1)/2) + nun
+            !
+            !==> nodd = 1 when nun is odd, otherwise it is 2.
+            !
+            select case (nodd)
+                case (1)
+                    jsp = jsp - jst
+                    if (irreg /= 1) then
+                        jsp = jsp - l
+                    end if
+                case default
+                    jsp = jsp - l
+            end select
 
-    call genbun_aux%trix(1, 0, m, ba, bb, bc, b, tcos, d, w)
+            call genbun_aux%cosgen(jst, 1, 0.5_wp, 0.0_wp, tcos)
 
-    q(:m, 1) = b(:m)
+            if (l <= jsp) then
+                do j = l, jsp, l
+                    jm1 = j - jsh
+                    jp1 = j + jsh
+                    jm2 = j - jst
+                    jp2 = j + jst
+                    jm3 = jm2 - jsh
+                    jp3 = jp2 + jsh
 
-    w(1) = ipstor
-    return
+                    if (jst == 1) then
+                        b(:m) = 2.0_wp*q(:m, j)
+                        q(:m, j) = q(:m, jm2) + q(:m, jp2)
+                    else
+                        do i = 1, m
+                            t = q(i, j) - q(i, jm1) - q(i, jp1) + q(i, jm2) + q(i, jp2)
+                            b(i) = t + q(i, j) - q(i, jm3) - q(i, jp3)
+                            q(i, j) = t
+                        end do
+                    end if
 
-106 continue
+                    call genbun_aux%trix(jst, 0, m, ba, bb, bc, b, tcos, d, w)
+                    q(:m, j) = q(:m, j) + b(:m)
 
-    lr = 0
-    p(:m) = 0.0_wp
-    nun = n
-    jst = 1
-    jsp = n
-!
-!==> irreg = 1 when no irregularities have occurred, otherwise it is 2.
-!
-108 continue
-
-    l = 2*jst
-    nodd = 2 - 2*((nun + 1)/2) + nun
-    !
-    !==> nodd = 1 when nun is odd, otherwise it is 2.
-    !
-    select case (nodd)
-        case (1)
-            jsp = jsp - jst
-            if (irreg /= 1) then
-                jsp = jsp - l
-            end if
-        case default
-            jsp = jsp - l
-    end select
-
-    call genbun_aux%cosgen(jst, 1, 0.5_wp, 0.0_wp, tcos)
-
-    if (l <= jsp) then
-        do j = l, jsp, l
-            jm1 = j - jsh
-            jp1 = j + jsh
-            jm2 = j - jst
-            jp2 = j + jst
-            jm3 = jm2 - jsh
-            jp3 = jp2 + jsh
-
-            if (jst == 1) then
-                b(:m) = 2.0_wp*q(:m, j)
-                q(:m, j) = q(:m, jm2) + q(:m, jp2)
-            else
-                do i = 1, m
-                    t = q(i, j) - q(i, jm1) - q(i, jp1) + q(i, jm2) + q(i, jp2)
-                    b(i) = t + q(i, j) - q(i, jm3) - q(i, jp3)
-                    q(i, j) = t
                 end do
             end if
+            !
+            !==> reduction for last unknown
+            !
+            case_block: block
+                select case (nodd)
+                    !
+                    !==> even number of unknowns
+                    !
+                    case (2)
+                        jsp = jsp + l
+                        j = jsp
+                        jm1 = j - jsh
+                        jp1 = j + jsh
+                        jm2 = j - jst
+                        jp2 = j + jst
+                        jm3 = jm2 - jsh
 
-            call genbun_aux%trix(jst, 0, m, ba, bb, bc, b, tcos, d, w)
-            q(:m, j) = q(:m, j) + b(:m)
+                        select case (irreg)
+                            case (2)
+                                call genbun_aux%cosgen(kr, jstsav, 0.0, fi, tcos)
+                                call genbun_aux%cosgen(lr, jstsav, 0.0, fi, tcos(kr+1))
+                                ideg = kr
+                                kr = kr + jst
+                            case default
+                                jstsav = jst
+                                ideg = jst
+                                kr = l
+                        end select
 
-        end do
-    end if
-    !
-    !==> reduction for last unknown
-    !
-    select case (nodd)
-        case default
-            select case (irreg)
-                case (1)
-                    go to 152
-                case (2)
-                    go to 120
-            end select
+                        if (jst == 1) then
+                            irreg = 2
+                            b(:m) = q(:m, j)
+                            q(:m, j) = q(:m, jm2)
+                        else
+                            b(:m) = q(:m, j) &
+                                + 0.5_wp*(q(:m, jm2)-q(:m, jm1)-q(:m, jm3))
+                            select case (irreg)
+                                case (2)
+                                    select case (noddpr)
+                                        case (2)
+                                            q(:m, j) = q(:m, jm2) + q(:m, j) - q(:m, jm1)
+                                        case default
+                                            q(:m, j) = q(:m, jm2) + p(ipp+1:m+ipp)
+                                            ipp = ipp - m
+                                    end select
+                                case default
+                                    q(:m, j) = q(:m, jm2) + 0.5*(q(:m, j)-q(:m, jm1)-q(:m, jp1))
+                                    irreg = 2
+                            end select
+                        end if
+
+                        call genbun_aux%trix(ideg, lr, m, ba, bb, bc, b, tcos, d, w)
+                        q(:m, j) = q(:m, j) + b(:m)
+
+                    case default
+                        !
+                        !==> odd number of unknowns
+                        !
+                        if (irreg == 1) exit case_block
+
+                        jsp = jsp + l
+                        j = jsp
+                        jm1 = j - jsh
+                        jp1 = j + jsh
+                        jm2 = j - jst
+                        jp2 = j + jst
+                        jm3 = jm2 - jsh
+
+                        select case (istag)
+                            case (1)
+                                select case (noddpr)
+                                    case (2)
+                                        b(:m) = 0.5_wp*(q(:m, jm2)-q(:m, jm1)-q(:m, jm3)) &
+                                            + q(:m, jp2) - q(:m, jp1) + q(:m, j)
+                                    case default
+                                        b(:m) = 0.5_wp*(q(:m, jm2)-q(:m, jm1)&
+                                            -q(:m, jm3)) + p(ipp+1:m+ipp) + q(:m, j)
+                                end select
+
+                                q(:m, j) = 0.5*(q(:m, j)-q(:m, jm1)-q(:m, jp1))
+                            case (2)
+                                if (jst /= 1) then
+                                    select case (noddpr)
+                                        case (2)
+                                            b(:m) = 0.5_wp*(q(:m, jm2)-q(:m, jm1)-q(:m, jm3)) &
+                                                + q(:m, jp2) - q(:m, jp1) + q(:m, j)
+                                        case default
+                                            b(:m) = 0.5_wp*(q(:m, jm2)-q(:m, jm1)&
+                                                -q(:m, jm3)) + p(ipp+1:m+ipp) + q(:m, j)
+                                    end select
+                                    q(:m, j) = 0.5*(q(:m, j)-q(:m, jm1)-q(:m, jp1))
+                                else
+
+                                    b(:m) = q(:m, j)
+                                    q(:m, j) = 0.0_wp
+                                end if
+                        end select
+
+                        call genbun_aux%trix(jst, 0, m, ba, bb, bc, b, tcos, d, w)
+
+                        ipp = ipp + m
+                        ipstor = max(ipstor, ipp + m)
+                        p(ipp+1:m+ipp) = q(:m, j) + b(:m)
+                        b(:m) = q(:m, jp2) + p(ipp+1:m+ipp)
+
+                        if (lr == 0) then
+                            do i = 1, jst
+                                krpi = kr + i
+                                tcos(krpi) = tcos(i)
+                            end do
+                        else
+                            call genbun_aux%cosgen(lr, jstsav, 0.0_wp, fi, tcos(jst+1))
+                            call genbun_aux%merger(tcos, 0, jst, jst, lr, kr)
+                        end if
+
+                        call genbun_aux%cosgen(kr, jstsav, 0.0_wp, fi, tcos)
+                        call genbun_aux%trix(kr, kr, m, ba, bb, bc, b, tcos, d, w)
+
+                        q(:m, j) = q(:m, jm2) + b(:m) + p(ipp+1:m+ipp)
+                        lr = kr
+                        kr = kr + l
+
+                end select
+            end block case_block
+
+            nun = nun/2
+            noddpr = nodd
+            jsh = jst
+            jst = 2*jst
+
+            if (nun < 2) exit loop_108
+        end do loop_108
         !
-        !==> odd number of unknowns
+        !==> start solution.
         !
-120     continue
-
-        jsp = jsp + l
         j = jsp
-        jm1 = j - jsh
-        jp1 = j + jsh
-        jm2 = j - jst
-        jp2 = j + jst
-        jm3 = jm2 - jsh
-
-        select case (istag)
-            case (1)
-                go to 123
-            case (2)
-                go to 121
-        end select
-
-121 continue
-
-    if (jst /= 1) then
-        go to 123
-    end if
-
-    b(:m) = q(:m, j)
-    q(:m, j) = 0.0_wp
-    go to 130
-
-123 continue
-
-    select case (noddpr)
-        case (2)
-            b(:m) = 0.5_wp*(q(:m, jm2)-q(:m, jm1)-q(:m, jm3)) &
-                + q(:m, jp2) - q(:m, jp1) + q(:m, j)
-        case default
-            b(:m) = 0.5_wp*(q(:m, jm2)-q(:m, jm1)&
-                -q(:m, jm3)) + p(ipp+1:m+ipp) + q(:m, j)
-    end select
-
-    q(:m, j) = 0.5*(q(:m, j)-q(:m, jm1)-q(:m, jp1))
-
-130 continue
-
-    call genbun_aux%trix(jst, 0, m, ba, bb, bc, b, tcos, d, w)
-    ipp = ipp + m
-    ipstor = max(ipstor, ipp + m)
-    p(ipp+1:m+ipp) = q(:m, j) + b(:m)
-    b(:m) = q(:m, jp2) + p(ipp+1:m+ipp)
-
-    if (lr == 0) then
-        do i = 1, jst
-            krpi = kr + i
-            tcos(krpi) = tcos(i)
-        end do
-    else
-        call genbun_aux%cosgen(lr, jstsav, 0.0_wp, fi, tcos(jst+1))
-        call genbun_aux%merger(tcos, 0, jst, jst, lr, kr)
-    end if
-
-    call genbun_aux%cosgen(kr, jstsav, 0.0_wp, fi, tcos)
-    call genbun_aux%trix(kr, kr, m, ba, bb, bc, b, tcos, d, w)
-
-    q(:m, j) = q(:m, jm2) + b(:m) + p(ipp+1:m+ipp)
-    lr = kr
-    kr = kr + l
-!
-!==> even number of unknowns
-!
-case (2)
-    jsp = jsp + l
-    j = jsp
-    jm1 = j - jsh
-    jp1 = j + jsh
-    jm2 = j - jst
-    jp2 = j + jst
-    jm3 = jm2 - jsh
-
-    select case (irreg)
-        case (2)
-            call genbun_aux%cosgen(kr, jstsav, 0.0, fi, tcos)
-            call genbun_aux%cosgen(lr, jstsav, 0.0, fi, tcos(kr+1))
-            ideg = kr
-            kr = kr + jst
-        case default
-            jstsav = jst
-            ideg = jst
-            kr = l
-    end select
-
-    if (jst == 1) then
-        irreg = 2
         b(:m) = q(:m, j)
-        q(:m, j) = q(:m, jm2)
-    else
-        b(:m) = q(:m, j) &
-            + 0.5_wp*(q(:m, jm2)-q(:m, jm1)-q(:m, jm3))
+
         select case (irreg)
             case (2)
-                select case (noddpr)
-                    case (2)
-                        q(:m, j) = q(:m, jm2) + q(:m, j) - q(:m, jm1)
-                    case default
-                        q(:m, j) = q(:m, jm2) + p(ipp+1:m+ipp)
-                        ipp = ipp - m
-                end select
+                kr = lr + jst
+                call genbun_aux%cosgen(kr, jstsav, 0.0_wp, fi, tcos)
+                call genbun_aux%cosgen(lr, jstsav, 0.0_wp, fi, tcos(kr+1))
+                ideg = kr
             case default
-                q(:m, j) = q(:m, jm2) + 0.5*(q(:m, j)-q(:m, jm1)-q(:m, jp1))
-                irreg = 2
+                call genbun_aux%cosgen(jst, 1, 0.5_wp, 0.0_wp, tcos)
+                ideg = jst
         end select
-    end if
-
-150 continue
-
-    call genbun_aux%trix(ideg, lr, m, ba, bb, bc, b, tcos, d, w)
-    q(:m, j) = q(:m, j) + b(:m)
-
-end select
-
-152 continue
-
-    nun = nun/2
-    noddpr = nodd
-    jsh = jst
-    jst = 2*jst
-
-    if (nun >= 2) then
-        go to 108
-    end if
-    !
-    !==> start solution.
-    !
-    j = jsp
-    b(:m) = q(:m, j)
-
-    select case (irreg)
-        case (2)
-            kr = lr + jst
-            call genbun_aux%cosgen(kr, jstsav, 0.0_wp, fi, tcos)
-            call genbun_aux%cosgen(lr, jstsav, 0.0_wp, fi, tcos(kr+1))
-            ideg = kr
-        case default
-            call genbun_aux%cosgen(jst, 1, 0.5_wp, 0.0_wp, tcos)
-            ideg = jst
-    end select
 
 156 continue
 
@@ -955,7 +941,7 @@ end select
             b(:m) = q(:m, j) + q(:m, jp2)
         else
             if (jp2 <= n) then
-                go to 168
+                goto 168
             end if
             b(:m) = q(:m, j) + q(:m, jm2)
 
@@ -965,9 +951,9 @@ end select
 
             select case (irreg)
                 case (1)
-                    go to 170
+                    goto 170
                 case (2)
-                    go to 171
+                    goto 171
             end select
 168     continue
         b(:m) = q(:m, j) + q(:m, jm2) + q(:m, jp2)
@@ -978,7 +964,7 @@ end select
     call genbun_aux%cosgen(jst, 1, 0.5_wp, 0.0_wp, tcos)
     ideg = jst
     jdeg = 0
-    go to 172
+    goto 172
 
 171 continue
 
@@ -1000,7 +986,7 @@ end select
         q(:m, j) = b(:m)
     else
         if (jp2 > n) then
-            go to 177
+            goto 177
         end if
 
 175 continue
@@ -1012,7 +998,7 @@ end select
 
     select case (irreg)
         case (1)
-            go to 175
+            goto 175
         case (2)
             if (j + jsh <= n) then
                 q(:m, j) = b(:m) + p(ipp+1:m+ipp)
@@ -1027,11 +1013,12 @@ end do
 
 l = l/2
 
-go to 164
+goto 164
 
 w(1) = ipstor
 
 end subroutine poisd2
+
 
 
 
@@ -1104,9 +1091,9 @@ subroutine poisn2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
 
         select case (istag)
             case (1)
-                go to 101
+                goto 101
             case (2)
-                go to 103
+                goto 103
         end select
 
 101 continue
@@ -1115,15 +1102,15 @@ subroutine poisn2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
 
     select case (mixbnd)
         case (1)
-            go to 103
+            goto 103
         case (2)
-            go to 104
+            goto 104
     end select
 
 103 continue
 
     if (n <= 3) then
-        go to 155
+        goto 155
     end if
 
 104 continue
@@ -1242,11 +1229,11 @@ subroutine poisn2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
                     tcos(2) = 0.0_wp
                     call genbun_aux%trix(1, 1, mr, a, bb, c, b, tcos, d, w)
                     q(:mr, j) = q(:mr, jm2) + p(:mr) + b(:mr)
-                    go to 150
+                    goto 150
                 case (1)
                     p(:mr) = b(:mr)
                     q(:mr, j) = q(:mr, jm2) + 2.0_wp*q(:mr, jp2) + 3.0_wp*b(:mr)
-                    go to 150
+                    goto 150
             end select
         end if
 
@@ -1279,16 +1266,16 @@ subroutine poisn2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
         if (lr == 0) then
             select case (istag)
                 case (1)
-                    go to 146
+                    goto 146
                 case (2)
-                    go to 145
+                    goto 145
             end select
         end if
 
 145 continue
 
     call genbun_aux%trix(kr, kr, mr, a, bb, c, b, tcos, d, w)
-    go to 148
+    goto 148
 
 146 continue
 
@@ -1309,21 +1296,21 @@ select case (mixbnd)
         nr = (nlast - 1)/jr + 1
 
         if (nr <= 3) then
-            go to 155
+            goto 155
         end if
     case (2)
 
         nr = nlast/jr
 
         if (nr <= 1) then
-            go to 192
+            goto 192
         end if
 end select
 
 i2r = jr
 nrodpr = nrod
 
-go to 104
+goto 104
 
 155 continue
 
@@ -1334,7 +1321,7 @@ go to 104
 
     if (nr /= 2) then
         if (lr /= 0) then
-            go to 170
+            goto 170
         end if
 
         if (n == 3) then
@@ -1343,9 +1330,9 @@ go to 104
             !
             select case (istag)
                 case (1)
-                    go to 156
+                    goto 156
                 case (2)
-                    go to 168
+                    goto 168
             end select
 
 156     continue
@@ -1373,16 +1360,16 @@ go to 104
         q(:mr, 1) = b(:mr)
         jr = 1
         i2r = 0
-        go to 194
+        goto 194
     end if
     !
     !==> case n = 2**p+1
     !
     select case (istag)
         case (1)
-            go to 162
+            goto 162
         case (2)
-            go to 170
+            goto 170
     end select
 
 162 continue
@@ -1417,7 +1404,7 @@ go to 104
 
     q(:mr, 1) = 0.5_wp*q(:mr, 1) - q(:mr, jm1) + b(:mr)
 
-    go to 194
+    goto 194
 !
 !==> case of general n with nr = 3 .
 !
@@ -1431,7 +1418,7 @@ go to 104
     i2r = 0
     j = 2
 
-    go to 177
+    goto 177
 
 170 continue
 
@@ -1497,11 +1484,11 @@ go to 104
 
     if (jr == 1) then
         q(:mr, 1) = b(:mr)
-        go to 194
+        goto 194
     end if
 
     q(:mr, 1) = 0.5_wp*q(:mr, 1) - q(:mr, jm1) + b(:mr)
-    go to 194
+    goto 194
 end if
 
 if (n == 2) then
@@ -1523,7 +1510,7 @@ if (n == 2) then
     q(:mr, 1) = q(:mr, 1) + b(:mr)
     jr = 1
     i2r = 0
-    go to 194
+    goto 194
 end if
 
 b3(:mr) = 0.0_wp
@@ -1558,12 +1545,12 @@ tcos(1) = 2.0_wp
 call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
 
 q(:mr, 1) = q(:mr, 1) + b(:mr)
-go to 194
+goto 194
 
 192 continue
 
     b(:mr) = q(:mr, nlast)
-    go to 196
+    goto 196
 
 194 continue
 
@@ -1655,10 +1642,10 @@ go to 194
     end if
 
     if (nlastp /= nlast) then
-        go to 194
+        goto 194
     end if
 
-    go to 206
+    goto 206
 
     w(1) = ipstor
 
