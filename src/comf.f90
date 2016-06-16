@@ -72,6 +72,7 @@ module module_comf
     public :: ComfAux
     public :: comf_interface
 
+    ! Declare derived data type
     type, public :: ComfAux
         !--------------------------------------------------
         ! Class variables
@@ -84,10 +85,11 @@ module module_comf
         procedure, nopass, public :: ppspf
         procedure, nopass, public :: psgf
         !--------------------------------------------------
-    end type
+    end type ComfAux
 
+    ! Declare interface
     interface
-        pure function comf_interface(x, iz, c, a, bh) result (return_value)
+        function comf_interface(x, iz, c, a, bh) result (return_value)
             import :: ip, wp
             !-----------------------------------------------
             ! Dictionary: calling arguments
@@ -99,7 +101,7 @@ module module_comf
             real (wp),    intent (in) :: bh(*)
             real (wp)                 :: return_value
             !-----------------------------------------------
-        end function
+        end function comf_interface
     end interface
 
 
