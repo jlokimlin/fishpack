@@ -352,9 +352,7 @@ contains
             a, b, c, ldimf, mdimf, ierror)
 
         ! Check error flag
-        if (ierror /= 0) then
-            return
-        end if
+        if (ierror /= 0) return
 
         !
         !==> Compute workspace indices
@@ -430,35 +428,32 @@ contains
             call pos3d1(lp, l, mp, m, n, a, b, c, ldimf, mdimf, f, &
                 w, w(iwyrt), w(iwt), w(iwd), w(iwx), w(iwy), c1, c2, w(iwbb))
 
-            select case (np)
-                case (1)
-                    do i = 1, l
-                        do j = 1, m
-                            w(nh-1:nh-nhm1:(-1))= &
-                                0.5_wp *(f(i, j, nh+1:nhm1+nh)+f(i, j, :nhm1))
-                            w(nh+1:nhm1+nh) = &
-                                0.5_wp *(f(i, j, nh+1:nhm1+nh)-f(i, j, :nhm1))
-                            w(nh) = 0.5_wp *f(i, j, nh)
-                            select case (nodd)
-                                case (1)
-                                    f(i, j, :n) = w(:n)
-                                case (2)
-                                    w(n) = 0.5_wp * f(i, j, n)
-                                    f(i, j, :n) = w(:n)
-                            end select
-                        end do
+            if (np == 1) then
+
+                do i = 1, l
+                    do j = 1, m
+                        w(nh-1:nh-nhm1:(-1))= &
+                            0.5_wp *(f(i, j, nh+1:nhm1+nh)+f(i, j, :nhm1))
+                        w(nh+1:nhm1+nh) = &
+                            0.5_wp *(f(i, j, nh+1:nhm1+nh)-f(i, j, :nhm1))
+                        w(nh) = 0.5_wp *f(i, j, nh)
+                        select case (nodd)
+                            case (1)
+                                f(i, j, :n) = w(:n)
+                            case (2)
+                                w(n) = 0.5_wp * f(i, j, n)
+                                f(i, j, :n) = w(:n)
+                        end select
                     end do
+                end do
 
-                    c(nhm1) = temp_save(1)
-                    a(nh) = temp_save(2)
-                    c(nh) = temp_save(3)
-                    b(nhm1) = temp_save(4)
-                    b(n) = temp_save(5)
-                    a(n) = temp_save(6)
-
-                case (2)
-                    return
-            end select
+                c(nhm1) = temp_save(1)
+                a(nh) = temp_save(2)
+                c(nh) = temp_save(3)
+                b(nhm1) = temp_save(4)
+                b(n) = temp_save(5)
+                a(n) = temp_save(6)
+            end if
 
         end associate
 

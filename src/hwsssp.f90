@@ -947,5 +947,5 @@ end module module_hwsssp
 ! December  1979    Version 3.1
 ! February  1985    Documentation upgrade
 ! November  1988    Version 3.2, FORTRAN 77 changes
-! June      2004    Version 5.0, Fortran 90 Changes
+! June      2004    Version 5.0, Fortran 90 changes
 ! May       2016    Fortran 2008 changes

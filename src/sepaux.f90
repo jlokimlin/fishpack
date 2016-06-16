@@ -100,12 +100,12 @@ module module_sepaux
 
 
     interface
-        pure subroutine get_coefficients(grid, a, b, c)
+        pure subroutine get_coefficients(x, a, b, c)
             import :: wp
             !-----------------------------------------------
             ! Dictionary: calling arguments
             !-----------------------------------------------
-            real (wp), intent (in)  :: grid
+            real (wp), intent (in)  :: x
             real (wp), intent (out) :: a
             real (wp), intent (out) :: b
             real (wp), intent (out) :: c
@@ -130,7 +130,7 @@ contains
         class (SepAux), intent (in out) :: this
         integer (ip),   intent (in)     :: idmn
         real (wp),      intent (out)    :: pertrb
-        real (wp),      intent (in out) :: usol(idmn, 1)
+        real (wp),      intent (in out) :: usol(idmn,*)
         real (wp),      intent (in)     :: zn(*)
         real (wp),      intent (in)     :: zm(*)
         !--------------------------------------------------------------------------------
@@ -212,7 +212,7 @@ contains
         class (SepAux), intent (in out) :: this
         integer (ip),   intent (in)     :: idmn
         real (wp),      intent (out)    :: pertb
-        real (wp),      intent (in out) :: usol(idmn, 1)
+        real (wp),      intent (in out) :: usol(idmn,*)
         real (wp),      intent (in)     :: zn(*)
         real (wp),      intent (in)     :: zm(*)
         !--------------------------------------------------------------------------------
@@ -373,7 +373,7 @@ contains
         integer (ip),   intent (in)     :: j
         real (wp),      intent (out)    :: uxxx
         real (wp),      intent (out)    :: uxxxx
-        real (wp),      intent (in)     :: u(idmn, 1)
+        real (wp),      intent (in)     :: u(idmn,*)
         !--------------------------------------------------------------------------------
 
         ! Associate various quantities
@@ -632,5 +632,6 @@ end module module_sepaux
 ! December  1979    Version 3.1
 ! February  1985    Documentation upgrade
 ! November  1988    Version 3.2, FORTRAN 77 changes
-! June      2004    Version 5.0, fortran 90 changes
-!-----------------------------------------------------------------------
+! June      2004    Version 5.0, Fortran 90 changes
+! May       2016    Fortran 2008 changes
+!

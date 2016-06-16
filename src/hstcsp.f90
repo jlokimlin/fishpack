@@ -717,13 +717,13 @@ contains
             dthsq = dth**2
 
             do i = 1, m
-                snth(i) = sin(a + (real(i) - 0.5_wp)*dth)
+                snth(i) = sin(a + (real(i, kind=wp) - 0.5_wp)*dth)
             end do
 
             dr = (d - c)/n
 
             do j = 1, n
-                rsq(j) = (c + (real(j) - 0.5_wp)*dr)**2
+                rsq(j) = (c + (real(j, kind=wp) - 0.5_wp)*dr)**2
             end do
             !
             !     multiply right side by r(j)**2

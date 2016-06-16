@@ -399,41 +399,130 @@ contains
                     end select
             end select
 
-107     continue
+            main_loop: do
 
-        select case (np)
-            case (1)
-                call poisp2(m, n, w(iwba), w(iwbb), w(iwbc), &
-                    y, idimy, w, w(iwb2), w(iwb3), w(iww1), &
-                    w(iww2), w(iww3), w(iwd), w(iwtcos), w(iwp) )
-            case (2)
-                call poisd2(m, n, 1, w(iwba), w(iwbb), w(iwbc), &
-                    y, idimy, w, w(iww1), w(iwd), w(iwtcos), w(iwp))
-            case (3)
-                call poisn2(m, n, 1, 2, w(iwba), w(iwbb), w(iwbc), &
-                    y, idimy, w, w(iwb2), w(iwb3), w(iww1), w(iww2),  &
-                    w(iww3), w(iwd), w(iwtcos), w(iwp))
-            case (4)
-                call poisn2(m, n, 1, 1, w(iwba), w(iwbb), w(iwbc), &
-                    y, idimy, w, w(iwb2), w(iwb3), w(iww1), w(iww2), &
-                    w(iww3), w(iwd), w(iwtcos), w(iwp))
-            case (5)
-                go to 123
-        end select
+                select case (np)
+                    case (1)
+                        call poisp2(m, n, w(iwba), w(iwbb), w(iwbc), &
+                            y, idimy, w, w(iwb2), w(iwb3), w(iww1), &
+                            w(iww2), w(iww3), w(iwd), w(iwtcos), w(iwp) )
+                    case (2)
+                        call poisd2(m, n, 1, w(iwba), w(iwbb), w(iwbc), &
+                            y, idimy, w, w(iww1), w(iwd), w(iwtcos), w(iwp))
+                    case (3)
+                        call poisn2(m, n, 1, 2, w(iwba), w(iwbb), w(iwbc), &
+                            y, idimy, w, w(iwb2), w(iwb3), w(iww1), w(iww2),  &
+                            w(iww3), w(iwd), w(iwtcos), w(iwp))
+                    case (4)
+                        call poisn2(m, n, 1, 1, w(iwba), w(iwbb), w(iwbc), &
+                            y, idimy, w, w(iwb2), w(iwb3), w(iww1), w(iww2), &
+                            w(iww3), w(iwd), w(iwtcos), w(iwp))
+                end select
 
-112 continue
+                loop_113: do
 
-    ipstor = w(iww1)
-    irev = 2
+                    select case (np)
+                        case (1:4)
 
-    if (nperod == 4) then
-        go to 124
-    end if
+                            select case (mp)
+                                case (1)
+                                    do j = 1, n
+                                        w(mh-1:mh-mhm1:(-1)) = 0.5_wp*(y(mh+1:mhm1+mh, j)+y(:mhm1, j))
+                                        w(mh+1:mhm1+mh) = 0.5_wp*(y(mh+1:mhm1+mh, j)-y(:mhm1, j))
+                                        w(mh) = 0.5_wp*y(mh, j)
+                                        select case (modd)
+                                            case (1)
+                                                y(:m, j) = w(:m)
+                                            case (2)
+                                                w(m) = 0.5_wp*y(m, j)
+                                                y(:m, j) = w(:m)
+                                        end select
+                                    end do
+                                    w(1) = ipstor + real(iwp - 1, kind=wp)
+                                    return
+                                case (2)
+                                    w(1) = ipstor + real(iwp - 1, kind=wp)
+                                    return
+                            end select
 
-113 continue
+                            mh = (m + 1)/2
+                            mhm1 = mh - 1
 
-    select case (mp)
-        case (1)
+                            if (mh*2 == m) then
+                                modd = 2
+                            else
+                                modd = 1
+                            end if
+
+                            do j = 1, n
+                                w(:mhm1) = y(mh-1:mh-mhm1:(-1), j) - y(mh+1:mhm1+mh, j)
+                                w(mh+1:mhm1+mh) = y(mh-1:mh-mhm1:(-1), j) + y(mh+1:mhm1+mh, j)
+                                w(mh) = 2.0_wp*y(mh, j)
+                                select case (modd)
+                                    case (1)
+                                        y(:m, j) = w(:m)
+                                    case (2)
+                                        w(m) = 2.0_wp*y(m, j)
+                                        y(:m, j) = w(:m)
+                                end select
+                            end do
+
+                            k = iwbc + mhm1 - 1
+                            i = iwba + mhm1
+                            w(k) = 0.0_wp
+                            w(i) = 0.0_wp
+                            w(k+1) = 2.0_wp*w(k+1)
+
+                            select case (modd)
+                                case default
+                                    k = iwbb + mhm1 - 1
+                                    w(k) = w(k) - w(i-1)
+                                    w(iwbc-1) = w(iwbc-1) + w(iwbb-1)
+                                case (2)
+                                    w(iwbb-1) = w(k+1)
+                            end select
+
+                            cycle main_loop
+                        !
+                        !     reverse columns when nperod = 4.
+                        !
+                    end select
+
+                    irev = 1
+                    nby2 = n/2
+
+                    loop_124: do
+
+                        do j = 1, nby2
+                            mskip = n + 1 - j
+                            do i = 1, m
+                                temp = y(i, j)
+                                y(i, j) = y(i, mskip)
+                                y(i, mskip) = temp
+                            end do
+                        end do
+
+                        select case (irev)
+                            case (1)
+                                call poisn2(m, n, 1, 2, w(iwba), w(iwbb), w(iwbc), &
+                                    y, idimy, w, w(iwb2), w(iwb3), w(iww1), w(iww2),  &
+                                    w(iww3), w(iwd), w(iwtcos), w(iwp))
+
+                                ipstor = w(iww1)
+                                irev = 2
+
+                                if (nperod == 4) cycle loop_124
+                                cycle loop_113
+
+                            case (2)
+                                cycle loop_113
+                        end select
+                        exit loop_124
+                    end do loop_124
+                    exit loop_113
+                end do loop_113
+            end do main_loop
+
             do j = 1, n
                 w(mh-1:mh-mhm1:(-1)) = 0.5_wp*(y(mh+1:mhm1+mh, j)+y(:mhm1, j))
                 w(mh+1:mhm1+mh) = 0.5_wp*(y(mh+1:mhm1+mh, j)-y(:mhm1, j))
@@ -446,274 +535,162 @@ contains
                         y(:m, j) = w(:m)
                 end select
             end do
+
             w(1) = ipstor + real(iwp - 1, kind=wp)
-            return
-        case (2)
-            w(1) = ipstor + real(iwp - 1, kind=wp)
-            return
-    end select
 
-    mh = (m + 1)/2
-    mhm1 = mh - 1
-
-    if (mh*2 == m) then
-        modd = 2
-    else
-        modd = 1
-    end if
-
-    do j = 1, n
-        w(:mhm1) = y(mh-1:mh-mhm1:(-1), j) - y(mh+1:mhm1+mh, j)
-        w(mh+1:mhm1+mh) = y(mh-1:mh-mhm1:(-1), j) + y(mh+1:mhm1+mh, j)
-        w(mh) = 2.0_wp*y(mh, j)
-        select case (modd)
-            case (1)
-                y(:m, j) = w(:m)
-            case (2)
-                w(m) = 2.0_wp*y(m, j)
-                y(:m, j) = w(:m)
-        end select
-    end do
-
-    k = iwbc + mhm1 - 1
-    i = iwba + mhm1
-    w(k) = 0.0_wp
-    w(i) = 0.0_wp
-    w(k+1) = 2.0_wp*w(k+1)
-
-    select case (modd)
-        case default
-            k = iwbb + mhm1 - 1
-            w(k) = w(k) - w(i-1)
-            w(iwbc-1) = w(iwbc-1) + w(iwbb-1)
-        case (2)
-            w(iwbb-1) = w(k+1)
-    end select
-
-    go to 107
-!
-!     reverse columns when nperod = 4.
-!
-123 continue
-
-    irev = 1
-    nby2 = n/2
-
-124 continue
-
-    do j = 1, nby2
-        mskip = n + 1 - j
-        do i = 1, m
-            temp = y(i, j)
-            y(i, j) = y(i, mskip)
-            y(i, mskip) = temp
-        end do
-    end do
-
-    select case (irev)
-        case (1)
-            call poisn2(m, n, 1, 2, w(iwba), w(iwbb), w(iwbc), &
-                y, idimy, w, w(iwb2), w(iwb3), w(iww1), w(iww2),  &
-                w(iww3), w(iwd), w(iwtcos), w(iwp))
-            go to 112
-        case (2)
-            go to 113
-    end select
-
-    do j = 1, n
-        w(mh-1:mh-mhm1:(-1)) = 0.5_wp*(y(mh+1:mhm1+mh, j)+y(:mhm1, j))
-        w(mh+1:mhm1+mh) = 0.5_wp*(y(mh+1:mhm1+mh, j)-y(:mhm1, j))
-        w(mh) = 0.5_wp*y(mh, j)
-        select case (modd)
-            case (1)
-                y(:m, j) = w(:m)
-            case (2)
-                w(m) = 0.5_wp*y(m, j)
-                y(:m, j) = w(:m)
-        end select
-    end do
-
-    w(1) = ipstor + real(iwp - 1, kind=wp)
-
-end associate
-
-contains
-
-    pure subroutine check_input_arguments(nperod, n, mperod, m, idimy, ierror, a, b, c)
-        !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
-        !--------------------------------------------------------------------------------
-        integer (ip), intent (in)  :: nperod
-        integer (ip), intent (in)  :: n
-        integer (ip), intent (in)  :: mperod
-        integer (ip), intent (in)  :: m
-        integer (ip), intent (in)  :: idimy
-        integer (ip), intent (out) :: ierror
-        real (wp),    intent (in)  :: a(*)
-        real (wp),    intent (in)  :: b(*)
-        real (wp),    intent (in)  :: c(*)
-        !--------------------------------------------------------------------------------
-        ! Dictionary: local variables
-        !--------------------------------------------------------------------------------
-        integer (ip) :: i !! Counter
-        !--------------------------------------------------------------------------------
-
-        !
-        !==> Initialize error flag
-        !
-        ierror = 0
-
-        ! Case 1
-        if (m <= 2) then
-            ierror = 1
-            return
-        end if
-
-        ! Case 2
-        if (n <= 2) then
-            ierror = 2
-            return
-        end if
-
-        ! Case 3
-        if (idimy < m) then
-            ierror = 3
-            return
-        end if
-
-        ! Case 4
-        if (nperod < 0 .or. nperod > 4) then
-            ierror = 4
-            return
-        end if
-
-        ! Case 5
-        if (mperod < 0 .or. mperod > 1) then
-            ierror = 5
-            return
-        end if
-
-        ! Case 6
-        if (mperod /= 1) then
-            do i = 2, m
-
-                if (a(i) /= c(1)) then
-                    ierror = 6
-                    return
-                end if
-
-                if (c(i) /= c(1)) then
-                    ierror = 6
-                    return
-                end if
-
-                if (b(i) /= b(1)) then
-                    ierror = 6
-                    return
-                end if
-
-            end do
-        end if
-
-        ! Case 7
-        if (a(1) /= 0.0_wp .or. c(m) /= 0.0_wp) then
-            ierror = 7
-            return
-        end if
-
-    end subroutine check_input_arguments
-
-
-    pure function get_genbunn_workspace_indices(n, m) result (return_value)
-        !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
-        !--------------------------------------------------------------------------------
-        integer (ip), intent (in) :: n
-        integer (ip), intent (in) :: m
-        integer (ip)              :: return_value(12)
-        !--------------------------------------------------------------------------------
-        integer (ip) :: j !! Counter
-        !--------------------------------------------------------------------------------
-
-        associate( i => return_value)
-
-            i(1:2) = m + 1
-
-            do j = 3, 11
-                i(j) = i(j-1) + m
-            end do
-
-            i(12) = i(11) + 4 * n
         end associate
 
-    end function get_genbunn_workspace_indices
+    contains
 
+        pure subroutine check_input_arguments(nperod, n, mperod, m, idimy, ierror, a, b, c)
+            !--------------------------------------------------------------------------------
+            ! Dictionary: calling arguments
+            !--------------------------------------------------------------------------------
+            integer (ip), intent (in)  :: nperod
+            integer (ip), intent (in)  :: n
+            integer (ip), intent (in)  :: mperod
+            integer (ip), intent (in)  :: m
+            integer (ip), intent (in)  :: idimy
+            integer (ip), intent (out) :: ierror
+            real (wp),    intent (in)  :: a(*)
+            real (wp),    intent (in)  :: b(*)
+            real (wp),    intent (in)  :: c(*)
+            !--------------------------------------------------------------------------------
+            ! Dictionary: local variables
+            !--------------------------------------------------------------------------------
+            integer (ip) :: i !! Counter
+            !--------------------------------------------------------------------------------
 
-end subroutine genbunn
-
-
-
-subroutine poisd2(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
-    !
-    ! Purpose:
-    !
-    !     subroutine to solve poisson's equation for dirichlet boundary
-    !     conditions.
-    !
-    !     istag = 1 if the last diagonal block is the matrix a.
-    !     istag = 2 if the last diagonal block is the matrix a+i.
-    !
-    !--------------------------------------------------------------------------------
-    ! Dictionary: calling arguments
-    !--------------------------------------------------------------------------------
-    integer (ip), intent (in)     :: mr
-    integer (ip), intent (in)     :: nr
-    integer (ip), intent (in)     :: istag
-    integer (ip), intent (in)     :: idimq
-    real (wp),    intent (in)     :: ba(*)
-    real (wp),    intent (in)     :: bb(*)
-    real (wp),    intent (in)     :: bc(*)
-    real (wp),    intent (in out) :: q(idimq, 1)
-    real (wp),    intent (in out) :: b(*)
-    real (wp),    intent (in out) :: w(*)
-    real (wp),    intent (in out) :: d(*)
-    real (wp),    intent (in out) :: tcos(*)
-    real (wp),    intent (in out) :: p(*)
-    !-----------------------------------------------
-    ! Dictionary: local variables
-    !-----------------------------------------------
-    integer (ip)     :: m, n, jsh, ipp, ipstor, kr
-    integer (ip)     :: irreg, jstsav, i, lr, nun, nodd, noddpr
-    integer (ip)     :: jst, jsp, l, j, jm1, jp1, jm2, jp2, jm3, jp3
-    integer (ip)     :: krpi, ideg, jdeg
-    real (wp)        :: fi, t
-    type (GenbunAux) :: genbun_aux
-    !-----------------------------------------------
-
-    m = mr
-    n = nr
-    jsh = 0
-    fi = 1.0_wp/istag
-    ipp = -m
-    ipstor = 0
-
-    select case (istag)
-        case default
-            kr = 0
-            irreg = 1
-            if (n > 1) then
-                go to 106
+            if (m <= 2) then
+                ierror = 1
+                return
+            else if (n <= 2) then
+                ierror = 2
+                return
+            else if (idimy < m) then
+                ierror = 3
+                return
+            else if (nperod < 0 .or. nperod > 4) then
+                ierror = 4
+                return
+            else if (mperod < 0 .or. mperod > 1) then
+                ierror = 5
+                return
+            else if (mperod /= 1) then
+                do i = 2, m
+                    if (a(i) /= c(1)) then
+                        ierror = 6
+                        return
+                    end if
+                    if (c(i) /= c(1)) then
+                        ierror = 6
+                        return
+                    end if
+                    if (b(i) /= b(1)) then
+                        ierror = 6
+                        return
+                    end if
+                end do
+            else if (a(1) /= 0.0_wp .or. c(m) /= 0.0_wp) then
+                ierror = 7
+                return
+            else
+                ierror = 0
             end if
-            tcos(1) = 0.0_wp
-        case (2)
-            kr = 1
-            jstsav = 1
-            irreg = 2
-            if (n > 1) then
-                go to 106
-            end if
-            tcos(1) = -1.0_wp
-    end select
+
+        end subroutine check_input_arguments
+
+
+        pure function get_genbunn_workspace_indices(n, m) result (return_value)
+            !--------------------------------------------------------------------------------
+            ! Dictionary: calling arguments
+            !--------------------------------------------------------------------------------
+            integer (ip), intent (in) :: n
+            integer (ip), intent (in) :: m
+            integer (ip)              :: return_value(12)
+            !--------------------------------------------------------------------------------
+            integer (ip) :: j !! Counter
+            !--------------------------------------------------------------------------------
+
+            associate( i => return_value)
+
+                i(1:2) = m + 1
+
+                do j = 3, 11
+                    i(j) = i(j-1) + m
+                end do
+
+                i(12) = i(11) + 4 * n
+            end associate
+
+        end function get_genbunn_workspace_indices
+
+
+    end subroutine genbunn
+
+
+
+    subroutine poisd2(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
+        !
+        ! Purpose:
+        !
+        !     subroutine to solve poisson's equation for dirichlet boundary
+        !     conditions.
+        !
+        !     istag = 1 if the last diagonal block is the matrix a.
+        !     istag = 2 if the last diagonal block is the matrix a+i.
+        !
+        !--------------------------------------------------------------------------------
+        ! Dictionary: calling arguments
+        !--------------------------------------------------------------------------------
+        integer (ip), intent (in)     :: mr
+        integer (ip), intent (in)     :: nr
+        integer (ip), intent (in)     :: istag
+        integer (ip), intent (in)     :: idimq
+        real (wp),    intent (in)     :: ba(*)
+        real (wp),    intent (in)     :: bb(*)
+        real (wp),    intent (in)     :: bc(*)
+        real (wp),    intent (in out) :: q(idimq,*)
+        real (wp),    intent (in out) :: b(*)
+        real (wp),    intent (in out) :: w(*)
+        real (wp),    intent (in out) :: d(*)
+        real (wp),    intent (in out) :: tcos(*)
+        real (wp),    intent (in out) :: p(*)
+        !-----------------------------------------------
+        ! Dictionary: local variables
+        !-----------------------------------------------
+        integer (ip)     :: m, n, jsh, ipp, ipstor, kr
+        integer (ip)     :: irreg, jstsav, i, lr, nun, nodd, noddpr
+        integer (ip)     :: jst, jsp, l, j, jm1, jp1, jm2, jp2, jm3, jp3
+        integer (ip)     :: krpi, ideg, jdeg
+        real (wp)        :: fi, t
+        type (GenbunAux) :: genbun_aux
+        !-----------------------------------------------
+
+        m = mr
+        n = nr
+        jsh = 0
+        fi = 1.0_wp/istag
+        ipp = -m
+        ipstor = 0
+
+        select case (istag)
+            case default
+                kr = 0
+                irreg = 1
+                if (n > 1) then
+                    go to 106
+                end if
+                tcos(1) = 0.0_wp
+            case (2)
+                kr = 1
+                jstsav = 1
+                irreg = 2
+                if (n > 1) then
+                    go to 106
+                end if
+                tcos(1) = -1.0_wp
+        end select
 
 103 continue
 
@@ -1706,7 +1683,7 @@ subroutine poisp2(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
     real (wp),    intent (in)     :: a(*)
     real (wp),    intent (in)     :: bb(*)
     real (wp),    intent (in)     :: c(*)
-    real (wp),    intent (in out) :: q(idimq, 1)
+    real (wp),    intent (in out) :: q(idimq,*)
     real (wp),    intent (in out) :: b(*)
     real (wp),    intent (in out) :: b2(*)
     real (wp),    intent (in out) :: b3(*)
