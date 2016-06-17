@@ -407,8 +407,10 @@ contains
         !
         call workspace%create(irwk, icwk, ierror)
 
-        associate( rew => workspace%real_workspace )
+        ! Check if allocation was successful
+        if (ierror == 20) return
 
+        associate( rew => workspace%real_workspace)
             !
             !==> Solve system
             !
@@ -598,6 +600,9 @@ contains
         call genbunn(nperod, nunk, mperod, munk, w(1), w(id2+1), w(id3+1), &
             idimf, f(mstart, nstart), local_error_flag, w(id4+1))
 
+        if (local_error_flag /= 0) then
+            error stop 'fishpack library: genbunn call failed in hwscrtt'
+        end if
         !
         !     Fill in identical values when have periodic boundary conditions.
         !

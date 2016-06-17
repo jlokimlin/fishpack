@@ -42,7 +42,7 @@
 !
 ! LATEST REVISION        May 2016
 !
-! PURPOSE                Slves a finite difference approximation
+! PURPOSE                Solves a finite difference approximation
 !                        to the helmholtz equation in cylindrical
 !                        coordinates.  this modified helmholtz equation
 !
@@ -353,23 +353,23 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip),          intent (in)     :: m
-        integer (ip),          intent (in)     :: mbdcnd
-        integer (ip),          intent (in)     :: n
-        integer (ip),          intent (in)     :: nbdcnd
-        integer (ip),          intent (in)     :: idimf
-        integer (ip),          intent (out)    :: ierror
-        real (wp),             intent (in)     :: a
-        real (wp),             intent (in)     :: b
-        real (wp),             intent (in)     :: c
-        real (wp),             intent (in)     :: d
-        real (wp),             intent (in)     :: elmbda
-        real (wp),             intent (out)    :: pertrb
-        real (wp), contiguous, intent (in)     :: bda(:)
-        real (wp), contiguous, intent (in)     :: bdb(:)
-        real (wp), contiguous, intent (in)     :: bdc(:)
-        real (wp), contiguous, intent (in)     :: bdd(:)
-        real (wp), contiguous, intent (in out) :: f(:,:)
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: mbdcnd
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: nbdcnd
+        integer (ip), intent (in)     :: idimf
+        integer (ip), intent (out)    :: ierror
+        real (wp),    intent (in)     :: a
+        real (wp),    intent (in)     :: b
+        real (wp),    intent (in)     :: c
+        real (wp),    intent (in)     :: d
+        real (wp),    intent (in)     :: elmbda
+        real (wp),    intent (out)    :: pertrb
+        real (wp),    intent (in)     :: bda(:)
+        real (wp),    intent (in)     :: bdb(:)
+        real (wp),    intent (in)     :: bdc(:)
+        real (wp),    intent (in)     :: bdd(:)
+        real (wp),    intent (in out) :: f(:,:)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
@@ -435,6 +435,7 @@ contains
             !
             call hwscyll(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
                 elmbda, f, idimf, pertrb, ierror, rew)
+
         end associate
 
         !
@@ -442,239 +443,243 @@ contains
         !
         call workspace%destroy()
 
-    contains
-
-        subroutine hwscyll(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
-            bdd, elmbda, f, idimf, pertrb, ierror, w)
-            !-----------------------------------------------
-            ! Dictionary: calling arguments
-            !-----------------------------------------------
-            integer (ip), intent (in)     :: m
-            integer (ip), intent (in)     :: mbdcnd
-            integer (ip), intent (in)     :: n
-            integer (ip), intent (in)     :: nbdcnd
-            integer (ip), intent (in)     :: idimf
-            integer (ip), intent (out)    :: ierror
-            real (wp),    intent (in)     :: a
-            real (wp),    intent (in)     :: b
-            real (wp),    intent (in)     :: c
-            real (wp),    intent (in)     :: d
-            real (wp),    intent (in)     :: elmbda
-            real (wp),    intent (out)    :: pertrb
-            real (wp),    intent (in)     :: bda(:)
-            real (wp),    intent (in)     :: bdb(:)
-            real (wp),    intent (in)     :: bdc(:)
-            real (wp),    intent (in)     :: bdd(:)
-            real (wp),    intent (in out) :: f(idimf,*)
-            real (wp),    intent (in out) :: w(*)
-            !-----------------------------------------------
-            ! Dictionary: local variables
-            !-----------------------------------------------
-            integer (ip) :: mp1, np1, np, mstart, mstop, munk, nstart, nstop, nunk
-            integer (ip) :: id2, id3, id4, id5, id6, istart
-            integer (ip) :: ij, i, j, k, l, nsp1, nstm1
-            integer (ip) :: local_error_flag, i1
-            real (wp)    :: dr, half_dr, dr2, dth, dth2
-            real (wp)    :: a1, r, a2, s, s1, s2
-            !-----------------------------------------------
-
-            mp1 = m + 1
-            dr = (b - a)/m
-            half_dr = dr/2
-            dr2 = dr**2
-            np1 = n + 1
-            dth = (d - c)/n
-            dth2 = dth**2
-            np = nbdcnd + 1
-            !
-            !==> Define range of indices i and j for unknowns u(i, j).
-            !
-            mstart = 2
-            mstop = m
-            select case (mbdcnd)
-                case (2)
-                    mstop = mp1
-                case (3, 6)
-                    mstart = 1
-                    mstop = mp1
-                case (4:5)
-                    mstart = 1
-            end select
-
-            munk = mstop - mstart + 1
-            nstart = 1
-            nstop = n
-            select case (np)
-                case (2)
-                    nstart = 2
-                case (3)
-                    nstart = 2
-                    nstop = np1
-                case (4)
-                    nstop = np1
-            end select
-
-            nunk = nstop - nstart + 1
-            !
-            !==> Define a, b, c coefficients in w-array.
-            !
-            id2 = munk
-            id3 = id2 + munk
-            id4 = id3 + munk
-            id5 = id4 + munk
-            id6 = id5 + munk
-            istart = 1
-            a1 = 2.0_wp/dr2
-            ij = 0
-
-            if (mbdcnd==3 .or. mbdcnd==4) ij = 1
-
-            if (mbdcnd > 4) then
-                w(1) = 0.
-                w(id2+1) = -2.0_wp*a1
-                w(id3+1) = 2.0_wp*a1
-                istart = 2
-                ij = 1
-            end if
-
-            do i = istart, munk
-                r = a + real(i - ij, kind=wp)*dr
-                j = id5 + i
-                w(j) = r
-                j = id6 + i
-                w(j) = 1.0_wp/r**2
-                w(i) = (r - half_dr)/(r*dr2)
-                j = id3 + i
-                w(j) = (r + half_dr)/(r*dr2)
-                k = id6 + i
-                j = id2 + i
-                w(j) = (-a1) + elmbda*w(k)
-            end do
-
-            select case (mbdcnd)
-                case (2)
-                    w(id2) = a1
-                case (3, 6)
-                    w(id2) = a1
-                    w(id3+1) = a1*real(istart, kind=wp)
-                case (4)
-                    w(id3+1) = a1*real(istart, kind=wp)
-            end select
-
-            select case (mbdcnd)
-                case (1:2)
-                    a1 = w(1)
-                    f(2, nstart:nstop) = f(2, nstart:nstop) - a1*f(1, nstart:nstop)
-                case (3:4)
-                    a1 = 2.0_wp*dr*w(1)
-                    f(1, nstart:nstop) = f(1, nstart:nstop) + a1*bda(nstart:nstop)
-            end select
-
-            select case (mbdcnd)
-                case (1, 4:5)
-                    a1 = w(id4)
-                    f(m, nstart:nstop) = f(m, nstart:nstop) - a1*f(mp1, nstart:nstop)
-                case (2:3, 6)
-                    a1 = 2.0_wp*dr*w(id4)
-                    f(mp1, nstart:nstop) = f(mp1, nstart:nstop) - a1*bdb(nstart:nstop)
-            end select
-
-
-            !
-            !==> Enter boundary data for z-boundaries.
-            !
-            a1 = 1.0_wp/dth2
-            l = id5 - mstart + 1
-
-            if (np /= 1) then
-                select case (np)
-                    case (2:3)
-                        f(mstart:mstop, 2) = f(mstart:mstop, 2) - a1*f(mstart:mstop, 1)
-                    case (4:5)
-                        a1 = 2./dth
-                        f(mstart:mstop, 1) = f(mstart:mstop, 1) + a1*bdc(mstart:mstop)
-                end select
-
-                a1 = 1.0_wp/dth2
-                select case (np)
-                    case (2, 5)
-                        f(mstart:mstop, n) = f(mstart:mstop, n) - a1*f(mstart:mstop, np1)
-                    case (3:4)
-                        a1 = 2./dth
-                        f(mstart:mstop, np1) = f(mstart:mstop, np1) - a1*bdd(mstart:mstop)
-                end select
-            end if
-
-            if_block: block
-                pertrb = 0.0_wp
-                if (elmbda >= 0.0_wp) then
-                    if (elmbda /= 0.0_wp) then
-                        ierror = 11
-                        return
-                    else
-                        w(id5+1) = 0.5_wp*(w(id5+2)-half_dr)
-
-                        select case (mbdcnd)
-                            case (1:2, 4:5)
-                                exit if_block
-                            case (6)
-                                w(id5+1) = 0.5_wp*w(id5+1)
-                        end select
-
-                        select case (np)
-                            case (1)
-                                a2 = 1.0_wp
-                            case (2:3, 5)
-                                exit if_block
-                            case (4)
-                                a2 = 2.0_wp
-                        end select
-
-                        k = id5 + munk
-                        w(k) = 0.5_wp*(w(k-1)+half_dr)
-                        s = 0.0_wp
-
-                        do i = mstart, mstop
-                            s1 = 0.0_wp
-                            nsp1 = nstart + 1
-                            nstm1 = nstop - 1
-                            s1 = sum(f(i, nsp1:nstm1))
-                            k = i + l
-                            s = s + (a2*s1 + f(i, nstart)+f(i, nstop))*w(k)
-                        end do
-
-                        s2 = real(m, kind=wp)*a + (0.75_wp + real((m - 1)*(m + 1), kind=wp))*half_dr
-
-                        if (mbdcnd == 3) s2 = s2 + 0.25_wp*half_dr
-
-                        s1 = (2.0_wp + a2*real(nunk - 2, kind=wp))*s2
-
-                        pertrb = s/s1
-                        f(mstart:mstop, nstart:nstop) = &
-                            f(mstart:mstop, nstart:nstop) - pertrb
-                    end if
-                end if
-            end block if_block
-
-            w(:mstop-mstart+1) = w(:mstop-mstart+1)*dth2
-            w(id2+1:mstop-mstart+1+id2) = w(id2+1:mstop-mstart+1+id2)*dth2
-            w(id3+1:mstop-mstart+1+id3) = w(id3+1:mstop-mstart+1+id3)*dth2
-            f(mstart:mstop, nstart:nstop) = f(mstart:mstop, nstart:nstop)*dth2
-            w(1) = 0.0_wp
-            w(id4) = 0.0_wp
-            !
-            !==> Solve the system of equations.
-            !
-            local_error_flag = 0
-            i1 = 1
-            call genbunn(nbdcnd, nunk, i1, munk, w(1), w(id2+1), w(id3+1), &
-                idimf, f(mstart, nstart), local_error_flag, w(id4+1))
-
-            if (nbdcnd == 0) f(mstart:mstop, np1) = f(mstart:mstop, 1)
-
-        end subroutine hwscyll
-
     end subroutine hwscyl
+
+
+
+    subroutine hwscyll(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
+        bdd, elmbda, f, idimf, pertrb, ierror, w)
+        !-----------------------------------------------
+        ! Dictionary: calling arguments
+        !-----------------------------------------------
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: mbdcnd
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: nbdcnd
+        integer (ip), intent (in)     :: idimf
+        integer (ip), intent (out)    :: ierror
+        real (wp),    intent (in)     :: a
+        real (wp),    intent (in)     :: b
+        real (wp),    intent (in)     :: c
+        real (wp),    intent (in)     :: d
+        real (wp),    intent (in)     :: elmbda
+        real (wp),    intent (out)    :: pertrb
+        real (wp),    intent (in)     :: bda(:)
+        real (wp),    intent (in)     :: bdb(:)
+        real (wp),    intent (in)     :: bdc(:)
+        real (wp),    intent (in)     :: bdd(:)
+        real (wp),    intent (in out) :: f(idimf,*)
+        real (wp),    intent (in out) :: w(*)
+        !-----------------------------------------------
+        ! Dictionary: local variables
+        !-----------------------------------------------
+        integer (ip) :: mp1, np1, np, mstart, mstop, munk, nstart, nstop, nunk
+        integer (ip) :: id2, id3, id4, id5, id6, istart
+        integer (ip) :: ij, i, j, k, l, nsp1, nstm1
+        integer (ip) :: local_error_flag, i1
+        real (wp)    :: dr, half_dr, dr2, dth, dth2
+        real (wp)    :: a1, r, a2, s, s1, s2
+        !-----------------------------------------------
+
+        mp1 = m + 1
+        dr = (b - a)/m
+        half_dr = dr/2
+        dr2 = dr**2
+        np1 = n + 1
+        dth = (d - c)/n
+        dth2 = dth**2
+        np = nbdcnd + 1
+        !
+        !==> Define range of indices i and j for unknowns u(i, j).
+        !
+        mstart = 2
+        mstop = m
+        select case (mbdcnd)
+            case (2)
+                mstop = mp1
+            case (3, 6)
+                mstart = 1
+                mstop = mp1
+            case (4:5)
+                mstart = 1
+        end select
+
+        munk = mstop - mstart + 1
+        nstart = 1
+        nstop = n
+        select case (np)
+            case (2)
+                nstart = 2
+            case (3)
+                nstart = 2
+                nstop = np1
+            case (4)
+                nstop = np1
+        end select
+
+        nunk = nstop - nstart + 1
+        !
+        !==> Define a, b, c coefficients in w-array.
+        !
+        id2 = munk
+        id3 = id2 + munk
+        id4 = id3 + munk
+        id5 = id4 + munk
+        id6 = id5 + munk
+        istart = 1
+        a1 = 2.0_wp/dr2
+        ij = 0
+
+        if (mbdcnd==3 .or. mbdcnd==4) ij = 1
+
+        if (mbdcnd > 4) then
+            w(1) = 0.
+            w(id2+1) = -2.0_wp*a1
+            w(id3+1) = 2.0_wp*a1
+            istart = 2
+            ij = 1
+        end if
+
+        do i = istart, munk
+            r = a + real(i - ij, kind=wp)*dr
+            j = id5 + i
+            w(j) = r
+            j = id6 + i
+            w(j) = 1.0_wp/r**2
+            w(i) = (r - half_dr)/(r*dr2)
+            j = id3 + i
+            w(j) = (r + half_dr)/(r*dr2)
+            k = id6 + i
+            j = id2 + i
+            w(j) = (-a1) + elmbda*w(k)
+        end do
+
+        select case (mbdcnd)
+            case (2)
+                w(id2) = a1
+            case (3, 6)
+                w(id2) = a1
+                w(id3+1) = a1*real(istart, kind=wp)
+            case (4)
+                w(id3+1) = a1*real(istart, kind=wp)
+        end select
+
+        select case (mbdcnd)
+            case (1:2)
+                a1 = w(1)
+                f(2, nstart:nstop) = f(2, nstart:nstop) - a1*f(1, nstart:nstop)
+            case (3:4)
+                a1 = 2.0_wp*dr*w(1)
+                f(1, nstart:nstop) = f(1, nstart:nstop) + a1*bda(nstart:nstop)
+        end select
+
+        select case (mbdcnd)
+            case (1, 4:5)
+                a1 = w(id4)
+                f(m, nstart:nstop) = f(m, nstart:nstop) - a1*f(mp1, nstart:nstop)
+            case (2:3, 6)
+                a1 = 2.0_wp*dr*w(id4)
+                f(mp1, nstart:nstop) = f(mp1, nstart:nstop) - a1*bdb(nstart:nstop)
+        end select
+
+
+        !
+        !==> Enter boundary data for z-boundaries.
+        !
+        a1 = 1.0_wp/dth2
+        l = id5 - mstart + 1
+
+        if (np /= 1) then
+            select case (np)
+                case (2:3)
+                    f(mstart:mstop, 2) = f(mstart:mstop, 2) - a1*f(mstart:mstop, 1)
+                case (4:5)
+                    a1 = 2./dth
+                    f(mstart:mstop, 1) = f(mstart:mstop, 1) + a1*bdc(mstart:mstop)
+            end select
+
+            a1 = 1.0_wp/dth2
+            select case (np)
+                case (2, 5)
+                    f(mstart:mstop, n) = f(mstart:mstop, n) - a1*f(mstart:mstop, np1)
+                case (3:4)
+                    a1 = 2./dth
+                    f(mstart:mstop, np1) = f(mstart:mstop, np1) - a1*bdd(mstart:mstop)
+            end select
+        end if
+
+        if_block: block
+            pertrb = 0.0_wp
+            if (elmbda >= 0.0_wp) then
+                if (elmbda /= 0.0_wp) then
+                    ierror = 11
+                    return
+                else
+                    w(id5+1) = 0.5_wp*(w(id5+2)-half_dr)
+
+                    select case (mbdcnd)
+                        case (1:2, 4:5)
+                            exit if_block
+                        case (6)
+                            w(id5+1) = 0.5_wp*w(id5+1)
+                    end select
+
+                    select case (np)
+                        case (1)
+                            a2 = 1.0_wp
+                        case (2:3, 5)
+                            exit if_block
+                        case (4)
+                            a2 = 2.0_wp
+                    end select
+
+                    k = id5 + munk
+                    w(k) = 0.5_wp*(w(k-1)+half_dr)
+                    s = 0.0_wp
+
+                    do i = mstart, mstop
+                        s1 = 0.0_wp
+                        nsp1 = nstart + 1
+                        nstm1 = nstop - 1
+                        s1 = sum(f(i, nsp1:nstm1))
+                        k = i + l
+                        s = s + (a2*s1 + f(i, nstart)+f(i, nstop))*w(k)
+                    end do
+
+                    s2 = real(m, kind=wp)*a + (0.75_wp + real((m - 1)*(m + 1), kind=wp))*half_dr
+
+                    if (mbdcnd == 3) s2 = s2 + 0.25_wp*half_dr
+
+                    s1 = (2.0_wp + a2*real(nunk - 2, kind=wp))*s2
+
+                    pertrb = s/s1
+                    f(mstart:mstop, nstart:nstop) = &
+                        f(mstart:mstop, nstart:nstop) - pertrb
+                end if
+            end if
+        end block if_block
+
+        w(:mstop-mstart+1) = w(:mstop-mstart+1)*dth2
+        w(id2+1:mstop-mstart+1+id2) = w(id2+1:mstop-mstart+1+id2)*dth2
+        w(id3+1:mstop-mstart+1+id3) = w(id3+1:mstop-mstart+1+id3)*dth2
+        f(mstart:mstop, nstart:nstop) = f(mstart:mstop, nstart:nstop)*dth2
+        w(1) = 0.0_wp
+        w(id4) = 0.0_wp
+        !
+        !==> Solve the system of equations.
+        !
+        local_error_flag = 0
+        i1 = 1
+        call genbunn(nbdcnd, nunk, i1, munk, w(1), w(id2+1), w(id3+1), &
+            idimf, f(mstart, nstart), local_error_flag, w(id4+1))
+
+        if (local_error_flag /= 0) then
+            error stop 'fishpack library: genbunn call failed in hwscyll'
+        end if
+
+        if (nbdcnd == 0) f(mstart:mstop, np1) = f(mstart:mstop, 1)
+
+    end subroutine hwscyll
 
 end module module_hwscyl
 !
@@ -687,4 +692,5 @@ end module module_hwscyl
 ! February  1985    Documentation upgrade
 ! November  1988    Version 3.2, FORTRAN 77 changes
 ! June      2004    Version 5.0, Fortran 90 changes
-!-----------------------------------------------------------------------
+! June      2016    Fortran 2008 changes
+!

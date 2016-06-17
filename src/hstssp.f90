@@ -535,7 +535,7 @@ contains
         ! Dictionary: local variables
         !-----------------------------------------------
         integer (ip) :: np, isw, jsw, mb, iwb, iwc, iwr, iws
-        integer (ip) :: i, j, mm1, k, lp, ierr1, i1
+        integer (ip) :: i, j, mm1, k, lp, local_error_flag, i1
         real (wp)    :: dr, dr2, dth, dth2, pi, a1, a2, a3
         !-----------------------------------------------
 
@@ -548,206 +548,185 @@ contains
         jsw = 1
         mb = mbdcnd
 
+
         if (elmbda == 0.0_wp) then
-            select case (mbdcnd)
-                case (1)
-                    go to 101
+            case_construct: select case (mbdcnd)
+                case (1, 5, 7)
+                    if (a /= 0.0_wp .or. b /= pi) exit case_construct
+                    mb = 9
+                    jsw = 2
                 case (2)
-                    go to 102
-                case (3)
-                    go to 105
+                    if (a /= 0.0_wp) exit case_construct
+                    mb = 6
+                    jsw = 2
                 case (4)
-                    go to 103
-                case (5)
-                    go to 101
-                case (6)
-                    go to 105
-                case (7)
-                    go to 101
-                case (8)
-                    go to 105
-                case (9)
-                    go to 105
-            end select
-101     continue
-        if (a/=0. .or. b/=pi) go to 105
-        mb = 9
-        go to 104
-102 continue
-    if (a /= 0.0_wp) go to 105
-    mb = 6
-    go to 104
-103 continue
-    if (b /= pi) go to 105
-    mb = 8
-104 continue
-    jsw = 2
-end if
-105 continue
-    iwb = m
-    iwc = iwb + m
-    iwr = iwc + m
-    iws = iwr + m
-    do i = 1, m
-        j = iwr + i
-        w(j) = sin(a + (real(i, kind=wp) - 0.5_wp)*dr)
-        w(i) = sin(a + real(i - 1, kind=wp)*dr)/dr2
-    end do
-    mm1 = m - 1
-    w(iwc+1:mm1+iwc) = w(2:mm1+1)
-    w(iwb+1:mm1+iwb) = elmbda*w(iwr+1:mm1+iwr) - (w(:mm1)+w(2:mm1+1))
-    w(iwr) = sin(b)/dr2
-    w(iwc) = elmbda*w(iws) - (w(m)+w(iwr))
-    do i = 1, m
-        j = iwr + i
-        a1 = w(j)
-        f(i,:n) = a1*f(i,:n)
-    end do
-    !
-    !     enter boundary data for theta-boundaries.
-    !
-    select case (mb)
-        case (1:2, 7)
-            a1 = 2.0_wp*w(1)
-            w(iwb+1) = w(iwb+1) - w(1)
-            f(1,:n) = f(1,:n) - a1*bda(:n)
-        case (3:4, 8)
-            a1 = dr*w(1)
-            w(iwb+1) = w(iwb+1) + w(1)
-            f(1,:n) = f(1,:n) + a1*bda(:n)
-    end select
-
-    select case (mb)
-        case (1, 4:5)
-            a1 = 2.0_wp*w(iwr)
-            w(iwc) = w(iwc) - w(iwr)
-            f(m,:n) = f(m,:n) - a1*bdb(:n)
-        case (2:3, 6)
-            a1 = dr*w(iwr)
-            w(iwc) = w(iwc) + w(iwr)
-            f(m,:n) = f(m,:n) - a1*bdb(:n)
-    end select
-
-    !
-    !==> Enter boundary data for phi-boundaries.
-    !
-    a1 = 2.0_wp/dth2
-    if (np /= 1) then
-        select case (np)
-            case (2:3)
-                f(:m, 1) = f(:m, 1) - a1*bdc(:m)/w(iwr+1:m+iwr)
-            case (4:5)
-                a1 = 1.0_wp/dth
-                f(:m, 1) = f(:m, 1) + a1*bdc(:m)/w(iwr+1:m+iwr)
-        end select
-
-
-        a1 = 2.0_wp/dth2
-        select case (np)
-            case (2, 5)
-                f(:m, n) = f(:m, n) - a1*bdd(:m)/w(iwr+1:m+iwr)
-            case (3:4)
-                a1 = 1.0_wp/dth
-                f(:m, n) = f(:m, n) - a1*bdd(:m)/w(iwr+1:m+iwr)
-        end select
-    end if
-
-    pertrb = 0.0_wp
-    if (elmbda >= 0.0_wp) then
-        if (elmbda /= 0.0_wp) then
-            ierror = 14
-        else
-            select case (mb)
-                case (1)
-                    go to 139
-                case (2)
-                    go to 139
-                case (3)
-                    go to 132
-                case (4)
-                    go to 139
-                case (5)
-                    go to 139
-                case (6)
-                    go to 132
-                case (7)
-                    go to 139
-                case (8)
-                    go to 132
-                case (9)
-                    go to 132
-            end select
-132     continue
-        select case (np)
-            case (1)
-                go to 133
-            case (2)
-                go to 139
-            case (3)
-                go to 139
-            case (4)
-                go to 133
-            case (5)
-                go to 139
-        end select
-133 continue
-    isw = 2
-    pertrb = pertrb + sum(f(:m,1:n))
-
-    a1 = real(n, kind=wp)*(cos(a) - cos(b))/(2.0_wp*sin(0.5_wp*dr))
-    pertrb = pertrb/a1
-    do i = 1, m
-        j = iwr + i
-        a1 = pertrb*w(j)
-        f(i,:n) = f(i,:n) - a1
-    end do
-    a2 = sum(f(1,:n))
-    a3 = sum(f(m,:n))
-    a2 = a2/w(iwr+1)
-    a3 = a3/w(iws)
-end if
-end if
-139 continue
-    do i = 1, m
-        j = iwr + i
-        a1 = dth2*w(j)
-        w(i) = a1*w(i)
-        j = iwc + i
-        w(j) = a1*w(j)
-        j = iwb + i
-        w(j) = a1*w(j)
-        f(i,:n) = a1*f(i,:n)
-    end do
-    lp = nbdcnd
-    w(1) = 0.0_wp
-    w(iwr) = 0.0_wp
-    !
-    !     call poistg or genbun to solve the system of equations.
-    !
-    ierr1 = 0
-    i1 = 1
-    if (nbdcnd /= 0) then
-        call poistgg(lp, n, i1, m, w, w(iwb+1), w(iwc+1), idimf, f, ierr1, w(iwr+1))
-    else
-        call genbunn(lp, n, i1, m, w, w(iwb+1), w(iwc+1), idimf, f, ierr1, w(iwr+1))
-    end if
-
-    if (isw == 2 .and. jsw == 2) then
-        if (mb == 8) then
-            a1 = sum(f(m,:n))
-            a1 = (a1 - dr2*a3/16)/n
-            if (nbdcnd == 3) a1 = a1 + (bdd(m)-bdc(m))/(d - c)
-            a1 = bdb(1) - a1
-        else
-            a1 = sum(f(1,:n))
-            a1 = (a1 - dr2*a2/16)/n
-            if (nbdcnd == 3) a1 = a1 + (bdd(1)-bdc(1))/(d - c)
-            a1 = bda(1) - a1
+                    if (b /= pi) exit case_construct
+                    mb = 8
+                    jsw = 2
+            end select case_construct
         end if
-        f(:m,:n) = f(:m,:n) + a1
-    end if
 
-end subroutine hstsspp
+        iwb = m
+        iwc = iwb + m
+        iwr = iwc + m
+        iws = iwr + m
+
+        do i = 1, m
+            j = iwr + i
+            w(j) = sin(a + (real(i, kind=wp) - 0.5_wp)*dr)
+            w(i) = sin(a + real(i - 1, kind=wp)*dr)/dr2
+        end do
+
+        mm1 = m - 1
+        w(iwc+1:mm1+iwc) = w(2:mm1+1)
+        w(iwb+1:mm1+iwb) = elmbda*w(iwr+1:mm1+iwr) - (w(:mm1)+w(2:mm1+1))
+        w(iwr) = sin(b)/dr2
+        w(iwc) = elmbda*w(iws) - (w(m)+w(iwr))
+
+        do i = 1, m
+            j = iwr + i
+            a1 = w(j)
+            f(i,:n) = a1*f(i,:n)
+        end do
+
+        !
+        !     enter boundary data for theta-boundaries.
+        !
+        select case (mb)
+            case (1:2, 7)
+                a1 = 2.0_wp*w(1)
+                w(iwb+1) = w(iwb+1) - w(1)
+                f(1,:n) = f(1,:n) - a1*bda(:n)
+            case (3:4, 8)
+                a1 = dr*w(1)
+                w(iwb+1) = w(iwb+1) + w(1)
+                f(1,:n) = f(1,:n) + a1*bda(:n)
+        end select
+
+        select case (mb)
+            case (1, 4:5)
+                a1 = 2.0_wp*w(iwr)
+                w(iwc) = w(iwc) - w(iwr)
+                f(m,:n) = f(m,:n) - a1*bdb(:n)
+            case (2:3, 6)
+                a1 = dr*w(iwr)
+                w(iwc) = w(iwc) + w(iwr)
+                f(m,:n) = f(m,:n) - a1*bdb(:n)
+        end select
+
+        !
+        !==> Enter boundary data for phi-boundaries.
+        !
+        a1 = 2.0_wp/dth2
+
+        if (np /= 1) then
+            select case (np)
+                case (2:3)
+                    f(:m, 1) = f(:m, 1) - a1*bdc(:m)/w(iwr+1:m+iwr)
+                case (4:5)
+                    a1 = 1.0_wp/dth
+                    f(:m, 1) = f(:m, 1) + a1*bdc(:m)/w(iwr+1:m+iwr)
+            end select
+
+            a1 = 2.0_wp/dth2
+
+            select case (np)
+                case (2, 5)
+                    f(:m, n) = f(:m, n) - a1*bdd(:m)/w(iwr+1:m+iwr)
+                case (3:4)
+                    a1 = 1.0_wp/dth
+                    f(:m, n) = f(:m, n) - a1*bdd(:m)/w(iwr+1:m+iwr)
+            end select
+        end if
+
+        pertrb = 0.0_wp
+
+        if_construct: if (elmbda >= 0.0_wp) then
+            if (elmbda /= 0.0_wp) then
+                ierror = 14
+            else
+                select case (mb)
+                    case (1:2, 4:5, 7)
+                        exit if_construct
+                end select
+
+                select case (np)
+                    case (2:3, 5)
+                        exit if_construct
+                end select
+
+                isw = 2
+                pertrb = pertrb + sum(f(:m,1:n))
+
+                a1 = real(n, kind=wp)*(cos(a) - cos(b))/(2.0_wp*sin(0.5_wp*dr))
+                pertrb = pertrb/a1
+                do i = 1, m
+                    j = iwr + i
+                    a1 = pertrb*w(j)
+                    f(i,:n) = f(i,:n) - a1
+                end do
+                a2 = sum(f(1,:n))
+                a3 = sum(f(m,:n))
+                a2 = a2/w(iwr+1)
+                a3 = a3/w(iws)
+            end if
+        end if if_construct
+
+        do i = 1, m
+            j = iwr + i
+            a1 = dth2*w(j)
+            w(i) = a1*w(i)
+            j = iwc + i
+            w(j) = a1*w(j)
+            j = iwb + i
+            w(j) = a1*w(j)
+            f(i,:n) = a1*f(i,:n)
+        end do
+
+        lp = nbdcnd
+        w(1) = 0.0_wp
+        w(iwr) = 0.0_wp
+        !
+        !==> call poistg or genbun to solve the system of equations.
+        !
+        local_error_flag = 0
+        i1 = 1
+        if (nbdcnd /= 0) then
+
+            ! Invoke poistgg solver
+            call poistgg(lp, n, i1, m, w, w(iwb+1), w(iwc+1), idimf, f, local_error_flag, w(iwr+1))
+
+            ! Check error flag
+            if (local_error_flag /= 0) then
+                error stop 'fishpack library: poistgg call failed in hstsspp'
+            end if
+        else
+
+            ! Invoke genbunn solver
+            call genbunn(lp, n, i1, m, w, w(iwb+1), w(iwc+1), idimf, f, local_error_flag, w(iwr+1))
+
+            ! Check error flag
+            if (local_error_flag /= 0) then
+                error stop 'fishpack library: genbunn call failed in hstsspp'
+            end if
+        end if
+
+        if (isw == 2 .and. jsw == 2) then
+            if (mb == 8) then
+                a1 = sum(f(m,:n))
+                a1 = (a1 - dr2*a3/16)/n
+                if (nbdcnd == 3) a1 = a1 + (bdd(m)-bdc(m))/(d - c)
+                a1 = bdb(1) - a1
+            else
+                a1 = sum(f(1,:n))
+                a1 = (a1 - dr2*a2/16)/n
+                if (nbdcnd == 3) a1 = a1 + (bdd(1)-bdc(1))/(d - c)
+                a1 = bda(1) - a1
+            end if
+            f(:m,:n) = f(:m,:n) + a1
+        end if
+
+    end subroutine hstsspp
 
 end module module_hstssp
 !

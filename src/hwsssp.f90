@@ -441,15 +441,15 @@ contains
         !-----------------------------------------------
         type (Fish)           :: workspace
         integer (ip)          :: irwk, icwk
-        real (wp), parameter  :: pi = acos(-1.0_wp)
-        real (wp), parameter  :: two_pi = 2.0_wp * pi
+        real (wp), parameter  :: PI = acos(-1.0_wp)
+        real (wp), parameter  :: TWO_PI = 2.0_wp * PI
         !-----------------------------------------------
 
 
         !
         !==> Check if input values are valid
         !
-        if (ts < 0.0_wp .or. tf > pi) then
+        if (ts < 0.0_wp .or. tf > PI) then
             ierror = 1
             return
         else if (ts >= tf) then
@@ -458,7 +458,7 @@ contains
         else if (mbdcnd < 1 .or. mbdcnd > 9) then
             ierror = 3
             return
-        else if (ps < 0.0_wp .or. pf > two_pi) then
+        else if (ps < 0.0_wp .or. pf > TWO_PI) then
             ierror = 4
             return
         else if (ps >= pf) then
@@ -485,13 +485,13 @@ contains
         else if (ts == 0.0_wp .and. (mbdcnd==3.or. mbdcnd==4 .or. mbdcnd == 8)) then
             ierror = 12
             return
-        else if (tf == pi .and. (mbdcnd==2.or. mbdcnd == 3 .or. mbdcnd == 6)) then
+        else if (tf == PI .and. (mbdcnd==2.or. mbdcnd == 3 .or. mbdcnd == 6)) then
             ierror = 13
             return
         else if ((mbdcnd == 5.or.mbdcnd == 6.or.mbdcnd == 9) .and. ts /= 0.0_wp) then
             ierror = 14
             return
-        else if (mbdcnd >= 7 .and. tf /= pi) then
+        else if (mbdcnd >= 7 .and. tf /= PI) then
             ierror = 15
             return
         else
@@ -523,419 +523,425 @@ contains
         !
         call workspace%destroy()
 
-    contains
+    end subroutine hwsssp
 
 
-        subroutine hwssspp(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, &
-            nbdcnd, bdps, bdpf, elmbda, f, idimf, pertrb, ierror, w)
-            !-----------------------------------------------
-            ! Dictionary: calling arguments
-            !-----------------------------------------------
-            integer (ip), intent (in)     :: m
-            integer (ip), intent (in)     :: mbdcnd
-            integer (ip), intent (in)     :: n
-            integer (ip), intent (in)     :: nbdcnd
-            integer (ip), intent (in)     :: idimf
-            integer (ip), intent (in)     :: ierror
-            real (wp),    intent (in)     :: ts
-            real (wp),    intent (in)     :: tf
-            real (wp),    intent (in)     :: ps
-            real (wp),    intent (in)     :: pf
-            real (wp),    intent (in)     :: elmbda
-            real (wp),    intent (out)    :: pertrb
-            real (wp),    intent (in)     :: bdts(:)
-            real (wp),    intent (in)     :: bdtf(:)
-            real (wp),    intent (in)     :: bdps(:)
-            real (wp),    intent (in)     :: bdpf(:)
-            real (wp),    intent (in out) :: f(:,:)
-            real (wp),    intent (in out) :: w(*)
-            !-----------------------------------------------
 
-            call hwsss1(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
-                bdps, bdpf, elmbda, f, idimf, pertrb, w, w(m+2), w(2*m+3), &
-                w(3*m+4), w(4*m+5), w(5*m+6), w(6*m+7))
+    subroutine hwssspp(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, &
+        nbdcnd, bdps, bdpf, elmbda, f, idimf, pertrb, ierror, w)
+        !-----------------------------------------------
+        ! Dictionary: calling arguments
+        !-----------------------------------------------
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: mbdcnd
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: nbdcnd
+        integer (ip), intent (in)     :: idimf
+        integer (ip), intent (in)     :: ierror
+        real (wp),    intent (in)     :: ts
+        real (wp),    intent (in)     :: tf
+        real (wp),    intent (in)     :: ps
+        real (wp),    intent (in)     :: pf
+        real (wp),    intent (in)     :: elmbda
+        real (wp),    intent (out)    :: pertrb
+        real (wp),    intent (in)     :: bdts(:)
+        real (wp),    intent (in)     :: bdtf(:)
+        real (wp),    intent (in)     :: bdps(:)
+        real (wp),    intent (in)     :: bdpf(:)
+        real (wp),    intent (in out) :: f(:,:)
+        real (wp),    intent (in out) :: w(*)
+        !-----------------------------------------------
 
-
-        end subroutine hwssspp
+        call hwsss1(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
+            bdps, bdpf, elmbda, f, idimf, pertrb, w, w(m+2), w(2*m+3), &
+            w(3*m+4), w(4*m+5), w(5*m+6), w(6*m+7))
 
 
-        pure function get_workspace_indices(m) result (return_value)
-            !-----------------------------------------------
-            ! Dictionary: calling arguments
-            !-----------------------------------------------
-            integer (ip), intent (in) :: m
-            integer (ip)              :: return_value(6)
-            !-----------------------------------------------
-            integer (ip) :: i
-            !-----------------------------------------------
+    end subroutine hwssspp
 
-            do i = 1, 6
-                return_value(i) = i*m+i+1
+
+    pure function get_workspace_indices(m) result (return_value)
+        !-----------------------------------------------
+        ! Dictionary: calling arguments
+        !-----------------------------------------------
+        integer (ip), intent (in) :: m
+        integer (ip)              :: return_value(6)
+        !-----------------------------------------------
+        integer (ip) :: i
+        !-----------------------------------------------
+
+        do i = 1, 6
+            return_value(i) = i*m+i+1
+        end do
+
+
+    end function get_workspace_indices
+
+
+
+    subroutine hwsss1(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
+        bdps, bdpf, elmbda, f, idimf, pertrb, am, bm, cm, sn, ss, &
+        sint, d)
+        !-----------------------------------------------
+        ! Dictionary: calling arguments
+        !-----------------------------------------------
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: mbdcnd
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: nbdcnd
+        integer (ip), intent (in)     :: idimf
+        real (wp),    intent (in)     :: ts
+        real (wp),    intent (in)     :: tf
+        real (wp),    intent (in)     :: ps
+        real (wp),    intent (in)     :: pf
+        real (wp),    intent (in)     :: elmbda
+        real (wp),    intent (out)    :: pertrb
+        real (wp),    intent (in)     :: bdts(:)
+        real (wp),    intent (in)     :: bdtf(:)
+        real (wp),    intent (in)     :: bdps(:)
+        real (wp),    intent (in)     :: bdpf(:)
+        real (wp),    intent (in out) :: f(idimf,*)
+        real (wp),    intent (out)    :: am(*)
+        real (wp),    intent (out)    :: bm(*)
+        real (wp),    intent (out)    :: cm(*)
+        real (wp),    intent (out)    :: sn(*)
+        real (wp),    intent (out)    :: ss(*)
+        real (wp),    intent (out)    :: sint(*)
+        real (wp),    intent (out)    :: d(*)
+        !-----------------------------------------------
+        ! Dictionary: local variables
+        !-----------------------------------------------
+        integer (ip) :: mp1, np1, i, inp, isp, mbr, its, itf, itsp, itfm, munk
+        integer (ip) :: iid, ii, nbr, jps, jpf, jpsp, jpfm, nunk, ising, local_error_flag
+        real (wp)    :: fn, fm, dth, half_dth, two_dth, dphi, two_dphi
+        real (wp)    :: dphi2, edp2, dth2, cp, wp_rename, fim1, theta, t1, at, ct, wts, wtf
+        real (wp)    :: wps, wpf, fjj, cf, summation, sum1, hne, yhld, sum2, dfn, dnn, dsn
+        real (wp)    :: cnp, hld, dfs, dss, dns, csp, rtn, rts, den
+        !-----------------------------------------------
+
+        mp1 = m + 1
+        np1 = n + 1
+        fn = n
+        fm = m
+        dth = (tf - ts)/fm
+        half_dth = dth/2
+        two_dth = 2.0_wp * dth
+        dphi = (pf - ps)/fn
+        two_dphi = 2.0_wp * dphi
+        dphi2 = dphi**2
+        edp2 = elmbda*dphi2
+        dth2 = dth**2
+        cp = 4.0_wp/(fn*dth2)
+        wp_rename = fn*sin(half_dth)/4
+
+        do i = 1, mp1
+            fim1 = i - 1
+            theta = fim1*dth + ts
+            sint(i) = sin(theta)
+
+            if (sint(i) == 0.0_wp) cycle
+
+            t1 = 1.0_wp/(dth2*sint(i))
+            am(i) = t1*sin(theta - half_dth)
+            cm(i) = t1*sin(theta + half_dth)
+            bm(i) = (-am(i)) - cm(i) + elmbda
+        end do
+        inp = 0
+        isp = 0
+        !
+        !==> boundary condition at theta=ts
+        !
+        mbr = mbdcnd + 1
+        select case (mbr)
+            case (1)
+                its = 1
+            case (2:3, 8)
+                at = am(2)
+                its = 2
+            case (4:5, 9)
+                at = am(1)
+                its = 1
+                cm(1) = am(1) + cm(1)
+            case (6:7, 10)
+                at = am(2)
+                inp = 1
+                its = 2
+        end select
+
+        !
+        !==> boundary condition theta=tf
+        !
+        select case (mbr)
+            case (1)
+                itf = m
+            case (2, 5:6)
+                ct = cm(m)
+                itf = m
+            case (3:4, 7)
+                ct = cm(m+1)
+                am(m+1) = am(m+1) + cm(m+1)
+                itf = m + 1
+            case (8:10)
+                itf = m
+                isp = 1
+                ct = cm(m)
+        end select
+
+        !
+        !==> compute homogeneous solution with solution at pole equal to one
+        !
+        itsp = its + 1
+        itfm = itf - 1
+        wts = sint(its+1)*am(its+1)/cm(its)
+        wtf = sint(itf-1)*cm(itf-1)/am(itf)
+        munk = itf - its + 1
+
+        if (isp > 0) then
+            d(its) = cm(its)/bm(its)
+            do i = itsp, m
+                d(i) = cm(i)/(bm(i)-am(i)*d(i-1))
+            end do
+            ss(m) = -d(m)
+            iid = m - its
+            do ii = 1, iid
+                i = m - ii
+                ss(i) = -d(i)*ss(i+1)
+            end do
+            ss(m+1) = 1.0_wp
+        end if
+
+        if (inp > 0) then
+            sn(1) = 1.0_wp
+            d(itf) = am(itf)/bm(itf)
+            iid = itf - 2
+            do ii = 1, iid
+                i = itf - ii
+                d(i) = am(i)/(bm(i)-cm(i)*d(i+1))
+            end do
+            sn(2) = -d(2)
+            do i = 3, itf
+                sn(i) = -d(i)*sn(i-1)
+            end do
+        end if
+        !
+        !==> boundary conditions at phi=ps
+        !
+        nbr = nbdcnd + 1
+        wps = 1.0_wp
+        wpf = 1.0_wp
+        select case (nbr)
+            case default
+                jps = 1
+            case (2:3)
+                jps = 2
+            case (4:5)
+                jps = 1
+                wps = 0.5_wp
+        end select
+        !
+        !==> boundary condition at phi=pf
+        !
+        select case (nbr)
+            case (1)
+                jpf = n
+            case (2, 5)
+                jpf = n
+            case (3:4)
+                wpf = 0.5_wp
+                jpf = n + 1
+        end select
+
+        jpsp = jps + 1
+        jpfm = jpf - 1
+        nunk = jpf - jps + 1
+        fjj = jpfm - jpsp + 1
+        !
+        !==> scale coefficients for subroutine genbun
+        !
+        do i = its, itf
+            cf = dphi2*sint(i)*sint(i)
+            am(i) = cf*am(i)
+            bm(i) = cf*bm(i)
+            cm(i) = cf*cm(i)
+        end do
+
+        am(its) = 0.0_wp
+        cm(itf) = 0.0_wp
+        ising = 0
+
+        select case (mbr)
+            case (1, 4, 7, 9:10)
+                select case (nbr)
+                    case (1, 4)
+                        if (elmbda >= 0.0_wp) then
+                            ising = 1
+                            summation = wts*wps + wts*wpf + wtf*wps + wtf*wpf
+
+                            if (inp > 0) summation = summation + wp_rename
+
+                            if (isp > 0) summation = summation + wp_rename
+
+                            sum1 = sum(sint(itsp:itfm))
+                            summation = summation + fjj*(sum1 + wts + wtf)
+                            summation = summation + (wps + wpf)*sum1
+                            hne = summation
+                        end if
+                end select
+        end select
+
+        select case (mbr)
+            case (2:3, 8)
+                f(2,jps:jpf) = f(2,jps:jpf) - at*f(1,jps:jpf)
+            case (4:5, 9)
+                f(1,jps:jpf) = f(1,jps:jpf) + two_dth*bdts(jps:jpf)*at
+            case (6:7, 10)
+                if (nbdcnd == 3) then
+                    yhld = f(1,jps) - 4.0_wp/(fn*dphi*dth2)*(bdpf(2)-bdps(2))
+                    f(1,:np1) = yhld
+                end if
+        end select
+
+        select case (mbr)
+            case (2, 5:6)
+                f(m,jps:jpf) = f(m,jps:jpf) - ct*f(m+1,jps:jpf)
+            case (3:4, 7)
+                f(m+1,jps:jpf) = f(m+1,jps:jpf) - two_dth*bdtf(jps:jpf)*ct
+            case (8:10)
+                if (nbdcnd == 3) then
+                    yhld = f(m+1,jps) - 4.0_wp/(fn*dphi*dth2)*(bdpf(m)-bdps(m))
+                    f(m+1,:np1) = yhld
+                end if
+        end select
+
+        select case (nbr)
+            case (2:3)
+                f(its:itf,2) = f(its:itf,2) &
+                    - f(its:itf,1)/(dphi2*sint(its:itf)*sint(its:itf))
+            case (4:5)
+                f(its:itf,1) = f(its:itf,1) &
+                    + two_dphi*bdps(its:itf)/(dphi2*sint(its:itf)*sint(its:itf))
+        end select
+
+        select case (nbr)
+            case (2, 5)
+                f(its:itf,n) = f(its:itf,n) &
+                    - f(its:itf,n+1)/(dphi2*sint(its:itf)*sint(its:itf))
+            case (3:4)
+                f(its:itf,n+1) = f(its:itf,n+1) &
+                    - two_dphi*bdpf(its:itf)/(dphi2*sint(its:itf)*sint(its:itf))
+        end select
+
+        pertrb = 0.0_wp
+
+        if (ising /= 0) then
+            summation = &
+                wts*wps*f(its,jps) + wts*wpf*f(its,jpf) &
+                + wtf*wps*f(itf,jps) + wtf*wpf*f(itf,jpf)
+
+            if (inp > 0) summation = summation + wp_rename*f(1,jps)
+
+            if (isp > 0) summation = summation + wp_rename*f(m+1,jps)
+
+            do i = itsp, itfm
+                summation = summation + sint(i)*sum(f(i,jpsp:jpfm))
             end do
 
+            sum1 = sum(f(its,jpsp:jpfm))
+            sum2 = sum(f(itf,jpsp:jpfm))
+            summation = summation + wts*sum1 + wtf*sum2
+            sum1 = 0.0_wp
+            sum2 = 0.0_wp
+            sum1 = dot_product(sint(itsp:itfm),f(itsp:itfm,jps))
+            sum2 = dot_product(sint(itsp:itfm),f(itsp:itfm,jpf))
+            summation = summation + wps*sum1 + wpf*sum2
+            pertrb = summation/hne
+            f(:mp1,:np1) = f(:mp1,:np1) - pertrb
+        end if
+        !
+        !==> scale right side for subroutine genbunn
+        !
+        do i = its, itf
+            cf = dphi2*sint(i)*sint(i)
+            f(i,jps:jpf) = cf*f(i,jps:jpf)
+        end do
 
-        end function get_workspace_indices
+        !
+        !==> Invoke genbunn solver
+        !
+        call genbunn(nbdcnd, nunk, 1, munk, am(its), bm(its), cm(its), &
+            idimf, f(its,jps), local_error_flag, d)
 
+        if (local_error_flag /= 0) then
+            error stop 'fishpack library: genbunn call failed in hwsss1'
+        end if
 
-        subroutine hwsss1(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
-            bdps, bdpf, elmbda, f, idimf, pertrb, am, bm, cm, sn, ss, &
-            sint, d)
-            !-----------------------------------------------
-            ! Dictionary: calling arguments
-            !-----------------------------------------------
-            integer (ip), intent (in)     :: m
-            integer (ip), intent (in)     :: mbdcnd
-            integer (ip), intent (in)     :: n
-            integer (ip), intent (in)     :: nbdcnd
-            integer (ip), intent (in)     :: idimf
-            real (wp),    intent (in)     :: ts
-            real (wp),    intent (in)     :: tf
-            real (wp),    intent (in)     :: ps
-            real (wp),    intent (in)     :: pf
-            real (wp),    intent (in)     :: elmbda
-            real (wp),    intent (out)    :: pertrb
-            real (wp),    intent (in)     :: bdts(:)
-            real (wp),    intent (in)     :: bdtf(:)
-            real (wp),    intent (in)     :: bdps(:)
-            real (wp),    intent (in)     :: bdpf(:)
-            real (wp),    intent (in out) :: f(idimf,*)
-            real (wp),    intent (out)    :: am(*)
-            real (wp),    intent (out)    :: bm(*)
-            real (wp),    intent (out)    :: cm(*)
-            real (wp),    intent (out)    :: sn(*)
-            real (wp),    intent (out)    :: ss(*)
-            real (wp),    intent (out)    :: sint(*)
-            real (wp),    intent (out)    :: d(*)
-            !-----------------------------------------------
-            ! Dictionary: local variables
-            !-----------------------------------------------
-            integer (ip) :: mp1, np1, i, inp, isp, mbr, its, itf, itsp, itfm, munk
-            integer (ip) :: iid, ii, nbr, jps, jpf, jpsp, jpfm, nunk, ising, local_error_flag
-            real (wp)    :: fn, fm, dth, half_dth, two_dth, dphi, two_dphi
-            real (wp)    :: dphi2, edp2, dth2, cp, wp_rename, fim1, theta, t1, at, ct, wts, wtf
-            real (wp)    :: wps, wpf, fjj, cf, summation, sum1, hne, yhld, sum2, dfn, dnn, dsn
-            real (wp)    :: cnp, hld, dfs, dss, dns, csp, rtn, rts, den
-            !-----------------------------------------------
+        if (ising > 0 .and. inp > 0 .and. isp <= 0) then
+            f(1,:np1) = 0.0_wp
+        else if (isp > 0) then
+            f(m+1,:np1) = 0.0_wp
+        else if (inp > 0) then
 
-            mp1 = m + 1
-            np1 = n + 1
-            fn = n
-            fm = m
-            dth = (tf - ts)/fm
-            half_dth = dth/2
-            two_dth = 2.0_wp * dth
-            dphi = (pf - ps)/fn
-            two_dphi = 2.0_wp * dphi
-            dphi2 = dphi**2
-            edp2 = elmbda*dphi2
-            dth2 = dth**2
-            cp = 4.0_wp/(fn*dth2)
-            wp_rename = fn*sin(half_dth)/4
-
-            do i = 1, mp1
-                fim1 = i - 1
-                theta = fim1*dth + ts
-                sint(i) = sin(theta)
-
-                if (sint(i) == 0.0_wp) cycle
-
-                t1 = 1.0_wp/(dth2*sint(i))
-                am(i) = t1*sin(theta - half_dth)
-                cm(i) = t1*sin(theta + half_dth)
-                bm(i) = (-am(i)) - cm(i) + elmbda
-            end do
-            inp = 0
-            isp = 0
-            !
-            !==> boundary condition at theta=ts
-            !
-            mbr = mbdcnd + 1
-            select case (mbr)
-                case (1)
-                    its = 1
-                case (2:3, 8)
-                    at = am(2)
-                    its = 2
-                case (4:5, 9)
-                    at = am(1)
-                    its = 1
-                    cm(1) = am(1) + cm(1)
-                case (6:7, 10)
-                    at = am(2)
-                    inp = 1
-                    its = 2
-            end select
-
-            !
-            !==> boundary condition theta=tf
-            !
-            select case (mbr)
-                case (1)
-                    itf = m
-                case (2, 5:6)
-                    ct = cm(m)
-                    itf = m
-                case (3:4, 7)
-                    ct = cm(m+1)
-                    am(m+1) = am(m+1) + cm(m+1)
-                    itf = m + 1
-                case (8:10)
-                    itf = m
-                    isp = 1
-                    ct = cm(m)
-            end select
-
-            !
-            !==> compute homogeneous solution with solution at pole equal to one
-            !
-            itsp = its + 1
-            itfm = itf - 1
-            wts = sint(its+1)*am(its+1)/cm(its)
-            wtf = sint(itf-1)*cm(itf-1)/am(itf)
-            munk = itf - its + 1
+            summation = wps*f(its,jps) + wpf*f(its,jpf) + sum(f(its,jpsp:jpfm))
+            dfn = cp*summation
+            dnn = cp*((wps + wpf + fjj)*(sn(2)-1.0_wp)) + elmbda
+            dsn = cp*(wps + wpf + fjj)*sn(m)
 
             if (isp > 0) then
-                d(its) = cm(its)/bm(its)
-                do i = itsp, m
-                    d(i) = cm(i)/(bm(i)-am(i)*d(i-1))
+                cnp = (f(1,1)-dfn)/dnn
+                do i = its, itf
+                    hld = cnp*sn(i)
+                    f(i,jps:jpf) = f(i,jps:jpf) + hld
                 end do
-                ss(m) = -d(m)
-                iid = m - its
-                do ii = 1, iid
-                    i = m - ii
-                    ss(i) = -d(i)*ss(i+1)
-                end do
-                ss(m+1) = 1.0_wp
+                f(1,:np1) = cnp
             end if
 
-            if (inp > 0) then
-                sn(1) = 1.0_wp
-                d(itf) = am(itf)/bm(itf)
-                iid = itf - 2
-                do ii = 1, iid
-                    i = itf - ii
-                    d(i) = am(i)/(bm(i)-cm(i)*d(i+1))
+        else
+
+            summation = wps*f(itf,jps) + wpf*f(itf,jpf) + sum(f(itf,jpsp:jpfm))
+            dfs = cp*summation
+            dss = cp*((wps + wpf + fjj)*(ss(m)-1.0_wp)) + elmbda
+            dns = cp*(wps + wpf + fjj)*ss(2)
+
+            if (inp <= 0) then
+                csp = (f(m+1,1)-dfs)/dss
+                do i = its, itf
+                    hld = csp*ss(i)
+                    f(i,jps:jpf) = f(i,jps:jpf) + hld
                 end do
-                sn(2) = -d(2)
-                do i = 3, itf
-                    sn(i) = -d(i)*sn(i-1)
-                end do
-            end if
-            !
-            !==> boundary conditions at phi=ps
-            !
-            nbr = nbdcnd + 1
-            wps = 1.0_wp
-            wpf = 1.0_wp
-            select case (nbr)
-                case default
-                    jps = 1
-                case (2:3)
-                    jps = 2
-                case (4:5)
-                    jps = 1
-                    wps = 0.5_wp
-            end select
-            !
-            !==> boundary condition at phi=pf
-            !
-            select case (nbr)
-                case (1)
-                    jpf = n
-                case (2, 5)
-                    jpf = n
-                case (3:4)
-                    wpf = 0.5_wp
-                    jpf = n + 1
-            end select
-
-            jpsp = jps + 1
-            jpfm = jpf - 1
-            nunk = jpf - jps + 1
-            fjj = jpfm - jpsp + 1
-            !
-            !==> scale coefficients for subroutine genbun
-            !
-            do i = its, itf
-                cf = dphi2*sint(i)*sint(i)
-                am(i) = cf*am(i)
-                bm(i) = cf*bm(i)
-                cm(i) = cf*cm(i)
-            end do
-
-            am(its) = 0.0_wp
-            cm(itf) = 0.0_wp
-            ising = 0
-
-            select case (mbr)
-                case (1, 4, 7, 9:10)
-                    select case (nbr)
-                        case (1, 4)
-                            if (elmbda >= 0.0_wp) then
-                                ising = 1
-                                summation = wts*wps + wts*wpf + wtf*wps + wtf*wpf
-
-                                if (inp > 0) summation = summation + wp_rename
-
-                                if (isp > 0) summation = summation + wp_rename
-
-                                sum1 = sum(sint(itsp:itfm))
-                                summation = summation + fjj*(sum1 + wts + wtf)
-                                summation = summation + (wps + wpf)*sum1
-                                hne = summation
-                            end if
-                    end select
-            end select
-
-            select case (mbr)
-                case (2:3, 8)
-                    f(2,jps:jpf) = f(2,jps:jpf) - at*f(1,jps:jpf)
-                case (4:5, 9)
-                    f(1,jps:jpf) = f(1,jps:jpf) + two_dth*bdts(jps:jpf)*at
-                case (6:7, 10)
-                    if (nbdcnd == 3) then
-                        yhld = f(1,jps) - 4.0_wp/(fn*dphi*dth2)*(bdpf(2)-bdps(2))
-                        f(1,:np1) = yhld
-                    end if
-            end select
-
-            select case (mbr)
-                case (2, 5:6)
-                    f(m,jps:jpf) = f(m,jps:jpf) - ct*f(m+1,jps:jpf)
-                case (3:4, 7)
-                    f(m+1,jps:jpf) = f(m+1,jps:jpf) - two_dth*bdtf(jps:jpf)*ct
-                case (8:10)
-                    if (nbdcnd == 3) then
-                        yhld = f(m+1,jps) - 4.0_wp/(fn*dphi*dth2)*(bdpf(m)-bdps(m))
-                        f(m+1,:np1) = yhld
-                    end if
-            end select
-
-            select case (nbr)
-                case (2:3)
-                    f(its:itf,2) = f(its:itf,2) &
-                        - f(its:itf,1)/(dphi2*sint(its:itf)*sint(its:itf))
-                case (4:5)
-                    f(its:itf,1) = f(its:itf,1) &
-                        + two_dphi*bdps(its:itf)/(dphi2*sint(its:itf)*sint(its:itf))
-            end select
-
-            select case (nbr)
-                case (2, 5)
-                    f(its:itf,n) = f(its:itf,n) &
-                        - f(its:itf,n+1)/(dphi2*sint(its:itf)*sint(its:itf))
-                case (3:4)
-                    f(its:itf,n+1) = f(its:itf,n+1) &
-                        - two_dphi*bdpf(its:itf)/(dphi2*sint(its:itf)*sint(its:itf))
-            end select
-
-            pertrb = 0.0_wp
-
-            if (ising /= 0) then
-                summation = &
-                    wts*wps*f(its,jps) + wts*wpf*f(its,jpf) &
-                    + wtf*wps*f(itf,jps) + wtf*wpf*f(itf,jpf)
-
-                if (inp > 0) summation = summation + wp_rename*f(1,jps)
-
-                if (isp > 0) summation = summation + wp_rename*f(m+1,jps)
-
-                do i = itsp, itfm
-                    summation = summation + sint(i)*sum(f(i,jpsp:jpfm))
-                end do
-
-                sum1 = sum(f(its,jpsp:jpfm))
-                sum2 = sum(f(itf,jpsp:jpfm))
-                summation = summation + wts*sum1 + wtf*sum2
-                sum1 = 0.0_wp
-                sum2 = 0.0_wp
-                sum1 = dot_product(sint(itsp:itfm),f(itsp:itfm,jps))
-                sum2 = dot_product(sint(itsp:itfm),f(itsp:itfm,jpf))
-                summation = summation + wps*sum1 + wpf*sum2
-                pertrb = summation/hne
-                f(:mp1,:np1) = f(:mp1,:np1) - pertrb
-            end if
-            !
-            !==> scale right side for subroutine genbunn
-            !
-            do i = its, itf
-                cf = dphi2*sint(i)*sint(i)
-                f(i,jps:jpf) = cf*f(i,jps:jpf)
-            end do
-
-            !
-            !==> Invoke genbunn solver
-            !
-            call genbunn(nbdcnd, nunk, 1, munk, am(its), bm(its), cm(its), &
-                idimf, f(its,jps), local_error_flag, d)
-
-            if (ising > 0 .and. inp > 0 .and. isp <= 0) then
-                f(1,:np1) = 0.0_wp
-            else if (isp > 0) then
-                f(m+1,:np1) = 0.0_wp
-            else if (inp > 0) then
-
-                summation = wps*f(its,jps) + wpf*f(its,jpf) + sum(f(its,jpsp:jpfm))
-                dfn = cp*summation
-                dnn = cp*((wps + wpf + fjj)*(sn(2)-1.0_wp)) + elmbda
-                dsn = cp*(wps + wpf + fjj)*sn(m)
-
-                if (isp > 0) then
-                    cnp = (f(1,1)-dfn)/dnn
-                    do i = its, itf
-                        hld = cnp*sn(i)
-                        f(i,jps:jpf) = f(i,jps:jpf) + hld
-                    end do
-                    f(1,:np1) = cnp
-                end if
-
+                f(m+1,:np1) = csp
             else
-
-                summation = wps*f(itf,jps) + wpf*f(itf,jpf) + sum(f(itf,jpsp:jpfm))
-                dfs = cp*summation
-                dss = cp*((wps + wpf + fjj)*(ss(m)-1.0_wp)) + elmbda
-                dns = cp*(wps + wpf + fjj)*ss(2)
-
-                if (inp <= 0) then
-                    csp = (f(m+1,1)-dfs)/dss
-                    do i = its, itf
-                        hld = csp*ss(i)
-                        f(i,jps:jpf) = f(i,jps:jpf) + hld
-                    end do
-                    f(m+1,:np1) = csp
+                rtn = f(1,1) - dfn
+                rts = f(m+1,1) - dfs
+                if (ising > 0) then
+                    csp = 0.0_wp
+                    cnp = rtn/dnn
                 else
-                    rtn = f(1,1) - dfn
-                    rts = f(m+1,1) - dfs
-                    if (ising > 0) then
-                        csp = 0.0_wp
-                        cnp = rtn/dnn
+                    if (abs(dnn) - abs(dsn) > 0.0_wp) then
+                        den = dss - dns*dsn/dnn
+                        rts = rts - rtn*dsn/dnn
+                        csp = rts/den
+                        cnp = (rtn - csp*dns)/dnn
                     else
-                        if (abs(dnn) - abs(dsn) > 0.0_wp) then
-                            den = dss - dns*dsn/dnn
-                            rts = rts - rtn*dsn/dnn
-                            csp = rts/den
-                            cnp = (rtn - csp*dns)/dnn
-                        else
-                            den = dns - dss*dnn/dsn
-                            rtn = rtn - rts*dnn/dsn
-                            csp = rtn/den
-                            cnp = (rts - dss*csp)/dsn
-                        end if
+                        den = dns - dss*dnn/dsn
+                        rtn = rtn - rts*dnn/dsn
+                        csp = rtn/den
+                        cnp = (rts - dss*csp)/dsn
                     end if
-                    do i = its, itf
-                        hld = cnp*sn(i) + csp*ss(i)
-                        f(i,jps:jpf) = f(i,jps:jpf) + hld
-                    end do
-                    f(1,:np1) = cnp
-                    f(m+1,:np1) = csp
                 end if
+                do i = its, itf
+                    hld = cnp*sn(i) + csp*ss(i)
+                    f(i,jps:jpf) = f(i,jps:jpf) + hld
+                end do
+                f(1,:np1) = cnp
+                f(m+1,:np1) = csp
             end if
+        end if
 
-            if (nbdcnd == 0) f(:mp1,jpf+1) = f(:mp1,jps)
+        if (nbdcnd == 0) f(:mp1,jpf+1) = f(:mp1,jps)
 
-        end subroutine hwsss1
+    end subroutine hwsss1
 
-    end subroutine hwsssp
+
 
 end module module_hwsssp
 !
