@@ -30,3 +30,8 @@
 # Data files
 *.dat
 /Debug/
+
+# Eclipse IDE files
+.cproject
+.project
+.settings
