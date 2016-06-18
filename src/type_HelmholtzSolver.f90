@@ -110,45 +110,45 @@ contains
 
         ! Address the error flag
         if ( error_flag_op /= 0 ) then
-            write( stderr, '(A)') 'ERROR: SOLVE_2D_HELMHOLTZ_CENTERED (hwscrt)'
+            write( stderr, '(a)') 'ERROR: SOLVE_2D_HELMHOLTZ_CENTERED (hwscrt)'
             select case (error_flag_op)
                 case(1)
-                    write( stderr, '(A)') 'Invalid X_INTERVAL'
-                    write( stderr, '(A)') 'Fails to satisfy:'
-                    write( stderr, '(A)') 'B >= A'
+                    write( stderr, '(a)') 'Invalid X_INTERVAL'
+                    write( stderr, '(a)') 'Fails to satisfy:'
+                    write( stderr, '(a)') 'B >= A'
                 case(2)
-                    write( stderr, '(A)') 'Invalid boundary condition type in x'
-                    write( stderr, '(A)') 'Fails to satisfy:'
-                    write( stderr, '(A)') '0 <= X_BOUNDARY_CONDITION_TYPE <= 4'
+                    write( stderr, '(a)') 'Invalid boundary condition type in x'
+                    write( stderr, '(a)') 'Fails to satisfy:'
+                    write( stderr, '(a)') '0 <= X_BOUNDARY_CONDITION_TYPE <= 4'
                 case(3)
-                    write( stderr, '(A)') 'Invalid Y_INTERVAL'
-                    write( stderr, '(A)') 'Fails to satisfy:'
-                    write( stderr, '(A)') 'D >= C'
+                    write( stderr, '(a)') 'Invalid Y_INTERVAL'
+                    write( stderr, '(a)') 'Fails to satisfy:'
+                    write( stderr, '(a)') 'D >= C'
                 case(4)
-                    write( stderr, '(A)') 'Insufficient number of vertically staggered grid points'
-                    write( stderr, '(A)') 'Fails to satisfy:'
-                    write( stderr, '(A)') 'NY >= 3'
+                    write( stderr, '(a)') 'Insufficient number of vertically staggered grid points'
+                    write( stderr, '(a)') 'Fails to satisfy:'
+                    write( stderr, '(a)') 'NY >= 3'
                 case(5)
-                    write( stderr, '(A)') 'Invalid boundary condition type in y'
-                    write( stderr, '(A)') 'Fails to satisfy:'
-                    write( stderr, '(A)') '0 <= Y_BOUNDARY_CONDITION_TYPE <= 4'
+                    write( stderr, '(a)') 'Invalid boundary condition type in y'
+                    write( stderr, '(a)') 'Fails to satisfy:'
+                    write( stderr, '(a)') '0 <= Y_BOUNDARY_CONDITION_TYPE <= 4'
                 case(6)
-                    write( stderr, '(A)') 'Invalid helmholtz constant'
-                    write( stderr, '(A)') 'Fails to satisfy:'
-                    write( stderr, '(A)') 'HELMHOLTZ_CONSTANT <= 0'
+                    write( stderr, '(a)') 'Invalid helmholtz constant'
+                    write( stderr, '(a)') 'Fails to satisfy:'
+                    write( stderr, '(a)') 'HELMHOLTZ_CONSTANT <= 0'
                 case(7)
-                    write( stderr, '(A)') 'Invalid rank for SOURCE_TERM'
-                    write( stderr, '(A)') 'Fails to satisfy:'
-                    write( stderr, '(A)') 'size(SOURCE_TERM, dim=1) >= NX + 1'
+                    write( stderr, '(a)') 'Invalid rank for SOURCE_TERM'
+                    write( stderr, '(a)') 'Fails to satisfy:'
+                    write( stderr, '(a)') 'size(SOURCE_TERM, dim=1) >= NX + 1'
                 case(8)
-                    write( stderr, '(A)') 'Insufficient number of horizontally staggered grid points'
-                    write( stderr, '(A)') 'Fails to satisfy:'
-                    write( stderr, '(A)') 'NX >= 3'
+                    write( stderr, '(a)') 'Insufficient number of horizontally staggered grid points'
+                    write( stderr, '(a)') 'Fails to satisfy:'
+                    write( stderr, '(a)') 'NX >= 3'
                 case(20)
-                    write( stderr, '(A)') 'The dynamic allocation of real and or complex WORKSPACE failed'
-                    write( stderr, '(A)') 'NX or NY may be too large for your computer'
+                    write( stderr, '(a)') 'The dynamic allocation of real and or complex WORKSPACE failed'
+                    write( stderr, '(a)') 'NX or NY may be too large for your computer'
                 case default
-                    write( stderr, '(A)') 'Undetermined error flag'
+                    write( stderr, '(a)') 'Undetermined error flag'
             end select
         end if
 
@@ -234,46 +234,46 @@ contains
 
         ! Address the error flag
         if (error_flag_op /= 0) then
-            write( stderr, '(A)') 'TYPE (HelmholtzSolver): '&
+            write( stderr, '(a)') 'TYPE (HelmholtzSolver): '&
                 //' in SOLVE_2D_HELMHOLTZ_STAGGERED (hstcrt)'
             select case (error_flag_op)
                 case(1)
-                    write( stderr, '(A)') 'Invalid X_INTERVAL'
-                    write( stderr, '(A)') 'Fails to satisfy:'
-                    write( stderr, '(A)') 'B >= A'
+                    write( stderr, '(a)') 'Invalid X_INTERVAL'
+                    write( stderr, '(a)') 'Fails to satisfy:'
+                    write( stderr, '(a)') 'B >= A'
                 case(2)
-                    write( stderr, '(A)') 'Invalid boundary condition type in x'
-                    write( stderr, '(A)') 'Fails to satisfy:'
-                    write( stderr, '(A)') '0 <= X_BOUNDARY_CONDITION_TYPE <= 4'
+                    write( stderr, '(a)') 'Invalid boundary condition type in x'
+                    write( stderr, '(a)') 'Fails to satisfy:'
+                    write( stderr, '(a)') '0 <= X_BOUNDARY_CONDITION_TYPE <= 4'
                 case(3)
-                    write( stderr, '(A)') 'Invalid Y_INTERVAL'
-                    write( stderr, '(A)') 'Fails to satisfy:'
-                    write( stderr, '(A)') 'D >= C'
+                    write( stderr, '(a)') 'Invalid Y_INTERVAL'
+                    write( stderr, '(a)') 'Fails to satisfy:'
+                    write( stderr, '(a)') 'D >= C'
                 case(4)
-                    write( stderr, '(A)') 'Insufficient number of vertically staggered grid points'
-                    write( stderr, '(A)') 'Fails to satisfy:'
-                    write( stderr, '(A)') 'NY >= 2'
+                    write( stderr, '(a)') 'Insufficient number of vertically staggered grid points'
+                    write( stderr, '(a)') 'Fails to satisfy:'
+                    write( stderr, '(a)') 'NY >= 2'
                 case(5)
-                    write( stderr, '(A)') 'Invalid boundary condition type in y'
-                    write( stderr, '(A)') 'Fails to satisfy:'
-                    write( stderr, '(A)') '0 <= Y_BOUNDARY_CONDITION_TYPE <= 4'
+                    write( stderr, '(a)') 'Invalid boundary condition type in y'
+                    write( stderr, '(a)') 'Fails to satisfy:'
+                    write( stderr, '(a)') '0 <= Y_BOUNDARY_CONDITION_TYPE <= 4'
                 case(6)
-                    write( stderr, '(A)') 'Invalid helmholtz constant'
-                    write( stderr, '(A)') 'Fails to satisfy:'
-                    write( stderr, '(A)') 'HELMHOLTZ_CONSTANT <= 0'
+                    write( stderr, '(a)') 'Invalid helmholtz constant'
+                    write( stderr, '(a)') 'Fails to satisfy:'
+                    write( stderr, '(a)') 'HELMHOLTZ_CONSTANT <= 0'
                 case(7)
-                    write( stderr, '(A)') 'Invalid rank for SOURCE_TERM'
-                    write( stderr, '(A)') 'Fails to satisfy:'
-                    write( stderr, '(A)') 'size(SOURCE_TERM, dim=1) >= NX + 1'
+                    write( stderr, '(a)') 'Invalid rank for SOURCE_TERM'
+                    write( stderr, '(a)') 'Fails to satisfy:'
+                    write( stderr, '(a)') 'size(SOURCE_TERM, dim=1) >= NX + 1'
                 case(8)
-                    write( stderr, '(A)') 'Insufficient number of horizontally staggered grid points'
-                    write( stderr, '(A)') 'Fails to satisfy:'
-                    write( stderr, '(A)') 'NX >= 2'
+                    write( stderr, '(a)') 'Insufficient number of horizontally staggered grid points'
+                    write( stderr, '(a)') 'Fails to satisfy:'
+                    write( stderr, '(a)') 'NX >= 2'
                 case(20)
-                    write( stderr, '(A)') 'The dynamic allocation of real and or complex WORKSPACE failed'
-                    write( stderr, '(A)') 'NX or NY may be too large for your computer'
+                    write( stderr, '(a)') 'The dynamic allocation of real and or complex WORKSPACE failed'
+                    write( stderr, '(a)') 'NX or NY may be too large for your computer'
                 case default
-                    write( stderr, '(A)') 'Undetermined error flag'
+                    write( stderr, '(a)') 'Undetermined error flag'
             end select
         end if
 

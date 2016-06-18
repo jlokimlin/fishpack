@@ -1,4 +1,4 @@
-!     file tcblktri.f
+!     file tcblktri.f90
 !
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
@@ -58,7 +58,7 @@ program tcblktri
     real (wp), dimension(IDIMY)         :: s
     real (wp), dimension(105)           :: t
     real (wp)                           :: ds, dt, half_ds, two_ds
-    real (wp)                           :: temp1, temp2, temp3, half_dt, two_dt, err, z
+    real (wp)                           :: temp1, temp2, temp3, half_dt, two_dt, discretization_error, z
     complex (wp), dimension(IDIMY, 105) :: y
     complex (wp), dimension(IDIMY)      :: am, bm, cm
     !-----------------------------------------------
@@ -75,13 +75,13 @@ program tcblktri
     ds = 1.0_wp/(m + 1)
 
     do i = 1, m
-        s(i) = real(i)*ds
+        s(i) = real(i, kind=wp)*ds
     end do
 
     dt = 1.0_wp/(n + 1)
 
     do j = 1, n
-        t(j) = real(j)*dt
+        t(j) = real(j, kind=wp)*dt
     end do
     !
     !     compute the coefficients am, bm, cm corresponding to the s direction
@@ -92,9 +92,9 @@ program tcblktri
         temp1 = 1./(s(i)*two_ds)
         temp2 = 1./((s(i)-half_ds)*two_ds)
         temp3 = 1./((s(i)+half_ds)*two_ds)
-        am(i) = cmplx(temp1*temp2, 0.)
-        cm(i) = cmplx(temp1*temp3, 0.)
-        bm(i) = (-(am(i)+cm(i))) - (0., 1.)
+        am(i) = cmplx(temp1*temp2, 0.0_wp, kind=wp)
+        cm(i) = cmplx(temp1*temp3, 0.0_wp, kind=wp)
+        bm(i) = (-(am(i)+cm(i))) - cmplx(0.0_wp, 1.0_wp, kind=wp)
     end do
     !
     !     compute the coefficients an, bn, cn corresponding to the t direction
@@ -102,9 +102,9 @@ program tcblktri
     half_dt = dt/2
     two_dt = 2.0_wp * dt
     do j = 1, n
-        temp1 = 1./(t(j)*two_dt)
-        temp2 = 1./((t(j)-half_dt)*two_dt)
-        temp3 = 1./((t(j)+half_dt)*two_dt)
+        temp1 = 1.0_wp/(t(j)*two_dt)
+        temp2 = 1.0_wp/((t(j)-half_dt)*two_dt)
+        temp3 = 1.0_wp/((t(j)+half_dt)*two_dt)
         an(j) = temp1*temp2
         cn(j) = temp1*temp3
         bn(j) = -(an(j)+cn(j))
@@ -113,8 +113,8 @@ program tcblktri
     !     compute right side of equation
     !
     do j = 1, n
-        y(:m, j) = 3.75*s(:m)*t(j)*(s(:m)**4+t(j)**4) - (0., 1.)*(s(:m)*t &
-            (j))**5
+        y(:m, j) = 3.75_wp*s(:m)*t(j)*(s(:m)**4+t(j)**4) &
+            - cmplx(0.0_wp, 1.0_wp, kind=wp)*(s(:m)*t(j))**5
     end do
     !
     !     the nonzero boundary conditions enter the linear system via
@@ -132,7 +132,7 @@ program tcblktri
 
     iflg = iflg + 1
 
-    do while(iflg - 1 <= 0)
+    do while(iflg <= 1)
 
         ! Solve system
         call solver%cblktri(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, IDIMY, y, ierror, workspace)
@@ -142,23 +142,25 @@ program tcblktri
 
     end do
 
-    err = 0.0_wp
+    discretization_error = 0.0_wp
     do j = 1, n
         do i = 1, m
             z = abs(y(i, j)-(s(i)*t(j))**5)
-            err = max(z, err)
+            discretization_error = max(z, discretization_error)
         end do
     end do
 
-    !     Print earlier output from platforms with 32 and 64 bit floating point
-    !     arithemtic followed by the output from this computer
-    write( stdout, '(A)') ''
-    write( stdout, '(A)') '     cblktri *** TEST RUN *** '
-    write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
-    write( stdout, '(A)') '     ierror = 0,  discretization error = 1.6457e-05'
-    write( stdout, '(A)') '     The output from your computer is: '
-    write( stdout, '(A,I3,A,1pe15.6)') &
-        '     ierror =', ierror, ' discretization error = ', ERR
+    !
+    !==> Print earlier output from platforms with 64-bit floating point
+    !    arithmetic followed by the output from this computer
+    !
+    write( stdout, '(/a)') '     cblktri *** TEST RUN *** '
+    write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
+    write( stdout, '(a)') '     ierror = 0,  discretization error = 1.6457e-05'
+    write( stdout, '(a)') '     The output from your computer is: '
+    write( stdout, '(a,i3,a,1pe15.6/)') &
+        '     ierror =', ierror, &
+        ' discretization error = ', discretization_error
 
     !
     !==> Release memory

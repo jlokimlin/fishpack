@@ -195,9 +195,9 @@ contains
 
             ! Check deallocation status
             if ( deallocate_status /= 0 ) then
-                write( stderr, '(A)' ) 'Object of class (HelmholtzData)'
-                write( stderr, '(A)' ) 'Deallocating WEST failed in DESTROY_HELMHOLTZ_DATA'
-                write( stderr, '(A)' ) trim( error_message )
+                write( stderr, '(a)' ) 'Object of class (HelmholtzData)'
+                write( stderr, '(a)' ) 'Deallocating WEST failed in DESTROY_HELMHOLTZ_DATA'
+                write( stderr, '(a)' ) trim( error_message )
             end if
         end if
 
@@ -211,8 +211,8 @@ contains
 
             ! Check deallocation status
             if ( deallocate_status /= 0 ) then
-                write( stderr, '(A)' ) 'Object of class (HelmholtzData)'
-                write( stderr, '(A)' ) 'Deallocating east failed in destroy_helmholtz_data'
+                write( stderr, '(a)' ) 'Object of class (HelmholtzData)'
+                write( stderr, '(a)' ) 'Deallocating east failed in destroy_helmholtz_data'
                 write( stderr, '(a)' ) trim( error_message )
             end if
         end if
@@ -227,8 +227,8 @@ contains
 
             ! Check deallocation status
             if ( deallocate_status /=0 ) then
-                write( stderr, '(A)' ) 'Object of class (HelmholtzData)'
-                write( stderr, '(A)' ) 'Deallocating south failed in destroy_helmholtz_data'
+                write( stderr, '(a)' ) 'Object of class (HelmholtzData)'
+                write( stderr, '(a)' ) 'Deallocating south failed in destroy_helmholtz_data'
                 write( stderr, '(a)' ) trim( error_message )
             end if
         end if
@@ -243,9 +243,9 @@ contains
 
             ! Check deallocation status
             if ( deallocate_status /=0 ) then
-                write( stderr, '(A)' ) 'Object of class (HelmholtzData)'
-                write( stderr, '(A)' ) 'Deallocating north failed in destroy_helmholtz_data'
-                write( stderr, '(A)' ) trim( error_message )
+                write( stderr, '(a)' ) 'Object of class (HelmholtzData)'
+                write( stderr, '(a)' ) 'Deallocating north failed in destroy_helmholtz_data'
+                write( stderr, '(a)' ) trim( error_message )
             end if
         end if
 
@@ -284,9 +284,9 @@ contains
                 return_value = type
             case default
                 ! handle invalid boundary type
-                write( stderr, '(A)' ) 'Object of class (HelmholtzData)'
+                write( stderr, '(a)' ) 'Object of class (HelmholtzData)'
                 write( stderr, '(A,I4)' ) 'invalid calling argument type = ', type
-                write( stderr, '(A)' ) 'must be either 0, 1, ..., 4'
+                write( stderr, '(a)' ) 'must be either 0, 1, ..., 4'
         end select
 
     end subroutine get_boundary_condition_type

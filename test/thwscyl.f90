@@ -1,5 +1,5 @@
 !
-!     file thwscyl.f
+!     file thwscyl.f90
 !
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
@@ -127,16 +127,17 @@ program thwscyl
     end do
 
 
-    !     Print earlier output from platforms with 32 and 64 bit floating point
-    !     arithemtic followed by the output from this computer
-    write( stdout, '(A)') ''
-    write( stdout, '(A)') '     hwscyl *** TEST RUN *** '
-    write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
-    write( stdout, '(A)') '     ierror = 0,  pertrb = 2.2674e-4'
-    write( stdout, '(A)') '     discretization error = 3.7367e-4'
-    write( stdout, '(A)') '     The output from your computer is: '
-    write( stdout, '(A,I3,A,1pe15.6)') &
+    !
+    !==> Print earlier output from platforms with 64-bit floating point
+    !    arithmetic followed by the output from this computer
+    !
+    write( stdout, '(/a)') '     hwscyl *** TEST RUN *** '
+    write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
+    write( stdout, '(a)') '     ierror = 0,  pertrb = 2.2674e-4'
+    write( stdout, '(a)') '     discretization error = 3.7367e-4'
+    write( stdout, '(a)') '     The output from your computer is: '
+    write( stdout, '(a,i3,a,1pe15.6)') &
         '     ierror =', ierror, ' pertrb = ', pertrb
-    write( stdout, '(A,1pe15.6)') '     discretization error = ', discretization_error
+    write( stdout, '(a,1pe15.6/)') '     discretization error = ', discretization_error
 
 end program thwscyl

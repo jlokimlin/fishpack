@@ -1,4 +1,4 @@
-!     file thstcrt.f
+!     file thstcrt.f90
 !
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
@@ -54,7 +54,7 @@ program thstcrt
     real (wp), dimension(53) :: bda, bdb, bdc, bdd
     real (wp), dimension(48) :: x
     real (wp), dimension(53) :: y
-    real (wp) :: a, b, dx, c, d, dy, elmbda, pi, pisq, t, pertrb, discretization_error
+    real (wp) :: a, b, dx, c, d, dy, elmbda, pi, pi2, t, pertrb, discretization_error
     !-----------------------------------------------
     !
     !     from the dimension statement we get idimf = 50.
@@ -74,23 +74,24 @@ program thstcrt
     !
     !     auxiliary quantities
     !
-    pi = acos( -1.0 )
-    pisq = pi*pi
+    pi = acos(-1.0)
+    pi2 = pi**2
     !
     !     generate and store grid points for computation of boundary data
     !     and the right side of the helmholtz equation.
     !
     do i = 1, m
-        x(i) = a + (real(i) - 0.5)*dx
+        x(i) = a + (real(i, kind=wp) - 0.5_wp)*dx
     end do
+
     do j = 1, n
-        y(j) = c + (real(j) - 0.5)*dy
+        y(j) = c + (real(j, kind=wp) - 0.5_wp)*dy
     end do
     !
     !     generate boundary data.
     !
     do j = 1, n
-        bda(j) = 0.
+        bda(j) = 0.0_wp
         bdb(j) = -pi*cos(pi*y(j))
     end do
     !
@@ -98,7 +99,7 @@ program thstcrt
     !
     !     generate right side of equation.
     !
-    t = -2.*(pisq + 1.)
+    t = -2.0_wp*(pi2 + 1.0_wp)
     do i = 1, m
         do j = 1, n
             f(i, j) = t*sin(pi*x(i))*cos(pi*y(j))
@@ -120,14 +121,16 @@ program thstcrt
         end do
     end do
 
-    !     Print earlier output from platforms with 32 and 64 bit floating point
-    !     arithemtic followed by the output from this computer
-    write( stdout, '(A)') ''
-    write( stdout, '(A)') '     hstcrt *** TEST RUN *** '
-    write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
-    write( stdout, '(A)') '     ierror = 0,  discretization error = 1.2600e-3'
-    write( stdout, '(A)') '     The output from your computer is: '
-    write( stdout, '(A,I3,A,1pe15.6)') &
-        '     ierror =', ierror, ' discretization error = ', discretization_error
+    !
+    !==> Print earlier output from platforms with 64-bit floating point
+    !    arithmetic followed by the output from this computer
+    !
+    write( stdout, '(/a)') '     hstcrt *** TEST RUN *** '
+    write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
+    write( stdout, '(a)') '     ierror = 0,  discretization error = 1.2600e-3'
+    write( stdout, '(a)') '     The output from your computer is: '
+    write( stdout, '(a,i3,a,1pe15.6/)') &
+        '     ierror =', ierror, &
+        ' discretization error = ', discretization_error
 
 end program thstcrt

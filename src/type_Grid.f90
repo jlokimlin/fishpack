@@ -183,9 +183,9 @@ contains
 
             ! Check deallocation status
             if ( deallocate_status /= 0 ) then
-                write( stderr, '(A)' ) 'TYPE (Grid)'
-                write( stderr, '(A)' ) 'Deallocation failed in COMPUTE_ONE_DIMENSIONAL_GRID'
-                write( stderr, '(A)' ) trim( error_message )
+                write( stderr, '(a)' ) 'TYPE (Grid)'
+                write( stderr, '(a)' ) 'Deallocation failed in COMPUTE_ONE_DIMENSIONAL_GRID'
+                write( stderr, '(a)' ) trim( error_message )
             end if
         end if
 
@@ -197,9 +197,9 @@ contains
 
         ! Check allocation status
         if ( allocate_status /= 0 ) then
-            write( stderr, '(A)' ) 'TYPE (Grid)'
-            write( stderr, '(A)' ) 'Allocation failed in COMPUTE_ONE_DIMENSIONAL_GRID'
-            write( stderr, '(A)' ) trim( error_message )
+            write( stderr, '(a)' ) 'TYPE (Grid)'
+            write( stderr, '(a)' ) 'Allocation failed in COMPUTE_ONE_DIMENSIONAL_GRID'
+            write( stderr, '(a)' ) trim( error_message )
         end if
 
         ! Set constants

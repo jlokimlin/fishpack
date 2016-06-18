@@ -1,5 +1,5 @@
 !
-!     file tcmgnbn.f
+!     file tcmgnbn.f90
 !
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
@@ -166,19 +166,20 @@ program tcmgnbn
     m = 20
     mp1 = m + 1
     mperod = 1
-    dx = 0.05
+    dx = 0.05_wp
     n = 40
     nperod = 0
-    pi = acos( -1.0 )
-    dy = pi/20.
+    pi = acos(-1.0_wp)
+    dy = pi/20
     !
     !     generate grid points for later use.
     !
     do i = 1, mp1
-        x(i) = real(i - 1)*dx
+        x(i) = real(i - 1, kind=wp)*dx
     end do
+
     do j = 1, n
-        y(j) = (-pi) + real(j - 1)*dy
+        y(j) = -pi + real(j - 1, kind=wp)*dy
     end do
     !
     !     generate coefficients.
@@ -205,6 +206,7 @@ program tcmgnbn
             f(i, j) = (3., -1.)*(1. + x(i))**4*dy**2*sin(y(j))
         end do
     end do
+
     t = 1. + x(20)
     tsq = t**2
     t4 = tsq**2
@@ -228,15 +230,17 @@ program tcmgnbn
         end do
     end do
 
-    !     Print earlier output from platforms with 32 and 64 bit floating point
-    !     arithemtic followed by the output from this computer
-    write( stdout, '(A)') ''
-    write( stdout, '(A)') '     cmgnbn *** TEST RUN *** '
-    write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
-    write( stdout, '(A)') '     ierror = 0,  discretization error = 9.1620e-3'
-    write( stdout, '(A)') '     The output from your computer is: '
-    write( stdout, '(A,I3,A,1pe15.6)') &
-        '     ierror =', ierror, ' discretization error = ', &
+    !
+    !==> Print earlier output from platforms with 64-bit floating point
+    !    arithmetic followed by the output from this computer
+    !
+    write( stdout, '(/a)') '     cmgnbn *** TEST RUN *** '
+    write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
+    write( stdout, '(a)') '     ierror = 0,  discretization error = 9.1620e-3'
+    write( stdout, '(a)') '     The output from your computer is: '
+    write( stdout, '(a,i3,a,1pe15.6/)') &
+        '     ierror =', ierror, &
+        ' discretization error = ', &
         discretization_error
 
 end program tcmgnbn

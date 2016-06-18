@@ -120,9 +120,9 @@ contains
 
             ! Check deallocation status
             if ( deallocate_status /= 0 ) then
-                write( stderr, '(A)' ) 'TYPE (StaggeredGrid)'
-                write( stderr, '(A)' ) 'Deallocating X failed in DESTROY_STAGGERED_GRID'
-                write( stderr, '(A)' ) trim( error_message )
+                write( stderr, '(a)' ) 'TYPE (StaggeredGrid)'
+                write( stderr, '(a)' ) 'Deallocating X failed in DESTROY_STAGGERED_GRID'
+                write( stderr, '(a)' ) trim( error_message )
             end if
         end if
 
@@ -137,9 +137,9 @@ contains
 
             ! Check deallocation status
             if ( deallocate_status /= 0 ) then
-                write( stderr, '(A)' ) 'TYPE (StaggeredGrid)'
-                write( stderr, '(A)' ) 'Deallocating Y failed in DESTROY_STAGGERED_GRID'
-                write( stderr, '(A)' ) trim( error_message )
+                write( stderr, '(a)' ) 'TYPE (StaggeredGrid)'
+                write( stderr, '(a)' ) 'Deallocating Y failed in DESTROY_STAGGERED_GRID'
+                write( stderr, '(a)' ) trim( error_message )
             end if
         end if
 

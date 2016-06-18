@@ -65,32 +65,33 @@ program thstplr
     m = 50
     mbdcnd = 5
     c = 0.
-    pi = acos( -1.0 )
-    d = pi/2.
+    pi = acos(-1.0_wp)
+    d = acos(0.0_wp)
     n = 48
     nbdcnd = 3
-    elmbda = 0.
+    elmbda = 0.0_wp
     !
     !     generate and store grid points for the purpose of computing
     !     boundary data and the right side of the poisson equation.
     !
     do i = 1, m
-        r(i) = (real(i) - 0.5)/50.
+        r(i) = (real(i, kind=wp) - 0.5_wp)/50
     end do
+
     do j = 1, n
-        theta(j) = (real(j) - 0.5)*pi/96.
+        theta(j) = (real(j, kind=wp) - 0.5_wp)*pi/96
     end do
     !
     !     generate boundary data.
     !
     do j = 1, n
-        bdb(j) = 1. - cos(4.*theta(j))
+        bdb(j) = 1.0_wp - cos(4.0_wp*theta(j))
     end do
     !
     !     generate boundary data.
     !
-    bdc(:m) = 0.
-    bdd(:m) = 0.
+    bdc(:m) = 0.0_wp
+    bdd(:m) = 0.0_wp
     !
     !     bda is a dummy variable.
     !
@@ -98,7 +99,7 @@ program thstplr
     !     generate right side of equation.
     !
     do i = 1, m
-        f(i, :n) = 16.*r(i)**2
+        f(i, :n) = 16.0_wp*r(i)**2
     end do
 
     ! Solve system
@@ -117,14 +118,16 @@ program thstplr
         end do
     end do
 
-    !     Print earlier output from platforms with 32 and 64 bit floating point
-    !     arithemtic followed by the output from this computer
-    write( stdout, '(A)') ''
-    write( stdout, '(A)') '     hstplr *** TEST RUN *** '
-    write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
-    write( stdout, '(A)') '     ierror = 0,  discretization error = 1.1303e-3'
-    write( stdout, '(A)') '     The output from your computer is: '
-    write( stdout, '(A,I3,A,1pe15.6)') &
-        '     ierror =', ierror, ' discretization error = ', discretization_error
+    !
+    !==> Print earlier output from platforms with 64-bit floating point
+    !    arithmetic followed by the output from this computer
+    !
+    write( stdout, '(/a)') '     hstplr *** TEST RUN *** '
+    write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
+    write( stdout, '(a)') '     ierror = 0,  discretization error = 1.1303e-3'
+    write( stdout, '(a)') '     The output from your computer is: '
+    write( stdout, '(a,i3,a,1pe15.6/)') &
+        '     ierror =', ierror, &
+        ' discretization error = ', discretization_error
 
 end program thstplr

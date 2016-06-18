@@ -1,4 +1,4 @@
-!     file tblktri.f
+!     file tblktri.f90
 !
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
@@ -196,9 +196,9 @@ program tblktri
 
     iflg = iflg + 1
 
-    do while(iflg - 1 <= 0)
+    do while (iflg <= 1)
 
-        ! Solver system
+        ! Solve system
         call solver%blktri(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, IDIMY, &
             y, ierror, workspace )
 
@@ -219,15 +219,17 @@ program tblktri
         end do
     end do
 
-    !     Print earlier output from platform with 64 bit floating point
-    !     arithemtic followed by the output from this computer
-    write( stdout, '(A)') ''
-    write( stdout, '(A)') '     blktri *** TEST RUN *** '
-    write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
-    write( stdout, '(A)') '     ierror = 0,  discretization error = 1.6478e-05'
-    write( stdout, '(A)') '     The output from your computer is: '
-    write( stdout, '(A,I3,A,1pe15.6)') '     ierror =', ierror, ' discretization error = ', &
-        discretization_error
+    !
+    !==> Print earlier output from platforms with 64-bit floating point
+    !    arithmetic followed by the output from this computer
+    !
+    write( stdout, '(/a)') '     blktri *** TEST RUN *** '
+    write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
+    write( stdout, '(a)') '     ierror = 0,  discretization error = 1.6478e-05'
+    write( stdout, '(a)') '     The output from your computer is: '
+    write( stdout, '(a,i3,a,1pe15.6/)') &
+        '     ierror =' , ierror, &
+        ' discretization error = ',discretization_error
 
     !
     !==> Release memory

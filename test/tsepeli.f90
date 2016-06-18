@@ -1,5 +1,5 @@
 !
-!     file tsepeli.f
+!     file tsepeli.f90
 !
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
@@ -68,10 +68,10 @@ program tsepeli
     !
     !     set limits on region
     !
-    a = 0.0
-    b = 1.0
-    c = 0.0
-    d = 1.0
+    a = 0.0_wp
+    b = 1.0_wp
+    c = 0.0_wp
+    d = 1.0_wp
     !
     !     set grid size
     !
@@ -161,18 +161,20 @@ program tsepeli
         end do
     end do
     err4 = err
-    !     Print earlier output from platforms with 32 and 64 bit floating point
-    !     arithemtic followed by the output from this computer
-    write( stdout, '(A)') ''
-    write( stdout, '(A)') '     sepeli *** TEST RUN *** '
-    write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
-    write( stdout, '(A)') '     ierror = 0'
-    write( stdout, '(A)') '     Second Order discretization error = 9.7891e-5'
-    write( stdout, '(A)') '     Fourth Order discretization error = 1.4735e-6'
-    write( stdout, '(A)') '     The output from your computer is: '
-    write( stdout, '(A,I3)')  '     ierror =', ierror
-    write( stdout, '(A,1pe15.6)') '     Second Order discretization error =', err2
-    write( stdout, '(A,1pe15.6)')  '     Fourth Order discretization error =', err4
+
+    !
+    !==> Print earlier output from platforms with 64-bit floating point
+    !    arithmetic followed by the output from this computer
+    !
+    write( stdout, '(/a)') '     sepeli *** TEST RUN *** '
+    write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
+    write( stdout, '(a)') '     ierror = 0'
+    write( stdout, '(a)') '     Second Order discretization error = 9.7891e-5'
+    write( stdout, '(a)') '     Fourth Order discretization error = 1.4735e-6'
+    write( stdout, '(a)') '     The output from your computer is: '
+    write( stdout, '(a,i3)')  '     ierror =', ierror
+    write( stdout, '(a,1pe15.6)') '     Second Order discretization error =', err2
+    write( stdout, '(a,1pe15.6/)')  '     Fourth Order discretization error =', err4
 
     ! release dynamically allocated real and complex work space
     call workspace%destroy()

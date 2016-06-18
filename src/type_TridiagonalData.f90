@@ -91,9 +91,9 @@ contains
 
         ! Check allocation status
         if ( allocate_status /= 0 ) then
-            write( stderr, '(A)' ) 'TYPE (TridiagonalData)'
-            write( stderr, '(A)' ) 'Allocation failed in CREATE_TRIDIAGONAL_DATA'
-            write( stderr, '(A)' ) trim( error_message )
+            write( stderr, '(a)' ) 'TYPE (TridiagonalData)'
+            write( stderr, '(a)' ) 'Allocation failed in CREATE_TRIDIAGONAL_DATA'
+            write( stderr, '(a)' ) trim( error_message )
         end if
 
         ! Set boundary condition types
@@ -136,9 +136,9 @@ contains
 
             ! Check deallocation status
             if ( deallocate_status /= 0 ) then
-                write( stderr, '(A)' ) 'TYPE (TridiagonalData)'
-                write( stderr, '(A)' ) 'Deallocating SUBDIAGONAL failed in DESTROY_TRIDIAGONAL_DATA'
-                write( stderr, '(A)' ) trim( error_message )
+                write( stderr, '(a)' ) 'TYPE (TridiagonalData)'
+                write( stderr, '(a)' ) 'Deallocating SUBDIAGONAL failed in DESTROY_TRIDIAGONAL_DATA'
+                write( stderr, '(a)' ) trim( error_message )
             end if
         end if
 
@@ -153,9 +153,9 @@ contains
 
             ! Check deallocation status
             if ( deallocate_status /= 0 ) then
-                write( stderr, '(A)' ) 'TYPE (TridiagonalData)'
-                write( stderr, '(A)' ) 'Deallocating DIAGONAL failed in DESTROY_TRIDIAGONAL_DATA'
-                write( stderr, '(A)' ) trim( error_message )
+                write( stderr, '(a)' ) 'TYPE (TridiagonalData)'
+                write( stderr, '(a)' ) 'Deallocating DIAGONAL failed in DESTROY_TRIDIAGONAL_DATA'
+                write( stderr, '(a)' ) trim( error_message )
             end if
         end if
 
@@ -170,9 +170,9 @@ contains
 
             ! Check deallocation status
             if ( deallocate_status /= 0 ) then
-                write( stderr, '(A)' ) 'TYPE (TridiagonalData)'
-                write( stderr, '(A)' ) 'Deallocating SUPERDIAGONAL failed in DESTROY_TRIDIAGONAL_DATA'
-                write( stderr, '(A)' ) trim( error_message )
+                write( stderr, '(a)' ) 'TYPE (TridiagonalData)'
+                write( stderr, '(a)' ) 'Deallocating SUPERDIAGONAL failed in DESTROY_TRIDIAGONAL_DATA'
+                write( stderr, '(a)' ) trim( error_message )
             end if
         end if
 
@@ -226,10 +226,10 @@ contains
                 return_value = type
             case default
                 ! Handle invalid boundary type
-                write( stderr, '(A)' ) 'TYPE (TridiagonalData)'
-                write( stderr, '(A)' ) 'Invalid boundary type'
+                write( stderr, '(a)' ) 'TYPE (TridiagonalData)'
+                write( stderr, '(a)' ) 'Invalid boundary type'
                 write( stderr, '(A,I11)' ) 'The y boundary condition argument type = ', type
-                write( stderr, '(A)' ) 'must be either 0, 1, ..., 4'
+                write( stderr, '(a)' ) 'must be either 0, 1, ..., 4'
         end select
 
     end subroutine get_y_boundary_condition_type
@@ -259,10 +259,10 @@ contains
                 return_value = type
             case default
                 ! Handle invalid boundary type
-                write( stderr, '(A)' ) 'TYPE (TridiagonalData)'
-                write( stderr, '(A)' ) 'Invalid boundary type'
+                write( stderr, '(a)' ) 'TYPE (TridiagonalData)'
+                write( stderr, '(a)' ) 'Invalid boundary type'
                 write( stderr, '(A,I11)' ) 'The x boundary condition argument type = ', type
-                write( stderr, '(A)' ) 'must be either 0, or 1'
+                write( stderr, '(a)' ) 'must be either 0, or 1'
         end select
 
     end subroutine get_x_boundary_condition_type

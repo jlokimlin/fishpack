@@ -1,4 +1,4 @@
-!     file tgenbun.f
+!     file tgenbun.f90
 !
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
@@ -258,13 +258,13 @@ program tgenbun
     !==> Print earlier output from platforms with 64-bit floating point
     !    arithmetic followed by the output from this computer
     !
-    write( stdout, '(A)') ''
-    write( stdout, '(A)') '     genbun *** TEST RUN *** '
-    write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
-    write( stdout, '(A)') '     ierror = 0,  discretization error = 9.6406e-3'
-    write( stdout, '(A)') '     The output from your computer is: '
-    write( stdout, '(A,I3,A,1pe15.6)') &
-        '     error_flag =', error_flag, ' discretization error = ', discretization_error
+    write( stdout, '(/a)') '     genbun *** TEST RUN *** '
+    write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
+    write( stdout, '(a)') '     ierror = 0,  discretization error = 9.6406e-3'
+    write( stdout, '(a)') '     The output from your computer is: '
+    write( stdout, '(a,i3,a,1pe15.6/)') &
+        '     error_flag =', error_flag, &
+        ' discretization error = ', discretization_error
 
 
 contains

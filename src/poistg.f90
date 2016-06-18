@@ -547,6 +547,8 @@ contains
 
         end function get_workspace_indices
 
+
+
         subroutine postg2(nperod, n, m, a, bb, c, idimq, q, b, b2, b3, w, &
             w2, w3, d, tcos, p)
             !
@@ -790,7 +792,7 @@ contains
                 jp1 = j + i2r
                 jm2 = nlast - i2r
 
-                if_block: block
+                block_construct: block
                     if_nr:  if (nr /= 2) then
                         if_lr:  if (lr == 0) then
                             if_n: if (n == 3) then
@@ -855,7 +857,7 @@ contains
                                 q(:mr, 1) = b(:mr)
                                 jr = 1
                                 i2r = 0
-                                exit if_block
+                                exit block_construct
                             end if if_n
                             !
                             !     case n = 2**p+1
@@ -929,7 +931,7 @@ contains
 
                             q(:mr, 1) = q(:mr, 1) - q(:mr, jm1) + b(:mr)
 
-                            exit if_block
+                            exit block_construct
                         end if if_lr
                         !
                         !==> case of general n with nr = 3 .
@@ -1002,12 +1004,12 @@ contains
 
                         if (jr == 1) then
                             q(:mr, 1) = b(:mr)
-                            exit if_block
+                            exit block_construct
                         end if
 
                         q(:mr, 1) = q(:mr, 1) - q(:mr, jm1) + b(:mr)
 
-                        exit if_block
+                        exit block_construct
                     end if if_nr
 
                     b3(:mr) = 0.0_wp
@@ -1056,7 +1058,7 @@ contains
 
                     q(:mr, 1) = q(:mr, 1) + b(:mr)
 
-                end block if_block
+                end block block_construct
 
                 loop_188: do
 

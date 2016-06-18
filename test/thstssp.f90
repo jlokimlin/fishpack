@@ -1,5 +1,5 @@
 !
-!     file thstssp.f
+!     file thstssp.f90
 !
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
@@ -55,43 +55,43 @@ program thstssp
     real (wp), dimension(72) :: bda, bdb, bdc, bdd
     real (wp), dimension(18) :: sint
     real (wp), dimension(72) :: sinp
-    real::pi, a, b, c, d, elmbda, dtheta, dphi, pertrb, err, z
+    real::pi, a, b, c, d, elmbda, dtheta, dphi, pertrb, discretization_error, z
     !-----------------------------------------------
     !
     !     the value of idimf is the first dimension of f.
     !
-    pi = acos( -1.0 )
+    pi = acos(-1.0)
     a = 0.
-    b = pi/2.
+    b = acos(0.0_wp)
     m = 18
     mbdcnd = 6
     c = 0.
-    d = 2.*pi
+    d = 2.0_wp*pi
     n = 72
     nbdcnd = 0
-    elmbda = 0.
+    elmbda = 0.0_wp
     idimf = 18
     !
     !     generate sines for use in subsequent computations
     !
     dtheta = b/m
     do i = 1, m
-        sint(i) = sin((real(i) - 0.5)*dtheta)
+        sint(i) = sin((real(i, kind=wp) - 0.5_wp)*dtheta)
     end do
     dphi = d/n
     do j = 1, n
-        sinp(j) = sin((real(j) - 0.5)*dphi)
+        sinp(j) = sin((real(j, kind=wp) - 0.5_wp)*dphi)
     end do
     !
     !     compute right side of equation and store in f
     !
     do j = 1, n
-        f(:m, j) = 2. - 6.*(sint(:m)*sinp(j))**2
+        f(:m, j) = 2.0_wp - 6.0_wp*(sint(:m)*sinp(j))**2
     end do
     !
     !     store derivative data at the equator
     !
-    bdb(:n) = 0.
+    bdb(:n) = 0.0_wp
     !
     !     bda, bdc, and bdd are dummy variables.
     !
@@ -101,24 +101,25 @@ program thstssp
     !     compute discretization error. since problem is singular, the
     !     solution must be normalized.
     !
-    err = 0.
+    discretization_error = 0.0_wp
     do j = 1, n
         do i = 1, m
             z = abs(f(i, j)-(sint(i)*sinp(j))**2-f(1, 1))
-            err = max(z, err)
+            discretization_error = max(z, discretization_error)
         end do
     end do
 
-    !     Print earlier output from platforms with 64 bit floating point
-    !     arithmetic followed by the output from this computer
-    write( stdout, '(A)') ''
-    write( stdout, '(A)') '     hstssp *** TEST RUN *** '
-    write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
-    write( stdout, '(A)') '     ierror = 0,  pertrb = 6.35830e-4'
-    write( stdout, '(A)') '     discretization error = 3.37523e-3'
-    write( stdout, '(A)') '     The output from your computer is: '
-    write( stdout, '(A,I3,A,1pe15.6)') '     ierror =', ierror, ' pertrb = ', pertrb
-    write( stdout, '(A,1pe15.6)') '     discretization error = ', err
+    !
+    !==> Print earlier output from platforms with 64-bit floating point
+    !    arithmetic followed by the output from this computer
+    !
+    write( stdout, '(/a)') '     hstssp *** TEST RUN *** '
+    write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
+    write( stdout, '(a)') '     ierror = 0,  pertrb = 6.35830e-4'
+    write( stdout, '(a)') '     discretization error = 3.37523e-3'
+    write( stdout, '(a)') '     The output from your computer is: '
+    write( stdout, '(a,i3,a,1pe15.6)') '     ierror =', ierror, ' pertrb = ', pertrb
+    write( stdout, '(a,1pe15.6/)') '     discretization error = ', discretization_error
 
 
 end program thstssp

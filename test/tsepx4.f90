@@ -1,5 +1,5 @@
 !
-!     file tsepx4.f
+!     file tsepx4.f90
 !
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
@@ -49,8 +49,10 @@ program tsepx4
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
-    type (FishpackSolver)     :: solver
-    integer(ip) :: m, n, nx, ny, i, j, mbdcnd, nbdcnd, idmn, iorder, ierror
+    type (FishpackSolver)   :: solver
+    integer (ip), parameter :: m = 32
+    integer (ip), parameter :: n = 32
+    integer (ip)            :: nx, ny, i, j, mbdcnd, nbdcnd, idmn, iorder, ierror
     real (wp), dimension(33, 33) :: usol, grhs
     real (wp), dimension(33) :: bda, bdb
     real (wp) :: a, b, c, d, dlx, dly, x, af, bf, cf, y
@@ -70,14 +72,12 @@ program tsepx4
     !
     !     set grid size
     !
-    m = 32
-    n = 32
     dlx =(b - a)/m
     dly =(d - c)/n
     nx = m + 1
     ny = n + 1
     do i = 1, nx
-        x = a + real(i - 1, kind=wp ) * dlx
+        x = a + real(i - 1, kind=wp) * dlx
         !
         !     set specified boundary conditions at y=c, d
         !
@@ -158,25 +158,28 @@ program tsepx4
     end do
     err4 = err
 
-    write( stdout, '(A)') ''
-    write( stdout, '(A)') '     sepx4 *** TEST RUN *** '
-    write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
-    write( stdout, '(A)') '     ierror = 0'
-    write( stdout, '(A)') '     Second Order discretization error = 1.5985e-4'
-    write( stdout, '(A)') '     Fourth Order discretization error = 1.8575e-6'
-    write( stdout, '(A)') '     The output from your computer is: '
-    write( stdout, '(A,I3)') '     ierror =', ierror
-    write( stdout, '(A,1pe15.6)') '     Second Order discretization error =', err2
-    write( stdout, '(A,1pe15.6)') '     Fourth Order discretization error =', err4
+    !
+    !==> Print earlier output from platforms with 64-bit floating point
+    !    arithmetic followed by the output from this computer
+    !
+    write( stdout, '(/a)') '     sepx4 *** TEST RUN *** '
+    write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
+    write( stdout, '(a)') '     ierror = 0'
+    write( stdout, '(a)') '     Second Order discretization error = 1.5985e-4'
+    write( stdout, '(a)') '     Fourth Order discretization error = 1.8575e-6'
+    write( stdout, '(a)') '     The output from your computer is: '
+    write( stdout, '(a,i3)') '     ierror =', ierror
+    write( stdout, '(a,1pe15.6)') '     Second Order discretization error =', err2
+    write( stdout, '(a,1pe15.6/)') '     Fourth Order discretization error =', err4
 
 
 contains
 
 
     pure function ue(s, t) result (return_value)
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
         ! Dictionary: calling arguments
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
         real, intent (in) :: s
         real, intent (in) :: t
         real (wp)          :: return_value
@@ -187,9 +190,9 @@ contains
 
 
     pure function uxe(s, t) result (return_value)
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
         ! Dictionary: calling arguments
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
         real, intent (in) :: s
         real, intent (in) :: t
         real (wp)          :: return_value
@@ -200,9 +203,9 @@ contains
 
 
     pure function uxxe(s, t) result (return_value)
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
         ! Dictionary: calling arguments
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
         real, intent (in) :: s
         real, intent (in) :: t
         real (wp)          :: return_value
@@ -213,13 +216,13 @@ contains
 
 
     pure function uye(s, t) result (return_value)
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
         ! Dictionary: calling arguments
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
         real, intent (in) :: s
         real, intent (in) :: t
         real (wp) :: return_value
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
 
         return_value = 3.0_wp *(s**3) *(t**2)
 
@@ -227,13 +230,13 @@ contains
 
 
     pure function uyye(s, t) result (return_value)
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
         ! Dictionary: calling arguments
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
         real, intent (in) :: s
         real, intent (in) :: t
         real (wp)         :: return_value
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
 
         return_value = 6.0_wp *(s**3) * t
 
@@ -241,14 +244,14 @@ contains
 
 
     pure subroutine get_coefficients_in_x_direction(x, af, bf, cf)
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
         ! Dictionary: calling arguments
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
         real (wp), intent (in) :: x
         real (wp), intent (out) :: af
         real (wp), intent (out) :: bf
         real (wp), intent (out) :: cf
-        !-----------------------------------------------
+        !--------------------------------------------------------------
         !
         !     set coefficients in the x-direction.
         !

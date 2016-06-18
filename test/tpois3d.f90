@@ -1,5 +1,5 @@
 !
-!     file tpois3d.f
+!     file tpois3d.f90
 !
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
@@ -62,19 +62,19 @@ program tpois3d
     !
     ldimf = 32
     mdimf = 33
-    pi = acos( -1.0 )
+    pi = acos(-1.0_wp)
     lperod = 0
     l = 30
-    dx = 2.*pi/real(l)
-    c1 = 1./dx**2
+    dx = 2.0_wp*pi/l
+    c1 = 1.0_wp/dx**2
     mperod = 0
     m = 30
-    dy = 2.*pi/real(m)
-    c2 = 1./dy**2
+    dy = 2.0_wp*pi/m
+    c2 = 1.0_wp/dy**2
     nperod = 1
     n = 10
-    dz = 1./real(n)
-    dzsq = 1./dz**2
+    dz = 1.0_wp/n
+    dzsq = 1.0_wp/dz**2
     !
     !     generate grid points for later use.
     !
@@ -134,14 +134,17 @@ program tpois3d
             end do
         end do
     end do
-    !     Print earlier output from platforms with 32 and 64 bit floating point
-    !     arithemtic followed by the output from this computer
-    write( stdout, '(A)') ''
-    write( stdout, '(A)') '     pois3d *** TEST RUN *** '
-    write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
-    write( stdout, '(A)') '     ierror = 0,  discretization error = 2.93277e-2'
-    write( stdout, '(A)') '     The output from your computer is: '
-    write( stdout, '(A,I3,A,1pe15.6)') '     ierror =', ierror, ' discretization error = ', &
-        discretization_error
+
+    !
+    !==> Print earlier output from platforms with 64-bit floating point
+    !    arithmetic followed by the output from this computer
+    !
+    write( stdout, '(/a)') '     pois3d *** TEST RUN *** '
+    write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
+    write( stdout, '(a)') '     ierror = 0,  discretization error = 2.93277e-2'
+    write( stdout, '(a)') '     The output from your computer is: '
+    write( stdout, '(a,i3,a,1pe15.6/)') &
+        '     ierror =', ierror, &
+        ' discretization error = ', discretization_error
 
 end program tpois3d

@@ -230,9 +230,9 @@ contains
 
             ! Check deallocation status
             if ( deallocate_status /= 0 ) then
-                write( stderr, '(A)' ) 'TYPE (MacGrid)'
-                write( stderr, '(A)' ) 'Deallocating X_CENTERED failed in DESTROY_MAC_GRID'
-                write( stderr, '(A)' ) trim( error_message )
+                write( stderr, '(a)' ) 'TYPE (MacGrid)'
+                write( stderr, '(a)' ) 'Deallocating X_CENTERED failed in DESTROY_MAC_GRID'
+                write( stderr, '(a)' ) trim( error_message )
             end if
         end if
 
@@ -247,9 +247,9 @@ contains
 
             ! Check deallocation status
             if ( deallocate_status /= 0 ) then
-                write( stderr, '(A)' ) 'TYPE (MacGrid)'
-                write( stderr, '(A)' ) 'Deallocating X_STAGGERED failed in DESTROY_MAC_GRID'
-                write( stderr, '(A)' ) trim( error_message )
+                write( stderr, '(a)' ) 'TYPE (MacGrid)'
+                write( stderr, '(a)' ) 'Deallocating X_STAGGERED failed in DESTROY_MAC_GRID'
+                write( stderr, '(a)' ) trim( error_message )
             end if
         end if
 
@@ -264,9 +264,9 @@ contains
 
             ! Check deallocation status
             if ( deallocate_status /= 0 ) then
-                write( stderr, '(A)' ) 'TYPE (MacGrid)'
-                write( stderr, '(A)' ) 'Deallocating Y_CENTERED failed in DESTROY_MAC_GRID'
-                write( stderr, '(A)' ) trim( error_message )
+                write( stderr, '(a)' ) 'TYPE (MacGrid)'
+                write( stderr, '(a)' ) 'Deallocating Y_CENTERED failed in DESTROY_MAC_GRID'
+                write( stderr, '(a)' ) trim( error_message )
             end if
         end if
 
@@ -281,9 +281,9 @@ contains
 
             ! Check deallocation status
             if ( deallocate_status /= 0 ) then
-                write( stderr, '(A)' ) 'TYPE (MacGrid)'
-                write( stderr, '(A)' ) 'Deallocating Y_STAGGERED failed in DESTROY_MAC_GRID'
-                write( stderr, '(A)' ) trim( error_message )
+                write( stderr, '(a)' ) 'TYPE (MacGrid)'
+                write( stderr, '(a)' ) 'Deallocating Y_STAGGERED failed in DESTROY_MAC_GRID'
+                write( stderr, '(a)' ) trim( error_message )
             end if
         end if
 

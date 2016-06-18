@@ -1,5 +1,5 @@
 !
-!     file thstcsp.f
+!     file thstcsp.f90
 !
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
@@ -74,7 +74,7 @@ program thstcsp
     !     define grid points theta(i) and cos(theta(i))
     !
     do i = 1, m
-        theta(i) = a + (real(i) - 0.5)*dt
+        theta(i) = a + (real(i, kind=wp) - 0.5_wp)*dt
         cost(i) = cos(theta(i))
     end do
     c = 0.0_wp
@@ -86,7 +86,7 @@ program thstcsp
     !     define grid points r(j)
     !
     do j = 1, n
-        r(j) = c + (real(j) - 0.5)*dr
+        r(j) = c + (real(j, kind=wp) - 0.5_wp)*dr
     end do
     !
     !     define boundary array bdd.  bda, bdb, and bdc are dummy
@@ -120,17 +120,19 @@ program thstcsp
     end do
 
 
-    !     Print earlier output from platforms with 32 and 64 bit floating point
-    !     arithemtic followed by the output from this computer
-    !     in this example (contrast with blktri and sepeli) the extra precision
-    !     does not reduce the discretization error
-    write( stdout, '(A)') ''
-    write( stdout, '(A)') '     hstcsp *** TEST RUN *** '
-    write( stdout, '(A)') '     Previous 64 bit floating point arithmetic result '
-    write( stdout, '(A)') '     ierror = 0,  discretization error = 5.5843e-3'
-    write( stdout, '(A)') '     The output from your computer is: '
-    write( stdout, '(A,I3,A,1pe15.6)') &
-        '     ierror =', ierror, ' discretization error = ', discretization_error
+    !
+    !==> Print earlier output from platforms with 64-bit floating point
+    !    arithmetic followed by the output from this computer.
+    !    In this example (contrast with blktri and sepeli) the extra precision
+    !    does not reduce the discretization error
+    !
+    write( stdout, '(/a)') '     hstcsp *** TEST RUN *** '
+    write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
+    write( stdout, '(a)') '     ierror = 0,  discretization error = 5.5843e-3'
+    write( stdout, '(a)') '     The output from your computer is: '
+    write( stdout, '(a,i3,a,1pe15.6/)') &
+        '     ierror =', ierror, &
+        ' discretization error = ', discretization_error
 
     !
     !==> Release memory

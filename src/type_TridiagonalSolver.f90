@@ -103,42 +103,42 @@ contains
 
         ! Address the error flag
         if ( local_error_flag /= 0 ) then
-            write( stderr, '(A)') 'ERROR: 2D_REAL_LINEAR_SYSTEM_STAGGERED (POISTG)'
+            write( stderr, '(a)') 'ERROR: 2D_REAL_LINEAR_SYSTEM_STAGGERED (POISTG)'
             select case (local_error_flag)
                 case(1)
-                    write( stderr, '(A)') 'Insufficient number of horizontally staggered grid points'
-                    write( stderr, '(A)') 'Fails to satisfy:'
-                    write( stderr, '(A)') 'NX >= 2'
+                    write( stderr, '(a)') 'Insufficient number of horizontally staggered grid points'
+                    write( stderr, '(a)') 'Fails to satisfy:'
+                    write( stderr, '(a)') 'NX >= 2'
                 case(2)
-                    write( stderr, '(A)') 'Insufficient number of vertically staggered grid points'
-                    write( stderr, '(A)') 'Fails to satisfy:'
-                    write( stderr, '(A)') 'NY >= 2'
+                    write( stderr, '(a)') 'Insufficient number of vertically staggered grid points'
+                    write( stderr, '(a)') 'Fails to satisfy:'
+                    write( stderr, '(a)') 'NY >= 2'
                 case(3)
-                    write( stderr, '(A)') 'Invalid rank for SOURCE_TERM'
-                    write( stderr, '(A)') 'Fails to satisfy:'
-                    write( stderr, '(A)') 'size(SOURCE_TERM, dim=1) >= NX'
+                    write( stderr, '(a)') 'Invalid rank for SOURCE_TERM'
+                    write( stderr, '(a)') 'Fails to satisfy:'
+                    write( stderr, '(a)') 'size(SOURCE_TERM, dim=1) >= NX'
                 case(4)
-                    write( stderr, '(A)') 'Invalid boundary condition type in y'
-                    write( stderr, '(A)') 'Fails to satisfy:'
-                    write( stderr, '(A)') '1 <= Y_BOUNDARY_CONDITION_TYPE <= 4'
+                    write( stderr, '(a)') 'Invalid boundary condition type in y'
+                    write( stderr, '(a)') 'Fails to satisfy:'
+                    write( stderr, '(a)') '1 <= Y_BOUNDARY_CONDITION_TYPE <= 4'
                 case(5)
-                    write( stderr, '(A)') 'Invalid boundary condition type in x'
-                    write( stderr, '(A)') 'Fails to satisfy:'
-                    write( stderr, '(A)') '0 <= X_BOUNDARY_CONDITION_TYPE <= 1'
+                    write( stderr, '(a)') 'Invalid boundary condition type in x'
+                    write( stderr, '(a)') 'Fails to satisfy:'
+                    write( stderr, '(a)') '0 <= X_BOUNDARY_CONDITION_TYPE <= 1'
                 case(6)
-                    write( stderr, '(A)') 'Invalid tridiagonal system'
-                    write( stderr, '(A)') 'X_BOUNDARY_TYPE = 0 and A(1) /= C(1)'
-                    write( stderr, '(A)') 'or B(i) /= B(1) or C(i) /= C(1)'
-                    write( stderr, '(A)') 'for some i = 1, 2, ..,NX'
+                    write( stderr, '(a)') 'Invalid tridiagonal system'
+                    write( stderr, '(a)') 'X_BOUNDARY_TYPE = 0 and A(1) /= C(1)'
+                    write( stderr, '(a)') 'or B(i) /= B(1) or C(i) /= C(1)'
+                    write( stderr, '(a)') 'for some i = 1, 2, ..,NX'
                 case(7)
-                    write( stderr, '(A)') 'Invalid tridiagonal system'
-                    write( stderr, '(A)') 'Y_BOUNDARY_TYPE = 1 and '
-                    write( stderr, '(A)') 'A(1) /= 0 or C(NX) \= 0 '
+                    write( stderr, '(a)') 'Invalid tridiagonal system'
+                    write( stderr, '(a)') 'Y_BOUNDARY_TYPE = 1 and '
+                    write( stderr, '(a)') 'A(1) /= 0 or C(NX) \= 0 '
                 case(20)
-                    write( stderr, '(A)') 'The dynamic allocation of real and or complex WORKSPACE failed'
-                    write( stderr, '(A)') 'NX or NY may be too large for your computer'
+                    write( stderr, '(a)') 'The dynamic allocation of real and or complex WORKSPACE failed'
+                    write( stderr, '(a)') 'NX or NY may be too large for your computer'
                 case default
-                    write( stderr, '(A)') 'Undetermined error flag'
+                    write( stderr, '(a)') 'Undetermined error flag'
             end select
         end if
 
@@ -192,42 +192,42 @@ contains
 
         ! Address the error flag
         if ( local_error_flag /= 0 ) then
-            write( stderr, '(A)') 'ERROR: 2D_REAL_LINEAR_SYSTEM_CENTERED (GENBUN)'
+            write( stderr, '(a)') 'ERROR: 2D_REAL_LINEAR_SYSTEM_CENTERED (GENBUN)'
             select case (local_error_flag)
                 case(1)
-                    write( stderr, '(A)') 'Insufficient number of horizontally staggered grid points'
-                    write( stderr, '(A)') 'Fails to satisfy:'
-                    write( stderr, '(A)') 'NX >= 2'
+                    write( stderr, '(a)') 'Insufficient number of horizontally staggered grid points'
+                    write( stderr, '(a)') 'Fails to satisfy:'
+                    write( stderr, '(a)') 'NX >= 2'
                 case(2)
-                    write( stderr, '(A)') 'Insufficient number of vertically staggered grid points'
-                    write( stderr, '(A)') 'Fails to satisfy:'
-                    write( stderr, '(A)') 'NY >= 2'
+                    write( stderr, '(a)') 'Insufficient number of vertically staggered grid points'
+                    write( stderr, '(a)') 'Fails to satisfy:'
+                    write( stderr, '(a)') 'NY >= 2'
                 case(3)
-                    write( stderr, '(A)') 'Invalid rank for SOURCE_TERM'
-                    write( stderr, '(A)') 'Fails to satisfy:'
-                    write( stderr, '(A)') 'size(SOURCE_TERM, dim=1) >= NX'
+                    write( stderr, '(a)') 'Invalid rank for SOURCE_TERM'
+                    write( stderr, '(a)') 'Fails to satisfy:'
+                    write( stderr, '(a)') 'size(SOURCE_TERM, dim=1) >= NX'
                 case(4)
-                    write( stderr, '(A)') 'Invalid boundary condition type in y'
-                    write( stderr, '(A)') 'Fails to satisfy:'
-                    write( stderr, '(A)') '0 <= Y_BOUNDARY_CONDITION_TYPE <= 4'
+                    write( stderr, '(a)') 'Invalid boundary condition type in y'
+                    write( stderr, '(a)') 'Fails to satisfy:'
+                    write( stderr, '(a)') '0 <= Y_BOUNDARY_CONDITION_TYPE <= 4'
                 case(5)
-                    write( stderr, '(A)') 'Invalid boundary condition type in x'
-                    write( stderr, '(A)') 'Fails to satisfy:'
-                    write( stderr, '(A)') '0 <= X_BOUNDARY_CONDITION_TYPE <= 1'
+                    write( stderr, '(a)') 'Invalid boundary condition type in x'
+                    write( stderr, '(a)') 'Fails to satisfy:'
+                    write( stderr, '(a)') '0 <= X_BOUNDARY_CONDITION_TYPE <= 1'
                 case(6)
-                    write( stderr, '(A)') 'Invalid tridiagonal system'
-                    write( stderr, '(A)') 'A(1) /= C(1) or C(i) /= C(1)'
-                    write( stderr, '(A)') 'or B(i) /= B(1) '
-                    write( stderr, '(A)') 'for some i = 1, 2, ..,NX'
+                    write( stderr, '(a)') 'Invalid tridiagonal system'
+                    write( stderr, '(a)') 'A(1) /= C(1) or C(i) /= C(1)'
+                    write( stderr, '(a)') 'or B(i) /= B(1) '
+                    write( stderr, '(a)') 'for some i = 1, 2, ..,NX'
                 case(7)
-                    write( stderr, '(A)') 'Invalid tridiagonal system'
-                    write( stderr, '(A)') 'X_BOUNDARY_TYPE = 1 and '
-                    write( stderr, '(A)') 'A(1) /= 0 or C(NX) \= 0 '
+                    write( stderr, '(a)') 'Invalid tridiagonal system'
+                    write( stderr, '(a)') 'X_BOUNDARY_TYPE = 1 and '
+                    write( stderr, '(a)') 'A(1) /= 0 or C(NX) \= 0 '
                 case(20)
-                    write( stderr, '(A)') 'The dynamic allocation of real and or complex WORKSPACE failed'
-                    write( stderr, '(A)') 'NX or NY may be too large for your computer'
+                    write( stderr, '(a)') 'The dynamic allocation of real and or complex WORKSPACE failed'
+                    write( stderr, '(a)') 'NX or NY may be too large for your computer'
                 case default
-                    write( stderr, '(A)') 'Undetermined error flag'
+                    write( stderr, '(a)') 'Undetermined error flag'
             end select
         end if
 

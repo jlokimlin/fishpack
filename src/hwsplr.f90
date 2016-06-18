@@ -621,57 +621,55 @@ contains
         !
         pertrb = 0.0_wp
 
-        if_block: block
-            if (elmbda >= 0.0_wp) then
-                if (elmbda /= 0.0_wp) then
-                    ierror = 11
-                    return
-                else
-                    if (nbdcnd==0 .or. nbdcnd==3) then
-                        s2 = 0.0_wp
-                        select case (mbdcnd)
-                            case (1:2, 4:5)
-                                exit if_block
-                            case (3)
-                                w(id5+1) = 0.5_wp * (w(id5+2)-half_dr)
-                                s2 = 0.25_wp * dr
-                        end select
+        if_construct: if (elmbda >= 0.0_wp) then
+            if (elmbda /= 0.0_wp) then
+                ierror = 11
+                return
+            else
+                if (nbdcnd==0 .or. nbdcnd==3) then
+                    s2 = 0.0_wp
+                    select case (mbdcnd)
+                        case (1:2, 4:5)
+                            exit if_construct
+                        case (3)
+                            w(id5+1) = 0.5_wp * (w(id5+2)-half_dr)
+                            s2 = 0.25_wp * dr
+                    end select
 
-                        if (nbdcnd == 0) then
-                            a2 = 1.0_wp
-                        else
-                            a2 = 2.0_wp
-                        end if
-
-                        j = id5 + munk
-                        w(j) = 0.5_wp * (w(j-1)+half_dr)
-                        s = 0.0_wp
-
-                        do i = mstart, mstop
-                            s1 = 0.0_wp
-                            ij = nstart + 1
-                            k = nstop - 1
-                            s1 = sum(f(i, ij:k))
-                            j = i + l
-                            s = s + (a2*s1 + f(i, nstart)+f(i, nstop))*w(j)
-                        end do
-
-                        s2=real(m, kind=wp)*a+dr*(real((m-1)*(m+1), kind=wp)*0.5_wp+0.25_wp)+s2
-                        s1 = (2.0_wp + a2*real(nunk - 2, kind=wp))*s2
-
-                        if (mbdcnd /= 3) then
-                            s2 = (real(n, kind=wp)*a2*dr)/8
-                            s = s + f(1, 1)*s2
-                            s1 = s1 + s2
-                        end if
-
-                        pertrb = s/s1
-                        f(mstart:mstop, nstart:nstop) = &
-                            f(mstart:mstop, nstart:nstop) - pertrb
+                    if (nbdcnd == 0) then
+                        a2 = 1.0_wp
+                    else
+                        a2 = 2.0_wp
                     end if
+
+                    j = id5 + munk
+                    w(j) = 0.5_wp * (w(j-1)+half_dr)
+                    s = 0.0_wp
+
+                    do i = mstart, mstop
+                        s1 = 0.0_wp
+                        ij = nstart + 1
+                        k = nstop - 1
+                        s1 = sum(f(i, ij:k))
+                        j = i + l
+                        s = s + (a2*s1 + f(i, nstart)+f(i, nstop))*w(j)
+                    end do
+
+                    s2=real(m, kind=wp)*a+dr*(real((m-1)*(m+1), kind=wp)*0.5_wp+0.25_wp)+s2
+                    s1 = (2.0_wp + a2*real(nunk - 2, kind=wp))*s2
+
+                    if (mbdcnd /= 3) then
+                        s2 = (real(n, kind=wp)*a2*dr)/8
+                        s = s + f(1, 1)*s2
+                        s1 = s1 + s2
+                    end if
+
+                    pertrb = s/s1
+                    f(mstart:mstop, nstart:nstop) = &
+                        f(mstart:mstop, nstart:nstop) - pertrb
                 end if
             end if
-        end block if_block
+        end if if_construct
 
 
         do i = mstart, mstop
@@ -703,10 +701,7 @@ contains
 
         select case (mbdcnd)
             case (1:4)
-                if (nbdcnd == 0) then
-                    f(mstart:mstop, np1) = f(mstart:mstop, 1)
-                end if
-                return
+                if (nbdcnd == 0) f(mstart:mstop, np1) = f(mstart:mstop, 1)
             case (5)
                 j = id5 + munk
                 w(j) = w(id2)/w(id3)

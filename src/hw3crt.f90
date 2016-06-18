@@ -681,7 +681,7 @@ contains
         iww = iwc + nunk
         w(:nunk) = c3
         w(iwc:nunk-1+iwc) = c3
-        w(iwb:nunk-1+iwb) = (-2.*c3) + elmbda
+        w(iwb:nunk-1+iwb) = (-2.0_wp*c3) + elmbda
 
         select case (np)
             case (3)
@@ -766,7 +766,12 @@ contains
         end select
 
         call pois3dd(lbdcnd, lunk, c1, mbdcnd, munk, c2, nperod, nunk, w, &
-            w(iwb), w(iwc), ldimf, mdimf, f(lstart, mstart, nstart), local_error_flag, w(iww))
+            w(iwb), w(iwc), ldimf, mdimf, f(lstart, mstart, nstart), &
+            local_error_flag, w(iww))
+
+        if (local_error_flag /= 0) then
+            error stop 'fishpack library: pois3dd call failed in hw3crtt'
+        end if
         !
         !==> Fill in sides for periodic boundary conditions.
         !
