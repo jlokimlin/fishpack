@@ -392,13 +392,13 @@ contains
         integer (ip), intent (in)     :: m
         integer (ip), intent (in)     :: idimy
         integer (ip), intent (out)    :: ierror
-        real (wp),    intent (in out) :: an(*)
-        real (wp),    intent (in out) :: bn(*)
-        real (wp),    intent (in out) :: cn(*)
-        real (wp),    intent (in out) :: am(*)
-        real (wp),    intent (in out) :: bm(*)
-        real (wp),    intent (in out) :: cm(*)
-        real (wp),    intent (in out) :: y(idimy,*)
+        real (wp),    intent (in out) :: an(n)
+        real (wp),    intent (in out) :: bn(n)
+        real (wp),    intent (in out) :: cn(n)
+        real (wp),    intent (in out) :: am(m)
+        real (wp),    intent (in out) :: bm(m)
+        real (wp),    intent (in out) :: cm(m)
+        real (wp),    intent (in out) :: y(idimy,n)
         real (wp),    intent (in out) :: w(*)
         complex (wp), intent (in out) :: wc(*)
         !-----------------------------------------------
@@ -508,13 +508,13 @@ contains
         integer (ip), intent (in)     :: n
         integer (ip), intent (in)     :: m
         integer (ip), intent (in)     :: idimy
-        real (wp),    intent (in)     :: an(*)
-        real (wp),    intent (in)     :: bn(*)
-        real (wp),    intent (in)     :: cn(*)
-        real (wp),    intent (in)     :: am(*)
-        real (wp),    intent (in)     :: bm(*)
-        real (wp),    intent (in)     :: cm(*)
-        real (wp),    intent (in out) :: y(idimy,*)
+        real (wp),    intent (in)     :: an(n)
+        real (wp),    intent (in)     :: bn(n)
+        real (wp),    intent (in)     :: cn(n)
+        real (wp),    intent (in)     :: am(m)
+        real (wp),    intent (in)     :: bm(m)
+        real (wp),    intent (in)     :: cm(m)
+        real (wp),    intent (in out) :: y(idimy,n)
         real (wp),    intent (in)     :: b(*)
         real (wp),    intent (in out) :: w1(*)
         real (wp),    intent (in out) :: w2(*)
@@ -985,7 +985,7 @@ contains
 
 
 
-    subroutine cprod(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, b, c, d, w, y)
+    pure subroutine cprod(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, b, c, d, w, y)
         !
         ! Purpose:
         !
@@ -1013,23 +1013,23 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: nd
-        integer (ip), intent (in)     :: nm1
-        integer (ip), intent (in)     :: nm2
-        integer (ip), intent (in)     :: na
-        integer (ip), intent (in)     :: m
-        real (wp),    intent (in)     :: bm1(*)
-        real (wp),    intent (in)     :: bm2(*)
-        real (wp),    intent (in)     :: aa(*)
-        real (wp),    intent (in)     :: x(*)
-        real (wp),    intent (out)    :: yy(*)
-        real (wp),    intent (in)     :: a(*)
-        real (wp),    intent (in)     :: b(*)
-        real (wp),    intent (in)     :: c(*)
-        complex (wp), intent (in)     :: bd(*)
-        complex (wp), intent (in out) :: d(*)
-        complex (wp), intent (in out) :: w(*)
-        complex (wp), intent (in out) :: y(*)
+        integer (ip), intent (in)  :: nd
+        integer (ip), intent (in)  :: nm1
+        integer (ip), intent (in)  :: nm2
+        integer (ip), intent (in)  :: na
+        integer (ip), intent (in)  :: m
+        real (wp),    intent (in)  :: bm1(nm1)
+        real (wp),    intent (in)  :: bm2(nm2)
+        real (wp),    intent (in)  :: aa(na)
+        real (wp),    intent (in)  :: x(m)
+        real (wp),    intent (out) :: yy(m)
+        real (wp),    intent (in)  :: a(m)
+        real (wp),    intent (in)  :: b(m)
+        real (wp),    intent (in)  :: c(m)
+        complex (wp), intent (in)  :: bd(nd)
+        complex (wp), intent (out) :: d(m)
+        complex (wp), intent (out) :: w(m)
+        complex (wp), intent (out) :: y(m)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
@@ -1130,7 +1130,7 @@ contains
     end subroutine cprod
 
 
-    subroutine cprodp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, &
+    pure subroutine cprodp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, &
         b, c, d, u, y)
         !
         ! Purpose:
@@ -1152,23 +1152,23 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: nd
-        integer (ip), intent (in)     :: nm1
-        integer (ip), intent (in)     :: nm2
-        integer (ip), intent (in)     :: na
-        integer (ip), intent (in)     :: m
-        real (wp),    intent (in)     :: bm1(*)
-        real (wp),    intent (in)     :: bm2(*)
-        real (wp),    intent (in)     :: aa(*)
-        real (wp),    intent (in)     :: x(*)
-        real (wp),    intent (out)    :: yy(*)
-        real (wp),    intent (in)     :: a(*)
-        real (wp),    intent (in)     :: b(*)
-        real (wp),    intent (in)     :: c(*)
-        complex (wp), intent (in)     :: bd(*)
-        complex (wp), intent (in out) :: d(*)
-        complex (wp), intent (in out) :: u(*)
-        complex (wp), intent (in out) :: y(*)
+        integer (ip), intent (in)  :: nd
+        integer (ip), intent (in)  :: nm1
+        integer (ip), intent (in)  :: nm2
+        integer (ip), intent (in)  :: na
+        integer (ip), intent (in)  :: m
+        real (wp),    intent (in)  :: bm1(nm1)
+        real (wp),    intent (in)  :: bm2(nm2)
+        real (wp),    intent (in)  :: aa(na)
+        real (wp),    intent (in)  :: x(m)
+        real (wp),    intent (out) :: yy(m)
+        real (wp),    intent (in)  :: a(m)
+        real (wp),    intent (in)  :: b(m)
+        real (wp),    intent (in)  :: c(m)
+        complex (wp), intent (in)  :: bd(nd)
+        complex (wp), intent (out) :: d(m)
+        complex (wp), intent (out) :: u(m)
+        complex (wp), intent (out) :: y(m)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
@@ -1177,7 +1177,7 @@ contains
         complex (wp) :: v, den, bh, ym, am, y1, y2, yh, crt
         !-----------------------------------------------
 
-        y(1:m) = cmplx(x(1:m), 0.0_wp, kind=wp)
+        y = cmplx(x, 0.0_wp, kind=wp)
 
         mm = m - 1
         mm2 = m - 2
@@ -1282,14 +1282,14 @@ contains
                 !
                 !==> scalar multiplication
                 !
-                y(:m) = rt*y(:m)
+                y = rt*y
             end if
 
             if (iflg <= 0) exit main_loop
 
         end do main_loop
 
-        yy(1:m) = real(y(1:m), kind=wp)
+        yy = real(y, kind=wp)
 
 
     end subroutine cprodp
@@ -1397,11 +1397,11 @@ contains
         !-----------------------------------------------
         integer (ip), intent (in)     :: n
         integer (ip), intent (out)    :: ierror
-        real (wp),    intent (in)     :: a(*)
-        real (wp),    intent (in)     :: c(*)
-        real (wp),    intent (in out) :: bp(*)
-        real (wp),    intent (in out) :: bh(*)
-        complex (wp), intent (in out) :: cbp(*)
+        real (wp),    intent (in)     :: a(n)
+        real (wp),    intent (in)     :: c(n)
+        real (wp),    intent (in out) :: bp(n)
+        real (wp),    intent (in out) :: bh(n)
+        complex (wp), intent (in out) :: cbp(n)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
@@ -1419,8 +1419,8 @@ contains
         izm = iz - 1
         izm2 = iz - 2
 
-        if (bp(n) - bp(1) <= 0.0_wp) then
-            if (bp(n) - bp(1) == 0.0_wp) then
+        if (bp(n) <= bp(1)) then
+            if (bp(n) == bp(1)) then
                 ierror = 4
                 return
             else
@@ -1630,9 +1630,7 @@ contains
 
         ncmplx = 1
 
-        do j = 2, iz
-            if (aimag(cbp(j)) /= 0.0_wp) return
-        end do
+        if (any(aimag(cbp(2:iz)) /= 0.0_wp)) return
 
         ncmplx = 0
         bp(1) = real(cbp(1), kind=wp)

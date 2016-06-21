@@ -188,13 +188,13 @@ contains
         integer (ip), intent (in)     :: idegbr
         integer (ip), intent (in)     :: idegcr
         integer (ip), intent (in)     :: m
-        real (wp),    intent (in)     :: a(*)
-        real (wp),    intent (in)     :: b(*)
-        real (wp),    intent (in)     :: c(*)
-        real (wp),    intent (in out) :: y(*)
+        real (wp),    intent (in)     :: a(m)
+        real (wp),    intent (in)     :: b(m)
+        real (wp),    intent (in)     :: c(m)
+        real (wp),    intent (in out) :: y(m)
         real (wp),    intent (in)     :: tcos(*)
-        real (wp),    intent (in out) :: d(*)
-        real (wp),    intent (in out) :: w(*)
+        real (wp),    intent (in out) :: d(m)
+        real (wp),    intent (in out) :: w(m)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
@@ -215,8 +215,8 @@ contains
             if (k == l) then
                 i = idegbr + lint
                 xx = x - tcos(i)
-                w(:m) = y(:m)
-                y(:m) = xx*y(:m)
+                w = y
+                y = xx*y
             end if
 
             z = 1.0_wp/(b(1)-x)
@@ -243,13 +243,14 @@ contains
 
             if (k /= l) cycle outer_loop
 
-            y(:m) = y(:m) + w(:m)
+            y = y + w
             lint = lint + 1
             l = (lint*ifb)/ifc
 
         end do outer_loop
 
     end subroutine trix
+
 
 
     subroutine tri3(m, a, b, c, k, y1, y2, y3, tcos, d, w1, w2, w3)
@@ -266,17 +267,17 @@ contains
         !-----------------------------------------------
         integer (ip), intent (in)     :: m
         integer (ip), intent (in)     :: k(4)
-        real (wp),    intent (in)     :: a(*)
-        real (wp),    intent (in)     :: b(*)
-        real (wp),    intent (in)     :: c(*)
-        real (wp),    intent (in out) :: y1(*)
-        real (wp),    intent (in out) :: y2(*)
-        real (wp),    intent (in out) :: y3(*)
+        real (wp),    intent (in)     :: a(m)
+        real (wp),    intent (in)     :: b(m)
+        real (wp),    intent (in)     :: c(m)
+        real (wp),    intent (in out) :: y1(m)
+        real (wp),    intent (in out) :: y2(m)
+        real (wp),    intent (in out) :: y3(m)
         real (wp),    intent (in)     :: tcos(*)
-        real (wp),    intent (in out) :: d(*)
-        real (wp),    intent (in out) :: w1(*)
-        real (wp),    intent (in out) :: w2(*)
-        real (wp),    intent (in out) :: w3(*)
+        real (wp),    intent (in out) :: d(m)
+        real (wp),    intent (in out) :: w1(m)
+        real (wp),    intent (in out) :: w2(m)
+        real (wp),    intent (in out) :: w3(m)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
@@ -313,9 +314,9 @@ contains
             x = tcos(n)
 
             if (k2k3k4 /= 0) then
-                if (n == l1) w1(:m) = y1(:m)
-                if (n == l2) w2(:m) = y2(:m)
-                if (n == l3) w3(:m) = y3(:m)
+                if (n == l1) w1 = y1
+                if (n == l2) w2 = y2
+                if (n == l3) w3 = y3
             end if
 
             z = 1.0_wp/(b(1)-x)
@@ -343,7 +344,7 @@ contains
             if (n == l1) then
                 i = lint1 + kint1
                 xx = x - tcos(i)
-                y1(:m) = xx*y1(:m) + w1(:m)
+                y1 = xx*y1 + w1
                 lint1 = lint1 + 1
                 l1 = (lint1*if1)/if2
             end if
@@ -351,7 +352,7 @@ contains
             if (n == l2) then
                 i = lint2 + kint2
                 xx = x - tcos(i)
-                y2(:m) = xx*y2(:m) + w2(:m)
+                y2 = xx*y2 + w2
                 lint2 = lint2 + 1
                 l2 = (lint2*if1)/if3
             end if
@@ -360,7 +361,7 @@ contains
 
             i = lint3 + kint3
             xx = x - tcos(i)
-            y3(:m) = xx*y3(:m) + w3(:m)
+            y3 = xx*y3 + w3
             lint3 = lint3 + 1
             l3 = (lint3*if1)/if4
 
