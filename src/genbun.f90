@@ -262,7 +262,7 @@ contains
         real (wp), contiguous, intent (in)     :: a(:)
         real (wp), contiguous, intent (in)     :: b(:)
         real (wp), contiguous, intent (in)     :: c(:)
-        real (wp),             intent (in out) :: y(idimy,*)
+        real (wp),             intent (in out) :: y(idimy,n)
         !--------------------------------------------------------------------------------
         ! Dictionary: local variables
         !--------------------------------------------------------------------------------
@@ -309,10 +309,10 @@ contains
         integer (ip), intent (in)     :: m
         integer (ip), intent (in)     :: idimy
         integer (ip), intent (out)    :: ierror
-        real (wp),    intent (in)     :: a(*)
-        real (wp),    intent (in)     :: b(*)
-        real (wp),    intent (in)     :: c(*)
-        real (wp),    intent (in out) :: y(idimy, *)
+        real (wp),    intent (in)     :: a(m)
+        real (wp),    intent (in)     :: b(m)
+        real (wp),    intent (in)     :: c(m)
+        real (wp),    intent (in out) :: y(idimy,n)
         real (wp),    intent (in out) :: w(*)
         !--------------------------------------------------------------------------------
         ! Dictionary: local variables
@@ -329,7 +329,7 @@ contains
         call check_input_arguments(nperod, n, mperod, m, idimy, ierror, a, b, c)
 
         ! Check error flag
-        if (ierror /=0) return
+        if (ierror /= 0) return
 
         !
         !==> Compute workspace indices
@@ -423,7 +423,6 @@ contains
 
                     select case (np)
                         case (1:4)
-
                             select case (mp)
                                 case (1)
                                     do j = 1, n
@@ -552,13 +551,9 @@ contains
             integer (ip), intent (in)  :: m
             integer (ip), intent (in)  :: idimy
             integer (ip), intent (out) :: ierror
-            real (wp),    intent (in)  :: a(*)
-            real (wp),    intent (in)  :: b(*)
-            real (wp),    intent (in)  :: c(*)
-            !--------------------------------------------------------------------------------
-            ! Dictionary: local variables
-            !--------------------------------------------------------------------------------
-            integer (ip) :: i !! Counter
+            real (wp),    intent (in)  :: a(m)
+            real (wp),    intent (in)  :: b(m)
+            real (wp),    intent (in)  :: c(m)
             !--------------------------------------------------------------------------------
 
             if (m <= 2) then
@@ -577,20 +572,10 @@ contains
                 ierror = 5
                 return
             else if (mperod /= 1) then
-                do i = 2, m
-                    if (a(i) /= c(1)) then
-                        ierror = 6
-                        return
-                    end if
-                    if (c(i) /= c(1)) then
-                        ierror = 6
-                        return
-                    end if
-                    if (b(i) /= b(1)) then
-                        ierror = 6
-                        return
-                    end if
-                end do
+                if (any(a /= c(1)) .or. any(c /= c(1)) .or. any(b /= b(1))) then
+                    ierror = 6
+                    return
+                end if
             else if (a(1) /= 0.0_wp .or. c(m) /= 0.0_wp) then
                 ierror = 7
                 return
@@ -1060,7 +1045,7 @@ subroutine poisn2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer (ip)     :: k(4) !, k1, k2, k3, k4
+    integer (ip)     :: k(4)
     integer (ip)     :: mr, ipp, ipstor, i2r, jr, nr, nlast, kr
     integer (ip)     :: lr, i, nrod, jstart, jstop, i2rby2, j, jp1, jp2, jp3, jm1
     integer (ip)     :: jm2, jm3, nrodpr, ii, i1, i2, jr2, nlastp, jstep
@@ -1068,7 +1053,6 @@ subroutine poisn2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
     type (GenbunAux) :: genbun_aux
     !-----------------------------------------------
 
-        !equivalence (k(1), k1), (k(2), k2), (k(3), k3), (k(4), k4)
     associate( &
         k1 => k(1), &
         k2 => k(2), &
