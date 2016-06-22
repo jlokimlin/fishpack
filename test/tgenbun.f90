@@ -235,7 +235,7 @@ program tgenbun
         !
         !==> Solve system
         !
-        call solver%solve_2d_real_linear_system_centered( f, u, error_flag )
+        call solver%solve_2d_real_linear_system_centered(f, u, error_flag)
 
         !
         !==> Compute the discretization error
@@ -266,6 +266,11 @@ program tgenbun
         '     error_flag =', error_flag, &
         ' discretization error = ', discretization_error
 
+    !
+    !==> Release memory
+    !
+    call solver%destroy()
+    call centered_grid%destroy()
 
 contains
 

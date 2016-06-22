@@ -321,73 +321,75 @@ contains
         !
         call workspace%destroy()
 
-    contains
+    end subroutine cmgnbn
 
-        subroutine cmgnbnn(nperod, n, mperod, m, a, b, c, idimy, y, w)
 
-            !-----------------------------------------------
-            ! Dictionary: calling arguments
-            !-----------------------------------------------
-            integer (ip), intent (in)     :: nperod
-            integer (ip), intent (in)     :: n
-            integer (ip), intent (in)     :: mperod
-            integer (ip), intent (in)     :: m
-            integer (ip), intent (in)     :: idimy
-            complex (wp), intent (in)     :: a(:)
-            complex (wp), intent (in)     :: b(:)
-            complex (wp), intent (in)     :: c(:)
-            complex (wp), intent (in out) :: y(idimy, *)
-            complex (wp), intent (in out) :: w(*)
-            !-----------------------------------------------
-            ! Dictionary: local variables
-            !-----------------------------------------------
-            integer (ip) :: iwba, iwbb, iwbc, iwb2, iwb3, iww1, iww2, iww3, iwd
-            integer (ip) :: iwtcos, iwp, i, k, j, mp, np, ipstor
-            integer (ip) :: irev, mh, mhm1, modd, nby2, mskip
-            complex (wp) :: a1
-            !-----------------------------------------------
 
-            iwba = m + 1
-            iwbb = iwba + m
-            iwbc = iwbb + m
-            iwb2 = iwbc + m
-            iwb3 = iwb2 + m
-            iww1 = iwb3 + m
-            iww2 = iww1 + m
-            iww3 = iww2 + m
-            iwd = iww3 + m
-            iwtcos = iwd + m
-            iwp = iwtcos + 4*n
-            do i = 1, m
-                k = iwba + i - 1
-                w(k) = -a(i)
-                k = iwbc + i - 1
-                w(k) = -c(i)
-                k = iwbb + i - 1
-                w(k) = 2. - b(i)
-                y(i, :n) = -y(i, :n)
-            end do
-            mp = mperod + 1
-            np = nperod + 1
-            select case (mp)
-                case (1)
-                    go to 114
-                case (2)
-                    go to 107
-            end select
-107     continue
-        select case (np)
+    subroutine cmgnbnn(nperod, n, mperod, m, a, b, c, idimy, y, w)
+
+        !-----------------------------------------------
+        ! Dictionary: calling arguments
+        !-----------------------------------------------
+        integer (ip), intent (in)     :: nperod
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: mperod
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: idimy
+        complex (wp), intent (in)     :: a(:)
+        complex (wp), intent (in)     :: b(:)
+        complex (wp), intent (in)     :: c(:)
+        complex (wp), intent (in out) :: y(idimy, *)
+        complex (wp), intent (in out) :: w(*)
+        !-----------------------------------------------
+        ! Dictionary: local variables
+        !-----------------------------------------------
+        integer (ip) :: iwba, iwbb, iwbc, iwb2, iwb3, iww1, iww2, iww3, iwd
+        integer (ip) :: iwtcos, iwp, i, k, j, mp, np, ipstor
+        integer (ip) :: irev, mh, mhm1, modd, nby2, mskip
+        complex (wp) :: a1
+        !-----------------------------------------------
+
+        iwba = m + 1
+        iwbb = iwba + m
+        iwbc = iwbb + m
+        iwb2 = iwbc + m
+        iwb3 = iwb2 + m
+        iww1 = iwb3 + m
+        iww2 = iww1 + m
+        iww3 = iww2 + m
+        iwd = iww3 + m
+        iwtcos = iwd + m
+        iwp = iwtcos + 4*n
+        do i = 1, m
+            k = iwba + i - 1
+            w(k) = -a(i)
+            k = iwbc + i - 1
+            w(k) = -c(i)
+            k = iwbb + i - 1
+            w(k) = 2. - b(i)
+            y(i, :n) = -y(i, :n)
+        end do
+        mp = mperod + 1
+        np = nperod + 1
+        select case (mp)
             case (1)
-                go to 108
+                go to 114
             case (2)
-                go to 109
-            case (3)
-                go to 110
-            case (4)
-                go to 111
-            case (5)
-                go to 123
+                go to 107
         end select
+107 continue
+    select case (np)
+        case (1)
+            go to 108
+        case (2)
+            go to 109
+        case (3)
+            go to 110
+        case (4)
+            go to 111
+        case (5)
+            go to 123
+    end select
 108 continue
     call cmposp (m, n, w(iwba), w(iwbb), w(iwbc), y, idimy, w, w(iwb2) &
         , w(iwb3), w(iww1), w(iww2), w(iww3), w(iwd), w(iwtcos), w(iwp) &
@@ -492,12 +494,19 @@ end select
     y(:m, j) = w(:m)
 end do
 133 continue
-    w(1) = cmplx(real(ipstor + iwp - 1), 0.)
+    w(1) = cmplx(real(ipstor + iwp - 1), 0.0_wp)
     return
 end subroutine cmgnbnn
 
 
 subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
+    !
+    !     subroutine to solve poisson's equation for dirichlet boundary
+    !     conditions.
+    !
+    !     istag = 1 if the last diagonal block is the matrix a.
+    !     istag = 2 if the last diagonal block is the matrix a+i.
+    !
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
@@ -508,7 +517,7 @@ subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
     complex (wp), intent (in)     :: ba(*)
     complex (wp), intent (in)     :: bb(*)
     complex (wp), intent (in)     :: bc(*)
-    complex (wp), intent (in out) :: q(idimq, 1)
+    complex (wp), intent (in out) :: q(idimq,*)
     complex (wp), intent (in out) :: b(*)
     complex (wp), intent (in out) :: w(*)
     complex (wp), intent (in out) :: d(*)
@@ -517,25 +526,20 @@ subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer (ip) :: m, n, ip_rename, ipstor, jsh, kr, irreg, jstsav, i, lr, nun, &
-        jst, jsp, l, nodd, j, jm1, jp1, jm2, jp2, jm3, jp3, noddpr &
-        , krpi, ideg, jdeg
-    real (wp) :: fi
+    integer (ip) :: m, n, iip, ipstor, jsh, kr, irreg, jstsav, i, lr, nun
+    integer (ip) :: jst, jsp, l, nodd, j, jm1, jp1, jm2, jp2, jm3, jp3, noddpr
+    integer (ip) :: krpi, ideg, jdeg
+    real (wp)    :: fi
     complex (wp) :: t
     !-----------------------------------------------
-    !
-    !     SUBROUTINE TO SOLVE POISSON'S EQUATION FOR DIRICHLET BOUNDARY
-    !     CONDITIONS.
-    !
-    !     ISTAG = 1 IF THE LAST DIAGONAL BLOCK IS THE MATRIX A.
-    !     ISTAG = 2 IF THE LAST DIAGONAL BLOCK IS THE MATRIX A+I.
-    !
+
     m = mr
     n = nr
-    fi = 1./real(istag)
-    ip_rename = -m
+    fi = 1.0_wp/istag
+    iip = -m
     ipstor = 0
     jsh = 0
+
     select case (istag)
         case default
             kr = 0
@@ -547,12 +551,12 @@ subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
             jstsav = 1
             irreg = 2
             if (n > 1) go to 106
-            tcos(1) = CMPLX(-1., 0.)
+            tcos(1) = cmplx(-1.0_wp, 0.0_wp, kind=wp)
     end select
 103 continue
-    b(:m) = Q(:m, 1)
+    b(:m) = q(:m, 1)
     call cmptrx (1, 0, m, ba, bb, bc, b, tcos, d, w)
-    q(:m, 1) = B(:m)
+    q(:m, 1) = b(:m)
     go to 183
 106 continue
     lr = 0
@@ -563,13 +567,13 @@ subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
     jst = 1
     jsp = n
 !
-!     IRREG = 1 WHEN NO IRREGULARITIES HAVE OCCURRED, OTHERWISE IT IS 2.
+!     irreg = 1 when no irregularities have occurred, otherwise it is 2.
 !
 108 continue
     l = 2*jst
     nodd = 2 - 2*((nun + 1)/2) + nun
     !
-    !     NODD = 1 WHEN NUN IS ODD, OTHERWISE IT IS 2.
+    !     nodd = 1 when nun is odd, otherwise it is 2.
     !
     select case (nodd)
         case default
@@ -579,7 +583,7 @@ subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
             if (irreg /= 1) jsp = jsp - l
     end select
 111 continue
-    call cmpcsg (jst, 1, 0.5, 0.0, tcos)
+    call cmpcsg (jst, 1, 0.5_wp, 0.0_wp, tcos)
     if (l <= jsp) then
         do j = l, jsp, l
             jm1 = j - jsh
@@ -589,27 +593,27 @@ subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
             jm3 = jm2 - jsh
             jp3 = jp2 + jsh
             if (jst == 1) then
-                b(:m) = 2.0_wp * Q(:m, j)
-                q(:m, j) = Q(:m, jm2) + Q(:m, jp2)
+                b(:m) = 2.0_wp * q(:m, j)
+                q(:m, j) = q(:m, jm2) + q(:m, jp2)
             else
                 do i = 1, m
-                    t = Q(i, j) - Q(i, jm1) - Q(i, jp1) + Q(i, jm2) + Q(i, jp2)
-                    b(i) = t + Q(i, j) - Q(i, jm3) - Q(i, jp3)
+                    t = q(i, j) - q(i, jm1) - q(i, jp1) + q(i, jm2) + q(i, jp2)
+                    b(i) = t + q(i, j) - q(i, jm3) - q(i, jp3)
                     q(i, j) = t
                 end do
             end if
             call cmptrx (jst, 0, m, ba, bb, bc, b, tcos, d, w)
-            q(:m, j) = Q(:m, j) + B(:m)
+            q(:m, j) = q(:m, j) + b(:m)
         end do
     end if
     !
-    !     REDUCTION FOR LAST UNKNOWN
+    !     reduction for last unknown
     !
     select case (nodd)
         case default
             go to (152, 120) irreg
         !
-        !     ODD NUMBER OF UNKNOWNS
+        !     odd number of unknowns
         !
 120     continue
         jsp = jsp + l
@@ -623,43 +627,43 @@ subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
 121 continue
     if (jst /= 1) go to 123
     do i = 1, m
-        b(i) = Q(i, j)
+        b(i) = q(i, j)
         q(i, j) = 0.0_wp
     end do
     go to 130
 123 continue
     select case (noddpr)
         case default
-            b(:m) = 0.5_wp * (Q(:m, jm2)-Q(:m, jm1)-Q(:m, jm3)) + P(ip_rename+1:m+ip_rename) &
-                + Q(:m, j)
+            b(:m) = 0.5_wp * (q(:m, jm2)-q(:m, jm1)-q(:m, jm3)) + p(iip+1:m+iip) &
+                + q(:m, j)
         case (2)
-            b(:m) = 0.5_wp * (Q(:m, jm2)-Q(:m, jm1)-Q(:m, jm3)) + Q(:m, jp2) - Q( &
-                :m, jp1) + Q(:m, j)
+            b(:m) = 0.5_wp * (q(:m, jm2)-q(:m, jm1)-q(:m, jm3)) + q(:m, jp2) - q( &
+                :m, jp1) + q(:m, j)
     end select
 128 continue
-    q(:m, j) = 0.5_wp * (Q(:m, j)-Q(:m, jm1)-Q(:m, jp1))
+    q(:m, j) = 0.5_wp * (q(:m, j)-q(:m, jm1)-q(:m, jp1))
 130 continue
     call cmptrx (jst, 0, m, ba, bb, bc, b, tcos, d, w)
-    ip_rename = ip_rename + m
-    ipstor = max(ipstor, ip_rename + m)
-    p(ip_rename+1:m+ip_rename) = Q(:m, j) + B(:m)
-    b(:m) = Q(:m, jp2) + P(ip_rename+1:m+ip_rename)
+    iip = iip + m
+    ipstor = max(ipstor, iip + m)
+    p(iip+1:m+iip) = q(:m, j) + b(:m)
+    b(:m) = q(:m, jp2) + p(iip+1:m+iip)
     if (lr == 0) then
         do i = 1, jst
             krpi = kr + i
-            tcos(krpi) = TCOS(i)
+            tcos(krpi) = tcos(i)
         end do
     else
-        call cmpcsg (lr, jstsav, 0., fi, TCOS(jst+1))
+        call cmpcsg (lr, jstsav, 0.0_wp, fi, tcos(jst+1))
         call cmpmrg (tcos, 0, jst, jst, lr, kr)
     end if
-    call cmpcsg (kr, jstsav, 0.0, fi, tcos)
+    call cmpcsg (kr, jstsav, 0.0_wp, fi, tcos)
     call cmptrx (kr, kr, m, ba, bb, bc, b, tcos, d, w)
-    q(:m, j) = Q(:m, jm2) + B(:m) + P(ip_rename+1:m+ip_rename)
+    q(:m, j) = q(:m, jm2) + b(:m) + p(iip+1:m+iip)
     lr = kr
     kr = kr + l
 !
-!     EVEN NUMBER OF UNKNOWNS
+!     even number of unknowns
 !
 case (2)
     jsp = jsp + l
@@ -675,35 +679,35 @@ case (2)
             ideg = jst
             kr = l
         case (2)
-            call cmpcsg (kr, jstsav, 0.0, fi, tcos)
-            call cmpcsg (lr, jstsav, 0.0, fi, TCOS(kr+1))
+            call cmpcsg (kr, jstsav, 0.0_wp, fi, tcos)
+            call cmpcsg (lr, jstsav, 0.0_wp, fi, tcos(kr+1))
             ideg = kr
             kr = kr + jst
     end select
 139 continue
     if (jst == 1) then
         irreg = 2
-        b(:m) = Q(:m, j)
-        q(:m, j) = Q(:m, jm2)
+        b(:m) = q(:m, j)
+        q(:m, j) = q(:m, jm2)
     else
-        b(:m) = Q(:m, j) + 0.5_wp * (Q(:m, jm2)-Q(:m, jm1)-Q(:m, jm3))
+        b(:m) = q(:m, j) + 0.5_wp * (q(:m, jm2)-q(:m, jm1)-q(:m, jm3))
         select case (irreg)
             case default
-                q(:m, j) = Q(:m, jm2) + 0.5_wp * (Q(:m, j)-Q(:m, jm1)-Q(:m, jp1))
+                q(:m, j) = q(:m, jm2) + 0.5_wp * (q(:m, j)-q(:m, jm1)-q(:m, jp1))
                 irreg = 2
             case (2)
                 select case (noddpr)
                     case default
-                        q(:m, j) = Q(:m, jm2) + P(ip_rename+1:m+ip_rename)
-                        ip_rename = ip_rename - m
+                        q(:m, j) = q(:m, jm2) + p(iip+1:m+iip)
+                        iip = iip - m
                     case (2)
-                        q(:m, j) = Q(:m, jm2) + Q(:m, j) - Q(:m, jm1)
+                        q(:m, j) = q(:m, jm2) + q(:m, j) - q(:m, jm1)
                 end select
         end select
     end if
 150 continue
     call cmptrx (ideg, lr, m, ba, bb, bc, b, tcos, d, w)
-    q(:m, j) = Q(:m, j) + B(:m)
+    q(:m, j) = q(:m, j) + b(:m)
 end select
 152 continue
     nun = nun/2
@@ -712,18 +716,18 @@ end select
     jst = 2*jst
     if (nun >= 2) go to 108
     !
-    !     START SOLUTION.
+    !     start solution.
     !
     j = jsp
-    b(:m) = Q(:m, j)
+    b(:m) = q(:m, j)
     select case (irreg)
         case default
-            call cmpcsg (jst, 1, 0.5, 0.0, tcos)
+            call cmpcsg (jst, 1, 0.5_wp, 0.0_wp, tcos)
             ideg = jst
         case (2)
             kr = lr + jst
-            call cmpcsg (kr, jstsav, 0.0, fi, tcos)
-            call cmpcsg (lr, jstsav, 0.0, fi, TCOS(kr+1))
+            call cmpcsg (kr, jstsav, 0.0_wp, fi, tcos)
+            call cmpcsg (lr, jstsav, 0.0_wp, fi, tcos(kr+1))
             ideg = kr
     end select
 156 continue
@@ -732,14 +736,14 @@ end select
     jp1 = j + jsh
     select case (irreg)
         case default
-            q(:m, j) = 0.5_wp * (Q(:m, j)-Q(:m, jm1)-Q(:m, jp1)) + B(:m)
+            q(:m, j) = 0.5_wp * (q(:m, j)-q(:m, jm1)-q(:m, jp1)) + b(:m)
         case (2)
             select case (noddpr)
                 case default
-                    q(:m, j) = P(ip_rename+1:m+ip_rename) + B(:m)
-                    ip_rename = ip_rename - m
+                    q(:m, j) = p(iip+1:m+iip) + b(:m)
+                    iip = iip - m
                 case (2)
-                    q(:m, j) = Q(:m, j) - Q(:m, jm1) + B(:m)
+                    q(:m, j) = q(:m, j) - q(:m, jm1) + b(:m)
             end select
     end select
 164 continue
@@ -753,52 +757,52 @@ end select
         jm2 = j - jst
         jp2 = j + jst
         if (j <= jst) then
-            b(:m) = Q(:m, j) + Q(:m, jp2)
+            b(:m) = q(:m, j) + q(:m, jp2)
         else
             if (jp2 <= n) go to 168
-            b(:m) = Q(:m, j) + Q(:m, jm2)
+            b(:m) = q(:m, j) + q(:m, jm2)
             if (jst < jstsav) irreg = 1
             go to (170, 171) irreg
 168     continue
-        b(:m) = Q(:m, j) + Q(:m, jm2) + Q(:m, jp2)
+        b(:m) = q(:m, j) + q(:m, jm2) + q(:m, jp2)
     end if
 170 continue
-    call cmpcsg (jst, 1, 0.5, 0.0, tcos)
+    call cmpcsg (jst, 1, 0.5_wp, 0.0_wp, tcos)
     ideg = jst
     jdeg = 0
     go to 172
 171 continue
     if (j + l > n) lr = lr - jst
     kr = jst + lr
-    call cmpcsg (kr, jstsav, 0.0, fi, tcos)
-    call cmpcsg (lr, jstsav, 0.0, fi, TCOS(kr+1))
+    call cmpcsg (kr, jstsav, 0.0_wp, fi, tcos)
+    call cmpcsg (lr, jstsav, 0.0_wp, fi, tcos(kr+1))
     ideg = kr
     jdeg = lr
 172 continue
     call cmptrx (ideg, jdeg, m, ba, bb, bc, b, tcos, d, w)
     if (jst <= 1) then
-        q(:m, j) = B(:m)
+        q(:m, j) = b(:m)
     else
         if (jp2 > n) go to 177
 175 continue
-    q(:m, j) = 0.5_wp * (Q(:m, j)-Q(:m, jm1)-Q(:m, jp1)) + B(:m)
+    q(:m, j) = 0.5_wp * (q(:m, j)-q(:m, jm1)-q(:m, jp1)) + b(:m)
     cycle
 177 continue
     go to (175, 178) irreg
 178 continue
     if (j + jsh <= n) then
-        q(:m, j) = B(:m) + P(ip_rename+1:m+ip_rename)
-        ip_rename = ip_rename - m
+        q(:m, j) = b(:m) + p(iip+1:m+iip)
+        iip = iip - m
     else
-        q(:m, j) = B(:m) + Q(:m, j) - Q(:m, jm1)
+        q(:m, j) = b(:m) + q(:m, j) - q(:m, jm1)
     end if
 end if
 end do
 l = l/2
 go to 164
 183 continue
-    w(1) = CMPLX(real(ipstor), 0.)
-    return
+    w(1) = cmplx(real(ipstor, kind=wp), 0.0_wp, kind=wp)
+
 end subroutine cmposd
 
 
@@ -841,7 +845,7 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
     ! Dictionary: local variables
     !-----------------------------------------------
     integer (ip) :: k(4)
-    integer (ip) :: k1, k2, k3, k4, mr, iip
+    integer (ip) :: mr, iip
     integer (ip) :: ipstor, i2r, jr, nr, nlast, kr
     integer (ip) :: lr, i, nrod, jstart, jstop, i2rby2, j, jp1, jp2, jp3, jm1
     integer (ip) :: jm2, jm3, nrodpr, ii, i1, i2, jr2, nlastp, jstep
@@ -849,20 +853,26 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
     complex (wp) :: fi, t
     !-----------------------------------------------
 
-    equivalence (k(1), k1), (k(2), k2), (k(3), k3), (k(4), k4)
-    fistag = 3 - istag
-    fnum = 1./real(istag)
-    fden = 0.5_wp * real(istag - 1)
-    mr = m
-    iip = -mr
-    ipstor = 0
-    i2r = 1
-    jr = 2
-    nr = n
-    nlast = n
-    kr = 1
-    lr = 0
-    go to (101, 103) istag
+    associate( &
+        k1 => k(1), &
+        k2 => k(2), &
+        k3 => k(3), &
+        k4 => k(4) &
+        )
+
+        fistag = 3 - istag
+        fnum = 1.0_wp/istag
+        fden = 0.5_wp * real(istag - 1, kind=wp)
+        mr = m
+        iip = -mr
+        ipstor = 0
+        i2r = 1
+        jr = 2
+        nr = n
+        nlast = n
+        kr = 1
+        lr = 0
+        go to (101, 103) istag
 101 continue
     q(:mr, n) = 0.5_wp * q(:mr, n)
     go to (103, 104) mixbnd
@@ -882,7 +892,7 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
 107 continue
     jstop = nlast - jr
     if (nrod == 0) jstop = jstop - i2r
-    call cmpcsg (i2r, 1, 0.5, 0.0, tcos)
+    call cmpcsg (i2r, 1, 0.5_wp, 0.0_wp, tcos)
     i2rby2 = i2r/2
     if (jstop < jstart) then
         j = jr
@@ -941,12 +951,12 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
                 q(:mr, j) = q(:mr, j) - q(:mr, jm1) + q(:mr, jm2)
             end if
             if (lr /= 0) then
-                call cmpcsg (lr, 1, 0.5, fden, tcos(kr+1))
+                call cmpcsg (lr, 1, 0.5_wp, fden, tcos(kr+1))
             else
                 b(:mr) = fistag*b(:mr)
             end if
         end if
-        call cmpcsg (kr, 1, 0.5, fden, tcos)
+        call cmpcsg (kr, 1, 0.5_wp, fden, tcos)
         call cmptrx (kr, lr, mr, a, bb, c, b, tcos, d, w)
         q(:mr, j) = q(:mr, j) + b(:mr)
         kr = kr + i2r
@@ -962,7 +972,7 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
                 case default
                     p(:mr) = b(:mr)
                     b(:mr) = b(:mr) + q(:mr, n)
-                    tcos(1) = cmplx(1., 0.)
+                    tcos(1) = cmplx(1., 0.0_wp)
                     tcos(2) = 0.0_wp
                     call cmptrx (1, 1, mr, a, bb, c, b, tcos, d, w)
                     q(:mr, j) = q(:mr, jm2) + p(:mr) + b(:mr)
@@ -985,7 +995,7 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
         p(iip+1:mr+iip) = b(:mr) + 0.5_wp * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
         b(:mr) = p(iip+1:mr+iip) + q(:mr, jp2)
         if (lr /= 0) then
-            call cmpcsg (lr, 1, 0.5, fden, tcos(i2r+1))
+            call cmpcsg (lr, 1, 0.5_wp, fden, tcos(i2r+1))
             call cmpmrg (tcos, 0, i2r, i2r, lr, kr)
         else
             do i = 1, i2r
@@ -993,7 +1003,7 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
                 tcos(ii) = tcos(i)
             end do
         end if
-        call cmpcsg (kr, 1, 0.5, fden, tcos)
+        call cmpcsg (kr, 1, 0.5_wp, fden, tcos)
         if (lr == 0) then
             go to (146, 145) istag
         end if
@@ -1037,9 +1047,9 @@ end select
         tcos(1) = 0.0_wp
         call cmptrx (1, 0, mr, a, bb, c, b, tcos, d, w)
         q(:mr, 2) = b(:mr)
-        b(:mr) = 4.*b(:mr) + q(:mr, 1) + 2.0_wp * q(:mr, 3)
-        tcos(1) = cmplx(-2., 0.)
-        tcos(2) = cmplx(2., 0.)
+        b(:mr) = 4.0_wp*b(:mr) + q(:mr, 1) + 2.0_wp * q(:mr, 3)
+        tcos(1) = cmplx(-2.0_wp, 0.0_wp, kind=wp)
+        tcos(2) = cmplx(2.0_wp, 0.0_wp, kind=wp)
         i1 = 2
         i2 = 0
         call cmptrx (i1, i2, mr, a, bb, c, b, tcos, d, w)
@@ -1059,17 +1069,17 @@ end select
 162 continue
     b(:mr) = q(:mr, j) + 0.5_wp * q(:mr, 1) - q(:mr, jm1) + q(:mr, nlast) - &
         q(:mr, jm2)
-    call cmpcsg (jr, 1, 0.5, 0.0, tcos)
+    call cmpcsg (jr, 1, 0.5_wp, 0.0_wp, tcos)
     call cmptrx (jr, 0, mr, a, bb, c, b, tcos, d, w)
     q(:mr, j) = 0.5_wp * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1)) + b(:mr)
     b(:mr) = q(:mr, 1) + 2.0_wp * q(:mr, nlast) + 4.*q(:mr, j)
     jr2 = 2*jr
-    call cmpcsg (jr, 1, 0.0, 0.0, tcos)
+    call cmpcsg (jr, 1, 0.0_wp, 0.0_wp, tcos)
     tcos(jr+1:jr*2) = -tcos(jr:1:(-1))
     call cmptrx (jr2, 0, mr, a, bb, c, b, tcos, d, w)
     q(:mr, j) = q(:mr, j) + b(:mr)
     b(:mr) = q(:mr, 1) + 2.0_wp * q(:mr, j)
-    call cmpcsg (jr, 1, 0.5, 0.0, tcos)
+    call cmpcsg (jr, 1, 0.5_wp, 0.0_wp, tcos)
     call cmptrx (jr, 0, mr, a, bb, c, b, tcos, d, w)
     q(:mr, 1) = 0.5_wp * q(:mr, 1) - q(:mr, jm1) + b(:mr)
     go to 194
@@ -1101,31 +1111,31 @@ end select
 177 continue
     k1 = kr + 2*jr - 1
     k2 = kr + jr
-    tcos(k1+1) = (-2., 0.)
+    tcos(k1+1) = cmplx(-2.0_wp, 0.0_wp, kind=wp)
     k4 = k1 + 3 - istag
-    call cmpcsg (k2 + istag - 2, 1, 0.0, fnum, tcos(k4))
+    call cmpcsg (k2 + istag - 2, 1, 0.0_wp, fnum, tcos(k4))
     k4 = k1 + k2 + 1
-    call cmpcsg (jr - 1, 1, 0.0, 1.0, tcos(k4))
+    call cmpcsg (jr - 1, 1, 0.0_wp, 1.0_wp, tcos(k4))
     call cmpmrg (tcos, k1, k2, k1 + k2, jr - 1, 0)
     k3 = k1 + k2 + lr
-    call cmpcsg (jr, 1, 0.5, 0.0, tcos(k3+1))
+    call cmpcsg (jr, 1, 0.5_wp, 0.0_wp, tcos(k3+1))
     k4 = k3 + jr + 1
-    call cmpcsg (kr, 1, 0.5, fden, tcos(k4))
+    call cmpcsg (kr, 1, 0.5_wp, fden, tcos(k4))
     call cmpmrg (tcos, k3, jr, k3 + jr, kr, k1)
     if (lr /= 0) then
-        call cmpcsg (lr, 1, 0.5, fden, tcos(k4))
+        call cmpcsg (lr, 1, 0.5_wp, fden, tcos(k4))
         call cmpmrg (tcos, k3, jr, k3 + jr, lr, k3 - lr)
-        call cmpcsg (kr, 1, 0.5, fden, tcos(k4))
+        call cmpcsg (kr, 1, 0.5_wp, fden, tcos(k4))
     end if
     k3 = kr
     k4 = kr
     call cmptr3 (mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
     b(:mr) = b(:mr) + b2(:mr) + b3(:mr)
-    tcos(1) = (2., 0.)
+    tcos(1) = (2., 0.0_wp)
     call cmptrx (1, 0, mr, a, bb, c, b, tcos, d, w)
     q(:mr, j) = q(:mr, j) + b(:mr)
     b(:mr) = q(:mr, 1) + 2.0_wp * q(:mr, j)
-    call cmpcsg (jr, 1, 0.5, 0.0, tcos)
+    call cmpcsg (jr, 1, 0.5_wp, 0.0_wp, tcos)
     call cmptrx (jr, 0, mr, a, bb, c, b, tcos, d, w)
     if (jr == 1) then
         q(:mr, 1) = b(:mr)
@@ -1143,8 +1153,8 @@ if (n == 2) then
     call cmptrx (1, 0, mr, a, bb, c, b, tcos, d, w)
     q(:mr, 1) = b(:mr)
     b(:mr) = 2.0_wp * (q(:mr, 2)+b(:mr))*fistag
-    tcos(1) = cmplx((-fistag), 0.)
-    tcos(2) = cmplx(2., 0.)
+    tcos(1) = cmplx((-fistag), 0.0_wp, kind=wp)
+    tcos(2) = cmplx(2.0_wp, 0.0_wp, kind=wp)
     call cmptrx (2, 0, mr, a, bb, c, b, tcos, d, w)
     q(:mr, 1) = q(:mr, 1) + b(:mr)
     jr = 1
@@ -1156,21 +1166,21 @@ b(:mr) = q(:mr, 1) + 2.0_wp * p(iip+1:mr+iip)
 q(:mr, 1) = 0.5_wp * q(:mr, 1) - q(:mr, jm1)
 b2(:mr) = 2.0_wp * (q(:mr, 1)+q(:mr, nlast))
 k1 = kr + jr - 1
-tcos(k1+1) = (-2., 0.)
+tcos(k1+1) = cmplx(-2.0_wp, 0.0_wp, kind=wp)
 k4 = k1 + 3 - istag
-call cmpcsg (kr + istag - 2, 1, 0.0, fnum, tcos(k4))
+call cmpcsg (kr + istag - 2, 1, 0.0_wp, fnum, tcos(k4))
 k4 = k1 + kr + 1
-call cmpcsg (jr - 1, 1, 0.0, 1.0, tcos(k4))
+call cmpcsg (jr - 1, 1, 0.0_wp, 1.0_wp, tcos(k4))
 call cmpmrg (tcos, k1, kr, k1 + kr, jr - 1, 0)
-call cmpcsg (kr, 1, 0.5, fden, tcos(k1+1))
+call cmpcsg (kr, 1, 0.5_wp, fden, tcos(k1+1))
 k2 = kr
 k4 = k1 + k2 + 1
-call cmpcsg (lr, 1, 0.5, fden, tcos(k4))
+call cmpcsg (lr, 1, 0.5_wp, fden, tcos(k4))
 k3 = lr
 k4 = 0
 call cmptr3 (mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
 b(:mr) = b(:mr) + b2(:mr)
-tcos(1) = (2., 0.)
+tcos(1) = cmplx(2.0_wp, 0.0_wp, kind=wp)
 call cmptrx (1, 0, mr, a, bb, c, b, tcos, d, w)
 q(:mr, 1) = q(:mr, 1) + b(:mr)
 go to 194
@@ -1192,8 +1202,8 @@ go to 194
             q(:mr, nlast) = q(:mr, nlast) - q(:mr, jm2)
         end if
     end if
-    call cmpcsg (kr, 1, 0.5, fden, tcos)
-    call cmpcsg (lr, 1, 0.5, fden, tcos(kr+1))
+    call cmpcsg (kr, 1, 0.5_wp, fden, tcos)
+    call cmpcsg (lr, 1, 0.5_wp, fden, tcos(kr+1))
     if (lr == 0) then
         b(:mr) = fistag*b(:mr)
     end if
@@ -1221,7 +1231,7 @@ go to 194
         jstop = nlast - jr
     end if
     lr = kr - jr
-    call cmpcsg (jr, 1, 0.5, 0.0, tcos)
+    call cmpcsg (jr, 1, 0.5_wp, 0.0_wp, tcos)
     do j = jstart, jstop, jstep
         jm2 = j - jr
         jp2 = j + jr
@@ -1245,7 +1255,9 @@ go to 194
     if (nlastp /= nlast) go to 194
     go to 206
 222 continue
-    w(1) = cmplx(real(ipstor), 0.)
+    w(1) = cmplx(real(ipstor, kind=wp), 0.0_wp, kind=wp)
+
+end associate
 
 end subroutine cmposn
 
@@ -1266,7 +1278,7 @@ subroutine cmposp(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
     complex (wp) :: a(*)
     complex (wp) :: bb(*)
     complex (wp) :: c(*)
-    complex (wp) :: q(idimq, 1)
+    complex (wp) :: q(idimq,*)
     complex (wp) :: b(*)
     complex (wp) :: b2(*)
     complex (wp) :: b3(*)
@@ -1308,12 +1320,12 @@ subroutine cmposp(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
 
         call cmposd (mr, nrm1, 1, a, bb, c, q, idimq, b, w, d, tcos, p)
 
-        ipstor = real(w(1))
+        ipstor = real(w(1), kind=wp)
 
         call cmposn(mr, nr + 1, 1, 1, a, bb, c, q(1, nr), idimq, b, b2, &
             b3, w, w2, w3, d, tcos, p)
 
-        ipstor = max(ipstor, real(w(1)))
+        ipstor = max(ipstor, real(w(1), kind=wp))
 
         do j = 1, nrm1
             nrmj = nr - j
@@ -1355,12 +1367,12 @@ subroutine cmposp(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
 
         call cmposd(mr, nrm1, 2, a, bb, c, q, idimq, b, w, d, tcos, p)
 
-        ipstor = real(w(1))
+        ipstor = real(w(1), kind=wp)
 
         call cmposn(mr, nr, 2, 1, a, bb, c, q(1, nr), idimq, b, b2, b3, &
             w, w2, w3, d, tcos, p)
 
-        ipstor = max(ipstor, real(w(1)))
+        ipstor = max(ipstor, real(w(1), kind=wp))
 
         do j = 1, nrm1
             nrpj = nr + j
@@ -1406,7 +1418,7 @@ pure subroutine cmpcsg(n, ijump, fnum, fden, a)
     !            2*cos((j-fnum)*pi/(n+fden)) ,  j=1, 2, ... , n
     !
     !     where
-    !        fnum = 0.5, fden = 0.0,  for regular reduction values
+    !        fnum = 0.5, fden = 0.0, for regular reduction values
     !        fnum = 0.0, fden = 1.0, for b-r and c-r when istag = 1
     !        fnum = 0.0, fden = 0.5, for b-r and c-r when istag = 2
     !        fnum = 0.5, fden = 0.5, for b-r and c-r when istag = 2
@@ -1496,7 +1508,7 @@ subroutine cmpmrg(tcos, i1, m1, i2, m2, i3)
         x = tcos(l)
         l = j2 + i2
         y = tcos(l)
-        if (real(x - y) > 0.) go to 103
+        if (real(x - y) > 0.0_wp) go to 103
         tcos(j) = x
     end do
     go to 106
@@ -1528,6 +1540,11 @@ end subroutine cmpmrg
 
 
 subroutine cmptrx(idegbr, idegcr, m, a, b, c, y, tcos, d, w)
+    !
+    !     Subroutine to solve a system of linear equations where the
+    !     coefficient matrix is a rational function in the matrix given by
+    !     tridiagonal  ( . . . , a(i), b(i), c(i), . . . ).
+    !
     !-----------------------------------------------
     ! Dictionary: calling arguments
     !-----------------------------------------------
@@ -1544,46 +1561,42 @@ subroutine cmptrx(idegbr, idegcr, m, a, b, c, y, tcos, d, w)
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    integer (ip) :: mm1, ifb, ifc, l, lint, k, i, ip_rename
+    integer (ip) :: mm1, ifb, ifc, l, lint, k, i, iip
     complex (wp) :: x, xx, z
     !-----------------------------------------------
-    !
-    !     SUBROUTINE TO SOLVE A SYSTEM OF LINEAR EQUATIONS WHERE THE
-    !     COEFFICIENT MATRIX IS A RATIONAL FUNCTION IN THE MATRIX GIVEN BY
-    !     TRIDIAGONAL  ( . . . , A(I), B(I), C(I), . . . ).
-    !
+
     mm1 = m - 1
     ifb = idegbr + 1
     ifc = idegcr + 1
     l = ifb/ifc
     lint = 1
     do k = 1, idegbr
-        x = TCOS(k)
+        x = tcos(k)
         if (k == l) then
             i = idegbr + lint
-            xx = x - TCOS(i)
-            w(:m) = Y(:m)
-            y(:m) = xx*Y(:m)
+            xx = x - tcos(i)
+            w(:m) = y(:m)
+            y(:m) = xx*y(:m)
         end if
-        z = 1./(B(1)-x)
-        d(1) = C(1)*z
-        y(1) = Y(1)*z
+        z = 1.0_wp/(b(1)-x)
+        d(1) = c(1)*z
+        y(1) = y(1)*z
         do i = 2, mm1
-            z = 1./(B(i)-x-A(i)*D(i-1))
-            d(i) = C(i)*z
-            y(i) = (Y(i)-A(i)*Y(i-1))*z
+            z = 1.0_wp/(b(i)-x-a(i)*d(i-1))
+            d(i) = c(i)*z
+            y(i) = (y(i)-a(i)*y(i-1))*z
         end do
-        z = B(m) - x - A(m)*D(mm1)
-        if (abs(z) == 0.) then
+        z = b(m) - x - a(m)*d(mm1)
+        if (abs(z) == 0.0_wp) then
             y(m) = 0.0_wp
         else
-            y(m) = (Y(m)-A(m)*Y(mm1))/z
+            y(m) = (y(m)-a(m)*y(mm1))/z
         end if
-        do ip_rename = 1, mm1
-            y(m-ip_rename) = Y(m-ip_rename) - D(m-ip_rename)*Y(m+1-ip_rename)
+        do iip = 1, mm1
+            y(m-iip) = y(m-iip) - d(m-iip)*y(m+1-iip)
         end do
         if (k /= l) cycle
-        y(:m) = Y(:m) + W(:m)
+        y(:m) = y(:m) + w(:m)
         lint = lint + 1
         l = (lint*ifb)/ifc
     end do
@@ -1612,7 +1625,7 @@ subroutine cmptr3(m, a, b, c, k, y1, y2, y3, tcos, d, w1, w2, w3)
     ! Dictionary: local variables
     !-----------------------------------------------
     integer (ip) :: mm1, k1, k2, k3, k4, if1, if2, if3, if4, k2k3k4, l1, l2
-    integer (ip) :: l3, lint1, lint2, lint3, kint1, kint2, kint3, n, i, ip_rename
+    integer (ip) :: l3, lint1, lint2, lint3, kint1, kint2, kint3, n, i, iip
     complex (wp) :: x, xx, z
     !-----------------------------------------------
     !
@@ -1652,22 +1665,22 @@ subroutine cmptr3(m, a, b, c, k, y1, y2, y3, tcos, d, w1, w2, w3)
                 w3(:m) = y3(:m)
             end if
         end if
-        z = 1./(b(1)-x)
+        z = 1.0_wp/(b(1)-x)
         d(1) = c(1)*z
         y1(1) = y1(1)*z
         y2(1) = y2(1)*z
         y3(1) = y3(1)*z
         do i = 2, m
-            z = 1./(b(i)-x-a(i)*d(i-1))
+            z = 1.0_wp/(b(i)-x-a(i)*d(i-1))
             d(i) = c(i)*z
             y1(i) = (y1(i)-a(i)*y1(i-1))*z
             y2(i) = (y2(i)-a(i)*y2(i-1))*z
             y3(i) = (y3(i)-a(i)*y3(i-1))*z
         end do
-        do ip_rename = 1, mm1
-            y1(m-ip_rename) = y1(m-ip_rename) - d(m-ip_rename)*y1(m+1-ip_rename)
-            y2(m-ip_rename) = y2(m-ip_rename) - d(m-ip_rename)*y2(m+1-ip_rename)
-            y3(m-ip_rename) = y3(m-ip_rename) - d(m-ip_rename)*y3(m+1-ip_rename)
+        do iip = 1, mm1
+            y1(m-iip) = y1(m-iip) - d(m-iip)*y1(m+1-iip)
+            y2(m-iip) = y2(m-iip) - d(m-iip)*y2(m+1-iip)
+            y3(m-iip) = y3(m-iip) - d(m-iip)*y3(m+1-iip)
         end do
         if (k2k3k4 == 0) cycle
         if (n == l1) then
@@ -1694,7 +1707,7 @@ subroutine cmptr3(m, a, b, c, k, y1, y2, y3, tcos, d, w1, w2, w3)
 
 end subroutine cmptr3
 
-end subroutine cmgnbn
+
 
 end module module_cmgnbn
 !

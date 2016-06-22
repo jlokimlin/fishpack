@@ -274,6 +274,11 @@ program tpoistg
     write( stdout, '(a,i3,a,1pe15.6/)')&
         '     error_flag = ', error_flag, ' discretization error = ', discretization_error
 
+    !
+    !==> Release memory
+    !
+    call solver%destroy()
+    call staggered_grid%destroy()
 
 contains
 
