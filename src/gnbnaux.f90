@@ -114,7 +114,7 @@ contains
         !            2*cos((j-fnum)*pi/(n+fden)) ,  j=1, 2, ... , n
         !
         !     where
-        !        fnum = 0.5, fden = 0.0,  for regular reduction values
+        !        fnum = 0.5, fden = 0.0, for regular reduction values
         !        fnum = 0.0, fden = 1.0, for b-r and c-r when istag = 1
         !        fnum = 0.0, fden = 0.5, for b-r and c-r when istag = 2
         !        fnum = 0.5, fden = 0.5, for b-r and c-r when istag = 2
@@ -124,16 +124,16 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: n
-        integer (ip), intent (in) :: ijump
-        real (wp),    intent (in) :: fnum
-        real (wp),    intent (in) :: fden
-        real (wp),    intent (out) :: a(*)
+        integer (ip), intent (in)  :: n
+        integer (ip), intent (in)  :: ijump
+        real (wp),    intent (in)  :: fnum
+        real (wp),    intent (in)  :: fden
+        real (wp),    intent (out) :: a(n)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
         integer (ip)         :: k3, k4, k, k1, k5, i, k2, np1
-        real (wp), parameter :: PI = acos( -1.0_wp)
+        real (wp), parameter :: PI = acos(-1.0_wp)
         real (wp)            :: pibyn, x, y
         !-----------------------------------------------
 
@@ -400,52 +400,48 @@ contains
         j2 = 1
         j = i3
 
-        if_block: block
-            if (m1 /= 0) then
-                if (m2 /= 0) then
+        if_construct: if (m1 /= 0) then
+            if (m2 /= 0) then
 
-                    outer_loop: do
+                outer_loop: do
 
-                        j11 = j1
-                        j3 = max(m1, j11)
+                    j11 = j1
+                    j3 = max(m1, j11)
 
-                        do_block: block
-                            do j1 = j11, j3
-                                j = j + 1
-                                l = j1 + i1
-                                x = tcos(l)
-                                l = j2 + i2
-                                y = tcos(l)
+                    do_block: block
+                        do j1 = j11, j3
+                            j = j + 1
+                            l = j1 + i1
+                            x = tcos(l)
+                            l = j2 + i2
+                            y = tcos(l)
+                            if (x - y > 0.0_wp) exit do_block
+                            tcos(j) = x
+                        end do
 
-                                if (x - y > 0.0_wp) exit do_block
+                        if (j2 > m2) return
+                        exit if_construct
 
-                                tcos(j) = x
-                            end do
+                    end block do_block
 
-                            if (j2 > m2) return
-                            exit if_block
+                    tcos(j) = y
+                    j2 = j2 + 1
 
-                        end block do_block
+                    if (j2 > m2) exit outer_loop
 
-                        tcos(j) = y
-                        j2 = j2 + 1
-
-                        if (j2 > m2) exit outer_loop
-
-                    end do outer_loop
-                    if (j1 > m1) return
-                end if
-
-                k = j - j1 + 1
-
-                do j = j1, m1
-                    m = k + j
-                    l = j + i1
-                    tcos(m) = tcos(l)
-                end do
-                return
+                end do outer_loop
+                if (j1 > m1) return
             end if
-        end block if_block
+
+            k = j - j1 + 1
+
+            do j = j1, m1
+                m = k + j
+                l = j + i1
+                tcos(m) = tcos(l)
+            end do
+            return
+        end if if_construct
 
         k = j - j2 + 1
 
