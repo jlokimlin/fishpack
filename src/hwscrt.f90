@@ -1,5 +1,5 @@
 !
-!     file hwscrt.f
+!     file hwscrt.f90
 !
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
@@ -455,10 +455,10 @@ contains
         ! Dictionary: local variables
         !-----------------------------------------------
         integer (ip) :: nperod, mperod, np, np1, mp, mp1, nstart, nstop, nskip
-        integer (ip) :: nunk, mstart, mstop, mskip, j, munk, id2, id3, id4, msp1
-        integer (ip) :: mstm1, nsp1, nstm1, local_error_flag
+        integer (ip) :: nunk, mstart, mstop, mskip, munk, id2, id3, id4
+        integer (ip) :: local_error_flag
         real (wp)    :: dx, twdelx, delxsq, dy
-        real (wp)    :: twdely, delysq, s, st2, a1, a2, s1
+        real (wp)    :: twdely, delysq, s, st2
         !-----------------------------------------------
 
         nperod = nbdcnd

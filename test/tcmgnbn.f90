@@ -159,7 +159,7 @@ program tcmgnbn
     real (wp), dimension(41) :: y
     real (wp) :: dx, pi, dy, s, t, tsq, t4, discretization_error
     complex (wp), dimension(22, 40) :: f
-    complex, dimension(20) :: a, b, c
+    complex (wp), dimension(20) :: a, b, c
     !-----------------------------------------------
 
     idimf = 22

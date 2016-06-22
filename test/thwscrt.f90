@@ -49,11 +49,11 @@ program thwscrt
     ! Dictionary: local variables
     !-----------------------------------------------
     type (FishpackSolver)    :: solver
-    integer :: idimf, m, mbdcnd, n, nbdcnd, mp1, np1, i, j, ierror
+    integer (ip) :: idimf, m, mbdcnd, n, nbdcnd, mp1, np1, i, j, ierror
     real (wp), dimension(45, 82) :: f
     real (wp), dimension(81) :: bdb, bda, bdc, bdd, y
     real (wp), dimension(41) :: x
-    real::a, b, c, d, elmbda, pi, dum, piby2, pisq, pertrb, discretization_error, z
+    real (wp) :: a, b, c, d, elmbda, pi, piby2, pisq, pertrb, discretization_error, z
     !-----------------------------------------------
     !
     !     from dimension statement we get value of idimf.

@@ -409,7 +409,7 @@ contains
         (iwb2), w(iwb3), w(iww1), w(iww2), w(iww3), w(iwd), w(iwtcos), &
         w(iwp))
 112 continue
-    ipstor = real(w(iww1))
+    ipstor = int(w(iww1), kind=ip)
     irev = 2
     if (nperod == 4) go to 124
 113 continue
@@ -454,8 +454,8 @@ select case (modd)
     case (2)
         w(iwbb-1) = w(k+1)
 end select
-122 continue
-    go to 107
+
+go to 107
 !
 !     reverse columns when nperod = 4
 !
@@ -494,8 +494,9 @@ end select
     y(:m, j) = w(:m)
 end do
 133 continue
-    w(1) = cmplx(real(ipstor + iwp - 1), 0.0_wp)
-    return
+
+    w(1) = cmplx(real(ipstor + iwp - 1, kind=wp), 0.0_wp, kind=wp)
+
 end subroutine cmgnbnn
 
 
@@ -553,7 +554,7 @@ subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
             if (n > 1) go to 106
             tcos(1) = cmplx(-1.0_wp, 0.0_wp, kind=wp)
     end select
-103 continue
+
     b(:m) = q(:m, 1)
     call cmptrx (1, 0, m, ba, bb, bc, b, tcos, d, w)
     q(:m, 1) = b(:m)
@@ -582,7 +583,7 @@ subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
             jsp = jsp - jst
             if (irreg /= 1) jsp = jsp - l
     end select
-111 continue
+
     call cmpcsg (jst, 1, 0.5_wp, 0.0_wp, tcos)
     if (l <= jsp) then
         do j = l, jsp, l
@@ -640,7 +641,7 @@ subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
             b(:m) = 0.5_wp * (q(:m, jm2)-q(:m, jm1)-q(:m, jm3)) + q(:m, jp2) - q( &
                 :m, jp1) + q(:m, j)
     end select
-128 continue
+
     q(:m, j) = 0.5_wp * (q(:m, j)-q(:m, jm1)-q(:m, jp1))
 130 continue
     call cmptrx (jst, 0, m, ba, bb, bc, b, tcos, d, w)
@@ -684,7 +685,7 @@ case (2)
             ideg = kr
             kr = kr + jst
     end select
-139 continue
+
     if (jst == 1) then
         irreg = 2
         b(:m) = q(:m, j)
@@ -705,7 +706,7 @@ case (2)
                 end select
         end select
     end if
-150 continue
+
     call cmptrx (ideg, lr, m, ba, bb, bc, b, tcos, d, w)
     q(:m, j) = q(:m, j) + b(:m)
 end select
@@ -730,7 +731,7 @@ end select
             call cmpcsg (lr, jstsav, 0.0_wp, fi, tcos(kr+1))
             ideg = kr
     end select
-156 continue
+
     call cmptrx (ideg, lr, m, ba, bb, bc, b, tcos, d, w)
     jm1 = j - jsh
     jp1 = j + jsh
@@ -889,7 +890,7 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
             jstart = jr
             nrod = 1 - nrod
     end select
-107 continue
+
     jstop = nlast - jr
     if (nrod == 0) jstop = jstop - i2r
     call cmpcsg (i2r, 1, 0.5_wp, 0.0_wp, tcos)
@@ -972,7 +973,7 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
                 case default
                     p(:mr) = b(:mr)
                     b(:mr) = b(:mr) + q(:mr, n)
-                    tcos(1) = cmplx(1., 0.0_wp)
+                    tcos(1) = cmplx(1.0_wp, 0.0_wp, kind=wp)
                     tcos(2) = 0.0_wp
                     call cmptrx (1, 1, mr, a, bb, c, b, tcos, d, w)
                     q(:mr, j) = q(:mr, jm2) + p(:mr) + b(:mr)
@@ -1026,10 +1027,10 @@ select case (mixbnd)
         nr = nlast/jr
         if (nr <= 1) go to 192
 end select
-154 continue
-    i2r = jr
-    nrodpr = nrod
-    go to 104
+
+i2r = jr
+nrodpr = nrod
+go to 104
 155 continue
     j = 1 + jr
     jm1 = j - i2r
@@ -1221,7 +1222,7 @@ go to 194
         case (2)
             jstart = jr
     end select
-209 continue
+
     kr = kr - jr
     if (nlast + jr <= n) then
         kr = kr - jr

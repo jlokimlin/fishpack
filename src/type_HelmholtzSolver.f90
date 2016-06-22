@@ -42,7 +42,7 @@ module type_HelmholtzSolver
         !---------------------------------------------------------------------------------
         procedure, public :: solve_2d_helmholtz_centered
         procedure, public :: solve_2d_helmholtz_staggered
-        final                     :: finalize_helmholtz_solver
+        !final                     :: finalize_helmholtz_solver
         !---------------------------------------------------------------------------------
     end type HelmholtzSolver
 

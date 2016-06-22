@@ -893,12 +893,13 @@ contains
 
             j2 = j1 + nmp + nmp
 
-            call cppadd(nm + 1, ierror, an, cn, cmplx(b(j1:j1)), real(bc(j1:j1)), b(j2))
+            call cppadd(nm + 1, ierror, an, cn, cmplx(b(j1:j1), kind=wp), real(bc(j1:j1), kind=wp), b(j2))
 
         end if
 
-
     end subroutine ccompb
+
+
 
 
     subroutine cproc(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, w, yy)
@@ -1382,9 +1383,9 @@ contains
                         if (r6 > 0.0_wp) exit if_block
                         if (r6 /= 0.0_wp) then
                             sgn = 1.0_wp
-                            cbp(ig) = cmplx(cbsrh(bh(ig), xm, iz, c, a, bh, psgf, sgn), 0.)
+                            cbp(ig) = cmplx(cbsrh(bh(ig), xm, iz, c, a, bh, psgf, sgn), 0.0_wp, kind=wp)
                             sgn = -1.0_wp
-                            cbp(ig+1) = cmplx(cbsrh(xm, bh(ig+1), iz, c, a, bh, psgf, sgn), 0.)
+                            cbp(ig+1) = cmplx(cbsrh(xm, bh(ig+1), iz, c, a, bh, psgf, sgn), 0.0_wp, kind=wp)
                             cycle main_loop
                         !
                         !     case of a multiple zero
@@ -1434,7 +1435,7 @@ contains
 
                     if (abs(fpp) > 0.0_wp) then
                         i2 = 1
-                        cdis = csqrt(fp**2 - 2.0_wp*f*fpp)
+                        cdis = sqrt(fp**2 - 2.0_wp*f*fpp)
                         r1 = cdis - fp
                         r2 = (-fp) - cdis
                         if (abs(r1) - abs(r2) > 0.0_wp) then

@@ -57,7 +57,7 @@ program thwscsp
     real (wp), dimension(33) :: bdtf, bdts, bdrs, bdrf
     real (wp), dimension(48) :: theta
     real (wp), dimension(33) :: r
-    real (wp)                :: pi, dum, ts, tf, rs, rf, elmbda
+    real (wp)                :: pi, ts, tf, rs, rf, elmbda
     real (wp)                :: dtheta, dr, ci4, pertrb, discretization_error, z, dphi, si
     !-----------------------------------------------
     !

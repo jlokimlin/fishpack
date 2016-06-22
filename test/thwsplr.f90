@@ -74,11 +74,11 @@ program thwsplr
     ! Dictionary
     !-----------------------------------------------
     type (FishpackSolver)     :: solver
-    integer :: idimf, m, mbdcnd, n, nbdcnd, mp1, np1, i, j, ierror
-    real , dimension(100, 50) :: f
-    real , dimension(51) :: bdc, bdd, r, bda, bdb
-    real , dimension(49) :: theta
-    real :: a, b, c, pi, dum, d, elmbda, pertrb, discretization_error, z
+    integer (ip) :: idimf, m, mbdcnd, n, nbdcnd, mp1, np1, i, j, ierror
+    real (wp), dimension(100, 50) :: f
+    real (wp), dimension(51) :: bdc, bdd, r, bda, bdb
+    real (wp), dimension(49) :: theta
+    real (wp) :: a, b, c, pi, d, elmbda, pertrb, discretization_error, z
     !-----------------------------------------------
 
     idimf = 100

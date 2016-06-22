@@ -26,7 +26,7 @@ module type_PoissonSolver
         !---------------------------------------------------------------------------------
         procedure, public :: solve_2d_poisson_centered
         procedure, public :: solve_2d_poisson_staggered
-        final             :: finalize_poisson_solver
+        !final             :: finalize_poisson_solver
         !---------------------------------------------------------------------------------
     end type PoissonSolver
 

@@ -1570,7 +1570,7 @@ contains
                 if (abs(fpp) > 0.0_wp) then
 
                     i2 = 1
-                    cdis = csqrt(fp**2 - 2.0_wp*f*fpp)
+                    cdis = sqrt(fp**2 - 2.0_wp*f*fpp)
                     r1 = cdis - fp
                     r2 = (-fp) - cdis
 

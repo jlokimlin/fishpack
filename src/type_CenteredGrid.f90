@@ -35,7 +35,7 @@ module type_CenteredGrid
         !---------------------------------------------------------------------------------
         procedure, public :: create => create_centered_grid
         procedure, public :: destroy => destroy_centered_grid
-        final             :: finalize_centered_grid
+        !final             :: finalize_centered_grid
         !---------------------------------------------------------------------------------
     end type CenteredGrid
 
@@ -101,7 +101,7 @@ contains
     end subroutine create_centered_grid
 
 
-    subroutine destroy_centered_grid( this )
+    subroutine destroy_centered_grid(this)
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
@@ -145,7 +145,7 @@ contains
     end subroutine destroy_centered_grid
 
 
-    subroutine finalize_centered_grid( this )
+    subroutine finalize_centered_grid(this)
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------

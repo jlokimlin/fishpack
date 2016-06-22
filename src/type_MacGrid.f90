@@ -127,7 +127,7 @@ module type_MacGrid
     !---------------------------------------------------------------------------------
 
     ! Declare derived data type
-    type, extends( Grid ), public :: MacGrid
+    type, extends (Grid), public :: MacGrid
         !---------------------------------------------------------------------------------
         ! Class variables
         !---------------------------------------------------------------------------------
@@ -143,7 +143,7 @@ module type_MacGrid
         procedure, public :: create => create_mac_grid
         procedure, public :: destroy => destroy_mac_grid
         procedure, public :: unformatted_print => print_to_unformatted_binary_files
-        final             :: finalize_mac_grid
+        !final             :: finalize_mac_grid
         !---------------------------------------------------------------------------------
     end type MacGrid
 
@@ -212,7 +212,7 @@ contains
     end subroutine create_mac_grid
 
 
-    subroutine destroy_mac_grid( this )
+    subroutine destroy_mac_grid(this)
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
@@ -354,7 +354,7 @@ contains
     end subroutine print_to_unformatted_binary_files
 
 
-    subroutine finalize_mac_grid( this )
+    subroutine finalize_mac_grid(this)
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------

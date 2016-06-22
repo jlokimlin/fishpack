@@ -75,7 +75,7 @@ module type_HelmholtzData
         procedure, non_overridable, public  :: create_helmholtz_data
         procedure, non_overridable, public  :: destroy_helmholtz_data
         procedure, nopass,          private :: get_boundary_condition_type
-        final                               :: finalize_helmholtz_data
+        !final                               :: finalize_helmholtz_data
         !---------------------------------------------------------------------------------
     end type HelmholtzData
 

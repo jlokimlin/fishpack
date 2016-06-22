@@ -117,7 +117,7 @@ module module_sepaux
 contains
 
 
-    subroutine seport(this, usol, idmn, zn, zm, pertrb)
+    subroutine seport(this, usol, zn, zm, pertrb)
         !
         ! Purpose:
         !
@@ -128,15 +128,14 @@ contains
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
         class (SepAux), intent (in out) :: this
-        integer (ip),   intent (in)     :: idmn
-        real (wp),      intent (out)    :: pertrb
         real (wp),      intent (in out) :: usol(:,:)
         real (wp),      intent (in)     :: zn(:)
         real (wp),      intent (in)     :: zm(:)
+        real (wp),      intent (out)    :: pertrb
         !--------------------------------------------------------------------------------
         ! Dictionary: local variables
         !--------------------------------------------------------------------------------
-        integer (ip) :: istr, ifnl, jstr, jfnl, i, ii, j, jj
+        integer (ip) :: istr, ifnl, jstr, jfnl, i, ii
         real (wp)    :: ute, ete
         !--------------------------------------------------------------------------------
 
@@ -194,7 +193,7 @@ contains
 
 
 
-    subroutine sepmin(this, usol, idmn, zn, zm, pertb)
+    subroutine sepmin(this, usol, zn, zm, pertrb)
         !
         ! Purpose:
         !
@@ -210,16 +209,15 @@ contains
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
         class (SepAux), intent (in out) :: this
-        integer (ip),   intent (in)     :: idmn
-        real (wp),      intent (out)    :: pertb
         real (wp),      intent (in out) :: usol(:,:)
         real (wp),      intent (in)     :: zn(:)
         real (wp),      intent (in)     :: zm(:)
+        real (wp),      intent (out)    :: pertrb
         !--------------------------------------------------------------------------------
         ! Dictionary: local variables
         !--------------------------------------------------------------------------------
-        integer (ip) :: istr, ifnl, jstr, jfnl, i, ii, j, jj
-        real (wp)    :: ute, ete, pertrb
+        integer (ip) :: istr, ifnl, jstr, jfnl, i, ii
+        real (wp)    :: ute, ete
         !-----------------------------------------------
 
         ! Associate various quantities
@@ -293,7 +291,7 @@ contains
         !--------------------------------------------------------------------------------
         ! Dictionary: local variables
         !--------------------------------------------------------------------------------
-        integer (ip) :: nm2, j, nm1, k
+        integer (ip) :: nm2, j, nm1
         real (wp)    :: bn, v, den, an
         !--------------------------------------------------------------------------------
 
@@ -357,7 +355,7 @@ contains
     end subroutine septri
 
 
-    pure subroutine sepdx(this, u, idmn, i, j, uxxx, uxxxx)
+    pure subroutine sepdx(this, u, i, j, uxxx, uxxxx)
         !
         !     this program computes second order finite difference
         !     approximations to the third and fourth x
@@ -368,7 +366,6 @@ contains
         ! Dictionary: local variables
         !--------------------------------------------------------------------------------
         class (SepAux), intent (in out) :: this
-        integer (ip),   intent (in)     :: idmn
         integer (ip),   intent (in)     :: i
         integer (ip),   intent (in)     :: j
         real (wp),      intent (out)    :: uxxx

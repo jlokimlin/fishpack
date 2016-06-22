@@ -46,7 +46,7 @@ module type_TridiagonalData
         procedure, non_overridable, public  :: destroy_tridiagonal_data
         procedure, nopass,          private :: get_x_boundary_condition_type
         procedure, nopass,          private :: get_y_boundary_condition_type
-        final                               :: finalize_tridiagonal_data
+        !final                               :: finalize_tridiagonal_data
         !---------------------------------------------------------------------------------
     end type TridiagonalData
 
@@ -116,7 +116,7 @@ contains
     end subroutine create_tridiagonal_data
 
 
-    subroutine destroy_tridiagonal_data( this )
+    subroutine destroy_tridiagonal_data(this)
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------
@@ -268,7 +268,7 @@ contains
     end subroutine get_x_boundary_condition_type
 
 
-    subroutine finalize_tridiagonal_data( this )
+    subroutine finalize_tridiagonal_data(this)
         !
         ! Purpose:
         !< Finalize object

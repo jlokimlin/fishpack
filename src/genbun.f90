@@ -756,8 +756,8 @@ contains
 
                         select case (irreg)
                             case (2)
-                                call genbun_aux%cosgen(kr, jstsav, 0.0, fi, tcos)
-                                call genbun_aux%cosgen(lr, jstsav, 0.0, fi, tcos(kr+1))
+                                call genbun_aux%cosgen(kr, jstsav, 0.0_wp, fi, tcos)
+                                call genbun_aux%cosgen(lr, jstsav, 0.0_wp, fi, tcos(kr+1))
                                 ideg = kr
                                 kr = kr + jst
                             case default
@@ -886,24 +886,22 @@ contains
                 ideg = jst
         end select
 
-156 continue
+        call genbun_aux%trix(ideg, lr, m, ba, bb, bc, b, tcos, d, w)
+        jm1 = j - jsh
+        jp1 = j + jsh
 
-    call genbun_aux%trix(ideg, lr, m, ba, bb, bc, b, tcos, d, w)
-    jm1 = j - jsh
-    jp1 = j + jsh
-
-    select case (irreg)
-        case (2)
-            select case (noddpr)
-                case (2)
-                    q(:m, j) = q(:m, j) - q(:m, jm1) + b(:m)
-                case default
-                    q(:m, j) = p(ipp+1:m+ipp) + b(:m)
-                    ipp = ipp - m
-            end select
-        case default
-            q(:m, j) = 0.5*(q(:m, j)-q(:m, jm1)-q(:m, jp1)) + b(:m)
-    end select
+        select case (irreg)
+            case (2)
+                select case (noddpr)
+                    case (2)
+                        q(:m, j) = q(:m, j) - q(:m, jm1) + b(:m)
+                    case default
+                        q(:m, j) = p(ipp+1:m+ipp) + b(:m)
+                        ipp = ipp - m
+                end select
+            case default
+                q(:m, j) = 0.5*(q(:m, j)-q(:m, jm1)-q(:m, jp1)) + b(:m)
+        end select
 
 164 continue
 
@@ -1437,17 +1435,17 @@ goto 104
 
     k3 = k1 + k2 + lr
 
-    call genbun_aux%cosgen(jr, 1, 0.5, 0.0, tcos(k3+1))
+    call genbun_aux%cosgen(jr, 1, 0.5_wp, 0.0_wp, tcos(k3+1))
 
     k4 = k3 + jr + 1
 
-    call genbun_aux%cosgen(kr, 1, 0.5, fden, tcos(k4))
+    call genbun_aux%cosgen(kr, 1, 0.5_wp, fden, tcos(k4))
     call genbun_aux%merger(tcos, k3, jr, k3 + jr, kr, k1)
 
     if (lr /= 0) then
-        call genbun_aux%cosgen(lr, 1, 0.5, fden, tcos(k4))
+        call genbun_aux%cosgen(lr, 1, 0.5_wp, fden, tcos(k4))
         call genbun_aux%merger(tcos, k3, jr, k3 + jr, lr, k3 - lr)
-        call genbun_aux%cosgen(kr, 1, 0.5, fden, tcos(k4))
+        call genbun_aux%cosgen(kr, 1, 0.5_wp, fden, tcos(k4))
     end if
 
     k3 = kr
@@ -1505,18 +1503,18 @@ k1 = kr + jr - 1
 tcos(k1+1) = -2.
 k4 = k1 + 3 - istag
 
-call genbun_aux%cosgen(kr + istag - 2, 1, 0.0, fnum, tcos(k4))
+call genbun_aux%cosgen(kr + istag - 2, 1, 0.0_wp, fnum, tcos(k4))
 
 k4 = k1 + kr + 1
 
-call genbun_aux%cosgen(jr - 1, 1, 0.0, 1.0, tcos(k4))
+call genbun_aux%cosgen(jr - 1, 1, 0.0_wp, 1.0_wp, tcos(k4))
 call genbun_aux%merger(tcos, k1, kr, k1 + kr, jr - 1, 0)
-call genbun_aux%cosgen(kr, 1, 0.5, fden, tcos(k1+1))
+call genbun_aux%cosgen(kr, 1, 0.5_wp, fden, tcos(k1+1))
 
 k2 = kr
 k4 = k1 + k2 + 1
 
-call genbun_aux%cosgen(lr, 1, 0.5, fden, tcos(k4))
+call genbun_aux%cosgen(lr, 1, 0.5_wp, fden, tcos(k4))
 
 k3 = lr
 k4 = 0
@@ -1555,8 +1553,8 @@ goto 194
             q(:mr, nlast) = q(:mr, nlast) - q(:mr, jm2)
         end if
     end if
-    call genbun_aux%cosgen(kr, 1, 0.5, fden, tcos)
-    call genbun_aux%cosgen(lr, 1, 0.5, fden, tcos(kr+1))
+    call genbun_aux%cosgen(kr, 1, 0.5_wp, fden, tcos)
+    call genbun_aux%cosgen(lr, 1, 0.5_wp, fden, tcos(kr+1))
 
     if (lr == 0) then
         b(:mr) = fistag*b(:mr)

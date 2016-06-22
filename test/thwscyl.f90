@@ -51,11 +51,11 @@ program thwscyl
     !-----------------------------------------------
     type (FishpackSolver)     :: solver
     integer (ip) :: idimf, m, mbdcnd, n, nbdcnd, mp1, np1, i, j, ierror
-    real , dimension(75, 105) :: f
-    real , dimension(101) :: bda, bdb
-    real , dimension(51) :: bdc, bdd, r
-    real , dimension(101) :: z
-    real :: a, b, c, d, elmbda, pertrb, x, discretization_error
+    real (wp), dimension(75, 105) :: f
+    real (wp), dimension(101) :: bda, bdb
+    real (wp), dimension(51) :: bdc, bdd, r
+    real (wp), dimension(101) :: z
+    real (wp) :: a, b, c, d, elmbda, pertrb, x, discretization_error
     !-----------------------------------------------
     !
     !     from dimension statement we get value of idimf.

@@ -537,7 +537,7 @@ contains
         integer (ip), intent (in)     :: n
         integer (ip), intent (in)     :: nbdcnd
         integer (ip), intent (in)     :: idimf
-        integer (ip), intent (in)     :: ierror
+        integer (ip), intent (out)    :: ierror
         real (wp),    intent (in)     :: ts
         real (wp),    intent (in)     :: tf
         real (wp),    intent (in)     :: ps
@@ -554,34 +554,16 @@ contains
 
         call hwsss1(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
             bdps, bdpf, elmbda, f, idimf, pertrb, w, w(m+2), w(2*m+3), &
-            w(3*m+4), w(4*m+5), w(5*m+6), w(6*m+7))
+            w(3*m+4), w(4*m+5), w(5*m+6), w(6*m+7), ierror)
 
 
     end subroutine hwssspp
 
 
-    pure function get_workspace_indices(m) result (return_value)
-        !-----------------------------------------------
-        ! Dictionary: calling arguments
-        !-----------------------------------------------
-        integer (ip), intent (in) :: m
-        integer (ip)              :: return_value(6)
-        !-----------------------------------------------
-        integer (ip) :: i
-        !-----------------------------------------------
-
-        do i = 1, 6
-            return_value(i) = i*m+i+1
-        end do
-
-
-    end function get_workspace_indices
-
-
 
     subroutine hwsss1(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
         bdps, bdpf, elmbda, f, idimf, pertrb, am, bm, cm, sn, ss, &
-        sint, d)
+        sint, d, error_flag)
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
@@ -608,11 +590,12 @@ contains
         real (wp),    intent (out)    :: ss(*)
         real (wp),    intent (out)    :: sint(*)
         real (wp),    intent (out)    :: d(*)
+        integer (ip), intent (out)    :: error_flag
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
         integer (ip) :: mp1, np1, i, inp, isp, mbr, its, itf, itsp, itfm, munk
-        integer (ip) :: iid, ii, nbr, jps, jpf, jpsp, jpfm, nunk, ising, local_error_flag
+        integer (ip) :: iid, ii, nbr, jps, jpf, jpsp, jpfm, nunk, ising
         real (wp)    :: fn, fm, dth, half_dth, two_dth, dphi, two_dphi
         real (wp)    :: dphi2, edp2, dth2, cp, wp_rename, fim1, theta, t1, at, ct, wts, wtf
         real (wp)    :: wps, wpf, fjj, cf, summation, sum1, hne, yhld, sum2, dfn, dnn, dsn
@@ -869,9 +852,9 @@ contains
         !==> Invoke genbunn solver
         !
         call genbunn(nbdcnd, nunk, 1, munk, am(its), bm(its), cm(its), &
-            idimf, f(its,jps), local_error_flag, d)
+            idimf, f(its,jps), error_flag, d)
 
-        if (local_error_flag /= 0) then
+        if (error_flag /= 0) then
             error stop 'fishpack library: genbunn call failed in hwsss1'
         end if
 

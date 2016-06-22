@@ -398,7 +398,7 @@ contains
                             w, w(iwb2), w(iwb3), w(iww1), w(iww2), w(iww3), &
                             w(iwd), w(iwtcos), w(iwp))
 
-                        ipstor = w(iww1)
+                        ipstor = int(w(iww1), kind=ip)
                         irev = 2
                         select case (mp)
                             case (1)
@@ -476,10 +476,6 @@ contains
         real (wp),    intent (in)  :: a(m)
         real (wp),    intent (in)  :: b(m)
         real (wp),    intent (in)  :: c(m)
-        !--------------------------------------------------------------------------------
-        ! Dictionary: local variables
-        !--------------------------------------------------------------------------------
-        integer (ip) :: i !! Counter
         !--------------------------------------------------------------------------------
 
         if (3 > m) then

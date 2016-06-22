@@ -152,7 +152,7 @@ program tsepx4
     do j = 1, ny
         y = c + real(j - 1, kind=wp)*dly
         do i = 1, nx
-            x = a + real(i - 1)*dlx
+            x = a + real(i - 1, kind=wp)*dlx
             err = max(err, abs((usol(i, j)-ue(x, y))/ue(x, y)))
         end do
     end do
@@ -180,8 +180,8 @@ contains
         !--------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------
-        real, intent (in) :: s
-        real, intent (in) :: t
+        real (wp), intent (in) :: s
+        real (wp), intent (in) :: t
         real (wp)          :: return_value
 
         return_value =(s*t)**3 + 1.0_wp
@@ -193,8 +193,8 @@ contains
         !--------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------
-        real, intent (in) :: s
-        real, intent (in) :: t
+        real (wp), intent (in) :: s
+        real (wp), intent (in) :: t
         real (wp)          :: return_value
 
         return_value = 3.0_wp *(s**2)*(t**3)
@@ -206,8 +206,8 @@ contains
         !--------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------
-        real, intent (in) :: s
-        real, intent (in) :: t
+        real (wp), intent (in) :: s
+        real (wp), intent (in) :: t
         real (wp)          :: return_value
 
         return_value = 6.0_wp * s *(t**3)
@@ -219,8 +219,8 @@ contains
         !--------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------
-        real, intent (in) :: s
-        real, intent (in) :: t
+        real (wp), intent (in) :: s
+        real (wp), intent (in) :: t
         real (wp) :: return_value
         !--------------------------------------------------------------
 
@@ -233,8 +233,8 @@ contains
         !--------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------
-        real, intent (in) :: s
-        real, intent (in) :: t
+        real (wp), intent (in) :: s
+        real (wp), intent (in) :: t
         real (wp)         :: return_value
         !--------------------------------------------------------------
 

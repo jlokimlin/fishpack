@@ -50,7 +50,7 @@ program tpois3d
     ! Dictionary
     !-----------------------------------------------
     type (FishpackSolver)     :: solver
-    integer :: ldimf, mdimf, lperod, l, mperod, m, nperod, n, i, j, k, ierror
+    integer (ip) :: ldimf, mdimf, lperod, l, mperod, m, nperod, n, i, j, k, ierror
     real (wp), dimension(32, 33, 10) :: f
     real (wp), dimension(10) :: a, b, c
     real (wp), dimension(30) :: x, y

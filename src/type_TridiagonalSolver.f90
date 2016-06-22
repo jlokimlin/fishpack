@@ -31,14 +31,6 @@ module type_TridiagonalSolver
     private
     public :: TridiagonalSolver
 
-    !---------------------------------------------------------------------------------
-    ! Dictionary: global variables confined to the module
-    !---------------------------------------------------------------------------------
-    character (len=250)     :: error_message            !! Probably long enough
-    integer (ip)            :: allocate_status          !! To check allocation status
-    integer (ip)            :: deallocate_status        !! To check deallocation status
-    !---------------------------------------------------------------------------------
-
     ! Declare derived data type
     type, extends( TridiagonalData ), public :: TridiagonalSolver
        !---------------------------------------------------------------------------------
@@ -50,7 +42,7 @@ module type_TridiagonalSolver
         !---------------------------------------------------------------------------------
         procedure, public :: solve_2d_real_linear_system_staggered
         procedure, public :: solve_2d_real_linear_system_centered
-        final             :: finalize_tridiagonal_solver
+        !final             :: finalize_tridiagonal_solver
         !---------------------------------------------------------------------------------
     end type TridiagonalSolver
 
@@ -58,7 +50,7 @@ module type_TridiagonalSolver
 contains
 
 
-    subroutine finalize_tridiagonal_solver( this )
+    subroutine finalize_tridiagonal_solver(this)
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------

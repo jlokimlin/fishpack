@@ -45,6 +45,9 @@ module type_FishpackWorkspace
         wp => REAL64, &
         ip => INT32
 
+    ! Explicit typing only
+    implicit none
+
     ! Everything is private unless stated otherwise
     private
     public :: FishpackWorkspace
@@ -67,7 +70,7 @@ module type_FishpackWorkspace
         procedure,         public :: destroy => destroy_fishpack_workspace
         procedure, nopass, public :: get_block_tridiagonal_workpace_dimensions
         procedure, nopass, public :: get_genbun_workspace_dimensions
-        final                     :: finalize_fishpack_workspace
+        !final                     :: finalize_fishpack_workspace
         !---------------------------------------------------------------------------------
     end type FishpackWorkspace
 

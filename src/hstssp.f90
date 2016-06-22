@@ -455,7 +455,7 @@ contains
         ! Dictionary: local variables
         !-----------------------------------------------
         integer (ip)         :: irwk, icwk
-        real (wp), parameter :: pi = acos(-1.0_wp)
+        real (wp), parameter :: PI = acos(-1.0_wp)
         type (Fish)          :: workspace
         !-----------------------------------------------
 
@@ -463,7 +463,7 @@ contains
         ierror = 0
 
         ! Check input arguments
-        if (a<0. .or. b>pi) ierror = 1
+        if (a<0. .or. b>PI) ierror = 1
         if (a >= b) ierror = 2
         if (mbdcnd<=0 .or. mbdcnd>9) ierror = 3
         if (c >= d) ierror = 4
@@ -471,8 +471,8 @@ contains
         if (nbdcnd<0 .or. nbdcnd>=5) ierror = 6
         if(a>0..and.(mbdcnd==5.or.mbdcnd==6.or.mbdcnd==9))ierror=7
         if(a==0..and.(mbdcnd==3.or.mbdcnd==4.or.mbdcnd==8))ierror=8
-        if (b<pi .and. mbdcnd>=7) ierror = 9
-        if(b==pi.and.(mbdcnd==2.or.mbdcnd==3.or.mbdcnd==6))ierror=10
+        if (b<PI .and. mbdcnd>=7) ierror = 9
+        if(b==PI.and.(mbdcnd==2.or.mbdcnd==3.or.mbdcnd==6))ierror=10
         if (mbdcnd>=5 .and. (nbdcnd==1 .or. nbdcnd==2 .or. nbdcnd==4)) &
             ierror = 11
         if (idimf < m) ierror = 12
@@ -535,8 +535,9 @@ contains
         ! Dictionary: local variables
         !-----------------------------------------------
         integer (ip) :: np, isw, jsw, mb, iwb, iwc, iwr, iws
-        integer (ip) :: i, j, mm1, k, lp, local_error_flag, i1
-        real (wp)    :: dr, dr2, dth, dth2, pi, a1, a2, a3
+        integer (ip) :: i, j, mm1, lp, local_error_flag, i1
+        real (wp)    :: dr, dr2, dth, dth2, a1, a2, a3
+        real (wp), parameter :: PI = acos(-1.0_wp)
         !-----------------------------------------------
 
         dr = (b - a)/m
@@ -552,7 +553,7 @@ contains
         if (elmbda == 0.0_wp) then
             case_construct: select case (mbdcnd)
                 case (1, 5, 7)
-                    if (a /= 0.0_wp .or. b /= pi) exit case_construct
+                    if (a /= 0.0_wp .or. b /= PI) exit case_construct
                     mb = 9
                     jsw = 2
                 case (2)
@@ -560,7 +561,7 @@ contains
                     mb = 6
                     jsw = 2
                 case (4)
-                    if (b /= pi) exit case_construct
+                    if (b /= PI) exit case_construct
                     mb = 8
                     jsw = 2
             end select case_construct
@@ -727,6 +728,8 @@ contains
         end if
 
     end subroutine hstsspp
+
+
 
 end module module_hstssp
 !

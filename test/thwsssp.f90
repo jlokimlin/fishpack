@@ -52,12 +52,12 @@ program thwsssp
     ! Dictionary
     !-----------------------------------------------
     type (FishpackSolver)     :: solver
-    integer :: m, mbdcnd, n, nbdcnd, idimf, mp1, i, np1, j, ierror
+    integer (ip) :: m, mbdcnd, n, nbdcnd, idimf, mp1, i, np1, j, ierror
     real (wp), dimension(19, 73) :: f
     real (wp), dimension(73) :: bdtf, bdts, bdps, bdpf
     real (wp), dimension(19) :: sint
     real (wp), dimension(73) :: sinp
-    real :: pi, ts, tf, ps, pf, elmbda, dtheta, dphi, pertrb, discretization_error, z
+    real (wp) :: pi, ts, tf, ps, pf, elmbda, dtheta, dphi, pertrb, discretization_error, z
     !-----------------------------------------------
 
     pi = acos( -1.0 )

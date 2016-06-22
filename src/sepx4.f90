@@ -513,7 +513,7 @@ contains
         !
         !==> set real and complex workspace sizes
         !
-        call compute_workspace_dimensions(n, m, l, k, length, irwk, icwk)
+        call compute_workspace_dimensions(n, l, k, length, irwk, icwk)
         !
         !==> Allocate memory
         !
@@ -537,7 +537,7 @@ contains
                 rew(i(1):), rew(i(2):), rew(i(3):),  rew(i(4):), &
                 rew(i(5):), rew(i(6):), rew(i(7):i(7)), rew(i(8):i(8)), &
                 rew(i(9):i(9)), rew(i(10):), rew(i(11):), rew(i(12):), &
-                grhs, usol, idmn, rew(i(13):), pertrb, ierror)
+                grhs, usol, idmn, pertrb, ierror)
 
         end associate
 
@@ -550,11 +550,13 @@ contains
 
 
 
-    pure subroutine compute_workspace_dimensions(n, m, l, k, length, irwk, icwk)
+    pure subroutine compute_workspace_dimensions(n, l, k, length, irwk, icwk)
         !--------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------
-        integer (ip), intent (in)  :: n, m, l, k
+        integer (ip), intent (in)  :: n
+        integer (ip), intent (in)  :: l
+        integer (ip), intent (in)  :: k
         integer (ip), intent (out) :: length
         integer (ip), intent (out) :: irwk
         integer (ip), intent (out) :: icwk
@@ -605,7 +607,7 @@ contains
 
     subroutine s4elip(sep_aux, iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta, &
         c, d, n, nbdcnd, bdc, bdd, cofx, an, bn, cn, dn, un, zn, am, bm, &
-        cm, dm, um, zm, grhs, usol, idmn, w, pertrb, ierror)
+        cm, dm, um, zm, grhs, usol, idmn, pertrb, ierror)
         !
         ! Purpose:
         !
@@ -650,12 +652,11 @@ contains
         real (wp),      intent (in out) :: zm(:)
         real (wp),      intent (in out) :: grhs(:,:)
         real (wp),      intent (in out) :: usol(:,:)
-        real (wp),      intent (in out) :: w(:)
         procedure (get_coefficients)    :: cofx
         !--------------------------------------------------------------
         ! Dictionary: local variables
         !--------------------------------------------------------------
-        integer (ip) :: i, j, i1, mp, np, local_error_flag
+        integer (ip) :: i, i1, mp, np, local_error_flag
         real (wp)    :: xi, ai, bi, ci, axi, bxi, cxi
         real (wp)    :: dyj, eyj, fyj, ax1, cxm
         real (wp)    :: dy1, fyn, gama, xnu, prtrb
@@ -970,7 +971,7 @@ contains
             !     adjust right hand side if necessary
             !
             if (singular) then
-                call sep_aux%seport(usol, idmn, zn, zm, pertrb)
+                call sep_aux%seport(usol, zn, zm, pertrb)
             end if
 
             !
@@ -1000,7 +1001,7 @@ contains
             !     minimize solution with respect to weighted least squares
             !     norm if operator is singular
             !
-            if (singular) call sep_aux%sepmin(usol, idmn, zn, zm, prtrb)
+            if (singular) call sep_aux%sepmin(usol, zn, zm, prtrb)
             !
             !     return if deferred corrections and a fourth order solution are
             !     not flagged
@@ -1011,7 +1012,7 @@ contains
             !
             call d4fer(sep_aux, cofx, idmn, usol, grhs)
 
-            if (singular) call sep_aux%seport(usol, idmn, zn, zm, pertrb)
+            if (singular) call sep_aux%seport(usol, zn, zm, pertrb)
             !
             !==> compute solution
             !
@@ -1041,7 +1042,7 @@ contains
             !     minimize solution with respect to weighted least squares
             !     norm if operator is singular
             !
-            if (singular) call sep_aux%sepmin(usol, idmn, zn, zm, prtrb)
+            if (singular) call sep_aux%sepmin(usol, zn, zm, prtrb)
 
         end associate
 
@@ -1269,7 +1270,7 @@ contains
                     !
                     !     compute partial derivative approximations at(xi, yj)
                     !
-                    call sep_aux%sepdx(usol, idmn, i, j, uxxx, uxxxx)
+                    call sep_aux%sepdx(usol, i, j, uxxx, uxxxx)
                     call sep_aux%sepdy(usol, idmn, i, j, uyyy, uyyyy)
                     tx = ai*(uxxxx/12) + bi*(uxxx/6)
                     ty = uyyyy/12

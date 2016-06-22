@@ -49,7 +49,7 @@ module type_Grid
         procedure,         public  :: get_discretization_mesh
         procedure,         public  :: get_centered_grids
         procedure,         public  :: get_staggered_grids
-        final                      :: finalize_grid
+        !final                      :: finalize_grid
         !---------------------------------------------------------------------------------
     end type Grid
 
@@ -94,7 +94,7 @@ contains
     end subroutine create_grid
 
 
-    subroutine destroy_grid( this )
+    subroutine destroy_grid(this)
         !
         ! Purpose:
         !
@@ -292,7 +292,7 @@ contains
     end subroutine get_staggered_grids
 
 
-    subroutine finalize_grid( this )
+    subroutine finalize_grid(this)
         !--------------------------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------------------------

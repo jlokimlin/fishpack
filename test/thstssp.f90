@@ -50,12 +50,12 @@ program thstssp
     ! Dictionary: local variables
     !-----------------------------------------------
     type (FishpackSolver)    :: solver
-    integer :: m, mbdcnd, n, nbdcnd, idimf, i, j, ierror
+    integer (ip) :: m, mbdcnd, n, nbdcnd, idimf, i, j, ierror
     real (wp), dimension(18, 72) :: f
     real (wp), dimension(72) :: bda, bdb, bdc, bdd
     real (wp), dimension(18) :: sint
     real (wp), dimension(72) :: sinp
-    real::pi, a, b, c, d, elmbda, dtheta, dphi, pertrb, discretization_error, z
+    real (wp) ::pi, a, b, c, d, elmbda, dtheta, dphi, pertrb, discretization_error, z
     !-----------------------------------------------
     !
     !     the value of idimf is the first dimension of f.

@@ -1047,7 +1047,7 @@ contains
                 !     adjust right hand side if necessary
                 !
                 if (singular .eqv. .true.) then
-                    call sep_aux%seport(usol, idmn, zn, zm, pertrb)
+                    call sep_aux%seport(usol, zn, zm, pertrb)
                 end if
                 !
                 !     compute solution
@@ -1073,7 +1073,7 @@ contains
                 !     norm if operator is singular
                 !
                 if (singular .eqv. .true.) then
-                    call sep_aux%sepmin(usol, idmn, zn, zm, prtrb)
+                    call sep_aux%sepmin(usol, zn, zm, prtrb)
                 end if
                 !
                 !     return if deferred corrections and a fourth order solution are
@@ -1088,7 +1088,7 @@ contains
                 call defer(sep_aux, cofx, cofy, idmn, usol, grhs)
 
                 if (singular .eqv. .true.) then
-                    call sep_aux%seport(usol, idmn, zn, zm, pertrb)
+                    call sep_aux%seport(usol, zn, zm, pertrb)
                 end if
                 !
                 !     compute fourth order solution
@@ -1113,7 +1113,7 @@ contains
                 !     norm if operator is singular
                 !
                 if (singular .eqv. .true.) then
-                    call sep_aux%sepmin(usol, idmn, zn, zm, prtrb)
+                    call sep_aux%sepmin(usol, zn, zm, prtrb)
                 end if
 
             end associate
@@ -1411,8 +1411,8 @@ contains
                         !
                         !     compute partial derivative approximations at (xi, yj)
                         !
-                        call sep_aux%sepdx (usol, idmn, i, j, uxxx, uxxxx)
-                        call sep_aux%sepdy (usol, idmn, i, j, uyyy, uyyyy)
+                        call sep_aux%sepdx(usol, i, j, uxxx, uxxxx)
+                        call sep_aux%sepdy(usol, idmn, i, j, uyyy, uyyyy)
                         tx = ai*uxxxx/12 + bi*uxxx/6
                         ty = dj*uyyyy/12 + ej*uyyy/6
                         !
