@@ -534,10 +534,10 @@ contains
 
             call s4elip(sep_aux, iorder, a, b, m, mbdcnd, &
                 bda, alpha, bdb, beta, c, d, n,  nbdcnd, bdc, bdd, cofx, &
-                rew(i(1)), rew(i(2)), rew(i(3)),  rew(i(4)), &
-                rew(i(5)), rew(i(6)), rew(i(7):i(7)), rew(i(8):i(8)), &
-                rew(i(9):i(9)), rew(i(10)), rew(i(11)), rew(i(12)), &
-                grhs, usol, idmn, rew(i(13)), pertrb, ierror)
+                rew(i(1):), rew(i(2):), rew(i(3):),  rew(i(4):), &
+                rew(i(5):), rew(i(6):), rew(i(7):i(7)), rew(i(8):i(8)), &
+                rew(i(9):i(9)), rew(i(10):), rew(i(11):), rew(i(12):), &
+                grhs, usol, idmn, rew(i(13):), pertrb, ierror)
 
         end associate
 
@@ -636,21 +636,21 @@ contains
         real (wp),      intent (in)     :: bdb(:)
         real (wp),      intent (in)     :: bdc(:)
         real (wp),      intent (in)     :: bdd(:)
-        real (wp),      intent (in out) :: an(*)
-        real (wp),      intent (in out) :: bn(*)
-        real (wp),      intent (in out) :: cn(*)
-        real (wp),      intent (in out) :: dn(*)
-        real (wp),      intent (in out) :: un(*)
-        real (wp),      intent (in out) :: zn(*)
+        real (wp),      intent (in out) :: an(:)
+        real (wp),      intent (in out) :: bn(:)
+        real (wp),      intent (in out) :: cn(:)
+        real (wp),      intent (in out) :: dn(:)
+        real (wp),      intent (in out) :: un(:)
+        real (wp),      intent (in out) :: zn(:)
         real (wp),      intent (in out) :: am(:)
         real (wp),      intent (in out) :: bm(:)
         real (wp),      intent (in out) :: cm(:)
-        real (wp),      intent (in out) :: dm(*)
-        real (wp),      intent (in out) :: um(*)
-        real (wp),      intent (in out) :: zm(*)
-        real (wp),      intent (in out) :: grhs(idmn,*)
-        real (wp),      intent (in out) :: usol(idmn,*)
-        real (wp),      intent (in out) :: w(*)
+        real (wp),      intent (in out) :: dm(:)
+        real (wp),      intent (in out) :: um(:)
+        real (wp),      intent (in out) :: zm(:)
+        real (wp),      intent (in out) :: grhs(:,:)
+        real (wp),      intent (in out) :: usol(:,:)
+        real (wp),      intent (in out) :: w(:)
         procedure (get_coefficients)    :: cofx
         !--------------------------------------------------------------
         ! Dictionary: local variables
@@ -979,7 +979,7 @@ contains
             !     save adjusted right hand side in grhs
             grhs(is:ms,js:ns) = usol(is:ms,js:ns)
 
-            call genbun(np, nit, mp, mit, am, bm, cm, idmn, usol(is,js), local_error_flag)
+            call genbun(np, nit, mp, mit, am, bm, cm, idmn, usol(is:,js:), local_error_flag)
             !
             !==>  Check if error detected in pois
             !     this can only correspond to ierror=12
@@ -1018,7 +1018,7 @@ contains
             !     save adjusted right hand side in grhs
             grhs(is:ms,js:ns) = usol(is:ms,js:ns)
 
-            call genbun(np, nit, mp, mit, am, bm, cm, idmn, usol(is,js), local_error_flag)
+            call genbun(np, nit, mp, mit, am, bm, cm, idmn, usol(is:,js:), local_error_flag)
 
             !
             !==> check if error detected in pois
@@ -1225,8 +1225,8 @@ contains
         !--------------------------------------------------------------
         class (SepAux), intent (in out) :: sep_aux
         integer (ip),   intent (in)     :: idmn
-        real (wp),      intent (in out) :: usol(idmn, *)
-        real (wp),      intent (in out) :: grhs(idmn, *)
+        real (wp),      intent (in out) :: usol(:,:)
+        real (wp),      intent (in out) :: grhs(:,:)
         procedure (get_coefficients)    :: cofx
         !--------------------------------------------------------------
         ! Dictionary: local variables

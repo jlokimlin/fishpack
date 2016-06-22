@@ -399,8 +399,8 @@ contains
         real (wp),    intent (in out) :: bm(m)
         real (wp),    intent (in out) :: cm(m)
         real (wp),    intent (in out) :: y(idimy,n)
-        real (wp),    intent (in out) :: w(*)
-        complex (wp), intent (in out) :: wc(*)
+        real (wp),    intent (in out) :: w(:)
+        complex (wp), intent (in out) :: wc(:)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
@@ -464,7 +464,7 @@ contains
                 iww = iwd + m
                 iwu = iww + m
 
-                call compb(nl, ierror, an, bn, cn, w, wc, w(iwah), w(iwbh))
+                call compb(nl, ierror, an, bn, cn, w, wc, w(iwah:), w(iwbh:))
 
             case default
 
@@ -474,12 +474,12 @@ contains
                 select case (mp)
                     case (0)
                         call blktr1(nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, &
-                            w(iw1), w(iw2), w(iw3), w(iwd), w(iww), w(iwu), wc(iw1), &
-                            wc(iw2), wc(iw3), prodp, cprodp)
+                            w(iw1:), w(iw2:), w(iw3:), w(iwd:), w(iww:), w(iwu:), wc(iw1:), &
+                            wc(iw2:), wc(iw3:), prodp, cprodp)
                     case default
                         call blktr1(nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, &
-                            w(iw1), w(iw2), w(iw3), w(iwd), w(iww), w(iwu), wc(iw1), &
-                            wc(iw2), wc(iw3), prod, cprod)
+                            w(iw1:), w(iw2:), w(iw3:), w(iwd:), w(iww:), w(iwu:), wc(iw1:), &
+                            wc(iw2:), wc(iw3:), prod, cprod)
                 end select
         end select
 

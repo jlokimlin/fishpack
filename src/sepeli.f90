@@ -554,8 +554,8 @@ contains
         real (wp), contiguous,     intent (in)     :: bdb(:)
         real (wp), contiguous,     intent (in)     :: bdc(:)
         real (wp), contiguous,     intent (in)     :: bdd(:)
-        real (wp)                                  :: grhs(idmn, *)
-        real (wp)                                  :: usol(idmn, *)
+        real (wp)                                  :: grhs(:,:)
+        real (wp)                                  :: usol(:,:)
         class (FishpackWorkspace)                  :: workspace
         procedure (get_coefficients)               :: cofx
         procedure (get_coefficients)               :: cofy
@@ -619,9 +619,9 @@ contains
             call spelip(sep_aux, intl, iorder, a, b, m, mbdcnd, &
                 bda, alpha, bdb, beta, c, d, n, &
                 nbdcnd, bdc, gama, bdd, xnu, cofx, cofy, &
-                rew(i(1)), rew(i(2)), rew(i(3)), rew(i(4)), &
-                rew(i(5)), rew(i(6)), rew(i(7)), rew(i(8)), &
-                rew(i(9)), rew(i(10)), rew(i(11)), rew(i(12)), &
+                rew(i(1):), rew(i(2):), rew(i(3):), rew(i(4):), &
+                rew(i(5):), rew(i(6):), rew(i(7):), rew(i(8):), &
+                rew(i(9):), rew(i(10):), rew(i(11):), rew(i(12):), &
                 grhs, usol, idmn, rew, cxw, &
                 pertrb, ierror)
 
@@ -690,26 +690,26 @@ contains
             real (wp),      intent (in)     :: gama
             real (wp),      intent (in)     :: xnu
             real (wp),      intent (out)    :: pertrb
-            real (wp),      intent (in)     :: bda(*)
-            real (wp),      intent (in)     :: bdb(*)
-            real (wp),      intent (in)     :: bdc(*)
-            real (wp),      intent (in)     :: bdd(*)
-            real (wp),      intent (in out) :: an(*)
-            real (wp),      intent (in out) :: bn(*)
-            real (wp),      intent (in out) :: cn(*)
-            real (wp),      intent (in out) :: dn(*)
-            real (wp),      intent (in out) :: un(*)
-            real (wp),      intent (in out) :: zn(*)
-            real (wp),      intent (in out) :: am(*)
-            real (wp),      intent (in out) :: bm(*)
-            real (wp),      intent (in out) :: cm(*)
-            real (wp),      intent (in out) :: dm(*)
-            real (wp),      intent (in out) :: um(*)
-            real (wp),      intent (in out) :: zm(*)
-            real (wp),      intent (in out) :: grhs(idmn, *)
-            real (wp),      intent (in out) :: usol(idmn, *)
-            real (wp),      intent (in out) :: w(*)
-            complex (wp)                    :: wc(*)
+            real (wp),      intent (in)     :: bda(:)
+            real (wp),      intent (in)     :: bdb(:)
+            real (wp),      intent (in)     :: bdc(:)
+            real (wp),      intent (in)     :: bdd(:)
+            real (wp),      intent (in out) :: an(:)
+            real (wp),      intent (in out) :: bn(:)
+            real (wp),      intent (in out) :: cn(:)
+            real (wp),      intent (in out) :: dn(:)
+            real (wp),      intent (in out) :: un(:)
+            real (wp),      intent (in out) :: zn(:)
+            real (wp),      intent (in out) :: am(:)
+            real (wp),      intent (in out) :: bm(:)
+            real (wp),      intent (in out) :: cm(:)
+            real (wp),      intent (in out) :: dm(:)
+            real (wp),      intent (in out) :: um(:)
+            real (wp),      intent (in out) :: zm(:)
+            real (wp),      intent (in out) :: grhs(:,:)
+            real (wp),      intent (in out) :: usol(:,:)
+            real (wp),      intent (in out) :: w(:)
+            complex (wp)                    :: wc(:)
             procedure (get_coefficients)    :: cofx
             procedure (get_coefficients)    :: cofy
             !--------------------------------------------------------------------------------
@@ -1036,7 +1036,7 @@ contains
                 !
                 if (intl == 0) then
                     call blktrii(intl, np, nit, an, bn, cn, mp, mit, am, bm, cm, &
-                        idmn, usol(is, js), ierror, w, wc)
+                        idmn, usol(is:, js:), ierror, w, wc)
 
                     ! Check error flag
                     if (ierror /= 0) then
@@ -1053,7 +1053,7 @@ contains
                 !     compute solution
                 !
                 call blktrii(i1, np, nit, an, bn, cn, mp, mit, am, bm, cm, idmn, &
-                    usol(is, js), ierror, w, wc)
+                    usol(is:, js:), ierror, w, wc)
 
                 if (ierror /= 0) then
                     return
@@ -1094,7 +1094,7 @@ contains
                 !     compute fourth order solution
                 !
                 call blktrii(i1, np, nit, an, bn, cn, mp, mit, am, bm, cm, idmn, &
-                    usol(is, js), ierror, w, wc)
+                    usol(is:, js:), ierror, w, wc)
 
                 if (ierror /= 0) then
                     return
@@ -1362,11 +1362,11 @@ contains
             ! Dictionary: calling arguments
             !--------------------------------------------------------------------------------
             class (SepAux), intent (in out) :: sep_aux
-            integer (ip), intent (in)     :: idmn
-            real (wp),    intent (in out) :: usol(idmn, *)
-            real (wp),    intent (in out) :: grhs(idmn, *)
-            procedure (get_coefficients)  :: cofx
-            procedure (get_coefficients)  :: cofy
+            integer (ip),   intent (in)     :: idmn
+            real (wp),      intent (in out) :: usol(:,:)
+            real (wp),      intent (in out) :: grhs(:,:)
+            procedure (get_coefficients)    :: cofx
+            procedure (get_coefficients)    :: cofy
             !--------------------------------------------------------------------------------
             ! Dictionary: local variables
             !--------------------------------------------------------------------------------

@@ -130,9 +130,9 @@ contains
         class (SepAux), intent (in out) :: this
         integer (ip),   intent (in)     :: idmn
         real (wp),      intent (out)    :: pertrb
-        real (wp),      intent (in out) :: usol(idmn,*)
-        real (wp),      intent (in)     :: zn(*)
-        real (wp),      intent (in)     :: zm(*)
+        real (wp),      intent (in out) :: usol(:,:)
+        real (wp),      intent (in)     :: zn(:)
+        real (wp),      intent (in)     :: zm(:)
         !--------------------------------------------------------------------------------
         ! Dictionary: local variables
         !--------------------------------------------------------------------------------
@@ -212,9 +212,9 @@ contains
         class (SepAux), intent (in out) :: this
         integer (ip),   intent (in)     :: idmn
         real (wp),      intent (out)    :: pertb
-        real (wp),      intent (in out) :: usol(idmn,*)
-        real (wp),      intent (in)     :: zn(*)
-        real (wp),      intent (in)     :: zm(*)
+        real (wp),      intent (in out) :: usol(:,:)
+        real (wp),      intent (in)     :: zn(:)
+        real (wp),      intent (in)     :: zm(:)
         !--------------------------------------------------------------------------------
         ! Dictionary: local variables
         !--------------------------------------------------------------------------------
@@ -373,7 +373,7 @@ contains
         integer (ip),   intent (in)     :: j
         real (wp),      intent (out)    :: uxxx
         real (wp),      intent (out)    :: uxxxx
-        real (wp),      intent (in)     :: u(idmn,*)
+        real (wp),      intent (in)     :: u(:,:)
         !--------------------------------------------------------------------------------
 
         ! Associate various quantities

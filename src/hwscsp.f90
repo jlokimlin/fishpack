@@ -472,11 +472,11 @@ contains
         real (wp),    intent (in)     :: rf
         real (wp),    intent (in)     :: elmbda
         real (wp),    intent (out)    :: pertrb
-        real (wp),    intent (in)     :: bdts(*)
-        real (wp),    intent (in)     :: bdtf(*)
-        real (wp),    intent (in)     :: bdrs(*)
-        real (wp),    intent (in)     :: bdrf(*)
-        real (wp),    intent (in out) :: f(idimf, *)
+        real (wp),    intent (in)     :: bdts(:)
+        real (wp),    intent (in)     :: bdtf(:)
+        real (wp),    intent (in)     :: bdrs(:)
+        real (wp),    intent (in)     :: bdrf(:)
+        real (wp),    intent (in out) :: f(idimf,n+1)
         class (fishpackworkspace)     :: w
         !-----------------------------------------------
         ! Dictionary: local variables
@@ -596,7 +596,7 @@ contains
             !
             np = nbdcnd
 
-            call w%get_block_tridiagonal_workpace_dimensions (N, M, IRWK, ICWK)
+            call w%get_block_tridiagonal_workpace_dimensions(n, m, irwk, icwk)
 
             np1 = n + 1
             mp1 = m + 1
@@ -619,12 +619,10 @@ contains
             !==> Allocate memory
             !
             call w%create(irwk, icwk, ierror)
-            !
-            !==> return if allocation fails
-            !
-            if (ierror == 20) then
-                return
-            end if
+
+            ! Check if allocation was successful
+            if (ierror == 20) return
+
         end if
 
         associate( &
@@ -635,9 +633,9 @@ contains
             !==> Solve system
             !
             call hwscs1(intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, nbdcnd, bdrs, &
-                bdrf, elmbda, f, idimf, pertrb, rew, cxw, rew(i1), rew(i2), &
-                rew(i3), rew(i4), rew(i5), rew(i6), rew(i7), rew(i8), &
-                rew(i9), rew(i10), ierror)
+                bdrf, elmbda, f, idimf, pertrb, rew, cxw, rew(i1:), rew(i2:), &
+                rew(i3:), rew(i4:), rew(i5:), rew(i6:), rew(i7:), rew(i8:), &
+                rew(i9:), rew(i10:), ierror)
 
         end associate
 
@@ -663,23 +661,23 @@ contains
         real (wp),    intent (in)     :: rf
         real (wp),    intent (in)     :: elmbda
         real (wp),    intent (out)    :: pertrb
-        real (wp),    intent (in)     :: bdts(*)
-        real (wp),    intent (in)     :: bdtf(*)
-        real (wp),    intent (in)     :: bdrs(*)
-        real (wp),    intent (in)     :: bdrf(*)
-        real (wp),    intent (in out) :: f(idimf, *)
-        real (wp)                     :: w(*)
-        real (wp),    intent (in out) :: s(*)
-        real (wp)                     :: an(*)
-        real (wp)                     :: bn(*)
-        real (wp)                     :: cn(*)
-        real (wp),    intent (in out) :: r(*)
-        real (wp)                     :: am(*)
-        real (wp)                     :: bm(*)
-        real (wp)                     :: cm(*)
-        real (wp),    intent (in out) :: sint(*)
-        real (wp),    intent (in out) :: bmh(*)
-        complex (wp)                  :: wc(*)
+        real (wp),    intent (in)     :: bdts(:)
+        real (wp),    intent (in)     :: bdtf(:)
+        real (wp),    intent (in)     :: bdrs(:)
+        real (wp),    intent (in)     :: bdrf(:)
+        real (wp),    intent (in out) :: f(idimf,n+1)
+        real (wp)                     :: w(:)
+        real (wp),    intent (in out) :: s(:)
+        real (wp)                     :: an(:)
+        real (wp)                     :: bn(:)
+        real (wp)                     :: cn(:)
+        real (wp),    intent (in out) :: r(:)
+        real (wp)                     :: am(:)
+        real (wp)                     :: bm(:)
+        real (wp)                     :: cm(:)
+        real (wp),    intent (in out) :: sint(:)
+        real (wp),    intent (in out) :: bmh(:)
+        complex (wp)                  :: wc(:)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
@@ -930,8 +928,8 @@ contains
 
         iflg = intl
 
-        call blktri_aux%blktrii(iflg, np, nunk, an(jrs), bn(jrs), cn(jrs), mp, munk, &
-            am(its), bm(its), cm(its), idimf, f(its, jrs), ierror, w, wc)
+        call blktri_aux%blktrii(iflg, np, nunk, an(jrs:), bn(jrs:), cn(jrs:), mp, munk, &
+            am(its:), bm(its:), cm(its:), idimf, f(its:, jrs:), ierror, w, wc)
 
         if (ierror /= 0) then
             error stop 'fishpack library: blktrii call failed in hwscs1'
@@ -943,8 +941,8 @@ contains
             !
             !==> Iterate solver
             !
-            call blktri_aux%blktrii(iflg, np, nunk, an(jrs), bn(jrs), cn(jrs), mp, &
-                munk, am(its), bm(its), cm(its), idimf, f(its, jrs), ierror, w, wc)
+            call blktri_aux%blktrii(iflg, np, nunk, an(jrs:), bn(jrs:), cn(jrs:), mp, &
+                munk, am(its:), bm(its:), cm(its:), idimf, f(its:, jrs:), ierror, w, wc)
 
             if (ierror /= 0) then
                 error stop 'fishpack library: blktrii call failed in hwscs1'

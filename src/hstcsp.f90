@@ -704,8 +704,8 @@ contains
             real (wp),    intent (out)    :: cn(:)
             real (wp),    intent (in out) :: snth(:)
             real (wp),    intent (in out) :: rsq(:)
-            real (wp),    intent (in out) :: w(*)
-            complex (wp), intent (in out) :: wc(*)
+            real (wp),    intent (in out) :: w(:)
+            complex (wp), intent (in out) :: wc(:)
             !-----------------------------------------------
             ! Dictionary: local variables
             !-----------------------------------------------
