@@ -392,13 +392,13 @@ contains
         integer (ip), intent (in)     :: m
         integer (ip), intent (in)     :: idimy
         integer (ip), intent (out)    :: ierror
-        real (wp),    intent (in out) :: an(n)
-        real (wp),    intent (in out) :: bn(n)
-        real (wp),    intent (in out) :: cn(n)
-        real (wp),    intent (in out) :: am(m)
-        real (wp),    intent (in out) :: bm(m)
-        real (wp),    intent (in out) :: cm(m)
-        real (wp),    intent (in out) :: y(idimy,n)
+        real (wp),    intent (in out) :: an(:)
+        real (wp),    intent (in out) :: bn(:)
+        real (wp),    intent (in out) :: cn(:)
+        real (wp),    intent (in out) :: am(:)
+        real (wp),    intent (in out) :: bm(:)
+        real (wp),    intent (in out) :: cm(:)
+        real (wp),    intent (in out) :: y(:,:)
         real (wp),    intent (in out) :: w(:)
         complex (wp), intent (in out) :: wc(:)
         !-----------------------------------------------
@@ -508,13 +508,13 @@ contains
         integer (ip), intent (in)     :: n
         integer (ip), intent (in)     :: m
         integer (ip), intent (in)     :: idimy
-        real (wp),    intent (in)     :: an(n)
-        real (wp),    intent (in)     :: bn(n)
-        real (wp),    intent (in)     :: cn(n)
-        real (wp),    intent (in)     :: am(m)
-        real (wp),    intent (in)     :: bm(m)
-        real (wp),    intent (in)     :: cm(m)
-        real (wp),    intent (in out) :: y(idimy,n)
+        real (wp),    intent (in)     :: an(:)
+        real (wp),    intent (in)     :: bn(:)
+        real (wp),    intent (in)     :: cn(:)
+        real (wp),    intent (in)     :: am(:)
+        real (wp),    intent (in)     :: bm(:)
+        real (wp),    intent (in)     :: cm(:)
+        real (wp),    intent (in out) :: y(:,:)
         real (wp),    intent (in)     :: b(*)
         real (wp),    intent (in out) :: w1(*)
         real (wp),    intent (in out) :: w2(*)

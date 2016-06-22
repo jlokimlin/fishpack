@@ -476,7 +476,7 @@ contains
         real (wp),    intent (in)     :: bdtf(:)
         real (wp),    intent (in)     :: bdrs(:)
         real (wp),    intent (in)     :: bdrf(:)
-        real (wp),    intent (in out) :: f(idimf,n+1)
+        real (wp),    intent (in out) :: f(:,:)
         class (fishpackworkspace)     :: w
         !-----------------------------------------------
         ! Dictionary: local variables
