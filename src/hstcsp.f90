@@ -656,8 +656,8 @@ contains
                 !==> Solve system
                 !
                 call hstcs1(intl, a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
-                    elmbda, f, idimf, pertrb, local_error_flag, rew(iw1), rew(iwbm), rew(iwcm), &
-                    rew(iwan), rew(iwbn), rew(iwcn), rew(iwsnth), rew(iwrsq), &
+                    elmbda, f, idimf, pertrb, local_error_flag, rew(iw1:), rew(iwbm:), rew(iwcm:), &
+                    rew(iwan:), rew(iwbn:), rew(iwcn:), rew(iwsnth:), rew(iwrsq:), &
                     rew, cxw)
 
             end associate
@@ -691,19 +691,19 @@ contains
             real (wp),    intent (in)     :: d
             real (wp),    intent (in)     :: elmbda
             real (wp),    intent (out)    :: pertrb
-            real (wp),    intent (in)     :: bda(*)
-            real (wp),    intent (in)     :: bdb(*)
-            real (wp),    intent (in)     :: bdc(*)
-            real (wp),    intent (in)     :: bdd(*)
-            real (wp),    intent (in out) :: f(idimf,*)
-            real (wp),    intent (out)    :: am(*)
-            real (wp),    intent (out)    :: bm(*)
-            real (wp),    intent (out)    :: cm(*)
-            real (wp),    intent (out)    :: an(*)
-            real (wp),    intent (out)    :: bn(*)
-            real (wp),    intent (out)    :: cn(*)
-            real (wp),    intent (in out) :: snth(*)
-            real (wp),    intent (in out) :: rsq(*)
+            real (wp),    intent (in)     :: bda(:)
+            real (wp),    intent (in)     :: bdb(:)
+            real (wp),    intent (in)     :: bdc(:)
+            real (wp),    intent (in)     :: bdd(:)
+            real (wp),    intent (in out) :: f(idimf,n)
+            real (wp),    intent (out)    :: am(:)
+            real (wp),    intent (out)    :: bm(:)
+            real (wp),    intent (out)    :: cm(:)
+            real (wp),    intent (out)    :: an(:)
+            real (wp),    intent (out)    :: bn(:)
+            real (wp),    intent (out)    :: cn(:)
+            real (wp),    intent (in out) :: snth(:)
+            real (wp),    intent (in out) :: rsq(:)
             real (wp),    intent (in out) :: w(*)
             complex (wp), intent (in out) :: wc(*)
             !-----------------------------------------------

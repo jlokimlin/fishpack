@@ -1038,7 +1038,7 @@ contains
         complex (wp) :: crt, den, y1, y2
         !-----------------------------------------------
 
-        y(1:m) = cmplx(x(1:m), 0.0_wp, kind=wp)
+        y = cmplx(x, 0.0_wp, kind=wp)
 
         mm = m - 1
         id = nd
@@ -1117,14 +1117,14 @@ contains
                 !
                 !==> scalar multiplication
                 !
-                y(:m) = rt*y(:m)
+                y = rt*y
             end if
 
             if (iflg <= 0) exit main_loop
 
         end do main_loop
 
-        yy(1:m) = real(y(1:m), kind=wp)
+        yy = real(y, kind=wp)
 
 
     end subroutine cprod
