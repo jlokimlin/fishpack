@@ -60,40 +60,41 @@ program thwsssp
     real (wp) :: pi, ts, tf, ps, pf, elmbda, dtheta, dphi, pertrb, discretization_error, z
     !-----------------------------------------------
 
-    pi = acos( -1.0 )
+    pi = acos(-1.0_wp)
     ts = 0
-    tf = pi/2.
+    tf = pi/2
     m = 18
     mbdcnd = 6
     ps = 0
-    pf = pi + pi
+    pf = 2.0_wp*pi
     n = 72
     nbdcnd = 0
-    elmbda = 0.
+    elmbda = 0.0_wp
     idimf = 19
     !
     !     generate sines for use in subsequent computations
     !
-    dtheta = tf/real(m)
+    dtheta = tf/m
     mp1 = m + 1
     do i = 1, mp1
-        sint(i) = sin(real(i - 1)*dtheta)
+        sint(i) = sin(real(i - 1, kind=wp)*dtheta)
     end do
-    dphi = (pi + pi)/real(n)
+
+    dphi = (2.0_wp * pi)/n
     np1 = n + 1
     do j = 1, np1
-        sinp(j) = sin(real(j - 1)*dphi)
+        sinp(j) = sin(real(j - 1, kind=wp)*dphi)
     end do
     !
     !     compute right side of equation and store in f
     !
     do j = 1, np1
-        f(:mp1, j) = 2. - 6.*(sint(:mp1)*sinp(j))**2
+        f(:mp1, j) = 2.0_wp - 6.0_wp*(sint(:mp1)*sinp(j))**2
     end do
     !
     !     store derivative data at the equator
     !
-    bdtf(:np1) = 0.
+    bdtf(:np1) = 0.0_wp
     !
     call solver%hwsssp(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
         bdps, bdpf, elmbda, f, idimf, pertrb, ierror)
@@ -101,7 +102,7 @@ program thwsssp
     !     compute discretization error. since problem is singular, the
     !     solution must be normalized.
     !
-    discretization_error = 0.0
+    discretization_error = 0.0_wp
     do j = 1, np1
         do i = 1, mp1
             z = abs(f(i, j)-(sint(i)*sinp(j))**2-f(1, 1))

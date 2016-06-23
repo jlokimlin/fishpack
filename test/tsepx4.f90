@@ -98,7 +98,7 @@ program tsepx4
     alpha = 1.0_wp
     beta = 1.0_wp
     do j = 1, ny
-        y = c + real(j - 1, kind=wp ) * dly
+        y = c + real(j - 1, kind=wp) * dly
         bda(j) = uxe(a, y) + alpha * ue(a, y)
         bdb(j) = uxe(b, y) + beta * ue(b, y)
     end do
@@ -183,6 +183,7 @@ contains
         real (wp), intent (in) :: s
         real (wp), intent (in) :: t
         real (wp)          :: return_value
+        !--------------------------------------------------------------
 
         return_value =(s*t)**3 + 1.0_wp
 
@@ -196,6 +197,7 @@ contains
         real (wp), intent (in) :: s
         real (wp), intent (in) :: t
         real (wp)          :: return_value
+        !--------------------------------------------------------------
 
         return_value = 3.0_wp *(s**2)*(t**3)
 
@@ -209,24 +211,11 @@ contains
         real (wp), intent (in) :: s
         real (wp), intent (in) :: t
         real (wp)          :: return_value
+        !--------------------------------------------------------------
 
         return_value = 6.0_wp * s *(t**3)
 
     end function uxxe
-
-
-    pure function uye(s, t) result (return_value)
-        !--------------------------------------------------------------
-        ! Dictionary: calling arguments
-        !--------------------------------------------------------------
-        real (wp), intent (in) :: s
-        real (wp), intent (in) :: t
-        real (wp) :: return_value
-        !--------------------------------------------------------------
-
-        return_value = 3.0_wp *(s**3) *(t**2)
-
-    end function uye
 
 
     pure function uyye(s, t) result (return_value)
@@ -235,7 +224,7 @@ contains
         !--------------------------------------------------------------
         real (wp), intent (in) :: s
         real (wp), intent (in) :: t
-        real (wp)         :: return_value
+        real (wp)              :: return_value
         !--------------------------------------------------------------
 
         return_value = 6.0_wp *(s**3) * t
@@ -247,12 +236,12 @@ contains
         !--------------------------------------------------------------
         ! Dictionary: calling arguments
         !--------------------------------------------------------------
-        real (wp), intent (in) :: x
+        real (wp), intent (in)  :: x
         real (wp), intent (out) :: af
         real (wp), intent (out) :: bf
         real (wp), intent (out) :: cf
         !--------------------------------------------------------------
-        !
+
         !     set coefficients in the x-direction.
         !
         af =(x + 1.0_wp)**2

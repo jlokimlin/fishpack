@@ -929,12 +929,12 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip)                :: n
-        real (wp), intent (out) :: azero
-        real (wp), intent (in)  :: r(*)
-        real (wp), intent (out) :: a(*)
-        real (wp), intent (out) :: b(*)
-        real (wp)               :: wsave(*)
+        integer (ip), intent (in)  :: n
+        real (wp),    intent (out) :: azero
+        real (wp),    intent (in)  :: r(*)
+        real (wp),    intent (out) :: a(*)
+        real (wp),    intent (out) :: b(*)
+        real (wp)                  :: wsave(*)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
@@ -976,12 +976,12 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip)               :: n
-        real (wp), intent (in) :: azero
-        real (wp)              :: r(*)
-        real (wp), intent (in) :: a(*)
-        real (wp), intent (in) :: b(*)
-        real (wp)              :: wsave(*)
+        integer (ip), intent (in) :: n
+        real (wp), intent (in)    :: azero
+        real (wp)                 :: r(*)
+        real (wp), intent (in)    :: a(*)
+        real (wp), intent (in)    :: b(*)
+        real (wp)                 :: wsave(*)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
@@ -1014,7 +1014,7 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer  :: n
+        integer (ip) :: n
         real (wp) :: wsave(*)
         !-----------------------------------------------
 
@@ -1029,14 +1029,14 @@ contains
         ! Dictionary: calling arguments
         !-----------------------------------------------
         integer (ip),  intent (in)     :: n
-        real (wp), intent (in out) :: ifac(*)
-        real (wp), intent (in out) :: wa(*)
+        real (wp),     intent (in out) :: ifac(*)
+        real (wp),     intent (in out) :: wa(*)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
         integer (ip), parameter :: ntryh(*) =[ 4, 2, 3, 5 ]
-        integer  :: nl, nf, j, ntry, nq, nr, i, is, nfm1
-        integer  :: l1, k1, iip, l2, ido, iipm, ii
+        integer (ip) :: nl, nf, j, ntry, nq, nr, i, is, nfm1
+        integer (ip) :: l1, k1, iip, l2, ido, iipm, ii
         real (wp), parameter :: TWO_PI = 2.0_wp * acos(-1.0_wp)
         real (wp) :: argh, arg1, ch1, sh1, dch1, dsh1, temp
         !-----------------------------------------------
@@ -1145,7 +1145,7 @@ contains
 
             do k = 2, ns2
                 kc = np1 - k
-                fk = fk + 1.
+                fk = fk + 1.0_wp
                 wsave(k) = 2.0_wp * sin(fk*dt)
                 wsave(kc) = 2.0_wp * cos(fk*dt)
             end do
@@ -1291,7 +1291,7 @@ contains
         ! Dictionary: local variables
         !-----------------------------------------------
         integer (ip)         :: i, np1, ns2, k, kc, modn
-        real (wp), parameter :: SQRT3 = sqrt( 3.0_wp) ! 1.73205080756888
+        real (wp), parameter :: SQRT3 = sqrt(3.0_wp) ! 1.73205080756888
         real (wp)            :: temp, t1, t2
         !-----------------------------------------------
 
@@ -1351,7 +1351,7 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer  :: n
+        integer (ip) :: n
         real (wp) :: wsave(*)
         !-----------------------------------------------
         ! Dictionary: local variables
@@ -1404,7 +1404,7 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer  :: n
+        integer (ip) :: n
         real (wp) :: x(*)
         real (wp), intent (in) :: w(*)
         real (wp) :: xh(*)
@@ -1453,7 +1453,7 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer  :: n
+        integer (ip) :: n
         real (wp) :: x(*)
         real (wp) :: wsave(*)
         !-----------------------------------------------
@@ -1536,7 +1536,7 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer  :: n
+        integer (ip) :: n
         real (wp) :: wsave(*)
         !-----------------------------------------------
 
@@ -1549,7 +1549,7 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer  :: n
+        integer (ip) :: n
         real (wp) :: x(*)
         real (wp) :: wsave(*)
         !-----------------------------------------------
@@ -1583,7 +1583,7 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer  :: n
+        integer (ip) :: n
         real (wp) :: x(*)
         real (wp) :: wsave(*)
         !-----------------------------------------------
@@ -2138,7 +2138,7 @@ contains
         iipph = (iip + 1)/2
         idp = iip*ido
 
-        if(ido >= l1) then
+        if (l1 <= ido) then
             do j = 2, iipph
                 jc = iipp2 - j
                 ch(:,:, j) = cc(:, j,:) + cc(:, jc,:)
@@ -2228,9 +2228,9 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer  :: n
-        real (wp) :: c(*)
-        real (wp) :: wsave(*)
+        integer (ip), intent (in)      :: n
+        real (wp),    intent (in out)  :: c(*)
+        real (wp),    intent (in out)  :: wsave(*)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
@@ -2251,11 +2251,11 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip),  intent (in) :: n
-        real (wp), intent (in) :: ifac(*)
-        real (wp)              :: c(*)
-        real (wp)              :: ch(*)
-        real (wp)              :: wa(*)
+        integer (ip), intent (in)     :: n
+        real (wp),    intent (in out) :: c(*)
+        real (wp),    intent (in out) :: ch(*)
+        real (wp),    intent (in)     :: wa(*)
+        real (wp),    intent (in)     :: ifac(*)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
@@ -2304,20 +2304,16 @@ contains
                     ix3 = ix2 + idot
                     ix4 = ix3 + idot
                     if (na == 0) then
-                        call passf5(idot, l1, c, ch, wa(iw), wa(ix2), &
-                            wa(ix3), wa(ix4))
+                        call passf5(idot, l1, c, ch, wa(iw), wa(ix2), wa(ix3), wa(ix4))
                     else
-                        call passf5(idot, l1, ch, c, wa(iw), wa(ix2), &
-                            wa(ix3), wa(ix4))
+                        call passf5(idot, l1, ch, c, wa(iw), wa(ix2), wa(ix3), wa(ix4))
                     end if
                     na = 1 - na
                 case default
                     if (na == 0) then
-                        call passf(nac, idot, iip, l1, idl1, c, c, c, ch &
-                            , ch, wa(iw))
+                        call passf(nac, idot, iip, l1, idl1, c, c, c, ch, ch, wa(iw))
                     else
-                        call passf(nac, idot, iip, l1, idl1, ch, ch, ch &
-                            , c, c, wa(iw))
+                        call passf(nac, idot, iip, l1, idl1, ch, ch, ch, c, c, wa(iw))
                     end if
                     if (nac /= 0) na = 1 - na
             end select
@@ -2606,24 +2602,24 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip), intent (out) :: nac
-        integer (ip), intent (in) :: ido
-        integer (ip), intent (in) :: iip
-        integer (ip), intent (in) :: l1
-        integer (ip), intent (in) :: idl1
-        real (wp), intent (in) :: cc(ido, iip, l1)
-        real (wp), intent (out) :: c1(ido, l1, iip)
-        real (wp), intent (in out) :: c2(idl1, iip)
-        real (wp), intent (in out) :: ch(ido, l1, iip)
-        real (wp), intent (in out) :: ch2(idl1, iip)
-        real (wp), intent (in) :: wa(*)
+        integer (ip), intent (out)    :: nac
+        integer (ip), intent (in)     :: ido
+        integer (ip), intent (in)     :: iip
+        integer (ip), intent (in)     :: l1
+        integer (ip), intent (in)     :: idl1
+        real (wp),    intent (in out) :: cc(ido, iip, l1)
+        real (wp),    intent (in out) :: c1(ido, l1, iip)
+        real (wp),    intent (in out) :: c2(idl1, iip)
+        real (wp),    intent (in out) :: ch(ido, l1, iip)
+        real (wp),    intent (in out) :: ch2(idl1, iip)
+        real (wp),    intent (in)     :: wa(*)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
         integer (ip) :: idot, nt, iipp2, iipph, idp, j, jc
         integer (ip) :: k, i, idl, inc, l, lc
         integer (ip) :: idlj, idij, idj
-        real (wp) :: war, wai
+        real (wp)    :: war, wai
         !-----------------------------------------------
 
         idot = ido/2
@@ -2632,7 +2628,7 @@ contains
         iipph = (iip + 1)/2
         idp = iip*ido
 
-        if(ido >= l1) then
+        if (l1 <= ido) then
             do j = 2, iipph
                 jc = iipp2 - j
                 ch(:,:, j) = cc(:, j,:) + cc(:, jc,:)
@@ -2685,14 +2681,14 @@ contains
 
         nac = 1
 
-        if(ido /= 2) then
+        if (ido /= 2) then
 
             nac = 0
             c2(:, 1) = ch2(:, 1)
             c1(1,:, 2:iip) = ch(1,:, 2:iip)
             c1(2,:, 2:iip) = ch(2,:, 2:iip)
 
-            if(idot <= l1) then
+            if (idot <= l1) then
                 idij = 0
                 do j = 2, iip
                     idij = idij + 2
@@ -2726,7 +2722,7 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer  :: n
+        integer (ip) :: n
         real (wp) :: wsave(*)
         !-----------------------------------------------
 
@@ -2836,7 +2832,7 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer  :: n
+        integer (ip) :: n
         real (wp) :: r(*)
         real (wp) :: wsave(*)
         !-----------------------------------------------
@@ -3047,7 +3043,7 @@ contains
         ! Dictionary: local variables
         !-----------------------------------------------
         integer (ip)             :: k, idp2, i, ic
-        real (wp), parameter :: sqrt2 = sqrt( 2.0_wp ) ! 1.414213562373095
+        real (wp), parameter :: sqrt2 = sqrt(2.0_wp) ! 1.414213562373095
         real (wp)            :: tr1, tr2, tr3, tr4, ti1, ti2, ti3, ti4, cr3, ci3
         real (wp)            :: cr2, cr4, ci2, ci4
         !-----------------------------------------------
@@ -3241,7 +3237,7 @@ contains
         end do
 
         if(ido /= 1) then
-            if (nbd >= l1) then
+            if (l1 <= nbd) then
                 do j = 2, iipph
                     jc = iipp2 - j
                     ch(2:ido-1:2,:, j) = cc(2:ido-1:2, 2*j-1,:) + cc(idp2-4: &
@@ -3303,7 +3299,7 @@ contains
         end do
 
         if(ido /= 1) then
-            if (nbd >= l1) then
+            if (l1 <= nbd) then
                 do j = 2, iipph
                     jc = iipp2 - j
                     ch(2:ido-1:2,:, j) = c1(2:ido-1:2,:, j) - c1(3:ido:2,:, jc)
@@ -3772,7 +3768,7 @@ contains
                         end do
                     end do
                 end if
-                if (nbd >= l1) then
+                if (l1 <= nbd) then
                     do j = 2, iipph
                         jc = iipp2 - j
                         c1(2:ido-1:2,:, j)=ch(2:ido-1:2,:, j)+ch(2:ido-1:2,:, jc)
@@ -3827,18 +3823,12 @@ contains
             ch2(:, 1) = ch2(:, 1) + c2(:, j)
         end do
 
-        if(ido >= l1) then
-            cc(:, 1,:) = ch(:,:, 1)
-        else
-            cc(:, 1,:) = ch(:,:, 1)
-        end if
-
+        cc(:, 1,:) = ch(:,:, 1)
         cc(ido, 2:(iipph-1)*2:2,:) = transpose(ch(1,:, 2:iipph))
-
         cc(1, 3:iipph*2-1:2,:) = transpose(ch(1,:, iipp2-2:iipp2-iipph:(-1)))
 
         if(ido /= 1) then
-            if (nbd >= l1) then
+            if (l1 <= nbd) then
                 cc(2:ido-1:2, 3:iipph*2-1:2,:) = reshape(source = ch(2:ido-1:2,:, &
                     2:iipph)+ch(2:ido-1:2,:, iipp2-2:iipp2-iipph:(-1)), shape = [(ido &
                     -1)/2, iipph-1, l1], order = [1, 3, 2])

@@ -76,11 +76,11 @@
 !
 !     a(i) = (1+x(i))**2*s + (1+x(i))*s*dx
 !
-!     b(i) = -2(1+x(i))**2*s - sqrt(-1)*dy**2
+!     b(i) = -2(1+x(i))**2*s - sqrt(-1)*(dy**2)
 !
 !     c(i) = (1+x(i))**2*s - (1+x(i))*s*dx
 !
-!     f(i, j) = (3 - sqrt(-1))*(1+x(i))**4*dy**2*sin(y(j))
+!     f(i, j) = (3 - sqrt(-1))*(1+x(i))**4*(dy**2)*sin(y(j))
 !              for j=1, 2, ..., 40.
 !
 !        to obtain equations for i = 1, we replace the
@@ -95,9 +95,9 @@
 !
 !     where
 !
-!     b(1) = -2s - sqrt(-1)*dy**2 , c(1) = 2s
+!     b(1) = -2s - sqrt(-1)*(dy**2) , c(1) = 2s
 !
-!     f(1, j) = (11-sqrt(-1)+8/dx)*dy**2*sin(y(j)),  j=1, 2, ..., 40.
+!     f(1, j) = (11-sqrt(-1)+8/dx)*(dy**2)*sin(y(j)),  j=1, 2, ..., 40.
 !
 !     for completeness, we set a(1) = 0.
 !        to obtain equations for i = 20, we incorporate
@@ -115,9 +115,9 @@
 !
 !     a(20) = (1+x(20))**2*s + (1+x(20))*s*dx
 !
-!     b(20) = -2*(1+x(20))**2*s - sqrt(-1)*dy**2
+!     b(20) = -2*(1+x(20))**2*s - sqrt(-1)*(dy**2)
 !
-!     f(20, j) = ((3-sqrt(-1))*(1+x(20))**4*dy**2 - 16(1+x(20))**2*s
+!     f(20, j) = ((3-sqrt(-1))*(1+x(20))**4*(dy**2) - 16(1+x(20))**2*s
 !                + 16(1+x(20))*s*dx)*sin(y(j))
 !
 !                    for j=1, 2, ..., 40.
@@ -153,13 +153,15 @@ program tcmgnbn
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    type (FishpackSolver)    :: solver
-    integer (ip) :: idimf, m, mp1, mperod, n, nperod, i, j, ierror
-    real (wp), dimension(21) :: x
-    real (wp), dimension(41) :: y
-    real (wp) :: dx, pi, dy, s, t, tsq, t4, discretization_error
+    type (FishpackSolver)           :: solver
+    integer (ip)                    :: idimf, m, mp1, mperod, n, nperod, k, j, ierror
+    real (wp), dimension(21)        :: x
+    real (wp), dimension(41)        :: y
+    real (wp)                       :: dx, pi, dy, s, t
+    real (wp)                       :: t2, t4, discretization_error
     complex (wp), dimension(22, 40) :: f
-    complex (wp), dimension(20) :: a, b, c
+    complex (wp), dimension(20)     :: a, b, c
+    complex (wp), parameter         :: I = (0.0_wp, 1.0_wp)
     !-----------------------------------------------
 
     idimf = 22
@@ -174,8 +176,8 @@ program tcmgnbn
     !
     !     generate grid points for later use.
     !
-    do i = 1, mp1
-        x(i) = real(i - 1, kind=wp)*dx
+    do k = 1, mp1
+        x(k) = real(k - 1, kind=wp)*dx
     end do
 
     do j = 1, n
@@ -185,34 +187,35 @@ program tcmgnbn
     !     generate coefficients.
     !
     s = (dy/dx)**2
-    do i = 2, 19
-        t = 1. + x(i)
-        tsq = t**2
-        a(i) = cmplx((tsq + t*dx)*s, 0.)
-        b(i) = (-2.0_wp * tsq*s) - (0., 1.)*dy**2
-        c(i) = cmplx((tsq - t*dx)*s, 0.)
+    do k = 2, 19
+        t = 1.0_wp + x(k)
+        t2 = t**2
+        a(k) = cmplx((t2 + t*dx)*s, 0.0_wp, kind=wp)
+        b(k) = -2.0_wp * t2*s - I*(dy**2)
+        c(k) = cmplx((t2 - t*dx)*s, 0.0_wp, kind=wp)
     end do
-    a(1) = (0., 0.)
-    b(1) = (-2.0_wp * s) - (0., 1.)*dy**2
-    c(1) = cmplx(2.0_wp * s, 0.)
-    b(20) = (-2.0_wp * s*(1. + x(20))**2) - (0., 1.)*dy**2
-    a(20) = cmplx(s*(1. + x(20))**2+(1.+x(20))*dx*s, 0.)
-    c(20) = (0., 0.)
+    a(1) = 0.0_wp
+    b(1) = -2.0_wp * s - I*(dy**2)
+    c(1) = cmplx(2.0_wp * s, 0.0_wp, kind=wp)
+    b(20) = (-2.0_wp * s*(1.0_wp + x(20))**2) - I*(dy**2)
+    a(20) = cmplx(s*(1.0_wp + x(20))**2+(1.0_wp +x(20))*dx*s, 0.0_wp, kind=wp)
+    c(20) = 0.0_wp
     !
     !     generate right side.
     !
-    do i = 2, 19
+    do k = 2, 19
         do j = 1, n
-            f(i, j) = (3., -1.)*(1. + x(i))**4*dy**2*sin(y(j))
+            f(k, j) = (3.0_wp, -1.0_wp)*(1.0_wp + x(k))**4*(dy**2)*sin(y(j))
         end do
     end do
 
-    t = 1. + x(20)
-    tsq = t**2
-    t4 = tsq**2
+    t = 1.0_wp + x(20)
+    t2 = t**2
+    t4 = t**4
     do j = 1, n
-        f(1, j) = ((11., -1.) + 8./dx)*dy**2*sin(y(j))
-        f(20, j)=((3., -1.)*t4*dy**2-16.*tsq*s+16.*t*s*dx)*sin(y(j))
+        f(1, j) = ((11.0_wp, -1.0_wp) + 8.0_wp/dx)*(dy**2)*sin(y(j))
+        f(20, j)=((3.0_wp, -1.0_wp)*t4*(dy**2) &
+            -16.0_wp*t2*s+16.0_wp*t*s*dx)*sin(y(j))
     end do
 
     ! Solve system
@@ -222,10 +225,10 @@ program tcmgnbn
     !
     !            u(x, y) = (1+x)**4*sin(y) .
     !
-    discretization_error = 0.
-    do i = 1, m
+    discretization_error = 0.0_wp
+    do k = 1, m
         do j = 1, n
-            t = abs(f(i, j)-(1.+x(i))**4*sin(y(j)))
+            t = abs(f(k, j)-(1.0_wp+x(k))**4*sin(y(j)))
             discretization_error = max(t, discretization_error)
         end do
     end do

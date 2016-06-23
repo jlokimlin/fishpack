@@ -339,12 +339,12 @@ contains
         real (wp),    intent (in)     :: c
         real (wp),    intent (in)     :: d
         real (wp),    intent (in)     :: elmbda
-        real (wp),             intent (out)    :: pertrb
-        real (wp), contiguous, intent (in)     :: bda(:)
-        real (wp), contiguous, intent (in)     :: bdb(:)
-        real (wp), contiguous, intent (in)     :: bdc(:)
-        real (wp), contiguous, intent (in)     :: bdd(:)
-        real (wp), contiguous, intent (in out) :: f(:,:)
+        real (wp),    intent (out)    :: pertrb
+        real (wp),    intent (in)     :: bda(:)
+        real (wp),    intent (in)     :: bdb(:)
+        real (wp),    intent (in)     :: bdc(:)
+        real (wp),    intent (in)     :: bdd(:)
+        real (wp),    intent (in out) :: f(:,:)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------

@@ -597,7 +597,7 @@ contains
         integer (ip) :: mp1, np1, i, inp, isp, mbr, its, itf, itsp, itfm, munk
         integer (ip) :: iid, ii, nbr, jps, jpf, jpsp, jpfm, nunk, ising
         real (wp)    :: fn, fm, dth, half_dth, two_dth, dphi, two_dphi
-        real (wp)    :: dphi2, edp2, dth2, cp, wp_rename, fim1, theta, t1, at, ct, wts, wtf
+        real (wp)    :: dphi2, edp2, dth2, cp, wpp, fim1, theta, t1, at, ct, wts, wtf
         real (wp)    :: wps, wpf, fjj, cf, summation, sum1, hne, yhld, sum2, dfn, dnn, dsn
         real (wp)    :: cnp, hld, dfs, dss, dns, csp, rtn, rts, den
         !-----------------------------------------------
@@ -615,7 +615,12 @@ contains
         edp2 = elmbda*dphi2
         dth2 = dth**2
         cp = 4.0_wp/(fn*dth2)
-        wp_rename = fn*sin(half_dth)/4
+        wpp = fn*sin(half_dth)/4
+
+        ! Initialize constants
+        dfn = 0.0_wp
+        dnn = 0.0_wp
+        dsn = 0.0_wp
 
         do i = 1, mp1
             fim1 = i - 1
@@ -760,9 +765,9 @@ contains
                             ising = 1
                             summation = wts*wps + wts*wpf + wtf*wps + wtf*wpf
 
-                            if (inp > 0) summation = summation + wp_rename
+                            if (inp > 0) summation = summation + wpp
 
-                            if (isp > 0) summation = summation + wp_rename
+                            if (isp > 0) summation = summation + wpp
 
                             sum1 = sum(sint(itsp:itfm))
                             summation = summation + fjj*(sum1 + wts + wtf)
@@ -821,9 +826,9 @@ contains
                 wts*wps*f(its,jps) + wts*wpf*f(its,jpf) &
                 + wtf*wps*f(itf,jps) + wtf*wpf*f(itf,jpf)
 
-            if (inp > 0) summation = summation + wp_rename*f(1,jps)
+            if (inp > 0) summation = summation + wpp*f(1,jps)
 
-            if (isp > 0) summation = summation + wp_rename*f(m+1,jps)
+            if (isp > 0) summation = summation + wpp*f(m+1,jps)
 
             do i = itsp, itfm
                 summation = summation + sint(i)*sum(f(i,jpsp:jpfm))

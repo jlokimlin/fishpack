@@ -262,7 +262,8 @@ module module_cblktri
     use module_comf, only: &
         psgf, &
         ppspf, &
-        ppsgf
+        ppsgf, &
+        comf_interface
 
     use type_FishpackWorkspace, only: &
         Fish => FishpackWorkspace
@@ -280,7 +281,6 @@ module module_cblktri
     integer (ip), save :: npp, k, nm, ncmplx, ik
     real (wp),    save :: cnv
     !---------------------------------------------------------------------------------
-
 
     interface proc_sub
         module procedure proc
@@ -699,12 +699,12 @@ contains
         integer (ip)           :: iz
         real (wp), intent (in) :: xll
         real (wp), intent (in) :: xrr
-        real (wp)              :: f
-        real (wp), intent (in) :: sgn
         real (wp)              :: c(*)
         real (wp)              :: a(*)
         real (wp)              :: bh(*)
-        real (wp)              :: return_value
+        procedure (comf_interface) :: f
+        real (wp), intent (in)     :: sgn
+        real (wp)                   :: return_value
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------

@@ -99,16 +99,17 @@ program tblktri
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
-    type (FishpackSolver)     :: solver
-    type (FishpackWorkspace)  :: workspace
-    integer (ip), parameter   :: IDIMY = 75
-    integer (ip)              :: iflg, np, n, mp, m, i, j, ierror
+    type (FishpackSolver)            :: solver
+    type (FishpackWorkspace)         :: workspace
+    integer (ip), parameter          :: IDIMY = 75
+    integer (ip)                     :: iflg, np, n, mp, m, i, j, ierror
     real (wp), dimension(IDIMY, 105) :: y
-    real (wp), dimension(IDIMY) :: am, bm, cm
-    real (wp), dimension(105) :: an, bn, cn
-    real (wp), dimension(IDIMY) :: s
-    real (wp), dimension(105) :: t
-    real (wp) :: ds, dt, discretization_error
+    real (wp), dimension(IDIMY)      :: am, bm, cm
+    real (wp), dimension(105)        :: an, bn, cn
+    real (wp), dimension(IDIMY)      :: s
+    real (wp), dimension(105)        :: t
+    real (wp)                        :: ds, dt
+    real (wp)                        :: discretization_error, local_error
     !-----------------------------------------------
 
     iflg = 0
@@ -131,9 +132,7 @@ program tblktri
     do j = 1, n
         t(j) = real(j, kind=wp) * dt
     end do
-    !
-    !     Compute the coefficients am, bm, cm corresponding to the s direction
-    !
+
     associate( &
         half_ds => ds/2, &
         two_ds => 2.0_wp * ds &
@@ -144,16 +143,18 @@ program tblktri
                 temp2 => 1.0_wp/((s(i)-half_ds)*two_ds), &
                 temp3 => 1.0_wp/((s(i)+half_ds)*two_ds) &
                 )
+                !
+                !==> Compute the coefficients am, bm, cm corresponding to the s direction
+                !
                 am(i) = temp1*temp2
                 cm(i) = temp1*temp3
-                bm(i) = -(am(i)+cm(i))
+                bm(i) = -(am(i) + cm(i))
+
             end associate
         end do
     end associate
 
-    !
-    !     compute the coefficients an, bn, cn corresponding to the t direction
-    !
+
     associate( &
         half_dt => dt/2, &
         two_dt => 2.0_wp * dt &
@@ -165,15 +166,19 @@ program tblktri
                 temp2 => 1.0_wp / ( (t(j)-half_dt) * two_dt ), &
                 temp3 => 1.0_wp / ( (t(j)+half_dt) * two_dt ) &
                 )
+                !
+                !==> Compute the coefficients an, bn, cn corresponding to the t direction
+                !
                 an(j) = temp1*temp2
                 cn(j) = temp1*temp3
-                bn(j) = -(an(j)+cn(j))
+                bn(j) = -(an(j) + cn(j))
+
             end associate
         end do
     end associate
 
     !
-    !     Compute right side of equation
+    !==> Compute right side of equation
     !
     do j = 1, n
         y(:m, j) = 3.75_wp * s(:m) * t(j) * ( s(:m)**4 + t(j)**4 )
@@ -211,11 +216,8 @@ program tblktri
 
     do j = 1, n
         do i = 1, m
-            associate( local_error => abs(y(i, j)-(s(i)*t(j))**5) )
-
-                discretization_error = max(local_error, discretization_error)
-
-            end associate
+            local_error = abs(y(i, j)-(s(i)*t(j))**5)
+            discretization_error = max(local_error, discretization_error)
         end do
     end do
 

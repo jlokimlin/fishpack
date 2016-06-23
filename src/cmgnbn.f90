@@ -373,37 +373,37 @@ contains
         np = nperod + 1
         select case (mp)
             case (1)
-                go to 114
+                goto 114
             case (2)
-                go to 107
+                goto 107
         end select
 107 continue
     select case (np)
         case (1)
-            go to 108
+            goto 108
         case (2)
-            go to 109
+            goto 109
         case (3)
-            go to 110
+            goto 110
         case (4)
-            go to 111
+            goto 111
         case (5)
-            go to 123
+            goto 123
     end select
 108 continue
     call cmposp (m, n, w(iwba), w(iwbb), w(iwbc), y, idimy, w, w(iwb2) &
         , w(iwb3), w(iww1), w(iww2), w(iww3), w(iwd), w(iwtcos), w(iwp) &
         )
-    go to 112
+    goto 112
 109 continue
     call cmposd (m, n, 1, w(iwba), w(iwbb), w(iwbc), y, idimy, w, w( &
         iww1), w(iwd), w(iwtcos), w(iwp))
-    go to 112
+    goto 112
 110 continue
     call cmposn(m, n, 1, 2, w(iwba), w(iwbb), w(iwbc), y, idimy, w, w &
         (iwb2), w(iwb3), w(iww1), w(iww2), w(iww3), w(iwd), w(iwtcos), &
         w(iwp))
-    go to 112
+    goto 112
 111 continue
     call cmposn(m, n, 1, 1, w(iwba), w(iwbb), w(iwbc), y, idimy, w, w &
         (iwb2), w(iwb3), w(iww1), w(iww2), w(iww3), w(iwd), w(iwtcos), &
@@ -411,13 +411,13 @@ contains
 112 continue
     ipstor = int(w(iww1), kind=ip)
     irev = 2
-    if (nperod == 4) go to 124
+    if (nperod == 4) goto 124
 113 continue
     select case (mp)
         case (1)
-            go to 127
+            goto 127
         case (2)
-            go to 133
+            goto 133
     end select
 114 continue
     mh = (m + 1)/2
@@ -432,9 +432,9 @@ contains
         w(mh) = 2.0_wp * y(mh, j)
         select case (modd)
             case (1)
-                go to 117
+                goto 117
             case (2)
-                go to 116
+                goto 116
         end select
 116 continue
     w(m) = 2.0_wp * y(m, j)
@@ -455,7 +455,7 @@ select case (modd)
         w(iwbb-1) = w(k+1)
 end select
 
-go to 107
+goto 107
 !
 !     reverse columns when nperod = 4
 !
@@ -473,9 +473,9 @@ go to 107
     end do
     select case (irev)
         case (1)
-            go to 110
+            goto 110
         case (2)
-            go to 113
+            goto 113
     end select
 127 continue
     do j = 1, n
@@ -484,9 +484,9 @@ go to 107
         w(mh) = 0.5_wp * y(mh, j)
         select case (modd)
             case (1)
-                go to 130
+                goto 130
             case (2)
-                go to 129
+                goto 129
         end select
 129 continue
     w(m) = 0.5_wp * y(m, j)
@@ -545,20 +545,20 @@ subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
         case default
             kr = 0
             irreg = 1
-            if (n > 1) go to 106
+            if (n > 1) goto 106
             tcos(1) = 0.0_wp
         case (2)
             kr = 1
             jstsav = 1
             irreg = 2
-            if (n > 1) go to 106
+            if (n > 1) goto 106
             tcos(1) = cmplx(-1.0_wp, 0.0_wp, kind=wp)
     end select
 
     b(:m) = q(:m, 1)
     call cmptrx (1, 0, m, ba, bb, bc, b, tcos, d, w)
     q(:m, 1) = b(:m)
-    go to 183
+    goto 183
 106 continue
     lr = 0
     do i = 1, m
@@ -612,7 +612,12 @@ subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
     !
     select case (nodd)
         case default
-            go to (152, 120) irreg
+            select case (irreg)
+                case (1)
+                    goto 152
+                case (2)
+                    goto 120
+            end select
         !
         !     odd number of unknowns
         !
@@ -624,14 +629,19 @@ subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
         jm2 = j - jst
         jp2 = j + jst
         jm3 = jm2 - jsh
-        go to (123, 121) istag
+        select case (istag)
+            case (1)
+                goto 123
+            case (2)
+                goto 121
+        end select
 121 continue
-    if (jst /= 1) go to 123
+    if (jst /= 1) goto 123
     do i = 1, m
         b(i) = q(i, j)
         q(i, j) = 0.0_wp
     end do
-    go to 130
+    goto 130
 123 continue
     select case (noddpr)
         case default
@@ -715,7 +725,7 @@ end select
     noddpr = nodd
     jsh = jst
     jst = 2*jst
-    if (nun >= 2) go to 108
+    if (nun >= 2) goto 108
     !
     !     start solution.
     !
@@ -751,7 +761,7 @@ end select
     jst = jst/2
     jsh = jst/2
     nun = 2*nun
-    if (nun > n) go to 183
+    if (nun > n) goto 183
     do j = jst, n, l
         jm1 = j - jsh
         jp1 = j + jsh
@@ -760,10 +770,15 @@ end select
         if (j <= jst) then
             b(:m) = q(:m, j) + q(:m, jp2)
         else
-            if (jp2 <= n) go to 168
+            if (jp2 <= n) goto 168
             b(:m) = q(:m, j) + q(:m, jm2)
             if (jst < jstsav) irreg = 1
-            go to (170, 171) irreg
+            select case (irreg)
+                case (1)
+                    goto 170
+                case (2)
+                    goto 171
+            end select
 168     continue
         b(:m) = q(:m, j) + q(:m, jm2) + q(:m, jp2)
     end if
@@ -771,7 +786,7 @@ end select
     call cmpcsg (jst, 1, 0.5_wp, 0.0_wp, tcos)
     ideg = jst
     jdeg = 0
-    go to 172
+    goto 172
 171 continue
     if (j + l > n) lr = lr - jst
     kr = jst + lr
@@ -784,12 +799,17 @@ end select
     if (jst <= 1) then
         q(:m, j) = b(:m)
     else
-        if (jp2 > n) go to 177
+        if (jp2 > n) goto 177
 175 continue
     q(:m, j) = 0.5_wp * (q(:m, j)-q(:m, jm1)-q(:m, jp1)) + b(:m)
     cycle
 177 continue
-    go to (175, 178) irreg
+    select case (irreg)
+        case (1)
+            goto 175
+        case (2)
+            goto 178
+    end select
 178 continue
     if (j + jsh <= n) then
         q(:m, j) = b(:m) + p(iip+1:m+iip)
@@ -800,7 +820,7 @@ end select
 end if
 end do
 l = l/2
-go to 164
+goto 164
 183 continue
     w(1) = cmplx(real(ipstor, kind=wp), 0.0_wp, kind=wp)
 
@@ -873,12 +893,22 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
         nlast = n
         kr = 1
         lr = 0
-        go to (101, 103) istag
+        select case (istag)
+            case (1)
+                goto 101
+            case (2)
+                goto 103
+        end select
 101 continue
     q(:mr, n) = 0.5_wp * q(:mr, n)
-    go to (103, 104) mixbnd
+    select case (mixbnd)
+        case (1)
+            goto 103
+        case (2)
+            goto 104
+    end select
 103 continue
-    if (n <= 3) go to 155
+    if (n <= 3) goto 155
 104 continue
     jr = 2*i2r
     nrod = 1
@@ -977,11 +1007,11 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
                     tcos(2) = 0.0_wp
                     call cmptrx (1, 1, mr, a, bb, c, b, tcos, d, w)
                     q(:mr, j) = q(:mr, jm2) + p(:mr) + b(:mr)
-                    go to 150
+                    goto 150
                 case (1)
                     p(:mr) = b(:mr)
                     q(:mr, j) = q(:mr, jm2) + 2.0_wp * q(:mr, jp2) + 3.*b(:mr)
-                    go to 150
+                    goto 150
             end select
         end if
         b(:mr) = q(:mr, j) + 0.5_wp * (q(:mr, jm2)-q(:mr, jm1)-q(:mr, jm3))
@@ -1006,11 +1036,16 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
         end if
         call cmpcsg (kr, 1, 0.5_wp, fden, tcos)
         if (lr == 0) then
-            go to (146, 145) istag
+            select case (istag)
+                case (1)
+                    goto 146
+                case (2)
+                    goto 145
+            end select
         end if
 145 continue
     call cmptrx (kr, kr, mr, a, bb, c, b, tcos, d, w)
-    go to 148
+    goto 148
 146 continue
     b(:mr) = fistag*b(:mr)
 148 continue
@@ -1022,31 +1057,36 @@ end if
 select case (mixbnd)
     case default
         nr = (nlast - 1)/jr + 1
-        if (nr <= 3) go to 155
+        if (nr <= 3) goto 155
     case (2)
         nr = nlast/jr
-        if (nr <= 1) go to 192
+        if (nr <= 1) goto 192
 end select
 
 i2r = jr
 nrodpr = nrod
-go to 104
+goto 104
 155 continue
     j = 1 + jr
     jm1 = j - i2r
     jp1 = j + i2r
     jm2 = nlast - i2r
     if (nr /= 2) then
-        if (lr /= 0) go to 170
+        if (lr /= 0) goto 170
         if (n == 3) then
             !
             !     case n = 3.
             !
-            go to (156, 168) istag
+            select case (istag)
+                case (1)
+                    goto 156
+                case (2)
+                    goto 168
+            end select
 156     continue
         b(:mr) = q(:mr, 2)
         tcos(1) = 0.0_wp
-        call cmptrx (1, 0, mr, a, bb, c, b, tcos, d, w)
+        call cmptrx(1, 0, mr, a, bb, c, b, tcos, d, w)
         q(:mr, 2) = b(:mr)
         b(:mr) = 4.0_wp*b(:mr) + q(:mr, 1) + 2.0_wp * q(:mr, 3)
         tcos(1) = cmplx(-2.0_wp, 0.0_wp, kind=wp)
@@ -1061,12 +1101,17 @@ go to 104
         q(:mr, 1) = b(:mr)
         jr = 1
         i2r = 0
-        go to 194
+        goto 194
     end if
     !
     !     case n = 2**p+1
     !
-    go to (162, 170) istag
+    select case (istag)
+        case (1)
+            goto 162
+        case (2)
+            goto 170
+    end select
 162 continue
     b(:mr) = q(:mr, j) + 0.5_wp * q(:mr, 1) - q(:mr, jm1) + q(:mr, nlast) - &
         q(:mr, jm2)
@@ -1083,7 +1128,7 @@ go to 104
     call cmpcsg (jr, 1, 0.5_wp, 0.0_wp, tcos)
     call cmptrx (jr, 0, mr, a, bb, c, b, tcos, d, w)
     q(:mr, 1) = 0.5_wp * q(:mr, 1) - q(:mr, jm1) + b(:mr)
-    go to 194
+    goto 194
 !
 !     case of general n with nr = 3 .
 !
@@ -1095,7 +1140,7 @@ go to 104
     jr = 1
     i2r = 0
     j = 2
-    go to 177
+    goto 177
 170 continue
     b(:mr) = 0.5_wp * q(:mr, 1) - q(:mr, jm1) + q(:mr, j)
     if (nrod == 0) then
@@ -1140,10 +1185,10 @@ go to 104
     call cmptrx (jr, 0, mr, a, bb, c, b, tcos, d, w)
     if (jr == 1) then
         q(:mr, 1) = b(:mr)
-        go to 194
+        goto 194
     end if
     q(:mr, 1) = 0.5_wp * q(:mr, 1) - q(:mr, jm1) + b(:mr)
-    go to 194
+    goto 194
 end if
 if (n == 2) then
     !
@@ -1160,7 +1205,7 @@ if (n == 2) then
     q(:mr, 1) = q(:mr, 1) + b(:mr)
     jr = 1
     i2r = 0
-    go to 194
+    goto 194
 end if
 b3(:mr) = 0.0_wp
 b(:mr) = q(:mr, 1) + 2.0_wp * p(iip+1:mr+iip)
@@ -1184,10 +1229,10 @@ b(:mr) = b(:mr) + b2(:mr)
 tcos(1) = cmplx(2.0_wp, 0.0_wp, kind=wp)
 call cmptrx (1, 0, mr, a, bb, c, b, tcos, d, w)
 q(:mr, 1) = q(:mr, 1) + b(:mr)
-go to 194
+goto 194
 192 continue
     b(:mr) = q(:mr, nlast)
-    go to 196
+    goto 196
 194 continue
     j = nlast - jr
     b(:mr) = q(:mr, nlast) + q(:mr, j)
@@ -1215,7 +1260,7 @@ go to 194
     jstep = jr
     jr = i2r
     i2r = i2r/2
-    if (jr == 0) go to 222
+    if (jr == 0) goto 222
     select case (mixbnd)
         case default
             jstart = 1 + jr
@@ -1253,8 +1298,8 @@ go to 194
     end do
     nrod = 1
     if (nlast + i2r <= n) nrod = 0
-    if (nlastp /= nlast) go to 194
-    go to 206
+    if (nlastp /= nlast) goto 194
+    goto 206
 222 continue
     w(1) = cmplx(real(ipstor, kind=wp), 0.0_wp, kind=wp)
 
@@ -1498,8 +1543,8 @@ subroutine cmpmrg(tcos, i1, m1, i2, m2, i3)
     j1 = 1
     j2 = 1
     j = i3
-    if (m1 == 0) go to 107
-    if (m2 == 0) go to 104
+    if (m1 == 0) goto 107
+    if (m2 == 0) goto 104
 101 continue
     j11 = j1
     j3 = max(m1, j11)
@@ -1509,15 +1554,15 @@ subroutine cmpmrg(tcos, i1, m1, i2, m2, i3)
         x = tcos(l)
         l = j2 + i2
         y = tcos(l)
-        if (real(x - y) > 0.0_wp) go to 103
+        if (real(x - y, kind=wp) > 0.0_wp) goto 103
         tcos(j) = x
     end do
-    go to 106
+    goto 106
 103 continue
     tcos(j) = y
     j2 = j2 + 1
-    if (j2 <= m2) go to 101
-    if (j1 > m1) go to 109
+    if (j2 <= m2) goto 101
+    if (j1 > m1) goto 109
 104 continue
     k = j - j1 + 1
     do j = j1, m1
@@ -1525,9 +1570,9 @@ subroutine cmpmrg(tcos, i1, m1, i2, m2, i3)
         l = j + i1
         tcos(m) = tcos(l)
     end do
-    go to 109
+    goto 109
 106 continue
-    if (j2 > m2) go to 109
+    if (j2 > m2) goto 109
 107 continue
     k = j - j2 + 1
     do j = j2, m2
