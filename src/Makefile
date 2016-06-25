@@ -46,7 +46,7 @@ type_FFTpack.o: \
 type_FFTpack.f90
 	$(FC) $(FFLAGS) -c type_FFTpack.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
-	 
+
 genbun.o: \
 type_FishpackWorkspace.o \
 gnbnaux.o \
@@ -74,7 +74,7 @@ pois3d.o \
 hw3crt.f90
 	$(FC) $(FFLAGS) -c hw3crt.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
-	 
+
 hstcrt.o: \
 type_FishpackWorkspace.o \
 genbun.o \
@@ -176,6 +176,11 @@ type_RectangularDomain.f90
 	$(FC) $(FFLAGS) -c type_RectangularDomain.f90 $(LINKS)\
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
+type_FishpackGrid.o: \
+type_FishpackGrid.f90
+	$(FC) $(FFLAGS) -c type_FishpackGrid.f90 $(LINKS)\
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
 type_Grid.o: \
 type_RectangularDomain.o \
 type_Grid.f90
@@ -264,7 +269,7 @@ sepx4.o\
 type_FishpackSolver.f90
 	$(FC) $(FFLAGS) -c type_FishpackSolver.f90 $(LINKS)\
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
-	 
+
 fishpack_library.o: \
 type_FishpackWorkspace.o\
 type_FishpackSolver.o\
@@ -273,6 +278,7 @@ type_HelmholtzSolver.o\
 type_PoissonSolver.o \
 type_TridiagonalData.o\
 type_TridiagonalSolver.o\
+type_FishpackGrid.o \
 type_CenteredGrid.o\
 type_StaggeredGrid.o\
 type_MacGrid.o\

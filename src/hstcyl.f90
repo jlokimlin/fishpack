@@ -604,7 +604,7 @@ contains
             else if (c >= d) then
                 ierror = 4
                 return
-            else if (n <= 2) then
+            else if (3 > n) then
                 ierror = 5
                 return
             else if (nbdcnd < 0 .or. nbdcnd >= 5) then
@@ -616,7 +616,7 @@ contains
             else if (a > 0.0_wp .and. mbdcnd >= 5) then
                 ierror = 8
                 return
-            else if (m <= 2) then
+            else if (3 > m) then
                 ierror = 9
                 return
             else if (idimf < m) then

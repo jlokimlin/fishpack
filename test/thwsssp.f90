@@ -51,26 +51,27 @@ program thwsssp
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
-    type (FishpackSolver)     :: solver
-    integer (ip) :: m, mbdcnd, n, nbdcnd, idimf, mp1, i, np1, j, ierror
-    real (wp), dimension(19, 73) :: f
-    real (wp), dimension(73) :: bdtf, bdts, bdps, bdpf
-    real (wp), dimension(19) :: sint
-    real (wp), dimension(73) :: sinp
-    real (wp) :: pi, ts, tf, ps, pf, elmbda, dtheta, dphi, pertrb, discretization_error, z
+    type (FishpackSolver)       :: solver
+    integer (ip), parameter     :: m = 18
+    integer (ip), parameter     :: n = 72
+    integer (ip), parameter     :: idimf = m + 1
+    integer (ip)                :: mbdcnd, nbdcnd, mp1, i, np1, j, ierror
+    real (wp)                   :: f(idimf, n + 1)
+    real (wp), dimension(n + 1) :: bdtf, bdts, bdps, bdpf
+    real (wp), dimension(idimf) :: sint
+    real (wp), dimension(n + 1) :: sinp
+    real (wp)                   :: pi, ts, tf, ps, pf, elmbda
+    real (wp)                   :: dtheta, dphi, pertrb, discretization_error, z
     !-----------------------------------------------
 
     pi = acos(-1.0_wp)
     ts = 0
     tf = pi/2
-    m = 18
     mbdcnd = 6
     ps = 0
     pf = 2.0_wp*pi
-    n = 72
     nbdcnd = 0
     elmbda = 0.0_wp
-    idimf = 19
     !
     !     generate sines for use in subsequent computations
     !

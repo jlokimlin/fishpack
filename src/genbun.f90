@@ -556,10 +556,10 @@ contains
             real (wp),    intent (in)  :: c(m)
             !--------------------------------------------------------------------------------
 
-            if (m <= 2) then
+            if (3 > m) then
                 ierror = 1
                 return
-            else if (n <= 2) then
+            else if (3 > n) then
                 ierror = 2
                 return
             else if (idimy < m) then

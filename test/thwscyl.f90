@@ -41,7 +41,8 @@ program thwscyl
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-        FishpackSolver
+        FishpackSolver, &
+        FishpackGrid
 
     ! Explicit typing only
     implicit None
@@ -49,83 +50,87 @@ program thwscyl
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
-    type (FishpackSolver)     :: solver
-    integer (ip) :: idimf, m, mbdcnd, n, nbdcnd, mp1, np1, i, j, ierror
-    real (wp), dimension(75, 105) :: f
-    real (wp), dimension(101) :: bda, bdb
-    real (wp), dimension(51) :: bdc, bdd, r
-    real (wp), dimension(101) :: z
-    real (wp) :: a, b, c, d, elmbda, pertrb, x, discretization_error
+    type (FishpackSolver)        :: solver
+    type (FishpackGrid)          :: grid
+    integer (ip), parameter      :: m = 50
+    integer (ip), parameter      :: n = 100
+    integer (ip), parameter      :: idimf = m + 25
+    integer (ip)                 :: mbdcnd, nbdcnd, mp1, np1, i, j, ierror
+    real (wp)                    :: f(idimf, n + 5)
+    real (wp), allocatable       :: bda(:), bdb(:), bdc(:), bdd(:)
+    real (wp), allocatable       :: z(:), r(:)
+    real (wp)                    :: a, b, c, d
+    real (wp)                    :: elmbda, pertrb, x, discretization_error
     !-----------------------------------------------
-    !
-    !     from dimension statement we get value of idimf.
-    !
-    idimf = 75
-    a = 0.
-    b = 1.
-    m = 50
+
+    ! Set domain and boundary conditions in r
+    a = 0.0_wp
+    b = 1.0_wp
     mbdcnd = 6
-    c = 0.
-    d = 1.
-    n = 100
+
+    ! Set domain and boundary conditions in z
+    c = 0.0_wp
+    d = 1.0_wp
     nbdcnd = 3
-    elmbda = 0.
-    !
-    !     auxiliary quantities.
-    !
+
+    ! Set helmholtz constant
+    elmbda = 0.0_wp
+
+    ! Set auxiliary quantities
     mp1 = m + 1
     np1 = n + 1
+
     !
-    !     generate and store grid points for the purpose of computing
-    !     boundary data and the right side of the poisson equation.
+    !==> Generate and store grid points for the purpose of computing
+    !    boundary data and the right side of the poisson equation.
+    !
+    r = grid%get_centered_grid(start=a, stop=b, num=50)
+    z = grid%get_centered_grid(start=c, stop=d, num=100)
+
+    !
+    !==> Generate boundary data in z.
+    !    bda is a dummy variable
+    !
+    allocate( bda, bdb, mold=z )
+    bdb = 4.0_wp * (z**4)
+    !
+    !==>  Generate boundary data in r.
+    !
+    allocate( bdc, bdd, mold=r )
+    bdc = 0.0_wp
+    bdd = 4.0_wp * (r**4)
+
+    !
+    !==> Generate right side of equation.
     !
     do i = 1, mp1
-        r(i) = real(i - 1)/50.
-    end do
-    do j = 1, np1
-        z(j) = real(j - 1)/100.
-    end do
-    !
-    !     generate boundary data.
-    !
-    bdb(:np1) = 4.*z(:np1)**4
-    !
-    !     generate boundary data.
-    !
-    bdc(:mp1) = 0.
-    bdd(:mp1) = 4.*r(:mp1)**4
-    !
-    !     bda is a dummy variable.
-    !
-    !
-    !     generate right side of equation.
-    !
-    do i = 1, mp1
-        f(i, :np1) = 4.*r(i)**2*z(:np1)**2*(4.*z(:np1)**2+3.*r(i)**2)
+        f(i,:np1) = 4.0_wp * (r(i)**2) * (z(:np1)**2) * (4.0_wp * (z(:np1)**2) + 3.0_wp * (r(i)**2))
     end do
 
-    ! Solve system
+    !
+    !==> Solve system
+    !
     call solver%hwscyl(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
         elmbda, f, idimf, pertrb, ierror)
     !
-    !     compute discretization error by minimizing over all a the function
-    !     norm(f(i, j) - a*1 - u(r(i), z(j))).  the exact solution is
+    !==> Compute discretization error by minimizing over all a the function
+    !    norm(f(i, j) - a*1 - u(r(i), z(j))).  the exact solution is
     !                u(r, z) = (r*z)**4 + arbitrary constant.
     !
-    x = 0.
+    x = 0.0_wp
     do i = 1, mp1
-        x = x + sum(f(i, :np1)-(r(i)*z(:np1))**4)
+        x = x + sum(f(i,:np1)-(r(i)*z(:np1))**4)
     end do
-    x = x/real(np1*mp1)
-    f(:mp1, :np1) = f(:mp1, :np1) - x
-    discretization_error = 0.
+
+    x = x/(np1*mp1)
+    f(:mp1,:np1) = f(:mp1,:np1) - x
+    discretization_error = 0.0_wp
     do i = 1, mp1
         do j = 1, np1
             x = abs(f(i, j)-(r(i)*z(j))**4)
             discretization_error = max(x, discretization_error)
         end do
     end do
-
 
     !
     !==> Print earlier output from platforms with 64-bit floating point
@@ -139,5 +144,10 @@ program thwscyl
     write( stdout, '(a,i3,a,1pe15.6)') &
         '     ierror =', ierror, ' pertrb = ', pertrb
     write( stdout, '(a,1pe15.6/)') '     discretization error = ', discretization_error
+
+    !
+    !==> Release memory
+    !
+    deallocate( r, z, bda, bdb, bdc, bdd )
 
 end program thwscyl

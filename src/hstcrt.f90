@@ -364,7 +364,7 @@ contains
         else if ((c-d) >= 0.0_wp) then
             ierror = 3
             return
-        else if(n <= 2) then
+        else if(3 > n) then
             ierror = 4
             return
         else if (nbdcnd < 0 .or. nbdcnd > 4) then
@@ -373,7 +373,7 @@ contains
         else if (idimf < m) then
             ierror = 7
             return
-        else if (m <= 2) then
+        else if (3 > m) then
             ierror = 8
             return
         else

@@ -113,12 +113,12 @@
 !
 !     where
 !
-!     a(20) = (1+x(20))**2*s + (1+x(20))*s*dx
+!     a(20) = (1+x(m))**2*s + (1+x(m))*s*dx
 !
-!     b(20) = -2*(1+x(20))**2*s - sqrt(-1)*(dy**2)
+!     b(20) = -2*(1+x(m))**2*s - sqrt(-1)*(dy**2)
 !
-!     f(20, j) = ((3-sqrt(-1))*(1+x(20))**4*(dy**2) - 16(1+x(20))**2*s
-!                + 16(1+x(20))*s*dx)*sin(y(j))
+!     f(20, j) = ((3-sqrt(-1))*(1+x(m))**4*(dy**2) - 16(1+x(m))**2*s
+!                + 16(1+x(m))*s*dx)*sin(y(j))
 !
 !                    for j=1, 2, ..., 40.
 !
@@ -145,91 +145,64 @@ program tcmgnbn
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-        FishpackSolver
+        FishpackSolver, &
+        FishpackGrid
 
     ! Explicit typing only
     implicit None
 
-    !-----------------------------------------------
-    ! Dictionary: local variables
-    !-----------------------------------------------
-    type (FishpackSolver)           :: solver
-    integer (ip)                    :: idimf, m, mp1, mperod, n, nperod, k, j, ierror
-    real (wp), dimension(21)        :: x
-    real (wp), dimension(41)        :: y
-    real (wp)                       :: dx, pi, dy, s, t
-    real (wp)                       :: t2, t4, discretization_error
-    complex (wp), dimension(22, 40) :: f
-    complex (wp), dimension(20)     :: a, b, c
-    complex (wp), parameter         :: I = (0.0_wp, 1.0_wp)
-    !-----------------------------------------------
+    !------------------------------------------------------------------
+    ! Dictionary
+    !------------------------------------------------------------------
+    type (FishpackSolver)     :: solver
+    type (FishpackGrid)       :: grid
+    integer (ip), parameter   :: M = 20
+    integer (ip), parameter   :: N = 40
+    integer (ip), parameter   :: IDIMF = M + 2
+    integer (ip)              :: mp1, mperod, nperod, k, j, ierror
+    real (wp), parameter      :: PI = acos(-1.0_wp)
+    real (wp), allocatable    :: x(:), y(:)
+    real (wp)                 :: discretization_error
+    complex (wp)              :: f(IDIMF, N)
+    complex (wp), allocatable :: a(:), b(:), c(:)
+    !------------------------------------------------------------------
 
-    idimf = 22
-    m = 20
-    mp1 = m + 1
+    mp1 = M + 1
     mperod = 1
-    dx = 0.05_wp
-    n = 40
     nperod = 0
-    pi = acos(-1.0_wp)
-    dy = pi/20
     !
-    !     generate grid points for later use.
+    !==> Generate grid points for later use.
     !
-    do k = 1, mp1
-        x(k) = real(k - 1, kind=wp)*dx
-    end do
+    x = grid%get_centered_grid(start=0.0_wp, stop=1.0_wp, num=M)
+    y = grid%get_centered_grid(start=-PI, stop=PI, num=N)
 
-    do j = 1, n
-        y(j) = -pi + real(j - 1, kind=wp)*dy
-    end do
     !
-    !     generate coefficients.
+    !==> Generate coefficients.
     !
-    s = (dy/dx)**2
-    do k = 2, 19
-        t = 1.0_wp + x(k)
-        t2 = t**2
-        a(k) = cmplx((t2 + t*dx)*s, 0.0_wp, kind=wp)
-        b(k) = -2.0_wp * t2*s - I*(dy**2)
-        c(k) = cmplx((t2 - t*dx)*s, 0.0_wp, kind=wp)
-    end do
-    a(1) = 0.0_wp
-    b(1) = -2.0_wp * s - I*(dy**2)
-    c(1) = cmplx(2.0_wp * s, 0.0_wp, kind=wp)
-    b(20) = (-2.0_wp * s*(1.0_wp + x(20))**2) - I*(dy**2)
-    a(20) = cmplx(s*(1.0_wp + x(20))**2+(1.0_wp +x(20))*dx*s, 0.0_wp, kind=wp)
-    c(20) = 0.0_wp
-    !
-    !     generate right side.
-    !
-    do k = 2, 19
-        do j = 1, n
-            f(k, j) = (3.0_wp, -1.0_wp)*(1.0_wp + x(k))**4*(dy**2)*sin(y(j))
-        end do
-    end do
+    call get_coefficients(x, y, a, b, c)
 
-    t = 1.0_wp + x(20)
-    t2 = t**2
-    t4 = t**4
-    do j = 1, n
-        f(1, j) = ((11.0_wp, -1.0_wp) + 8.0_wp/dx)*(dy**2)*sin(y(j))
-        f(20, j)=((3.0_wp, -1.0_wp)*t4*(dy**2) &
-            -16.0_wp*t2*s+16.0_wp*t*s*dx)*sin(y(j))
-    end do
-
-    ! Solve system
-    call solver%cmgnbn(nperod, n, mperod, m, a, b, c, idimf, f, ierror)
-
-    !     compute discretization error.  the exact solution is
     !
-    !            u(x, y) = (1+x)**4*sin(y) .
+    !==> Generate right side.
     !
+    call get_right_hand_side(x, y, f)
+
+    !
+    !==> Solve system
+    !
+    call solver%cmgnbn(nperod, N, mperod, M, a, b, c, IDIMF, f, ierror)
+
     discretization_error = 0.0_wp
-    do k = 1, m
-        do j = 1, n
-            t = abs(f(k, j)-(1.0_wp+x(k))**4*sin(y(j)))
-            discretization_error = max(t, discretization_error)
+    do k = 1, M
+        do j = 1, N
+            associate( local_error =>  abs(f(k, j)-(1.0_wp+x(k))**4*sin(y(j))) )
+                !
+                !==> Compute discretization error. The exact solution is
+                !
+                !            u(x, y) = (1+x)**4*sin(y).
+                !
+                discretization_error = max(local_error, discretization_error)
+
+            end associate
         end do
     end do
 
@@ -243,7 +216,97 @@ program tcmgnbn
     write( stdout, '(a)') '     The output from your computer is: '
     write( stdout, '(a,i3,a,1pe15.6/)') &
         '     ierror =', ierror, &
-        ' discretization error = ', &
-        discretization_error
+        ' discretization error = ', discretization_error
+
+    !
+    !==> Release memory
+    !
+    deallocate( x, y, a, b, c )
+
+
+contains
+
+
+    pure subroutine get_coefficients(x, y, a, b, c)
+        !-----------------------------------------------
+        ! Dictionary: calling arguments
+        !-----------------------------------------------
+        real (wp),                 intent (in)  :: x(:)
+        real (wp),                 intent (in)  :: y(:)
+        complex (wp), allocatable, intent (out) :: a(:)
+        complex (wp), allocatable, intent (out) :: b(:)
+        complex (wp), allocatable, intent (out) :: c(:)
+        !-----------------------------------------------
+        ! Dictionary: local variables
+        !-----------------------------------------------
+        integer (ip)            :: m, k
+        real (wp)               :: dx, dy, s, t, t2
+        complex (wp), parameter :: I = (0.0_wp, 1.0_wp)
+        !-----------------------------------------------
+
+        m = size(x) - 1
+        !
+        !==> Allocate memory
+        !
+        allocate( a(m), b(m), c(m) )
+
+        dx = x(2)-x(1)
+        dy = y(2)-y(1)
+        s = (dy/dx)**2
+        do k = 2, m - 1
+            t = 1.0_wp + x(k)
+            t2 = t**2
+            a(k) = cmplx((t2 + t*dx)*s, 0.0_wp, kind=wp)
+            b(k) = -2.0_wp * t2*s - I*(dy**2)
+            c(k) = cmplx((t2 - t*dx)*s, 0.0_wp, kind=wp)
+        end do
+        a(1) = 0.0_wp
+        b(1) = -2.0_wp * s - I*(dy**2)
+        c(1) = cmplx(2.0_wp * s, 0.0_wp, kind=wp)
+        b(m) = (-2.0_wp * s*(1.0_wp + x(m))**2) - I*(dy**2)
+        a(m) = cmplx(s*(1.0_wp + x(m))**2 + (1.0_wp + x(m))*dx*s, 0.0_wp, kind=wp)
+        c(m) = 0.0_wp
+
+    end subroutine get_coefficients
+
+
+
+    pure subroutine get_right_hand_side(x, y, f)
+        !-----------------------------------------------
+        ! Dictionary: calling arguments
+        !-----------------------------------------------
+        real (wp),    intent (in)  :: x(:)
+        real (wp),    intent (in)  :: y(:)
+        complex (wp), intent (out) :: f(:,:)
+        !-----------------------------------------------
+        ! Dictionary: local variables
+        !-----------------------------------------------
+        integer (ip) :: n, m, k, j
+        real (wp)    :: dx, dy, s, t, t2, t4
+        !-----------------------------------------------
+
+        m = size(x) - 1
+        n = size(y) - 1
+        dx = x(2)-x(1)
+        dy = y(2)-y(1)
+        s = (dy/dx)**2
+
+        do k = 2, m - 1
+            do j = 1, n
+                f(k, j) = (3.0_wp, -1.0_wp)*(1.0_wp + x(k))**4*(dy**2)*sin(y(j))
+            end do
+        end do
+
+        s = (dy/dx)**2
+        t = 1.0_wp + x(m)
+        t2 = t**2
+        t4 = t**4
+        do j = 1, n
+            f(1, j) = ((11.0_wp, -1.0_wp) + 8.0_wp/dx)*(dy**2)*sin(y(j))
+            f(m, j)=((3.0_wp, -1.0_wp)*t4*(dy**2) &
+                -16.0_wp*t2*s+16.0_wp*t*s*dx)*sin(y(j))
+        end do
+
+    end subroutine get_right_hand_side
 
 end program tcmgnbn

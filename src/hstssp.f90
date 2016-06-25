@@ -467,7 +467,7 @@ contains
         if (a >= b) ierror = 2
         if (mbdcnd<=0 .or. mbdcnd>9) ierror = 3
         if (c >= d) ierror = 4
-        if (n <= 2) ierror = 5
+        if (3 > n) ierror = 5
         if (nbdcnd<0 .or. nbdcnd>=5) ierror = 6
         if(a>0..and.(mbdcnd==5.or.mbdcnd==6.or.mbdcnd==9))ierror=7
         if(a==0..and.(mbdcnd==3.or.mbdcnd==4.or.mbdcnd==8))ierror=8
@@ -476,7 +476,7 @@ contains
         if (mbdcnd>=5 .and. (nbdcnd==1 .or. nbdcnd==2 .or. nbdcnd==4)) &
             ierror = 11
         if (idimf < m) ierror = 12
-        if (m <= 2) ierror = 13
+        if (3 > m) ierror = 13
         if (ierror /= 0) return
 
         ! compute required real workspace size

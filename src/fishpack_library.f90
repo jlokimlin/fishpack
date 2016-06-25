@@ -1,5 +1,8 @@
 module fishpack_library
 
+    use type_FishpackGrid, only: &
+        FishpackGrid
+
     use type_FishpackWorkspace, only: &
         FishpackWorkspace
 
@@ -38,6 +41,7 @@ module fishpack_library
 
     ! Everything is private unless stated otherwise
     private
+    public :: FishpackGrid
     public :: FishpackWorkspace
     public :: FishpackSolver
     public :: HelmholtzData

@@ -26,7 +26,7 @@ FC = gfortran-6
 FFLAGS = \
 -std=f2008ts \
 -fmodule-private \
-$(ENFORCE_64_BIT_PRECISION)\
+$(ENFORCE_64_BIT_PRECISION) \
 $(LANGUAGE_OPTIONS)\
 $(ERROR_WARNING_OPTIONS)
 

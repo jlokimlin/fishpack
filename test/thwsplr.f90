@@ -73,25 +73,26 @@ program thwsplr
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
-    type (FishpackSolver)     :: solver
-    integer (ip) :: idimf, m, mbdcnd, n, nbdcnd, mp1, np1, i, j, ierror
-    real (wp), dimension(100, 50) :: f
-    real (wp), dimension(51) :: bdc, bdd, r, bda, bdb
-    real (wp), dimension(49) :: theta
-    real (wp) :: a, b, c, pi, d, elmbda, pertrb, discretization_error, z
+    type (FishpackSolver)        :: solver
+    integer (ip), parameter      :: m = 50
+    integer (ip), parameter      :: n = 48
+    integer (ip), parameter      :: idimf = 100
+    integer (ip)                 :: mbdcnd, nbdcnd, mp1, np1, i, j, ierror
+    real (wp), parameter         :: pi = acos(-1.0_wp)
+    real (wp)                    :: f(idimf, m)
+    real (wp), dimension (m + 1) :: bdc, bdd, r, bda, bdb
+    real (wp), dimension (n + 1) :: theta
+    real (wp)                    :: a, b, c, d, elmbda
+    real (wp)                    :: pertrb, discretization_error, z
     !-----------------------------------------------
 
-    idimf = 100
-    a = 0.
-    b = 1.
-    m = 50
+    a = 0.0_wp
+    b = 1.0_wp
     mbdcnd = 5
-    c = 0.
-    pi = acos( -1.0 )
-    d = pi/2.
-    n = 48
+    c = 0.0_wp
+    d = pi/2
     nbdcnd = 3
-    elmbda = 0.
+    elmbda = 0.0_wp
     !
     !     auxiliary quantities.
     !
@@ -102,27 +103,28 @@ program thwsplr
     !     boundary data and the right side of the poisson equation.
     !
     do i = 1, mp1
-        r(i) = real(i - 1)/50.
+        r(i) = real(i - 1, kind=wp)/50
     end do
+
     do j = 1, np1
-        theta(j) = real(j - 1)*pi/96.
+        theta(j) = real(j - 1, kind=wp)*pi/96
     end do
     !
     !     generate boundary data.
     !
-    bdc(:mp1) = 0.
-    bdd(:mp1) = 0.
+    bdc(:mp1) = 0.0_wp
+    bdd(:mp1) = 0.0_wp
     !
     !     bda and bdb are dummy variables.
     !
     do j = 1, np1
-        f(mp1, j) = 1. - cos(4.*theta(j))
+        f(mp1, j) = 1.0_wp - cos(4.0_wp*theta(j))
     end do
     !
     !     generate right side of equation.
     !
     do i = 1, m
-        f(i, :np1) = 16.*r(i)**2
+        f(i, :np1) = 16.0_wp * r(i)**2
     end do
 
     ! Solve system
@@ -130,12 +132,12 @@ program thwsplr
         elmbda, f, idimf, pertrb, ierror)
     !
     !     compute discretization error.  the exact solution is
-    !                u(r, theta) = r**4*(1 - cos(4*theta))
+    !                u(r, theta) = (r**4)*(1 - cos(4*theta))
     !
-    discretization_error = 0.
+    discretization_error = 0.0_wp
     do i = 1, mp1
         do j = 1, np1
-            z = abs(f(i, j)-r(i)**4*(1.-cos(4.*theta(j))))
+            z = abs(f(i, j)-(r(i)**4)*(1.0_wp-cos(4.0_wp*theta(j))))
             discretization_error = max(z, discretization_error)
         end do
     end do
