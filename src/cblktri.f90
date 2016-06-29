@@ -255,9 +255,9 @@
 !
 module module_cblktri
 
-    use, intrinsic :: iso_fortran_env, only: &
-        wp => REAL64, &
-        ip => INT32
+    use fishpack_precision, only: &
+        wp, & ! Working precision
+        ip ! Integer precision
 
     use module_comf, only: &
         psgf, &
@@ -1411,7 +1411,7 @@ contains
                     fpp = 0.0_wp
 
                     do j = 1, iz
-                        dd = 1./(cx - bh(j))
+                        dd = 1.0_wp /(cx - bh(j))
                         fsg = fsg*a(j)*dd
                         hsg = hsg*c(j)*dd
                         fp = fp + dd

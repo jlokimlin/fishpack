@@ -258,9 +258,9 @@
 !
 module module_blktri
 
-    use, intrinsic :: iso_fortran_env, only: &
-        wp => REAL64, &
-        ip => INT32
+    use fishpack_precision, only: &
+        wp, & ! Working precision
+        ip ! Integer precision
 
     use type_FishpackWorkspace, only: &
         Fish => FishpackWorkspace
@@ -290,16 +290,14 @@ module module_blktri
         integer (ip) :: ncmplx
         integer (ip) :: ik
         real (wp)    :: cnv
+        !-------------------------------------------------
     contains
         !-------------------------------------------------
         ! Class methods
         !-------------------------------------------------
         procedure, nopass, public  :: blktrii
-    !        procedure, private :: blktr1
-    !        procedure, private :: bsrh
-    !        procedure, private :: compb
-    !        procedure, private :: ppadd
-    end type
+        !-------------------------------------------------
+    end type BlktriAux
 
     !---------------------------------------------------------------------------------
     ! Dictionary: global variables confined to the module

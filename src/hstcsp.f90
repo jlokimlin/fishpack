@@ -400,7 +400,7 @@
 !                          =  8  nbdcnd = 5 or 6 and
 !                                mbdcnd = 1, 2, 4, 5, or 7
 !
-!                          =  9  c > 0 and nbdcnd >= 5
+!                          =  9  c > 0 and 5 <= nbdcnd
 !
 !                          = 10  elmbda > 0
 !
@@ -414,9 +414,9 @@
 !
 !                          = 15  a > 0 and mbdcnd = 5, 6, or 9
 !
-!                          = 16  b < pi and mbdcnd >= 7
+!                          = 16  b < pi and 7 <= mbdcnd
 !
-!                          = 17  lambda /= 0 and nbdcnd >= 5
+!                          = 17  lambda /= 0 and 5 <= nbdcnd
 !
 !                          since this is the only means of indicating
 !                          a possibly incorrect call to hstcsp,
@@ -486,16 +486,15 @@
 !
 module module_hstcsp
 
-    use, intrinsic :: iso_fortran_env, only: &
-        wp => REAL64, &
-        ip => INT32, &
-        stdout => OUTPUT_UNIT
+    use fishpack_precision, only: &
+        wp, & ! Working precision
+        ip ! Integer precision
 
     use type_FishpackWorkspace, only: &
         Fish => FishpackWorkspace
 
     use module_blktri, only:&
-        blktrii
+        BlktriAux
 
     ! Explicit typing only
     implicit None
@@ -536,14 +535,14 @@ contains
         ! Dictionary: local variables
         !-----------------------------------------------
         integer (ip)         :: k, l, np, irwk, icwk, local_error_flag
-        real (wp), parameter :: pi = acos(-1.0_wp)
+        real (wp), parameter :: PI = acos(-1.0_wp)
         integer (ip), save   :: workspace_indices(8)
         !-----------------------------------------------
 
         !
         !==> Check for invalid input parameters
         !
-        if (a < 0. .or. b > pi) then
+        if (a < 0.0_wp .or. b > PI) then
             ierror = 1
             return
         else if (a >= b) then
@@ -564,14 +563,13 @@ contains
         else if (n < 5) then
             ierror = 7
             return
-        else if (&
-            (nbdcnd == 5 .or. nbdcnd == 6) &
-            .and. &
-            (mbdcnd == 1 .or. mbdcnd == 2 .or. mbdcnd == 4 .or. mbdcnd == 5 .or. mbdcnd == 7)) &
-            then
-            ierror = 8
-            return
-        else if (c > 0. .and. nbdcnd >= 5) then
+        else if (nbdcnd == 5 .or. nbdcnd == 6) then
+            select case (mbdcnd)
+                case (1:2, 4:5, 7)
+                    ierror = 8
+                    return
+            end select
+        else if (c > 0.0_wp .and. 5 <= nbdcnd) then
             ierror = 9
             return
         else if (idimf < m) then
@@ -583,16 +581,19 @@ contains
         else if (a == 0.0_wp .and. mbdcnd /= 5.and. mbdcnd /= 6.and. mbdcnd /= 9) then
             ierror=13
             return
-        else if (b == pi .and. mbdcnd <= 6) then
+        else if (b == PI .and. mbdcnd <= 6) then
             ierror = 14
             return
-        else if (a > 0.0_wp .and. (mbdcnd == 5.or.mbdcnd == 6.or.mbdcnd == 9)) then
-            ierror=15
-            return
-        else if (b < pi .and. mbdcnd >= 7) then
+        else if (a > 0.0_wp) then
+            select case (mbdcnd)
+                case (5:6, 9)
+                    ierror=15
+                    return
+            end select
+        else if (b < PI .and. 7 <= mbdcnd) then
             ierror = 16
             return
-        else if (elmbda /= 0.0_wp .and. nbdcnd >= 5) then
+        else if (elmbda /= 0.0_wp .and. 5 <= nbdcnd) then
             ierror = 17
             return
         else
@@ -670,203 +671,210 @@ contains
         end associate
 
 
-    contains
-
-        subroutine hstcs1(intl, a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, &
-            bdc, bdd, elmbda, f, idimf, pertrb, ierr1, am, bm, cm, an, bn, &
-            cn, snth, rsq, w, wc)
-            !-----------------------------------------------
-            ! Dictionary: calling arguments
-            !-----------------------------------------------
-            integer (ip), intent (in)     :: intl
-            integer (ip), intent (in)     :: m
-            integer (ip), intent (in)     :: mbdcnd
-            integer (ip), intent (in)     :: n
-            integer (ip), intent (in)     :: nbdcnd
-            integer (ip), intent (in)     :: idimf
-            integer (ip), intent (out)    :: ierr1
-            real (wp),    intent (in)     :: a
-            real (wp),    intent (in)     :: b
-            real (wp),    intent (in)     :: c
-            real (wp),    intent (in)     :: d
-            real (wp),    intent (in)     :: elmbda
-            real (wp),    intent (out)    :: pertrb
-            real (wp),    intent (in)     :: bda(:)
-            real (wp),    intent (in)     :: bdb(:)
-            real (wp),    intent (in)     :: bdc(:)
-            real (wp),    intent (in)     :: bdd(:)
-            real (wp),    intent (in out) :: f(idimf,n)
-            real (wp),    intent (out)    :: am(:)
-            real (wp),    intent (out)    :: bm(:)
-            real (wp),    intent (out)    :: cm(:)
-            real (wp),    intent (out)    :: an(:)
-            real (wp),    intent (out)    :: bn(:)
-            real (wp),    intent (out)    :: cn(:)
-            real (wp),    intent (in out) :: snth(:)
-            real (wp),    intent (in out) :: rsq(:)
-            real (wp),    intent (in out) :: w(:)
-            complex (wp), intent (in out) :: wc(:)
-            !-----------------------------------------------
-            ! Dictionary: local variables
-            !-----------------------------------------------
-            integer (ip) :: i, j, isw, nb
-            real (wp)    :: dth, dthsq, dr, x, y, a2, a1, a3
-            !-----------------------------------------------
-
-            dth = (b - a)/m
-            dthsq = dth**2
-
-            do i = 1, m
-                snth(i) = sin(a + (real(i, kind=wp) - 0.5_wp)*dth)
-            end do
-
-            dr = (d - c)/n
-
-            do j = 1, n
-                rsq(j) = (c + (real(j, kind=wp) - 0.5_wp)*dr)**2
-            end do
-            !
-            !     multiply right side by r(j)**2
-            !
-            do j = 1, n
-                x = rsq(j)
-                f(:m, j) = x*f(:m, j)
-            end do
-            !
-            !      define coefficients am, bm, cm
-            !
-            x = 1./(2.0_wp*cos(dth/2.))
-            am(2:m) = (snth(:m-1)+snth(2:m))*x
-            cm(:m-1) = am(2:m)
-            am(1) = sin(a)
-            cm(m) = sin(b)
-            do i = 1, m
-                x = 1./snth(i)
-                y = x/dthsq
-                am(i) = am(i)*y
-                cm(i) = cm(i)*y
-                bm(i) = elmbda*x*x - am(i) - cm(i)
-            end do
-            !
-            !==> Define coefficients an, bn, cn
-            !
-            x = c/dr
-            do j = 1, n
-                an(j) = (x + real(j - 1, kind=wp))**2
-                cn(j) = (x + real(j, kind=wp))**2
-                bn(j) = -(an(j)+cn(j))
-            end do
-            isw = 1
-            nb = nbdcnd
-
-            if (c == 0. .and. nb == 2) nb = 6
-            !
-            !==> Enter data on theta boundaries
-            !
-            select case (mbdcnd)
-                case (1:2, 7)
-                    bm(1) = bm(1) - am(1)
-                    x = 2.0_wp*am(1)
-                    f(1, :n) = f(1, :n) - x*bda(:n)
-                case (3:4, 8)
-                    bm(1) = bm(1) + am(1)
-                    x = dth*am(1)
-                    f(1, :n) = f(1, :n) + x*bda(:n)
-            end select
-
-            select case (mbdcnd)
-                case (1, 4:5)
-                    bm(m) = bm(m) - cm(m)
-                    x = 2.0_wp*cm(m)
-                    f(m, :n) = f(m, :n) - x*bdb(:n)
-                case (2:3, 6)
-                    bm(m) = bm(m) + cm(m)
-                    x = dth*cm(m)
-                    f(m, :n) = f(m, :n) - x*bdb(:n)
-            end select
-
-            select case (nb)
-                case (1:2)
-                    bn(1) = bn(1) - an(1)
-                    x = 2.0_wp*an(1)
-                    f(:m, 1) = f(:m, 1) - x*bdc(:m)
-                case (3:4)
-                    bn(1) = bn(1) + an(1)
-                    x = dr*an(1)
-                    f(:m, 1) = f(:m, 1) + x*bdc(:m)
-            end select
-
-            select case (nb)
-                case (1, 4:5)
-                    bn(n) = bn(n) - cn(n)
-                    x = 2.0_wp*cn(n)
-                    f(:m, n) = f(:m, n) - x*bdd(:m)
-                case (2:3, 6)
-                    bn(n) = bn(n) + cn(n)
-                    x = dr*cn(n)
-                    f(:m, n) = f(:m, n) - x*bdd(:m)
-            end select
-
-            pertrb = 0.0_wp
-
-            case_block: block
-                select case (mbdcnd)
-                    case (1:2, 4:5, 7)
-                        exit case_block
-                    case (3, 6, 8:9)
-                        select case (nb)
-                            case (1:2, 4:5)
-                                exit case_block
-                            case (3, 6)
-                                if (elmbda >= 0.0_wp) then
-                                    if (elmbda /= 0.0_wp) then
-                                        ierr1 = 10
-                                    else
-                                        isw = 2
-                                        do i = 1, m
-                                            x = 0.0_wp
-                                            x = sum(f(i, :n))
-                                            pertrb = pertrb + x*snth(i)
-                                        end do
-                                        x = 0.0_wp
-                                        x = sum(rsq(:n))
-                                        pertrb = 2.0_wp*(pertrb*sin(dth/2.))/(x*(cos(a) - cos(b)))
-                                        do j = 1, n
-                                            x = rsq(j)*pertrb
-                                            f(:m, j) = f(:m, j) - x
-                                        end do
-                                    end if
-                                end if
-                        end select
-                end select
-            end block case_block
-
-            a2 = sum(f(:m, 1))
-            a2 = a2/rsq(1)
-            !
-            !     initialize blktri
-            !
-            ierr1 = 0
-            if (intl == 0) call blktrii(0, 1, n, an, bn, cn, 1, m, am, bm, cm, idimf, f, ierr1, w, wc)
-
-            call blktrii(1, 1, n, an, bn, cn, 1, m, am, bm, cm, idimf, f, ierr1, w, wc)
-
-            if (.not.(isw /=2 .or. c /= 0. .or. nbdcnd /= 2)) then
-                a3 = 0.0_wp
-                a1 = dot_product(snth(:m), f(:m, 1))
-                a3 = sum(snth(:m))
-                a1 = a1 + rsq(1)*a2/2
-
-                if (mbdcnd == 3) a1=a1+(sin(b)*bdb(1)-sin(a)*bda(1))/(2.0_wp*(b-a))
-
-                a1 = a1/a3
-                a1 = bdc(1) - a1
-                f(:m, :n) = f(:m, :n) + a1
-            end if
-
-        end subroutine hstcs1
-
     end subroutine hstcsp
+
+
+
+    subroutine hstcs1(intl, a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, &
+        bdc, bdd, elmbda, f, idimf, pertrb, ierror, am, bm, cm, an, bn, &
+        cn, snth, rsq, w, wc)
+        !-----------------------------------------------
+        ! Dictionary: calling arguments
+        !-----------------------------------------------
+        integer (ip), intent (in)     :: intl
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: mbdcnd
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: nbdcnd
+        integer (ip), intent (in)     :: idimf
+        integer (ip), intent (out)    :: ierror
+        real (wp),    intent (in)     :: a
+        real (wp),    intent (in)     :: b
+        real (wp),    intent (in)     :: c
+        real (wp),    intent (in)     :: d
+        real (wp),    intent (in)     :: elmbda
+        real (wp),    intent (out)    :: pertrb
+        real (wp),    intent (in)     :: bda(:)
+        real (wp),    intent (in)     :: bdb(:)
+        real (wp),    intent (in)     :: bdc(:)
+        real (wp),    intent (in)     :: bdd(:)
+        real (wp),    intent (in out) :: f(idimf,n)
+        real (wp),    intent (out)    :: am(:)
+        real (wp),    intent (out)    :: bm(:)
+        real (wp),    intent (out)    :: cm(:)
+        real (wp),    intent (out)    :: an(:)
+        real (wp),    intent (out)    :: bn(:)
+        real (wp),    intent (out)    :: cn(:)
+        real (wp),    intent (in out) :: snth(:)
+        real (wp),    intent (in out) :: rsq(:)
+        real (wp),    intent (in out) :: w(:)
+        complex (wp), intent (in out) :: wc(:)
+        !-----------------------------------------------
+        ! Dictionary: local variables
+        !-----------------------------------------------
+        integer (ip)     :: i, j, isw, nb
+        real (wp)        :: dth, dthsq, dr, x, y, a2, a1, a3
+        type (BlktriAux) :: aux
+        !-----------------------------------------------
+
+        dth = (b - a)/m
+        dthsq = dth**2
+
+        do i = 1, m
+            snth(i) = sin(a + (real(i, kind=wp) - 0.5_wp)*dth)
+        end do
+
+        dr = (d - c)/n
+
+        do j = 1, n
+            rsq(j) = (c + (real(j, kind=wp) - 0.5_wp)*dr)**2
+        end do
+        !
+        !     multiply right side by r(j)**2
+        !
+        do j = 1, n
+            x = rsq(j)
+            f(:m, j) = x*f(:m, j)
+        end do
+        !
+        !      define coefficients am, bm, cm
+        !
+        x = 1.0_wp/(2.0_wp*cos(dth/2))
+        am(2:m) = (snth(:m-1)+snth(2:m))*x
+        cm(:m-1) = am(2:m)
+        am(1) = sin(a)
+        cm(m) = sin(b)
+        do i = 1, m
+            x = 1.0_wp/snth(i)
+            y = x/dthsq
+            am(i) = am(i)*y
+            cm(i) = cm(i)*y
+            bm(i) = elmbda*(x**2) - am(i) - cm(i)
+        end do
+        !
+        !==> Define coefficients an, bn, cn
+        !
+        x = c/dr
+        do j = 1, n
+            an(j) = (x + real(j - 1, kind=wp))**2
+            cn(j) = (x + real(j, kind=wp))**2
+            bn(j) = -(an(j)+cn(j))
+        end do
+        isw = 1
+        nb = nbdcnd
+
+        if (c == 0.0_wp .and. nb == 2) nb = 6
+        !
+        !==> Enter data on theta boundaries
+        !
+        select case (mbdcnd)
+            case (1:2, 7)
+                bm(1) = bm(1) - am(1)
+                x = 2.0_wp*am(1)
+                f(1, :n) = f(1, :n) - x*bda(:n)
+            case (3:4, 8)
+                bm(1) = bm(1) + am(1)
+                x = dth*am(1)
+                f(1, :n) = f(1, :n) + x*bda(:n)
+        end select
+
+        select case (mbdcnd)
+            case (1, 4:5)
+                bm(m) = bm(m) - cm(m)
+                x = 2.0_wp*cm(m)
+                f(m, :n) = f(m, :n) - x*bdb(:n)
+            case (2:3, 6)
+                bm(m) = bm(m) + cm(m)
+                x = dth*cm(m)
+                f(m, :n) = f(m, :n) - x*bdb(:n)
+        end select
+
+        select case (nb)
+            case (1:2)
+                bn(1) = bn(1) - an(1)
+                x = 2.0_wp*an(1)
+                f(:m, 1) = f(:m, 1) - x*bdc(:m)
+            case (3:4)
+                bn(1) = bn(1) + an(1)
+                x = dr*an(1)
+                f(:m, 1) = f(:m, 1) + x*bdc(:m)
+        end select
+
+        select case (nb)
+            case (1, 4:5)
+                bn(n) = bn(n) - cn(n)
+                x = 2.0_wp*cn(n)
+                f(:m, n) = f(:m, n) - x*bdd(:m)
+            case (2:3, 6)
+                bn(n) = bn(n) + cn(n)
+                x = dr*cn(n)
+                f(:m, n) = f(:m, n) - x*bdd(:m)
+        end select
+
+        pertrb = 0.0_wp
+
+        case_block: block
+            select case (mbdcnd)
+                case (1:2, 4:5, 7)
+                    exit case_block
+                case (3, 6, 8:9)
+                    select case (nb)
+                        case (1:2, 4:5)
+                            exit case_block
+                        case (3, 6)
+                            if (elmbda >= 0.0_wp) then
+                                if (elmbda /= 0.0_wp) then
+                                    ierror = 10
+                                else
+                                    isw = 2
+                                    do i = 1, m
+                                        x = 0.0_wp
+                                        x = sum(f(i, :n))
+                                        pertrb = pertrb + x*snth(i)
+                                    end do
+                                    x = 0.0_wp
+                                    x = sum(rsq(:n))
+                                    pertrb = 2.0_wp*(pertrb*sin(dth/2.))/(x*(cos(a) - cos(b)))
+                                    do j = 1, n
+                                        x = rsq(j)*pertrb
+                                        f(:m, j) = f(:m, j) - x
+                                    end do
+                                end if
+                            end if
+                    end select
+            end select
+        end block case_block
+
+        a2 = sum(f(:m, 1))
+        a2 = a2/rsq(1)
+        !
+        !     initialize blktri
+        !
+        ierror = 0
+        if (intl == 0) call aux%blktrii(0, 1, n, an, bn, cn, 1, m, am, bm, cm, idimf, f, ierror, w, wc)
+
+        call aux%blktrii(1, 1, n, an, bn, cn, 1, m, am, bm, cm, idimf, f, ierror, w, wc)
+
+        if (ierror /= 0) then
+            error stop 'fishpack library: blktrii call failed in hstcs1'
+        end if
+
+        if (.not.(isw /=2 .or. c /= 0.0_wp .or. nbdcnd /= 2)) then
+            a3 = 0.0_wp
+            a1 = dot_product(snth(:m), f(:m, 1))
+            a3 = sum(snth(:m))
+            a1 = a1 + rsq(1)*a2/2
+
+            if (mbdcnd == 3) a1=a1+(sin(b)*bdb(1)-sin(a)*bda(1))/(2.0_wp*(b-a))
+
+            a1 = a1/a3
+            a1 = bdc(1) - a1
+            f(:m, :n) = f(:m, :n) + a1
+        end if
+
+    end subroutine hstcs1
+
+
 
 
 end module module_hstcsp

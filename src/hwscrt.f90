@@ -313,10 +313,9 @@
 !
 module module_hwscrt
 
-    use, intrinsic :: iso_fortran_env, only: &
-        wp => REAL64, &
-        ip => INT32, &
-        stdout => OUTPUT_UNIT
+    use fishpack_precision, only: &
+        wp, & ! Working precision
+        ip ! Integer precision
 
     use type_FishpackWorkspace, only: &
         FishpackWorkspace

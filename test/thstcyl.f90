@@ -57,12 +57,13 @@
 program thstcyl
 
     use, intrinsic :: iso_fortran_env, only: &
-        wp => REAL64, &
-        ip => INT32, &
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-        FishpackSolver
+        wp, &
+        ip, &
+        FishpackSolver, &
+        FishpackGrid
 
     ! Explicit typing only
     implicit None
@@ -70,58 +71,57 @@ program thstcyl
     !-----------------------------------------------
     ! Dictionary: local variables
     !-----------------------------------------------
-    type (FishpackSolver)        :: solver
-    integer (ip)                 :: idimf, m, mbdcnd, n, nbdcnd, i, j, ierror
-    real (wp), dimension(51, 52) :: f
-    real (wp), dimension(52)     :: bda, bdb
-    real (wp), dimension(50)     :: bdc, bdd, r
-    real (wp), dimension(52)     :: z
-    real (wp)                    :: a, b, c, d, elmbda, pertrb, x, discretization_error
+    type (FishpackSolver)   :: solver
+    type (FishpackGrid)     :: grid
+    integer (ip), parameter :: m = 50
+    integer (ip), parameter :: n = 52
+    integer (ip), parameter :: idimf = 50 + 1
+    integer (ip)            :: mbdcnd, nbdcnd, i, j, ierror
+    real (wp)               :: f(idimf,n)
+    real (wp), allocatable  :: r(:), z(:)
+    real (wp), allocatable  :: bda(:), bdb(:), bdc(:), bdd(:)
+    real (wp)               :: a, b, c, d, elmbda
+    real (wp)               :: pertrb, x, discretization_error
     !-----------------------------------------------
 
-    !     from dimension statement we get value of idimf.
-    !
-    idimf = 51
+    ! Set conditions in r
     a = 0.0_wp
     b = 1.0_wp
-    m = 50
     mbdcnd = 6
+
+    ! Set conditions in z
     c = 0.0_wp
     d = 1.0_wp
-    n = 52
     nbdcnd = 3
+
+    ! Set helmholtz constant
     elmbda = 0.0_wp
     !
     !     generate and store grid points for the purpose of computing
     !     boundary data and the right side of the poisson equation.
     !
-    do i = 1, m
-        r(i) = (real(i, kind=wp) - 0.5_wp)/50
-    end do
+    r = grid%get_staggered_grid(start=a, stop=b, num=m)
+    z = grid%get_staggered_grid(start=c, stop=d, num=n)
 
-    do j = 1, n
-        z(j) = (real(j, kind=wp) - 0.5_wp)/52
-    end do
     !
-    !     generate boundary data.
+    !==> Generate boundary data. bda is a dummy variable
     !
-    bdb(:n) = 4.0_wp * ( z(:n)**4 )
-    !
-    !     generate boundary data.
-    !
-    bdc(:m) = 0.0_wp
-    bdd(:m) = 4.0_wp * ( r(:m)**4 )
-    !
-    !     bda is a dummy variable.
+    allocate( bda, bdb, mold=z )
+    allocate( bdc, bdd, mold=r )
+
+    bdb = 4.0_wp * (z**4)
+    bdc = 0.0_wp
+    bdd = 4.0_wp * (r**4)
     !
     !     generate right side of equation.
     !
     do i = 1, m
-        f(i, :n) = 4.0_wp*(r(i)**2) * (z(:n)**2) * (4.0_wp * (z(:n)**2) &
-            + 3.0_wp * (r(i)**2) )
+        f(i, :n) = 4.0_wp*(r(i)**2) * (z**2) * (4.0_wp * (z**2) + 3.0_wp * (r(i)**2) )
     end do
 
-    ! Solve system
+    !
+    !==> Solve system
+    !
     call solver%hstcyl(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
         elmbda, f, idimf, pertrb, ierror)
     !
@@ -131,11 +131,11 @@ program thstcyl
     !
     x = 0.0_wp
     do i = 1, m
-        x = x + sum(f(i, :n)-(r(i)*z(:n))**4)
+        x = x + sum(f(i,:)-(r(i)*z)**4)
     end do
 
     x = x/(m*n)
-    f(:m, :n) = f(:m, :n) - x
+    f(:m,:) = f(:m,:) - x
 
     discretization_error = 0.0_wp
     do i = 1, m
@@ -145,8 +145,9 @@ program thstcyl
         end do
     end do
 
-    !     Print earlier output from platforms with 64 bit floating point
-    !     arithmetic followed by the output from this computer
+    !
+    !==> Print earlier output from platforms with 64 bit floating point
+    !    arithmetic followed by the output from this computer
     !
     write( stdout, '(/a)') '     hstcyl *** TEST RUN *** '
     write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
@@ -155,5 +156,10 @@ program thstcyl
     write( stdout, '(a)') '     The output from your computer is: '
     write( stdout, '(a,i3,a,1pe15.6)') '     ierror =', ierror, ' pertrb = ', pertrb
     write( stdout, '(a,1pe15.6/)') '     discretization error = ', discretization_error
+
+    !
+    !==> Release memory
+    !
+    deallocate( r, z, bda, bdb, bdc, bdd )
 
 end program thstcyl

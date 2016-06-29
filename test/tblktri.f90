@@ -85,11 +85,11 @@
 program tblktri
 
     use, intrinsic :: iso_fortran_env, only: &
-        wp => REAL64, &
-        ip => INT32, &
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
+        wp, &
+        ip, &
         FishpackSolver, &
         FishpackWorkspace
 

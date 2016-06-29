@@ -57,9 +57,9 @@
 !
 module module_comf
 
-    use, intrinsic :: iso_fortran_env, only: &
-        ip => INT32, &
-        wp => REAL64
+    use fishpack_precision, only: &
+        wp, & ! Working precision
+        ip ! Integer precision
 
     ! Explicit typing only
     implicit None

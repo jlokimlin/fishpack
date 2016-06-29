@@ -219,9 +219,9 @@
 !
 module module_cmgnbn
 
-    use, intrinsic :: iso_fortran_env, only: &
-        wp => REAL64, &
-        ip => INT32
+    use fishpack_precision, only: &
+        wp, & ! Working precision
+        ip ! Integer precision
 
     use type_FishpackWorkspace, only: &
         Fish => FishpackWorkspace
@@ -254,7 +254,7 @@ contains
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer (ip) :: i, irwk, icwk
+        integer (ip) :: irwk, icwk
         type (Fish)  :: workspace
         !-----------------------------------------------
 

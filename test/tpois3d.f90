@@ -36,11 +36,11 @@
 program tpois3d
 
     use, intrinsic :: iso_fortran_env, only: &
-        wp => REAL64, &
-        ip => INT32, &
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
+        wp, &
+        ip, &
         FishpackSolver
 
     ! Explicit typing only
@@ -88,14 +88,14 @@ program tpois3d
     !     generate coefficients
     !
     a(1) = 0.
-    b(1) = -2.*dzsq
+    b(1) = -2.0_wp *dzsq
     c(1) = -b(1)
     z(1) = 0.
     do k = 2, n
         z(k) = real(k - 1)*dz
         t = 1. + z(k)
         a(k) = t**2*dzsq + t/dz
-        b(k) = -2.*t**2*dzsq
+        b(k) = -2.0_wp *t**2*dzsq
         c(k) = t**2*dzsq - t/dz
     end do
     !
@@ -104,7 +104,7 @@ program tpois3d
     do i = 1, l
         do j = 1, m
             do k = 2, n
-                f(i, j, k) = 2.*sin(x(i))*sin(y(j))*(1. + z(k))**4
+                f(i, j, k) = 2.0_wp *sin(x(i))*sin(y(j))*(1. + z(k))**4
             end do
         end do
     end do

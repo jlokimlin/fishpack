@@ -35,12 +35,13 @@
 program thstcrt
 
     use, intrinsic :: iso_fortran_env, only: &
-        wp => REAL64, &
-        ip => INT32, &
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-        FishpackSolver
+        wp, &
+        ip, &
+        FishpackSolver, &
+        FishpackGrid
 
     ! Explicit typing only
     implicit None
@@ -49,75 +50,79 @@ program thstcrt
     ! Dictionary
     !-----------------------------------------------
     type (FishpackSolver)   :: solver
-    integer (ip)            :: idimf, m, mbdcnd, n, nbdcnd, i, j, ierror
-    real (wp), dimension(50, 53) :: f
-    real (wp), dimension(53) :: bda, bdb, bdc, bdd
-    real (wp), dimension(48) :: x
-    real (wp), dimension(53) :: y
-    real (wp) :: a, b, dx, c, d, dy, elmbda, pi, pi2, t, pertrb, discretization_error
+    type (FishpackGrid)     :: grid
+    integer (ip), parameter :: m = 48
+    integer (ip), parameter :: n = 53
+    integer (ip), parameter :: idimf = m + 2
+    integer (ip)            :: mbdcnd, nbdcnd, i, j, ierror
+    real (wp)               :: f(idimf, n)
+    real (wp), allocatable  :: bda(:), bdb(:), bdc(:), bdd(:)
+    real (wp), allocatable  :: x(:), y(:)
+    real (wp)               :: a, b, c, d
+    real (wp)               :: elmbda, local_error, pertrb, discretization_error
+    real (wp), parameter    :: PI = acos(-1.0_wp)
+    real (wp), parameter    :: PI2 = PI**2
     !-----------------------------------------------
-    !
-    !     from the dimension statement we get idimf = 50.
-    !
-    idimf = 50
-    a = 1.
-    b = 3.
-    m = 48
-    dx = (b - a)/m
+
+    ! Set conditions in x
+    a = 1.0_wp
+    b = 3.0_wp
     mbdcnd = 2
-    c = -1.
-    d = 1.
-    n = 53
-    dy = (d - c)/n
+
+    ! Set conditions in y
+    c = -1.0_wp
+    d = 1.0_wp
     nbdcnd = 0
-    elmbda = -2.
-    !
-    !     auxiliary quantities
-    !
-    pi = acos(-1.0)
-    pi2 = pi**2
-    !
-    !     generate and store grid points for computation of boundary data
-    !     and the right side of the helmholtz equation.
-    !
-    do i = 1, m
-        x(i) = a + (real(i, kind=wp) - 0.5_wp)*dx
-    end do
 
-    do j = 1, n
-        y(j) = c + (real(j, kind=wp) - 0.5_wp)*dy
-    end do
+    ! Set helmholtz constant
+    elmbda = -2.0_wp
+
     !
-    !     generate boundary data.
+    !==> Generate and store grid points for computation of boundary data
+    !    and the right side of the helmholtz equation.
     !
-    do j = 1, n
-        bda(j) = 0.0_wp
-        bdb(j) = -pi*cos(pi*y(j))
-    end do
+    x = grid%get_staggered_grid(start=a, stop=b, num=m)
+    y = grid%get_staggered_grid(start=c, stop=d, num=n)
+
     !
-    !     bdc and bdd are dummy arguments in this example.
+    !==> Generate boundary data.
     !
-    !     generate right side of equation.
-    !
-    t = -2.0_wp*(pi2 + 1.0_wp)
-    do i = 1, m
-        do j = 1, n
-            f(i, j) = t*sin(pi*x(i))*cos(pi*y(j))
+    allocate( bda, bdb, mold=y )
+
+    bda = 0.0_wp
+    bdb = -PI*cos(PI*y)
+
+    ! bdc and bdd are dummy arguments in this example.
+    allocate( bdc, bdd, mold=x )
+
+
+    associate( CONST => -2.0_wp*(PI2 + 1.0_wp) )
+        do i = 1, m
+            !
+            !==> Generate right side of equation.
+            !
+            f(i,:) = CONST*sin(PI*x(i))*cos(PI*y(:))
+
         end do
-    end do
+    end associate
 
+
+    !
+    !==> Solve system
+    !
     call solver%hstcrt(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, &
         bdc, bdd, elmbda, f, idimf, pertrb, ierror)
-    !
-    !     compute discretization error.  the exact solution is
-    !
-    !               u(x, y) = sin(pi*x)*cos(pi*y) .
-    !
+
     discretization_error = 0.0_wp
     do i = 1, m
         do j = 1, n
-            t = abs(f(i, j)-sin(pi*x(i))*cos(pi*y(j)))
-            discretization_error = max(t, discretization_error)
+            !
+            !==> Compute discretization error. The exact solution is
+            !
+            !    u(x, y) = sin(pi*x)*cos(pi*y) .
+            !
+            local_error = abs(f(i, j)-sin(PI*x(i))*cos(PI*y(j)))
+            discretization_error = max(local_error, discretization_error)
         end do
     end do
 
@@ -132,5 +137,10 @@ program thstcrt
     write( stdout, '(a,i3,a,1pe15.6/)') &
         '     ierror =', ierror, &
         ' discretization error = ', discretization_error
+
+    !
+    !==> Release memory
+    !
+    deallocate( x, y, bda, bdb, bdc, bdd )
 
 end program thstcrt

@@ -347,10 +347,9 @@
 !
 module module_hstplr
 
-    use, intrinsic :: iso_fortran_env, only: &
-        wp => REAL64, &
-        ip => INT32, &
-        stdout => OUTPUT_UNIT
+    use fishpack_precision, only: &
+        wp, & ! Working precision
+        ip ! Integer precision
 
     use type_FishpackWorkspace, only: &
         Fish => FishpackWorkspace
@@ -548,7 +547,7 @@ contains
 
         select case (mb)
             case (1, 4:5)
-                a1 = 2.*w(iwr)
+                a1 = 2.0_wp *w(iwr)
                 w(iwc) = w(iwc) - w(iwr)
                 f(m,:n) = f(m,:n) - a1*bdb(:n)
             case (2:3, 6)
@@ -575,7 +574,7 @@ contains
             case (2, 5)
                 f(:m, n) = f(:m, n) - a1*bdd(:m)/w(iwr+1:m+iwr)
             case (3:4)
-                a1 = 1./dth
+                a1 = 1.0_wp /dth
                 f(:m, n) = f(:m, n) - a1*bdd(:m)/w(iwr+1:m+iwr)
         end select
 

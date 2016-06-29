@@ -351,7 +351,7 @@
 !                          solution.  sepx4 computes this solution
 !                          which is a weighted minimal least squares
 !                          solution to the original problem.  if
-!                          singularity is not detected pertrb=0.0 is
+!                          singularity is not detected pertrb=0.0_wp is
 !                          returned by sepx4.
 !
 !                        ierror
@@ -430,10 +430,9 @@
 !
 module module_sepx4
 
-    use, intrinsic :: iso_fortran_env, only: &
-        ip => INT32, &
-        wp => REAL64, &
-        stdout => OUTPUT_UNIT
+    use fishpack_precision, only: &
+        wp, & ! Working precision
+        ip ! Integer precision
 
     use type_FishpackWorkspace, only: &
         Fish => FishpackWorkspace
@@ -798,14 +797,14 @@ contains
             !     set x - direction
             !
             do i = 1, mit
-                xi = ait + real(is + i - 2)*dlx
+                xi = ait + real(is + i - 2, kind=wp)*dlx
                 call cofx(xi, ai, bi, ci)
                 axi =(ai/dlx - 0.5_wp*bi)/dlx
                 bxi =(-2.0_wp * ai/dlx**2) + ci
                 cxi =(ai/dlx + 0.5_wp*bi)/dlx
                 am(i) = (dly**2) * axi
-                bm(i) = dly**2*bxi
-                cm(i) = dly**2*cxi
+                bm(i) = (dly**2)*bxi
+                cm(i) = (dly**2)*cxi
             end do
             !
             !     set y direction
@@ -826,16 +825,16 @@ contains
                     !
                     !     dirichlet-dirichlet in x direction
                     !
-                    am(1) = 0.0
-                    cm(mit) = 0.0
+                    am(1) = 0.0_wp
+                    cm(mit) = 0.0_wp
                 case(3)
                     !
                     !     dirichlet-mixed in x direction
                     !
-                    am(1) = 0.0
+                    am(1) = 0.0_wp
                     am(mit) = am(mit) + cxm
-                    bm(mit) = bm(mit) - 2.0 * beta*dlx*cxm
-                    cm(mit) = 0.0
+                    bm(mit) = bm(mit) - 2.0_wp * beta*dlx*cxm
+                    cm(mit) = 0.0_wp
                 case(4)
                     !
                     !     mixed - mixed in x direction
@@ -1208,12 +1207,12 @@ contains
         !
         !     this subroutine first approximates the truncation error given by
         !     trun1(x, y)=dlx**2*tx+dly**2*ty where
-        !     tx=afun(x)*uxxxx/12.0+bfun(x)*uxxx/6.0 on the interior and
+        !     tx=afun(x)*uxxxx/12.0_wp+bfun(x)*uxxx/6.0_wp on the interior and
         !     at the boundaries if periodic(here uxxx, uxxxx are the third
         !     and fourth partial derivatives of u with respect to x).
-        !     tx is of the form afun(x)/3.0_wp * (uxxxx/4.0+uxxx/dlx)
+        !     tx is of the form afun(x)/3.0_wp * (uxxxx/4.0_wp+uxxx/dlx)
         !     at x=a or x=b if the boundary condition there is mixed.
-        !     tx=0.0 along specified boundaries.  ty has symmetric form
+        !     tx=0.0_wp along specified boundaries.  ty has symmetric form
         !     in y with x, afun(x), bfun(x) replaced by y, dfun(y), efun(y).
         !     the second order solution in usol is used to approximate
         !    (via second order finite differencing) the truncation error

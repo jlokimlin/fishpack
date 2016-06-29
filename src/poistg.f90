@@ -47,7 +47,7 @@
 !                        and j=1, 2, ..., n
 !
 !                        a(i)*x(i-1, j) + b(i)*x(i, j) + c(i)*x(i+1, j)
-!                        + x(i, j-1) - 2.*x(i, j) + x(i, j+1)
+!                        + x(i, j-1) - 2.0_wp *x(i, j) + x(i, j+1)
 !                        = y(i, j)
 !
 !                        The indices i+1 and i-1 are evaluated modulo m,
@@ -212,10 +212,9 @@
 !
 module module_poistg
 
-    use, intrinsic :: iso_fortran_env, only: &
-        wp => REAL64, &
-        ip => INT32, &
-        stdout => OUTPUT_UNIT
+    use fishpack_precision, only: &
+        wp, & ! Working precision
+        ip ! Integer precision
 
     use type_FishpackWorkspace, only: &
         Fish => FishpackWorkspace
@@ -549,19 +548,19 @@ contains
         integer (ip), intent (in)     :: n
         integer (ip), intent (in)     :: m
         integer (ip), intent (in)     :: idimq
-        real (wp),    intent (in)     :: a(*)
-        real (wp),    intent (in)     :: bb(*)
-        real (wp),    intent (in)     :: c(*)
-        real (wp),    intent (in out) :: q(idimq, *)
-        real (wp),    intent (in out) :: b(*)
-        real (wp),    intent (in out) :: b2(*)
-        real (wp),    intent (in out) :: b3(*)
-        real (wp),    intent (in out) :: w(*)
-        real (wp),    intent (in out) :: w2(*)
-        real (wp),    intent (in out) :: w3(*)
-        real (wp),    intent (in out) :: d(*)
-        real (wp),    intent (in out) :: tcos(*)
-        real (wp),    intent (in out) :: p(*)
+        real (wp),    intent (in)     :: a(m)
+        real (wp),    intent (in)     :: bb(m)
+        real (wp),    intent (in)     :: c(m)
+        real (wp),    intent (in out) :: q(idimq, n)
+        real (wp),    intent (in out) :: b(m)
+        real (wp),    intent (in out) :: b2(m)
+        real (wp),    intent (in out) :: b3(m)
+        real (wp),    intent (in out) :: w(m)
+        real (wp),    intent (in out) :: w2(m)
+        real (wp),    intent (in out) :: w3(m)
+        real (wp),    intent (in out) :: d(m)
+        real (wp),    intent (in out) :: tcos(m)
+        real (wp),    intent (in out) :: p(4*n)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------

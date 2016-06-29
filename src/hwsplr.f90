@@ -334,9 +334,9 @@
 !
 module module_hwsplr
 
-    use, intrinsic :: iso_fortran_env, only: &
-        wp => REAL64, &
-        ip => INT32
+    use fishpack_precision, only: &
+        wp, & ! Working precision
+        ip ! Integer precision
 
     use type_FishpackWorkspace, only: &
         Fish => FishpackWorkspace
@@ -405,7 +405,7 @@ contains
         else if (nbdcnd <= -1 .or. nbdcnd >= 5) then
             ierror = 6
             return
-        else if (a == 0. .and. (mbdcnd==3 .or. mbdcnd==4)) then
+        else if (a == 0.0_wp .and. (mbdcnd==3 .or. mbdcnd==4)) then
             ierror = 7
             return
         else if (a > 0.0_wp .and. mbdcnd >= 5) then
@@ -730,7 +730,7 @@ contains
                     a2 = a2 - 1.0_wp
                 end if
 
-                ypole = (0.25*dr2*f(1, 1)-s/a2)/(w(id5+1)-1.+elmbda*dr2*0.25)
+                ypole = (0.25_wp *dr2*f(1, 1)-s/a2)/(w(id5+1)-1.0_wp + elmbda*dr2* 0.25_wp)
 
                 do i = mstart, mstop
                     k = l + i

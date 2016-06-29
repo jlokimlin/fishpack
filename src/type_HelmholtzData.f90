@@ -25,9 +25,11 @@
 !
 module type_HelmholtzData
 
+    use fishpack_precision, only: &
+        wp, & ! Working precision
+        ip ! Integer precision
+
     use, intrinsic :: iso_fortran_env, only: &
-        wp => REAL64, &
-        ip => INT32, &
         stderr => ERROR_UNIT
 
     use type_RectangularDomain, only: &

@@ -1,8 +1,8 @@
 module type_FishpackGrid
 
-    use, intrinsic :: iso_fortran_env, only: &
-        wp => REAL64, &
-        ip => INT32
+    use fishpack_precision, only: &
+        wp, & ! Working precision
+        ip ! Integer precision
 
     ! Explicit typing only
     implicit none
@@ -126,7 +126,7 @@ contains
         if (num < 0) error stop "get_staggered_grid: num < 0"
 
         ! Allocate memory
-        allocate( return_value(num + 1) )
+        allocate( return_value(num) )
 
         step = (stop - start) / num
 
@@ -135,5 +135,6 @@ contains
         end do
 
     end function get_staggered_grid
+
 
 end module type_FishpackGrid

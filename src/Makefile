@@ -7,17 +7,25 @@ LINKS = \
 
 EXECUTABLE = ./build_lib.exe
 
+fishpack_precision.o: \
+fishpack_precision.f90
+	$(FC) $(FFLAGS) -c fishpack_precision.f90 $(LINKS) \
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
 type_FishpackWorkspace.o: \
+fishpack_precision.o \
 type_FishpackWorkspace.f90
 	$(FC) $(FFLAGS) -c type_FishpackWorkspace.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 comf.o: \
+fishpack_precision.o \
 comf.f90
 	$(FC) $(FFLAGS) -c comf.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 blktri.o: \
+fishpack_precision.o \
 type_FishpackWorkspace.o \
 comf.o \
 blktri.f90
@@ -25,6 +33,7 @@ blktri.f90
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 cblktri.o: \
+fishpack_precision.o \
 type_FishpackWorkspace.o \
 comf.o \
 cblktri.f90
@@ -32,22 +41,26 @@ cblktri.f90
 	-o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 cmgnbn.o: \
+fishpack_precision.o \
 type_FishpackWorkspace.o \
 cmgnbn.f90
 	$(FC) $(FFLAGS) -c cmgnbn.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 gnbnaux.o: \
+fishpack_precision.o \
 gnbnaux.f90
 	$(FC) $(FFLAGS) -c gnbnaux.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 type_FFTpack.o: \
+fishpack_precision.o \
 type_FFTpack.f90
 	$(FC) $(FFLAGS) -c type_FFTpack.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 genbun.o: \
+fishpack_precision.o \
 type_FishpackWorkspace.o \
 gnbnaux.o \
 genbun.f90
@@ -55,6 +68,7 @@ genbun.f90
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 poistg.o: \
+fishpack_precision.o \
 type_FishpackWorkspace.o \
 gnbnaux.o \
 poistg.f90
@@ -62,6 +76,7 @@ poistg.f90
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 pois3d.o: \
+fishpack_precision.o \
 type_FishpackWorkspace.o \
 type_FFTpack.o \
 pois3d.f90
@@ -69,6 +84,7 @@ pois3d.f90
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 hw3crt.o: \
+fishpack_precision.o \
 type_FishpackWorkspace.o \
 pois3d.o \
 hw3crt.f90
@@ -76,6 +92,7 @@ hw3crt.f90
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 hstcrt.o: \
+fishpack_precision.o \
 type_FishpackWorkspace.o \
 genbun.o \
 poistg.o \
@@ -84,6 +101,7 @@ hstcrt.f90
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 hstcsp.o: \
+fishpack_precision.o \
 type_FishpackWorkspace.o \
 blktri.o\
 hstcsp.f90
@@ -91,6 +109,7 @@ hstcsp.f90
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 hstcyl.o: \
+fishpack_precision.o \
 type_FishpackWorkspace.o \
 genbun.o \
 poistg.o \
@@ -99,6 +118,7 @@ hstcrt.f90
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 hstplr.o: \
+fishpack_precision.o \
 type_FishpackWorkspace.o \
 genbun.o \
 poistg.o \
@@ -107,6 +127,7 @@ hstcrt.f90
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 hstssp.o: \
+fishpack_precision.o \
 type_FishpackWorkspace.o \
 genbun.o \
 poistg.o \
@@ -115,6 +136,7 @@ hstssp.f90
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 hwscrt.o: \
+fishpack_precision.o \
 type_FishpackWorkspace.o \
 genbun.o \
 poistg.o \
@@ -123,6 +145,7 @@ hwscrt.f90
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 hwscsp.o: \
+fishpack_precision.o \
 type_FishpackWorkspace.o \
 blktri.o \
 hwscsp.f90
@@ -130,6 +153,7 @@ hwscsp.f90
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 hwscyl.o: \
+fishpack_precision.o \
 type_FishpackWorkspace.o \
 genbun.o \
 hwscyl.f90
@@ -137,6 +161,7 @@ hwscyl.f90
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 hwsplr.o: \
+fishpack_precision.o \
 type_FishpackWorkspace.o \
 genbun.o \
 hwsplr.f90
@@ -144,6 +169,7 @@ hwsplr.f90
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 hwsssp.o: \
+fishpack_precision.o \
 type_FishpackWorkspace.o \
 genbun.o \
 hwsssp.f90
@@ -151,11 +177,13 @@ hwsssp.f90
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 sepaux.o: \
+fishpack_precision.o \
 sepaux.f90
 	$(FC) $(FFLAGS) -c sepaux.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 sepeli.o: \
+fishpack_precision.o \
 type_FishpackWorkspace.o\
 blktri.o \
 sepaux.o \
@@ -164,6 +192,7 @@ sepeli.f90
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 sepx4.o: \
+fishpack_precision.o \
 type_FishpackWorkspace.o\
 genbun.o \
 sepaux.o \
@@ -172,40 +201,47 @@ sepx4.f90
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 type_RectangularDomain.o: \
+fishpack_precision.o \
 type_RectangularDomain.f90
 	$(FC) $(FFLAGS) -c type_RectangularDomain.f90 $(LINKS)\
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 type_FishpackGrid.o: \
+fishpack_precision.o \
 type_FishpackGrid.f90
 	$(FC) $(FFLAGS) -c type_FishpackGrid.f90 $(LINKS)\
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 type_Grid.o: \
+fishpack_precision.o \
 type_RectangularDomain.o \
 type_Grid.f90
 	$(FC) $(FFLAGS) -c type_Grid.f90 $(LINKS)\
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 type_CenteredGrid.o: \
+fishpack_precision.o \
 type_Grid.o \
 type_CenteredGrid.f90
 	$(FC) $(FFLAGS) -c type_CenteredGrid.f90 $(LINKS)\
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 type_StaggeredGrid.o: \
+fishpack_precision.o \
 type_Grid.o \
 type_StaggeredGrid.f90
 	$(FC) $(FFLAGS) -c type_StaggeredGrid.f90 $(LINKS)\
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 type_MacGrid.o:\
+fishpack_precision.o \
 type_Grid.o \
 type_MacGrid.f90
 	$(FC) $(FFLAGS) -c type_MacGrid.f90 $(LINKS)\
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 type_HelmholtzData.o: \
+fishpack_precision.o \
 type_RectangularDomain.o \
 type_Grid.o\
 type_HelmholtzData.f90
@@ -213,6 +249,7 @@ type_HelmholtzData.f90
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 type_HelmholtzSolver.o: \
+fishpack_precision.o \
 hwscrt.o \
 hstcrt.o \
 type_HelmholtzData.o \
@@ -224,18 +261,21 @@ type_HelmholtzSolver.f90
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 type_PoissonSolver.o: \
+fishpack_precision.o \
 type_HelmholtzSolver.o \
 type_HelmholtzSolver.f90
 	$(FC) $(FFLAGS) -c type_PoissonSolver.f90 $(LINKS)\
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 type_TridiagonalData.o: \
+fishpack_precision.o \
 type_Grid.o\
 type_TridiagonalData.f90
 	$(FC) $(FFLAGS) -c type_TridiagonalData.f90 $(LINKS)\
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 type_TridiagonalSolver.o: \
+fishpack_precision.o \
 type_TridiagonalData.o \
 type_Grid.o\
 type_CenteredGrid.o\
@@ -247,6 +287,7 @@ type_TridiagonalSolver.f90
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 type_FishpackSolver.o: \
+fishpack_precision.o \
 blktri.o\
 cblktri.o\
 cmgnbn.o\
@@ -271,6 +312,7 @@ type_FishpackSolver.f90
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 fishpack_library.o: \
+fishpack_precision.o \
 type_FishpackWorkspace.o\
 type_FishpackSolver.o\
 type_HelmholtzData.o\

@@ -35,11 +35,12 @@
 program thwscrt
 
     use, intrinsic :: iso_fortran_env, only: &
-        wp => REAL64, &
-        ip => INT32, &
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
+        wp, &
+        ip, &
+        PI, &
         FishpackSolver
 
     ! Explicit typing only
@@ -53,27 +54,26 @@ program thwscrt
     real (wp), dimension(45, 82) :: f
     real (wp), dimension(81) :: bdb, bda, bdc, bdd, y
     real (wp), dimension(41) :: x
-    real (wp) :: a, b, c, d, elmbda, pi, piby2, pisq, pertrb, discretization_error, z
+    real (wp) :: a, b, c, d, elmbda, HALF_PI, PI2, pertrb, discretization_error, z
     !-----------------------------------------------
     !
     !     from dimension statement we get value of idimf.
     !
     idimf = 45
-    a = 0.
-    b = 2.
+    a = 0.0_wp
+    b = 2.0_wp
     m = 40
     mbdcnd = 2
-    c = -1.
-    d = 3.
+    c = -1.0_wp
+    d = 3.0_wp
     n = 80
     nbdcnd = 0
-    elmbda = -4.
+    elmbda = -4.0_wp
     !
     !     auxiliary quantities.
     !
-    pi = acos( -1.0 )
-    piby2 = pi/2.
-    pisq = pi**2
+    HALF_PI = PI/2
+    PI2 = PI**2
     mp1 = m + 1
     np1 = n + 1
     !
@@ -81,27 +81,28 @@ program thwscrt
     !     boundary data and the right side of the helmholtz equation.
     !
     do i = 1, mp1
-        x(i) = real(i - 1)/20.
+        x(i) = real(i - 1, kind=wp)/20
     end do
+
     do j = 1, np1
-        y(j) = (-1.) + real(j - 1)/20.
+        y(j) = -1.0_wp + real(j - 1, kind=wp)/20
     end do
     !
     !     generate boundary data.
     !
     do j = 1, np1
-        bdb(j) = 4.*cos((y(j)+1.)*piby2)
+        bdb(j) = 4.0_wp * cos((y(j) + 1.0_wp)*HALF_PI)
     end do
     !
     !     bda, bdc, and bdd are dummy variables.
     !
-    f(1, :np1) = 0.
+    f(1, :np1) = 0.0_wp
     !
     !     generate right side of equation.
     !
     do i = 2, mp1
         do j = 1, np1
-            f(i, j) = (2. - (4. + pisq/4.)*x(i)**2)*cos((y(j)+1.)*piby2)
+            f(i, j) = (2.0_wp - (4.0_wp + PI2/4)*(x(i)**2)) * cos((y(j) + 1.0_wp)*HALF_PI)
         end do
     end do
 
@@ -109,12 +110,12 @@ program thwscrt
         elmbda, f, idimf, pertrb, ierror)
     !
     !     compute discretization error.  the exact solution is
-    !                u(x, y) = x**2*cos((y+1)*piby2)
+    !                u(x, y) = x**2*cos((y+1)*(pi/2))
     !
     discretization_error = 0.0_wp
     do i = 1, mp1
         do j = 1, np1
-            z = abs(f(i, j)-(x(i)**2) * cos((y(j)+1.0_wp) * piby2))
+            z = abs(f(i, j)-(x(i)**2) * cos((y(j)+1.0_wp) * HALF_PI))
             discretization_error = max(z, discretization_error)
         end do
     end do

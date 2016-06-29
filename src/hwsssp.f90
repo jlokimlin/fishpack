@@ -169,7 +169,7 @@
 !
 !                          if pf is equal to 2*pi then it must be
 !                          computed using the statement
-!                          pf = 2.*pi_mach(dum). this insures that
+!                          pf = 2.0_wp *pi_mach(dum). this insures that
 !                          pf in the users program is equal to
 !                          2*pi in this program which permits tests
 !                          of the input parameters that otherwise
@@ -392,10 +392,9 @@
 !
 module module_hwsssp
 
-    use, intrinsic :: iso_fortran_env, only: &
-        ip => INT32, &
-        wp => REAL64, &
-        stdout => OUTPUT_UNIT
+    use fishpack_precision, only: &
+        wp, & ! Working precision
+        ip ! Integer precision
 
     use type_FishpackWorkspace, only: &
         Fish => FishpackWorkspace

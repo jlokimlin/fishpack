@@ -1,8 +1,10 @@
 module type_HelmholtzSolver
 
+    use fishpack_precision, only: &
+        wp, & ! Working precision
+        ip ! Integer precision
+
     use, intrinsic :: iso_fortran_env, only: &
-        wp => REAL64, &
-        ip => INT32, &
         stderr => ERROR_UNIT, &
         stdout => OUTPUT_UNIT
 

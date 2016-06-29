@@ -41,9 +41,9 @@
 !
 module type_FishpackWorkspace
 
-    use, intrinsic :: iso_fortran_env, only: &
-        wp => REAL64, &
-        ip => INT32
+    use fishpack_precision, only: &
+        wp, & ! Working precision
+        ip ! Integer precision
 
     ! Explicit typing only
     implicit none

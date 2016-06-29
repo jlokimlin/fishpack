@@ -434,7 +434,7 @@
 !                          the discretization may lead to a block
 !                          tridiagonal linear system which is not
 !                          diagonally dominant (for example, this
-!                          happens if cfun=0 and bfun/(2.*dlx) greater
+!                          happens if cfun=0 and bfun/(2.0_wp *dlx) greater
 !                          than afun/dlx**2).  in this case solution
 !                          may fail.  this cannot happen in the limit
 !                          as dlx, dly approach zero.  hence, the
@@ -501,10 +501,9 @@
 !
 module module_sepeli
 
-    use, intrinsic :: iso_fortran_env, only: &
-        ip => INT32, &
-        wp => REAL64, &
-        stdout => OUTPUT_UNIT
+    use fishpack_precision, only: &
+        wp, & ! Working precision
+        ip ! Integer precision
 
     use type_FishpackWorkspace, only: &
         FishpackWorkspace

@@ -36,12 +36,13 @@
 program thstcsp
 
     use, intrinsic :: iso_fortran_env, only: &
-        wp => REAL64, &
-        ip => INT32, &
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
+        wp, &
+        ip, &
         FishpackSolver, &
+        FishpackGrid, &
         FishpackWorkspace
 
     ! Explicit typing only
@@ -51,54 +52,56 @@ program thstcsp
     ! Dictionary: local variables
     !-----------------------------------------------
     type (FishpackSolver)    :: solver
+    type (FishpackGrid)      :: grid
     type (FishpackWorkspace) :: workspace
-    integer (ip) :: idimf, m, mbdcnd, i, n, nbdcnd, j, intl, ierror
-    real (wp), dimension(47, 16) :: f
-    real (wp), dimension(45) :: bda, bdb, bdc, bdd, theta
-    real (wp), dimension(15) :: r
-    real (wp), dimension(45) :: cost
-    real (wp) :: a, b, dt, c, d, dr, elmbda, pertrb, discretization_error, z
+    integer (ip), parameter  :: m = 45
+    integer (ip), parameter  :: n = 15
+    integer (ip), parameter  :: idimf = m + 2
+    integer (ip)             :: mbdcnd, i, nbdcnd, j, intl, ierror
+    real (wp)                :: f(idimf, n + 1)
+    real (wp), allocatable   :: theta(:), cost(:), r(:)
+    real (wp), allocatable   :: bda(:), bdb(:), bdc(:), bdd(:)
+    real (wp), parameter     :: PI = acos(-1.0_wp)
+    real (wp)                :: a, b, c, d, elmbda
+    real (wp)                :: pertrb, discretization_error, local_error
     !-----------------------------------------------
-    !
-    !     note that from dimension statement we get that idimf = 47
-    !
-    idimf = 47
+
+    ! Set conditions in theta
     a = 0.0_wp
-    b = acos(-1.0_wp)
-    !
-    !
-    m = 45
+    b = PI
     mbdcnd = 9
-    dt = (b - a)/m
-    !
-    !     define grid points theta(i) and cos(theta(i))
-    !
-    do i = 1, m
-        theta(i) = a + (real(i, kind=wp) - 0.5_wp)*dt
-        cost(i) = cos(theta(i))
-    end do
+
+    ! Set conditions in r
     c = 0.0_wp
     d = 1.0_wp
-    n = 15
     nbdcnd = 5
-    dr = (d - c)/n
+
     !
-    !     define grid points r(j)
+    !==> Define grid points theta(i) and cos(theta(i))
     !
-    do j = 1, n
-        r(j) = c + (real(j, kind=wp) - 0.5_wp)*dr
-    end do
+    theta = grid%get_staggered_grid(start=a, stop=b, num=m)
+    ! allocate( cost, source=cos(theta ) ! *** bug in GCC 6.1
+    allocate( cost, mold=theta )
+    cost = cos(theta)
     !
-    !     define boundary array bdd.  bda, bdb, and bdc are dummy
-    !     variables in this example.
+    !==> Define grid points r(j)
     !
+    r = grid%get_staggered_grid(start=c, stop=d, num=n)
+
+    !
+    !==> Define boundary array bdd.
+    !    bda, bdb, and bdc are dummy
+    !    variables in this example.
+    !
+    allocate( bda, bdb, bdc, bdd, mold=theta )
+
     bdd(:m) = cost(:m)**4
     elmbda = 0.0_wp
     !
     !     define right side f
     !
     do i = 1, m
-        f(i, :n) = 12.*(r(:n)*cost(i))**2
+        f(i,:n) = 12.0_wp*(r(:n)*cost(i))**2
     end do
 
     ! Initialize
@@ -106,19 +109,20 @@ program thstcsp
 
     call solver%hstcsp(intl, a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror, workspace)
-    !
-    !     compute discretization error.  the exact solution is
-    !
-    !     u(theta, r) = (r*cos(theta))**4
-    !
-    discretization_error = 0.
+
+    discretization_error = 0.0_wp
     do i = 1, m
         do j = 1, n
-            z = abs(f(i, j)-(r(j)*cost(i))**4)
-            discretization_error = max(z, discretization_error)
+            !
+            !==> Compute discretization error.
+            !    The exact solution is
+            !
+            !     u(theta, r) = (r*cos(theta))**4
+            !
+            local_error = abs(f(i,j)-(r(j)*cost(i))**4)
+            discretization_error = max(local_error, discretization_error)
         end do
     end do
-
 
     !
     !==> Print earlier output from platforms with 64-bit floating point
@@ -138,5 +142,6 @@ program thstcsp
     !==> Release memory
     !
     call workspace%destroy()
+    deallocate( theta, cost, r, bda, bdb, bdc, bdd )
 
 end program thstcsp

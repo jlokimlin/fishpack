@@ -36,11 +36,12 @@
 program thwscsp
 
     use, intrinsic :: iso_fortran_env, only: &
-        wp => REAL64, &
-        ip => INT32, &
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
+        wp, &
+        ip, &
+        PI, &
         FishpackSolver, &
         FishpackWorkspace
 
@@ -57,43 +58,42 @@ program thwscsp
     real (wp), dimension(33) :: bdtf, bdts, bdrs, bdrf
     real (wp), dimension(48) :: theta
     real (wp), dimension(33) :: r
-    real (wp)                :: pi, ts, tf, rs, rf, elmbda
+    real (wp)                :: ts, tf, rs, rf, elmbda
     real (wp)                :: dtheta, dr, ci4, pertrb, discretization_error, z, dphi, si
     !-----------------------------------------------
     !
     !     program to illustrate the use of hwscsp
     !
     !
-    pi = acos( -1.0 )
     intl = 0
-    ts = 0.
-    tf = pi/2.
+    ts = 0.0_wp
+    tf = PI/2
     m = 36
     mbdcnd = 6
-    rs = 0.
-    rf = 1.
+    rs = 0.0_wp
+    rf = 1.0_wp
     n = 32
     nbdcnd = 5
-    elmbda = 0.
+    elmbda = 0.0_wp
     idimf = 48
     !
     !     generate and store grid points for the purpose of computing the
     !     boundary data and the right side of the equation.
     !
     mp1 = m + 1
-    dtheta = tf/real(m)
+    dtheta = tf/m
     do i = 1, mp1
-        theta(i) = real(i - 1)*dtheta
+        theta(i) = real(i - 1, kind=wp)*dtheta
     end do
     np1 = n + 1
-    dr = 1./real(n)
+    dr = 1.0_wp /n
     do j = 1, np1
-        r(j) = real(j - 1)*dr
+        r(j) = real(j - 1, kind=wp)*dr
     end do
     !
     !     generate normal derivative data at equator
     !
-    bdtf(:np1) = 0.
+    bdtf(:np1) = 0.0_wp
     !
     !     compute boundary data on the surface of the sphere
     !
@@ -104,7 +104,7 @@ program thwscsp
     !     compute right side of equation
     !
     do i = 1, mp1
-        ci4 = 12.*cos(theta(i))**2
+        ci4 = 12.0_wp *cos(theta(i))**2
         f(i, :n) = ci4*r(:n)**2
     end do
 
@@ -114,7 +114,7 @@ program thwscsp
     !
     !     compute discretization error
     !
-    discretization_error = 0.
+    discretization_error = 0.0_wp
     do i = 1, mp1
         ci4 = cos(theta(i))**4
         do j = 1, n
@@ -139,8 +139,8 @@ program thwscsp
     !
     mbdcnd = 2
     nbdcnd = 1
-    dphi = pi/72.
-    elmbda = -2.*(1. - cos(dphi))/dphi**2
+    dphi = PI/72
+    elmbda = -2.0_wp *(1.0_wp - cos(dphi))/dphi**2
     !
     !     compute boundary data on the surface of the sphere
     !
@@ -150,7 +150,7 @@ program thwscsp
     !
     !     compute right side of the equation
     !
-    f(:mp1, :n) = 0.
+    f(:mp1, :n) = 0.0_wp
 
     ! Solve system
     call solver%hwscsp(intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, &
@@ -158,7 +158,7 @@ program thwscsp
     !
     !     compute discretization error   (fourier coefficients)
     !
-    discretization_error = 0
+    discretization_error = 0.0_wp
     do i = 1, mp1
         si = sin(theta(i))
         do j = 1, np1

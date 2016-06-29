@@ -36,11 +36,11 @@
 program tcblktri
 
     use, intrinsic :: iso_fortran_env, only: &
-        wp => REAL64, &
-        ip => INT32, &
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
+        wp, &
+        ip, &
         FishpackSolver, &
         FishpackWorkspace
 
@@ -89,9 +89,9 @@ program tcblktri
     half_ds = ds/2
     two_ds = ds + ds
     do i = 1, m
-        temp1 = 1./(s(i)*two_ds)
-        temp2 = 1./((s(i)-half_ds)*two_ds)
-        temp3 = 1./((s(i)+half_ds)*two_ds)
+        temp1 = 1.0_wp /(s(i)*two_ds)
+        temp2 = 1.0_wp /((s(i)-half_ds)*two_ds)
+        temp3 = 1.0_wp /((s(i)+half_ds)*two_ds)
         am(i) = cmplx(temp1*temp2, 0.0_wp, kind=wp)
         cm(i) = cmplx(temp1*temp3, 0.0_wp, kind=wp)
         bm(i) = (-(am(i)+cm(i))) - cmplx(0.0_wp, 1.0_wp, kind=wp)
