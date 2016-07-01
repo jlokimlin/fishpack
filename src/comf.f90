@@ -35,7 +35,7 @@
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
 !
-! PACKAGE COMF           The entries in this package are lowlevel
+! PACKAGE COMF           The entries in this package are low-level
 !                        entries, supporting fishpack entries blktri
 !                        and cblktri. that is, these routines are
 !                        not called directly by users, but rather
@@ -48,7 +48,7 @@
 !
 ! I/O                    None
 !
-! PRECISION              64-bit double precision
+! PRECISION              Set in the module fishpack_precision.f90
 !
 ! REQUIRED LIBRARY       None
 ! FILES
@@ -156,24 +156,24 @@ contains
         ! Dictionary: local variables
         !-----------------------------------------------
         integer (ip) :: j
-        real (wp)    :: fsg, hsg
+        real (wp)    :: fsg, hsg, dd
         !-----------------------------------------------
 
         fsg = 1.0_wp
         hsg = 1.0_wp
 
         do j = 1, iz
-            associate( dd => 1.0_wp/(x - bh(j)) )
-                fsg = fsg*a(j)*dd
-                hsg = hsg*c(j)*dd
-            end associate
+            dd = 1.0_wp/(x - bh(j))
+            fsg = fsg * a(j) * dd
+            hsg = hsg * c(j) * dd
         end do
 
-        if (mod(iz, 2) == 0) then
-            return_value = 1.0_wp - fsg - hsg
-        else
-            return_value = 1.0_wp + fsg + hsg
-        end if
+        select case (mod(iz,2))
+            case (0)
+                return_value = 1.0_wp - fsg - hsg
+            case default
+                return_value = 1.0_wp + fsg + hsg
+        end select
 
     end function psgf
 

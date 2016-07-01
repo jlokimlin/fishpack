@@ -488,7 +488,8 @@ module module_hstcsp
 
     use fishpack_precision, only: &
         wp, & ! Working precision
-        ip ! Integer precision
+        ip, & ! Integer precision
+        PI
 
     use type_FishpackWorkspace, only: &
         Fish => FishpackWorkspace
@@ -535,7 +536,6 @@ contains
         ! Dictionary: local variables
         !-----------------------------------------------
         integer (ip)         :: k, l, np, irwk, icwk, local_error_flag
-        real (wp), parameter :: PI = acos(-1.0_wp)
         integer (ip), save   :: workspace_indices(8)
         !-----------------------------------------------
 

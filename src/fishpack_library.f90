@@ -1,9 +1,10 @@
 module fishpack_library
 
     use fishpack_precision, only: &
-        wp, & ! Working precision
-        ip, & ! Integer precision
-        PI
+        wp, & ! working precision
+        ip, & ! integer precision
+        PI, & ! machine precision pi
+        TWO_PI
 
     use type_FishpackGrid, only: &
         FishpackGrid
@@ -46,9 +47,8 @@ module fishpack_library
 
     ! Everything is private unless stated otherwise
     private
-    public :: wp
-    public :: ip
-    public :: PI
+    public :: wp, ip
+    public :: PI, TWO_PI
     public :: FishpackGrid
     public :: FishpackWorkspace
     public :: FishpackSolver

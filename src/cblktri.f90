@@ -257,7 +257,8 @@ module module_cblktri
 
     use fishpack_precision, only: &
         wp, & ! Working precision
-        ip ! Integer precision
+        ip, & ! Integer precision
+        EPS ! Machine epsilon
 
     use module_comf, only: &
         psgf, &
@@ -779,7 +780,6 @@ contains
         integer (ip) ::  ipl, ifd, i, ib, nb, js, jf
         integer (ip) ::  ls, lh, nmp, l1, l2, j2, j1, n2m2
         real (wp)    :: bnorm, arg, d1, d2, d3
-        real (wp), parameter :: EPS = epsilon(1.0_wp)
         !-----------------------------------------------
 
         bnorm = abs(bn(1))
@@ -1309,7 +1309,6 @@ contains
         real (wp)            :: r4, r5, r6, scnv, xl, db, sgn, xr, xm, psg
         real (wp)            :: temp
         complex (wp)         :: cx, fsg, hsg, dd, f, fp, fpp, cdis, r1, r2, r3
-        real (wp), parameter :: eps = epsilon(1.0_wp)
         !-----------------------------------------------
 
         scnv = sqrt(cnv)
@@ -1378,7 +1377,7 @@ contains
                 psg = psgf(xm, iz, c, a, bh)
 
                 if_block: block
-                    if (abs(psg) > eps) then
+                    if (abs(psg) > EPS) then
                         r6 = psg*ppsgf(xm, iz, c, a, bh)
                         if (r6 > 0.0_wp) exit if_block
                         if (r6 /= 0.0_wp) then
@@ -1839,7 +1838,6 @@ contains
         !-----------------------------------------------
         integer (ip) :: i, j, l, m, ii, l1, mml, nhalf, ntop
         real (wp) :: b, c, f, g, h, p, r, s, dhold
-        real (wp), parameter :: eps = epsilon(1.0_wp)
         !-----------------------------------------------
 
         ierr = 0
@@ -1852,7 +1850,7 @@ contains
 
             main_loop: do l = 1, n
                 j = 0
-                h = eps*(abs(d(l))+sqrt(e2(l)))
+                h = EPS*(abs(d(l))+sqrt(e2(l)))
 
                 if (b <= h) then
                     b = h

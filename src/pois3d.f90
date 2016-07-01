@@ -240,7 +240,8 @@ module module_pois3d
 
     use fishpack_precision, only: &
         wp, & ! Working precision
-        ip ! Integer precision
+        ip, & ! Integer precision
+        PI
 
     use type_FishpackWorkspace, only: &
         Fish => FishpackWorkspace
@@ -581,7 +582,6 @@ contains
         ! Dictionary: local variables
         !-----------------------------------------------
         integer (ip)         :: lr, mr, nr, lrdel, i, mrdel, j, ifwrd, is, k
-        real (wp), parameter :: PI = acos(-1.0_wp)
         real (wp)            :: scalx, dx, di, scaly, dy, dj
         type (FFTpack)       :: fft
         !-----------------------------------------------

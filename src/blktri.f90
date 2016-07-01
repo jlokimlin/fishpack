@@ -244,7 +244,7 @@
 ! ALGORITHM              Generalized cyclic reduction
 !
 ! PORTABILITY            Approximate machine accuracy is obtained
-!                        using the intrinsic epsilon function
+!                        using EPS which is set by the intrinsic epsilon function
 !
 ! REFERENCES             Swarztrauber, P. and R. Sweet, 'Efficient
 !                        fortran subprograms for the solution of
@@ -260,7 +260,8 @@ module module_blktri
 
     use fishpack_precision, only: &
         wp, & ! Working precision
-        ip ! Integer precision
+        ip, & ! Integer precision
+        EPS ! Machine epsilon
 
     use type_FishpackWorkspace, only: &
         Fish => FishpackWorkspace
@@ -868,7 +869,6 @@ contains
         integer (ip)         :: j, if, kdo, l, ir, i2, i4, ipl, ifd, i, ib, nb, js, jf
         integer (ip)         ::  ls, lh, nmp, l1, l2, j2, j1, n2m2
         real (wp)            :: bnorm, arg, d1, d2, d3
-        real (wp), parameter :: EPS = epsilon(1.0_wp)
         !-----------------------------------------------
 
         bnorm = abs(bn(1))
@@ -1407,7 +1407,6 @@ contains
         integer (ip)   :: iif, ig, it, icv, i3, i2, nhalf
         real (wp)      :: r4, r5, r6, scnv, xl, db, sgn, xr, xm, psg
         real (wp)      :: temp
-        real (wp), parameter :: EPS = epsilon(1.0_wp)
         complex (wp)   :: cx, fsg, hsg, dd, f, fp, fpp, cdis, r1, r2, r3
         type (ComfAux) :: comf_aux
         !-----------------------------------------------
@@ -1997,7 +1996,6 @@ contains
         !-----------------------------------------------
         integer (ip)         :: i, j, l, m, ii, l1, mml, nhalf, ntop
         real (wp)            :: b, c, f, g, h, p, r, s, dhold
-        real (wp), parameter :: EPS = epsilon(1.0_wp)
         !-----------------------------------------------
 
         ierr = 0

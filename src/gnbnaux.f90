@@ -69,7 +69,8 @@ module module_gnbnaux
 
     use fishpack_precision, only: &
         wp, & ! Working precision
-        ip ! Integer precision
+        ip, & ! Integer precision
+        PI
 
     ! Explicit typing only
     implicit None
@@ -132,9 +133,8 @@ contains
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer (ip)         :: k3, k4, k, k1, k5, i, k2, np1
-        real (wp), parameter :: PI = acos(-1.0_wp)
-        real (wp)            :: pibyn, x, y
+        integer (ip) :: k3, k4, k, k1, k5, i, k2, np1
+        real (wp)    :: pibyn, x, y
         !-----------------------------------------------
 
         if (n /= 0) then

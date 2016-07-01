@@ -2,7 +2,8 @@ module type_FFTpack
 
     use fishpack_precision, only: &
         wp, & ! Working precision
-        ip ! Integer precision
+        ip, & ! Integer precision
+        PI
 
     ! Explicit typing only
     implicit None
@@ -1037,7 +1038,7 @@ contains
         integer (ip), parameter :: ntryh(*) =[ 4, 2, 3, 5 ]
         integer (ip) :: nl, nf, j, ntry, nq, nr, i, is, nfm1
         integer (ip) :: l1, k1, iip, l2, ido, iipm, ii
-        real (wp), parameter :: TWO_PI = 2.0_wp * acos(-1.0_wp)
+        real (wp), parameter :: TWO_PI = 2.0_wp * PI
         real (wp) :: argh, arg1, ch1, sh1, dch1, dsh1, temp
         !-----------------------------------------------
 
@@ -1127,13 +1128,12 @@ contains
         ! Dictionary: calling arguments
         !-----------------------------------------------
         integer (ip), intent (in) :: n
-        real (wp) :: wsave(*)
+        real (wp)                 :: wsave(*)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer (ip)             :: nm1, np1, ns2, k, kc
-        real (wp), parameter :: pi = acos(-1.0_wp)
-        real (wp)            :: dt, fk
+        integer (ip)  :: nm1, np1, ns2, k, kc
+        real (wp)     :: dt, fk
         !-----------------------------------------------
 
         if (n > 3) then
@@ -1229,13 +1229,12 @@ contains
         ! Dictionary: calling arguments
         !-----------------------------------------------
         integer (ip), intent (in) :: n
-        real (wp) :: wsave(*)
+        real (wp)                 :: wsave(*)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer (ip)         :: ns2, np1, k
-        real (wp), parameter :: PI = acos(-1.0_wp)
-        real (wp)            :: dt
+        integer (ip) :: ns2, np1, k
+        real (wp)    :: dt
         !-----------------------------------------------
 
         if (n > 1) then
@@ -1356,8 +1355,8 @@ contains
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer (ip)             :: k !! Counter
-        real (wp), parameter :: half_pi = acos(-1.0_wp)/2
+        integer (ip)         :: k !! Counter
+        real (wp), parameter :: half_pi = PI/2
         real (wp)            :: fk, dt
         !-----------------------------------------------
 
@@ -1647,7 +1646,7 @@ contains
         integer (ip)             :: nl, nf, j, ntry, nq, nr
         integer (ip)             :: i, l1, k1, iip, ld, l2, ido
         integer (ip)             :: idot, iipm, i1, ii
-        real (wp), parameter :: TWO_PI = 2.0_wp * acos(-1.0_wp)
+        real (wp), parameter :: TWO_PI = 2.0_wp * PI
         real (wp)            :: argh, fi, argld, arg
         !-----------------------------------------------
 
@@ -2747,7 +2746,7 @@ contains
         integer, parameter :: ntryh(*) = [4, 2, 3, 5]
         integer (ip) :: nl, nf, j, ntry, nq, nr, i, is, nfm1, l1, k1, iip
         integer (ip) :: ld, l2, ido, iipm, ii
-        real (wp), parameter :: TWO_PI = 2.0_wp * acos(-1.0_wp)
+        real (wp), parameter :: TWO_PI = 2.0_wp * PI
         real (wp) :: argh, argld, fi, arg
         !-----------------------------------------------
 
@@ -3215,7 +3214,7 @@ contains
         ! Dictionary: local variables
         !-----------------------------------------------
         integer:: idp2, nbd, iipp2, iipph, k, i, j, jc, j2, l, lc, is, idij
-        real (wp), parameter :: TWO_PI = 2.0_wp * acos(-1.0_wp)
+        real (wp), parameter :: TWO_PI = 2.0_wp * PI
         real (wp) :: arg, dcp, dsp, ar1, ai1, ar1h, dc2, ds2, ar2, ai2, ar2h
         !-----------------------------------------------
 
@@ -3727,7 +3726,7 @@ contains
         !-----------------------------------------------
         integer (ip)         :: iipph, iipp2, idp2, nbd, j
         integer (ip)         :: k, is, idij, i, jc, l, lc
-        real (wp), parameter :: TWO_PI = 2.0_wp * acos(-1.0_wp)
+        real (wp), parameter :: TWO_PI = 2.0_wp * PI
         real (wp)            :: arg, dcp, dsp, ar1, ai1
         real (wp)            :: ar1h, dc2, ds2, ar2, ai2, ar2h
         !-----------------------------------------------

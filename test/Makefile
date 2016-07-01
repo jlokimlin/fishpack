@@ -9,7 +9,9 @@ SRC=$(subst .o,.f90, $(OBJ))
 
 EXES=$(subst .o,.exe, $(OBJ))
 
-run: $(EXES)
+run: 
+	make clean;
+	make $(EXES)
 
 $(EXES): $(SRC)
 

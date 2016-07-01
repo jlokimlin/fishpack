@@ -145,6 +145,7 @@ program tcmgnbn
     use fishpack_library, only: &
         wp, &
         ip, &
+        PI, &
         FishpackSolver, &
         FishpackGrid
 
@@ -160,7 +161,6 @@ program tcmgnbn
     integer (ip), parameter   :: N = 40
     integer (ip), parameter   :: IDIMF = M + 2
     integer (ip)              :: mp1, mperod, nperod, k, j, ierror
-    real (wp), parameter      :: PI = acos(-1.0_wp)
     real (wp), allocatable    :: x(:), y(:)
     real (wp)                 :: discretization_error
     complex (wp)              :: f(IDIMF, N)

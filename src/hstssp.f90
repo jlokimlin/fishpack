@@ -407,7 +407,8 @@ module module_hstssp
 
     use fishpack_precision, only: &
         wp, & ! Working precision
-        ip ! Integer precision
+        ip, & ! Integer precision
+        PI
 
     use type_FishpackWorkspace, only: &
         Fish => FishpackWorkspace
@@ -434,60 +435,59 @@ contains
         !-----------------------------------------------
         ! Dictionary: calling arguments
         !-----------------------------------------------
-        integer (ip),          intent (in)     :: m
-        integer (ip),          intent (in)     :: mbdcnd
-        integer (ip),          intent (in)     :: n
-        integer (ip),          intent (in)     :: nbdcnd
-        integer (ip),          intent (in)     :: idimf
-        integer (ip),          intent (out)    :: ierror
-        real (wp),             intent (in)     :: a
-        real (wp),             intent (in)     :: b
-        real (wp),             intent (in)     :: c
-        real (wp),             intent (in)     :: d
-        real (wp),             intent (in)     :: elmbda
-        real (wp),             intent (out)    :: pertrb
-        real (wp), contiguous, intent (in)     :: bda(:)
-        real (wp), contiguous, intent (in)     :: bdb(:)
-        real (wp), contiguous, intent (in)     :: bdc(:)
-        real (wp), contiguous, intent (in)     :: bdd(:)
-        real (wp), contiguous, intent (in out) :: f(:,:)
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: mbdcnd
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: nbdcnd
+        integer (ip), intent (in)     :: idimf
+        integer (ip), intent (out)    :: ierror
+        real (wp),    intent (in)     :: a
+        real (wp),    intent (in)     :: b
+        real (wp),    intent (in)     :: c
+        real (wp),    intent (in)     :: d
+        real (wp),    intent (in)     :: elmbda
+        real (wp),    intent (out)    :: pertrb
+        real (wp),    intent (in)     :: bda(:)
+        real (wp),    intent (in)     :: bdb(:)
+        real (wp),    intent (in)     :: bdc(:)
+        real (wp),    intent (in)     :: bdd(:)
+        real (wp),    intent (in out) :: f(:,:)
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        integer (ip)         :: irwk, icwk
-        real (wp), parameter :: PI = acos(-1.0_wp)
-        type (Fish)          :: workspace
+        integer (ip)  :: irwk, icwk
+        type (Fish)   :: workspace
         !-----------------------------------------------
 
         ! initialize error flag
         ierror = 0
 
         ! Check input arguments
-        if (a<0. .or. b>PI) ierror = 1
+        if (a < 0.0_wp .or. b > PI) ierror = 1
         if (a >= b) ierror = 2
-        if (mbdcnd<=0 .or. mbdcnd>9) ierror = 3
+        if (mbdcnd <= 0 .or. mbdcnd > 9) ierror = 3
         if (c >= d) ierror = 4
         if (3 > n) ierror = 5
-        if (nbdcnd<0 .or. nbdcnd>=5) ierror = 6
-        if(a>0..and.(mbdcnd==5.or.mbdcnd==6.or.mbdcnd==9))ierror=7
-        if(a==0..and.(mbdcnd==3.or.mbdcnd==4.or.mbdcnd==8))ierror=8
-        if (b<PI .and. mbdcnd>=7) ierror = 9
-        if(b==PI.and.(mbdcnd==2.or.mbdcnd==3.or.mbdcnd==6))ierror=10
-        if (mbdcnd>=5 .and. (nbdcnd==1 .or. nbdcnd==2 .or. nbdcnd==4)) &
+        if (nbdcnd < 0 .or. nbdcnd >= 5) ierror = 6
+        if (a > 0.0_wp .and. (mbdcnd==5.or.mbdcnd==6.or.mbdcnd==9))ierror=7
+        if (a == 0.0_wp .and. (mbdcnd==3.or.mbdcnd==4.or.mbdcnd==8))ierror=8
+        if (b < PI .and. mbdcnd >= 7) ierror = 9
+        if (b == PI .and. (mbdcnd==2.or.mbdcnd==3.or.mbdcnd==6))ierror=10
+        if (mbdcnd >= 5 .and. (nbdcnd==1 .or. nbdcnd==2 .or. nbdcnd==4)) &
             ierror = 11
         if (idimf < m) ierror = 12
         if (3 > m) ierror = 13
         if (ierror /= 0) return
 
         ! compute required real workspace size
-        call workspace%get_genbun_workspace_dimensions( n, m, irwk )
+        call workspace%get_genbun_workspace_dimensions(n, m, irwk)
         irwk = irwk + 3 * m
         icwk = 0
 
         !
         !==> Allocate memory
         !
-        call workspace%create( irwk, icwk, ierror )
+        call workspace%create(irwk, icwk, ierror)
 
         ! Check if allocation was successful
         if (ierror == 20) return
@@ -537,7 +537,6 @@ contains
         integer (ip) :: np, isw, jsw, mb, iwb, iwc, iwr, iws
         integer (ip) :: i, j, mm1, lp, local_error_flag, i1
         real (wp)    :: dr, dr2, dth, dth2, a1, a2, a3
-        real (wp), parameter :: PI = acos(-1.0_wp)
         !-----------------------------------------------
 
         dr = (b - a)/m

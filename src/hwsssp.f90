@@ -393,8 +393,10 @@
 module module_hwsssp
 
     use fishpack_precision, only: &
-        wp, & ! Working precision
-        ip ! Integer precision
+        wp, & ! working precision
+        ip, & ! integer precision
+        PI, & ! machine precision pi
+        TWO_PI
 
     use type_FishpackWorkspace, only: &
         Fish => FishpackWorkspace
@@ -438,10 +440,8 @@ contains
         !-----------------------------------------------
         ! Dictionary: local variables
         !-----------------------------------------------
-        type (Fish)           :: workspace
-        integer (ip)          :: irwk, icwk
-        real (wp), parameter  :: PI = acos(-1.0_wp)
-        real (wp), parameter  :: TWO_PI = 2.0_wp * PI
+        type (Fish)  :: workspace
+        integer (ip) :: irwk, icwk
         !-----------------------------------------------
 
 

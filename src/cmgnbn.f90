@@ -221,7 +221,8 @@ module module_cmgnbn
 
     use fishpack_precision, only: &
         wp, & ! Working precision
-        ip ! Integer precision
+        ip, & ! Integer precision
+        PI
 
     use type_FishpackWorkspace, only: &
         Fish => FishpackWorkspace
@@ -596,9 +597,7 @@ subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
     goto 183
 106 continue
     lr = 0
-    do i = 1, m
-        p(i) = 0.0_wp
-    end do
+    p(1:m) = 0.0_wp
     nun = n
     jst = 1
     jsp = n
@@ -1046,7 +1045,7 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
                     goto 150
                 case (1)
                     p(:mr) = b(:mr)
-                    q(:mr, j) = q(:mr, jm2) + 2.0_wp * q(:mr, jp2) + 3.*b(:mr)
+                    q(:mr, j) = q(:mr, jm2) + 2.0_wp * q(:mr, jp2) + 3.0_wp*b(:mr)
                     goto 150
             end select
         end if
@@ -1154,7 +1153,7 @@ goto 104
     call cmpcsg (jr, 1, 0.5_wp, 0.0_wp, tcos)
     call cmptrx(jr, 0, mr, a, bb, c, b, tcos, d, w)
     q(:mr, j) = 0.5_wp * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1)) + b(:mr)
-    b(:mr) = q(:mr, 1) + 2.0_wp * q(:mr, nlast) + 4.*q(:mr, j)
+    b(:mr) = q(:mr, 1) + 2.0_wp * q(:mr, nlast) + 4.0_wp*q(:mr, j)
     jr2 = 2*jr
     call cmpcsg (jr, 1, 0.0_wp, 0.0_wp, tcos)
     tcos(jr+1:jr*2) = -tcos(jr:1:(-1))
@@ -1213,7 +1212,7 @@ goto 104
     k4 = kr
     call cmptr3 (mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
     b(:mr) = b(:mr) + b2(:mr) + b3(:mr)
-    tcos(1) = (2., 0.0_wp)
+    tcos(1) = cmplx(2.0_wp, 0.0_wp, kind=wp)
     call cmptrx(1, 0, mr, a, bb, c, b, tcos, d, w)
     q(:mr, j) = q(:mr, j) + b(:mr)
     b(:mr) = q(:mr, 1) + 2.0_wp * q(:mr, j)
@@ -1519,7 +1518,6 @@ pure subroutine cmpcsg(n, ijump, fnum, fden, a)
     ! Dictionary: local variables
     !-----------------------------------------------
     integer (ip)         :: k3, k4, k, k1, k5, i, k2, np1
-    real (wp), parameter :: pi = acos(-1.0_wp)
     real (wp)            :: pibyn, x, y
     !-----------------------------------------------
 
@@ -1527,7 +1525,7 @@ pure subroutine cmpcsg(n, ijump, fnum, fden, a)
         if (ijump /= 1) then
             k3 = n/ijump + 1
             k4 = k3 - 1
-            pibyn = pi/(n + ijump)
+            pibyn = PI/(n + ijump)
             do k = 1, ijump
                 k1 = (k - 1)*k3
                 k5 = (k - 1)*k4
@@ -1539,7 +1537,7 @@ pure subroutine cmpcsg(n, ijump, fnum, fden, a)
             end do
         else
             np1 = n + 1
-            y = pi/(real(n, kind=wp) + fden)
+            y = PI/(real(n, kind=wp) + fden)
             do i = 1, n
                 x = real(np1 - i, kind=wp) - fnum
                 a(i) = cmplx(2.0_wp * cos(x*y), 0.0_wp, kind=wp)
