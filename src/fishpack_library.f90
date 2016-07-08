@@ -43,7 +43,7 @@ module fishpack_library
         MacGrid
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     ! Everything is private unless stated otherwise
     private

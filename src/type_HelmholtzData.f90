@@ -39,7 +39,7 @@ module type_HelmholtzData
         Grid
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     ! Everything is private unless stated otherwise
     private
@@ -56,7 +56,7 @@ module type_HelmholtzData
     ! Declare derived data type
     type, public ::  HelmholtzData
         !---------------------------------------------------------------------------------
-        ! Class variables
+        ! Type components
         !---------------------------------------------------------------------------------
         logical,                             public :: initialized = .false.
         integer (ip),                        public :: Y_BOUNDARY_CONDITION_TYPE = -1 !! Boundary conditions in the vertical direction
@@ -70,7 +70,7 @@ module type_HelmholtzData
         !---------------------------------------------------------------------------------
     contains
         !---------------------------------------------------------------------------------
-        ! Class methods
+        ! Type-bound procedures
         !---------------------------------------------------------------------------------
         procedure, public                   :: create => create_helmholtz_data
         procedure, public                   :: destroy => destroy_helmholtz_data
@@ -86,7 +86,7 @@ module type_HelmholtzData
         subroutine proc_interface(this, grid_type)
             import :: HelmholtzData, Grid, wp
             !--------------------------------------------------------------------------------
-            ! Dictionary: calling arguments
+            ! Dummy arguments
             !--------------------------------------------------------------------------------
             class (HelmholtzData), intent (in out) :: this
             class (Grid),          intent (in out) :: grid_type
@@ -100,7 +100,7 @@ contains
 
     subroutine create_helmholtz_data(this, nx, ny, x_type, y_type, rectangular_domain, func)
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         class (HelmholtzData),     intent (in out)            :: this
         integer (ip),              intent (in)                :: nx
@@ -177,7 +177,7 @@ contains
 
     subroutine destroy_helmholtz_data(this)
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         class (HelmholtzData), intent (in out)   :: this
         !--------------------------------------------------------------------------------
@@ -275,7 +275,7 @@ contains
 
     subroutine get_boundary_condition_type(type, return_value)
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         integer (ip), intent (in)   :: type
         integer (ip), intent (out)  :: return_value
@@ -296,7 +296,7 @@ contains
 
     subroutine finalize_helmholtz_data(this)
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         type (HelmholtzData), intent (in out) :: this
         !--------------------------------------------------------------------------------

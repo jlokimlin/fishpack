@@ -11,7 +11,7 @@ module type_Grid
         RectangularDomain
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     ! Everything is private unless stated otherwise
     private
@@ -28,7 +28,7 @@ module type_Grid
     ! Declare derived data type
     type, public ::  Grid
         !---------------------------------------------------------------------------------
-        ! Class variables
+        ! Type components
         !---------------------------------------------------------------------------------
         logical,                  public :: initialized = .false.
         integer (ip),             public :: NX = 0 !! Number of horizontally staggered grid points
@@ -41,7 +41,7 @@ module type_Grid
         !---------------------------------------------------------------------------------
     contains
         !---------------------------------------------------------------------------------
-        ! Class methods
+        ! Type-bound procedures
         !---------------------------------------------------------------------------------
         procedure,         public  :: create => create_grid
         procedure,         public  :: destroy => destroy_grid
@@ -61,7 +61,7 @@ contains
 
     subroutine create_grid(this, x_interval, y_interval, nx, ny )
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         class (Grid),          intent (in out) :: this
         real (wp), contiguous, intent (in)     :: x_interval(:) !! Interval: A <= x <= B
@@ -101,7 +101,7 @@ contains
         ! Purpose:
         !
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         class (Grid), intent (in out) :: this
         !--------------------------------------------------------------------------------
@@ -128,7 +128,7 @@ contains
 
     subroutine get_discretization_mesh(this, A, B, C, D, nx, ny )
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         class (Grid), intent (in out) :: this
         real (wp),    intent (in)     :: A  ! Interval: A <= x <= B
@@ -160,7 +160,7 @@ contains
     subroutine compute_one_dimensional_grid( &
         lower_bound, upper_bound, left_interval_endpoint, uniform_mesh, grid, staggered )
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         integer (ip),           intent (in)  :: lower_bound
         integer (ip),           intent (in)  :: upper_bound
@@ -169,7 +169,7 @@ contains
         real (wp), allocatable, intent (out) :: grid(:)
         logical, optional,      intent (in)  :: staggered
         !--------------------------------------------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !--------------------------------------------------------------------------------
         integer (ip):: n !! Counter
         !--------------------------------------------------------------------------------
@@ -231,7 +231,7 @@ contains
         ! The subroutine "get_discretization_mesh" must be called first to initialize dx and dy
         !
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         class (Grid),           intent (in out) :: this
         real (wp),              intent (in)     :: A  ! A <= x
@@ -263,7 +263,7 @@ contains
         ! The subroutine "get_discretization_mesh" must be called first to initialize dx and dy
         !
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         class (Grid),           intent (in out) :: this
         real (wp),              intent (in)     :: A  ! A <= x
@@ -273,7 +273,7 @@ contains
         real (wp), allocatable, intent (out)    :: x(:)
         real (wp), allocatable, intent (out)    :: y(:)
         !--------------------------------------------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !--------------------------------------------------------------------------------
         logical, parameter :: staggered = .true.
         !--------------------------------------------------------------------------------
@@ -296,7 +296,7 @@ contains
 
     subroutine finalize_grid(this)
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         type (Grid), intent (in out) :: this
         !--------------------------------------------------------------------------------

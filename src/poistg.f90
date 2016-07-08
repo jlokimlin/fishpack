@@ -47,7 +47,7 @@
 !                        and j=1, 2, ..., n
 !
 !                        a(i)*x(i-1, j) + b(i)*x(i, j) + c(i)*x(i+1, j)
-!                        + x(i, j-1) - 2.0_wp *x(i, j) + x(i, j+1)
+!                        + x(i, j-1) - TWO *x(i, j) + x(i, j+1)
 !                        = y(i, j)
 !
 !                        The indices i+1 and i-1 are evaluated modulo m,
@@ -164,7 +164,7 @@
 !                        create a solution array x for the system given
 !                        in the 'purpose' section above, with
 !
-!                          a(i) = c(i) = -0.5_wp * b(i) = 1,    i=1, 2, ..., m
+!                          a(i) = c(i) = -HALF * b(i) = 1,    i=1, 2, ..., m
 !                        and, when mperod = 1
 !                          a(1) = c(m) = 0
 !                          b(1) = b(m) =-1.
@@ -223,7 +223,7 @@ module module_poistg
         GenbunAux
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     ! Everything is private unless stated otherwise
     private
@@ -231,12 +231,25 @@ module module_poistg
     public :: poistgg
 
 
+
+    !---------------------------------------------------------------------------------
+    ! Dictionary: Variables confined to the module
+    !---------------------------------------------------------------------------------
+    real (wp), private :: ZERO = 0.0_wp
+    real (wp), private :: HALF = 0.5_wp
+    real (wp), private :: ONE = 1.0_wp
+    real (wp), private :: TWO = 2.0_wp
+    !---------------------------------------------------------------------------------
+
+
+
 contains
+
 
 
     subroutine poistg(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         integer (ip), intent (in)     :: nperod
         integer (ip), intent (in)     :: n
@@ -249,7 +262,7 @@ contains
         real (wp),    intent (in)     :: c(:)
         real (wp),    intent (in out) :: y(:,:)
         !--------------------------------------------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !--------------------------------------------------------------------------------
         integer (ip) :: irwk, icwk
         type (Fish)  :: workspace
@@ -258,7 +271,7 @@ contains
         !
         !==> Compute workspace dimensions
         !
-        irwk = m * (9 + int(log(real(n, kind=wp))/log(2.0_wp),kind=ip)) + 4 * n
+        irwk = m * (9 + int(log(real(n, kind=wp))/log(TWO),kind=ip)) + 4 * n
         icwk = 0
 
         !
@@ -286,7 +299,7 @@ contains
 
     subroutine poistgg(nperod, n, mperod, m, a, b, c, idimy, y, ierror, w)
         !--------------------------------------------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !--------------------------------------------------------------------------------
         integer (ip), intent (in)     :: nperod
         integer (ip), intent (in)     :: n
@@ -300,7 +313,7 @@ contains
         real (wp),    intent (in out) :: y(idimy,n)
         real (wp),    intent (in out) :: w(*)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip)     :: workspace_indices(11)
         integer (ip)     :: i, k, j, np, mp
@@ -341,7 +354,7 @@ contains
                 k = iwbc + i - 1
                 w(k) = -c(i)
                 k = iwbb + i - 1
-                w(k) = 2.0_wp - b(i)
+                w(k) = TWO - b(i)
                 y(i, :n) = -y(i, :n)
             end do
 
@@ -363,21 +376,21 @@ contains
                         w(i) = y(mh-i, j) - y(i+mh, j)
                         w(i+mh) = y(mh-i, j) + y(i+mh, j)
                     end do
-                    w(mh) = 2.0_wp * y(mh, j)
+                    w(mh) = TWO * y(mh, j)
                     select case (modd)
                         case (1)
                             y(:m, j) = w(:m)
                         case (2)
-                            w(m) = 2.0_wp * y(m, j)
+                            w(m) = TWO * y(m, j)
                             y(:m, j) = w(:m)
                     end select
                 end do
 
                 k = iwbc + mhm1 - 1
                 i = iwba + mhm1
-                w(k) = 0.0_wp
-                w(i) = 0.0_wp
-                w(k+1) = 2.0_wp*w(k+1)
+                w(k) = ZERO
+                w(i) = ZERO
+                w(k+1) = TWO * w(k+1)
 
                 select case (modd)
                     case (2)
@@ -442,14 +455,14 @@ contains
             end do loop_107
 
             do j = 1, n
-                w(mh-1:mh-mhm1:(-1)) = 0.5_wp * (y(mh+1:mhm1+mh, j)+y(:mhm1, j))
-                w(mh+1:mhm1+mh) = 0.5_wp * (y(mh+1:mhm1+mh, j)-y(:mhm1, j))
-                w(mh) = 0.5_wp * y(mh, j)
+                w(mh-1:mh-mhm1:(-1)) = HALF * (y(mh+1:mhm1+mh, j)+y(:mhm1, j))
+                w(mh+1:mhm1+mh) = HALF * (y(mh+1:mhm1+mh, j)-y(:mhm1, j))
+                w(mh) = HALF * y(mh, j)
                 select case (modd)
                     case (1)
                         y(:m, j) = w(:m)
                     case (2)
-                        w(m) = 0.5_wp * y(m, j)
+                        w(m) = HALF * y(m, j)
                         y(:m, j) = w(:m)
                 end select
             end do
@@ -464,7 +477,7 @@ contains
 
     pure subroutine check_input_arguments(nperod, n, mperod, m, idimy, ierror, a, b, c)
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         integer (ip), intent (in)  :: nperod
         integer (ip), intent (in)  :: n
@@ -497,7 +510,7 @@ contains
                 ierror = 6
                 return
             end if
-        else if (a(1) /= 0.0_wp .or. c(m) /= 0.0_wp) then
+        else if (a(1) /= ZERO .or. c(m) /= ZERO) then
             ierror = 7
             return
         else
@@ -510,7 +523,7 @@ contains
 
     pure function get_workspace_indices(n, m) result (return_value)
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         integer (ip), intent (in) :: n
         integer (ip), intent (in) :: m
@@ -542,7 +555,7 @@ contains
         ! Subroutine to solve poisson's equation on a staggered grid.
         !
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: nperod
         integer (ip), intent (in)     :: n
@@ -562,7 +575,7 @@ contains
         real (wp),    intent (in out) :: tcos(m)
         real (wp),    intent (in out) :: p(4*n)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip)     :: k(4)
         integer (ip)     :: np, mr, ipp, ipstor, i2r, jr, nr, nlast
@@ -581,8 +594,8 @@ contains
             )
 
             np = nperod
-            fnum = 0.5_wp * real(np/3, kind=wp)
-            fnum2 = 0.5_wp * real(np/2, kind=wp)
+            fnum = HALF * real(np/3, kind=wp)
+            fnum2 = HALF * real(np/2, kind=wp)
             mr = m
             ipp = -mr
             ipstor = 0
@@ -625,25 +638,25 @@ contains
                             jm3 = jm2 - i2rby2
 
                             if (j == 1) then
-                                call genbun_aux%cosgen(i2r, 1, fnum, 0.5_wp, tcos)
+                                call genbun_aux%cosgen(i2r, 1, fnum, HALF, tcos)
                                 select case (i2r)
                                     case (1)
                                         b(:mr) = q(:mr, 1)
                                         q(:mr, 1) = q(:mr, 2)
                                     case default
-                                        b(:mr) = q(:mr, 1) + 0.5_wp * (q(:mr, jp2)-q(:mr, jp1)-q(:mr, &
+                                        b(:mr) = q(:mr, 1) + HALF * (q(:mr, jp2)-q(:mr, jp1)-q(:mr, &
                                             jp3))
                                         q(:mr, 1) = q(:mr, jp2) + q(:mr, 1) - q(:mr, jp1)
                                 end select
                             else
                                 if (ijump == 1) then
                                     ijump = 2
-                                    call genbun_aux%cosgen(i2r, 1, 0.5_wp, 0.0_wp, tcos)
+                                    call genbun_aux%cosgen(i2r, 1, HALF, ZERO, tcos)
                                 end if
 
                                 select case (i2r)
                                     case (1)
-                                        b(:mr) = 2.0_wp*q(:mr, j)
+                                        b(:mr) = TWO*q(:mr, j)
                                         q(:mr, j) = q(:mr, jm2) + q(:mr, jp2)
                                     case default
                                         do i = 1, mr
@@ -681,7 +694,7 @@ contains
                                 b(:mr) = q(:mr, j)
                                 q(:mr, j) = q(:mr, jm2)
                             case default
-                                b(:mr)=q(:mr, j)+0.5_wp * (q(:mr, jm2)-q(:mr, jm1)-q(:mr, jm3))
+                                b(:mr)=q(:mr, j)+HALF * (q(:mr, jm2)-q(:mr, jm1)-q(:mr, jm3))
 
                                 select case (nrodpr)
                                     case (0)
@@ -691,11 +704,11 @@ contains
                                         q(:mr, j) = q(:mr, j) - q(:mr, jm1) + q(:mr, jm2)
                                 end select
 
-                                if (lr /= 0) call genbun_aux%cosgen(lr, 1, fnum2, 0.5_wp, tcos(kr+1))
+                                if (lr /= 0) call genbun_aux%cosgen(lr, 1, fnum2, HALF, tcos(kr+1))
 
                         end select
 
-                        call genbun_aux%cosgen(kr, 1, fnum2, 0.5_wp, tcos)
+                        call genbun_aux%cosgen(kr, 1, fnum2, HALF, tcos)
                         call genbun_aux%trix(kr, lr, mr, a, bb, c, b, tcos, d, w)
 
                         q(:mr, j) = q(:mr, j) + b(:mr)
@@ -707,7 +720,7 @@ contains
                         select case (i2r)
                             case (1)
                                 b(:mr) = q(:mr, j)
-                                tcos(1) = 0.0_wp
+                                tcos(1) = ZERO
 
                                 call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
 
@@ -715,8 +728,8 @@ contains
                                 ipstor = mr
                                 p(:mr) = b(:mr)
                                 b(:mr) = b(:mr) + q(:mr, n)
-                                tcos(1) = -1.0_wp + 2.0_wp*real(np/2, kind=wp)
-                                tcos(2) = 0.0_wp
+                                tcos(1) = -ONE + TWO*real(np/2, kind=wp)
+                                tcos(2) = ZERO
 
                                 call genbun_aux%trix(1, 1, mr, a, bb, c, b, tcos, d, w)
 
@@ -724,7 +737,7 @@ contains
 
                             case default
 
-                                b(:mr) = q(:mr, j) + 0.5_wp * (q(:mr, jm2)-q(:mr, jm1)-q(:mr, jm3))
+                                b(:mr) = q(:mr, j) + HALF * (q(:mr, jm2)-q(:mr, jm1)-q(:mr, jm3))
 
                                 select case (nrodpr)
                                     case (0)
@@ -733,16 +746,16 @@ contains
                                         b(:mr) = b(:mr) + q(:mr, jp2) - q(:mr, jp1)
                                 end select
 
-                                call genbun_aux%cosgen(i2r, 1, 0.5_wp, 0.0_wp, tcos)
+                                call genbun_aux%cosgen(i2r, 1, HALF, ZERO, tcos)
                                 call genbun_aux%trix(i2r, 0, mr, a, bb, c, b, tcos, d, w)
 
                                 ipp = ipp + mr
                                 ipstor = max(ipstor, ipp + mr)
-                                p(ipp+1:mr+ipp) = b(:mr) + 0.5_wp * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
+                                p(ipp+1:mr+ipp) = b(:mr) + HALF * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
                                 b(:mr) = p(ipp+1:mr+ipp) + q(:mr, jp2)
 
                                 if (lr /= 0) then
-                                    call genbun_aux%cosgen(lr, 1, fnum2, 0.5_wp, tcos(i2r+1))
+                                    call genbun_aux%cosgen(lr, 1, fnum2, HALF, tcos(i2r+1))
                                     call genbun_aux%merger(tcos, 0, i2r, i2r, lr, kr)
                                 else
                                     do i = 1, i2r
@@ -751,7 +764,7 @@ contains
                                     end do
                                 end if
 
-                                call genbun_aux%cosgen(kr, 1, fnum2, 0.5_wp, tcos)
+                                call genbun_aux%cosgen(kr, 1, fnum2, HALF, tcos)
                                 call genbun_aux%trix(kr, kr, mr, a, bb, c, b, tcos, d, w)
 
                                 q(:mr, j) = q(:mr, jm2) + p(ipp+1:mr+ipp) + b(:mr)
@@ -788,17 +801,17 @@ contains
                                 case (1,3)
                                     b(:mr) = q(:mr, 2)
                                     b2(:mr) = q(:mr, 1) + q(:mr, 3)
-                                    b3(:mr) = 0.0_wp
+                                    b3(:mr) = ZERO
 
                                     select case (np)
                                         case (1:2)
-                                            tcos(1) = -2.0_wp
-                                            tcos(2) = 1.0_wp
-                                            tcos(3) = -1.0_wp
+                                            tcos(1) = -TWO
+                                            tcos(2) = ONE
+                                            tcos(3) = -ONE
                                             k1 = 2
                                         case default
-                                            tcos(1) = -1.0_wp
-                                            tcos(2) = 1.0_wp
+                                            tcos(1) = -ONE
+                                            tcos(2) = ONE
                                             k1 = 1
                                     end select
 
@@ -810,12 +823,12 @@ contains
                                     b2(:mr) = q(:mr, 3)
                                     b3(:mr) = q(:mr, 1)
 
-                                    call genbun_aux%cosgen(3, 1, 0.5_wp, 0.0_wp, tcos)
+                                    call genbun_aux%cosgen(3, 1, HALF, ZERO, tcos)
 
-                                    tcos(4) = -1.0_wp
-                                    tcos(5) = 1.0_wp
-                                    tcos(6) = -1.0_wp
-                                    tcos(7) = 1.0_wp
+                                    tcos(4) = -ONE
+                                    tcos(5) = ONE
+                                    tcos(6) = -ONE
+                                    tcos(7) = ONE
 
                                     k1 = 3
                                     k2 = 2
@@ -829,13 +842,13 @@ contains
                             b(:mr) = b(:mr) + b2(:mr) + b3(:mr)
 
                             if (np == 3) then
-                                tcos(1) = 2.0_wp
+                                tcos(1) = TWO
                                 call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
                             end if
 
                             q(:mr, 2) = b(:mr)
                             b(:mr) = q(:mr, 1) + b(:mr)
-                            tcos(1) = -1.0_wp + 4.0_wp*fnum
+                            tcos(1) = -ONE + 4.0_wp*fnum
 
                             call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
 
@@ -853,15 +866,15 @@ contains
                             case (1, 3)
                                 b2(:mr) = q(:mr, 1) + q(:mr, nlast) &
                                     + q(:mr, j) - q(:mr, jm1) - q(:mr, jp1)
-                                b3(:mr) = 0.0_wp
+                                b3(:mr) = ZERO
                                 k1 = nlast - 1
                                 k2 = nlast + jr - 1
 
-                                call genbun_aux%cosgen(jr - 1, 1, 0.0_wp, 1.0_wp, tcos(nlast))
+                                call genbun_aux%cosgen(jr - 1, 1, ZERO, ONE, tcos(nlast))
 
-                                tcos(k2) = 2.0_wp*real(np - 2, kind=wp)
+                                tcos(k2) = TWO*real(np - 2, kind=wp)
 
-                                call genbun_aux%cosgen(jr, 1, 0.5_wp - fnum, 0.5_wp, tcos(k2+1))
+                                call genbun_aux%cosgen(jr, 1, HALF - fnum, HALF, tcos(k2+1))
 
                                 k3 = (3 - np)/2
 
@@ -869,7 +882,7 @@ contains
 
                                 k1 = k1 - 1 + k3
 
-                                call genbun_aux%cosgen(jr, 1, fnum, 0.5_wp, tcos(k1+1))
+                                call genbun_aux%cosgen(jr, 1, fnum, HALF, tcos(k1+1))
 
                                 k2 = jr
                                 k3 = 0
@@ -884,15 +897,15 @@ contains
                                 k1 = nlast + jr - 1
                                 k2 = k1 + jr - 1
 
-                                call genbun_aux%cosgen(jr - 1, 1, 0.0_wp, 1.0_wp, tcos(k1+1))
-                                call genbun_aux%cosgen(nlast, 1, 0.5_wp, 0.0_wp, tcos(k2+1))
+                                call genbun_aux%cosgen(jr - 1, 1, ZERO, ONE, tcos(k1+1))
+                                call genbun_aux%cosgen(nlast, 1, HALF, ZERO, tcos(k2+1))
                                 call genbun_aux%merger(tcos, k1, jr - 1, k2, nlast, 0)
 
                                 k3 = k1 + nlast - 1
                                 k4 = k3 + jr
 
-                                call genbun_aux%cosgen(jr, 1, 0.5_wp, 0.5_wp, tcos(k3+1))
-                                call genbun_aux%cosgen(jr, 1, 0.0_wp, 0.5_wp, tcos(k4+1))
+                                call genbun_aux%cosgen(jr, 1, HALF, HALF, tcos(k3+1))
+                                call genbun_aux%cosgen(jr, 1, ZERO, HALF, tcos(k4+1))
                                 call genbun_aux%merger(tcos, k3, jr, k4, jr, k1)
 
                                 k2 = nlast - 1
@@ -904,14 +917,14 @@ contains
                         b(:mr) = b(:mr) + b2(:mr) + b3(:mr)
 
                         if (np == 3) then
-                            tcos(1) = 2.0_wp
+                            tcos(1) = TWO
                             call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
                         end if
 
-                        q(:mr, j) = b(:mr) + 0.5_wp * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
+                        q(:mr, j) = b(:mr) + HALF * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
                         b(:mr) = q(:mr, j) + q(:mr, 1)
 
-                        call genbun_aux%cosgen(jr, 1, fnum, 0.5_wp, tcos)
+                        call genbun_aux%cosgen(jr, 1, fnum, HALF, tcos)
                         call genbun_aux%trix(jr, 0, mr, a, bb, c, b, tcos, d, w)
 
                         q(:mr, 1) = q(:mr, 1) - q(:mr, jm1) + b(:mr)
@@ -930,7 +943,7 @@ contains
                     end if
 
                     do i = 1, mr
-                        t = 0.5_wp * (q(i, j)-q(i, jm1)-q(i, jp1))
+                        t = HALF * (q(i, j)-q(i, jm1)-q(i, jp1))
                         q(i, j) = t
                         b2(i) = q(i, nlast) + t
                         b3(i) = q(i, 1) + t
@@ -938,14 +951,14 @@ contains
 
                     k1 = kr + 2*jr
 
-                    call genbun_aux%cosgen(jr - 1, 1, 0.0_wp, 1.0_wp, tcos(k1+1))
+                    call genbun_aux%cosgen(jr - 1, 1, ZERO, ONE, tcos(k1+1))
 
                     k2 = k1 + jr
-                    tcos(k2) = 2.0_wp*real(np - 2, kind=wp)
+                    tcos(k2) = TWO*real(np - 2, kind=wp)
                     k4 = (np - 1)*(3 - np)
                     k3 = k2 + 1 - k4
 
-                    call genbun_aux%cosgen(kr+jr+k4, 1, real(k4, kind=wp)/2, 1.0_wp-real(k4, kind=wp), tcos(k3))
+                    call genbun_aux%cosgen(kr+jr+k4, 1, real(k4, kind=wp)/2, ONE-real(k4, kind=wp), tcos(k3))
 
                     k4 = 1 - np/3
 
@@ -956,18 +969,18 @@ contains
                     k2 = kr + jr
                     k4 = k1 + k2
 
-                    call genbun_aux%cosgen(kr, 1, fnum2, 0.5_wp, tcos(k4+1))
+                    call genbun_aux%cosgen(kr, 1, fnum2, HALF, tcos(k4+1))
 
                     k3 = k4 + kr
 
-                    call genbun_aux%cosgen(jr, 1, fnum, 0.5_wp, tcos(k3+1))
+                    call genbun_aux%cosgen(jr, 1, fnum, HALF, tcos(k3+1))
                     call genbun_aux%merger(tcos, k4, kr, k3, jr, k1)
 
                     k4 = k3 + jr
 
-                    call genbun_aux%cosgen(lr, 1, fnum2, 0.5_wp, tcos(k4+1))
+                    call genbun_aux%cosgen(lr, 1, fnum2, HALF, tcos(k4+1))
                     call genbun_aux%merger(tcos, k3, jr, k4, lr, k1 + k2)
-                    call genbun_aux%cosgen(kr, 1, fnum2, 0.5_wp, tcos(k3+1))
+                    call genbun_aux%cosgen(kr, 1, fnum2, HALF, tcos(k3+1))
 
                     k3 = kr
                     k4 = kr
@@ -977,14 +990,14 @@ contains
                     b(:mr) = b(:mr) + b2(:mr) + b3(:mr)
 
                     if (np == 3) then
-                        tcos(1) = 2.0_wp
+                        tcos(1) = TWO
                         call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
                     end if
 
                     q(:mr, j) = q(:mr, j) + b(:mr)
                     b(:mr) = q(:mr, 1) + q(:mr, j)
 
-                    call genbun_aux%cosgen(jr, 1, fnum, 0.5_wp, tcos)
+                    call genbun_aux%cosgen(jr, 1, fnum, HALF, tcos)
                     call genbun_aux%trix(jr, 0, mr, a, bb, c, b, tcos, d, w)
 
                     if (jr == 1) then
@@ -997,22 +1010,22 @@ contains
                     exit block_construct
                 end if if_nr
 
-                b3(:mr) = 0.0_wp
+                b3(:mr) = ZERO
                 b(:mr) = q(:mr, 1) + p(ipp+1:mr+ipp)
                 q(:mr, 1) = q(:mr, 1) - q(:mr, jm1)
                 b2(:mr) = q(:mr, 1) + q(:mr, nlast)
                 k1 = kr + jr
                 k2 = k1 + jr
 
-                call genbun_aux%cosgen(jr - 1, 1, 0.0_wp, 1.0_wp, tcos(k1+1))
+                call genbun_aux%cosgen(jr - 1, 1, ZERO, ONE, tcos(k1+1))
 
                 select case (np)
                     case (1, 3)
-                        tcos(k2) = 2.0_wp*real(np - 2, kind=wp)
+                        tcos(k2) = TWO*real(np - 2, kind=wp)
 
-                        call genbun_aux%cosgen(kr, 1, 0.0_wp, 1.0_wp, tcos(k2+1))
+                        call genbun_aux%cosgen(kr, 1, ZERO, ONE, tcos(k2+1))
                     case (2)
-                        call genbun_aux%cosgen(kr + 1, 1, 0.5_wp, 0.0_wp, tcos(k2))
+                        call genbun_aux%cosgen(kr + 1, 1, HALF, ZERO, tcos(k2))
                 end select
 
                 k4 = 1 - np/3
@@ -1023,11 +1036,11 @@ contains
 
                 k2 = kr
 
-                call genbun_aux%cosgen(kr, 1, fnum2, 0.5_wp, tcos(k1+1))
+                call genbun_aux%cosgen(kr, 1, fnum2, HALF, tcos(k1+1))
 
                 k4 = k1 + kr
 
-                call genbun_aux%cosgen(lr, 1, fnum2, 0.5_wp, tcos(k4+1))
+                call genbun_aux%cosgen(lr, 1, fnum2, HALF, tcos(k4+1))
 
                 k3 = lr
                 k4 = 0
@@ -1037,7 +1050,7 @@ contains
                 b(:mr) = b(:mr) + b2(:mr)
 
                 if (np == 3) then
-                    tcos(1) = 2.0_wp
+                    tcos(1) = TWO
                     call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
                 end if
 
@@ -1052,7 +1065,7 @@ contains
                 jm2 = nlast - i2r
 
                 if (jr == 1) then
-                    q(:mr, nlast) = 0.0_wp
+                    q(:mr, nlast) = ZERO
                 else
                     select case (nrod)
                         case (0)
@@ -1063,8 +1076,8 @@ contains
                     end select
                 end if
 
-                call genbun_aux%cosgen(kr, 1, fnum2, 0.5_wp, tcos)
-                call genbun_aux%cosgen(lr, 1, fnum2, 0.5_wp, tcos(kr+1))
+                call genbun_aux%cosgen(kr, 1, fnum2, HALF, tcos)
+                call genbun_aux%cosgen(lr, 1, fnum2, HALF, tcos(kr+1))
                 call genbun_aux%trix(kr, lr, mr, a, bb, c, b, tcos, d, w)
 
                 q(:mr, nlast) = q(:mr, nlast) + b(:mr)
@@ -1094,7 +1107,7 @@ contains
 
                     lr = kr - jr
 
-                    call genbun_aux%cosgen(jr, 1, 0.5_wp, 0.0_wp, tcos)
+                    call genbun_aux%cosgen(jr, 1, HALF, ZERO, tcos)
 
                     do j = jstart, jstop, jstep
                         jm2 = j - jr
@@ -1107,11 +1120,11 @@ contains
                         end if
 
                         if (jr == 1) then
-                            q(:mr, j) = 0.0_wp
+                            q(:mr, j) = ZERO
                         else
                             jm1 = j - i2r
                             jp1 = j + i2r
-                            q(:mr, j) = 0.5_wp * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
+                            q(:mr, j) = HALF * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
                         end if
 
                         call genbun_aux%trix(jr, 0, mr, a, bb, c, b, tcos, d, w)

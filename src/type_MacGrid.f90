@@ -115,7 +115,7 @@ module type_MacGrid
         Grid
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     ! Everything is private unless stated otherwise
     private
@@ -131,7 +131,7 @@ module type_MacGrid
     ! Declare derived data type
     type, extends (Grid), public :: MacGrid
         !---------------------------------------------------------------------------------
-        ! Class variables
+        ! Type components
         !---------------------------------------------------------------------------------
         real (wp), allocatable, public :: x_centered(:)
         real (wp), allocatable, public :: y_centered(:)
@@ -140,7 +140,7 @@ module type_MacGrid
         !---------------------------------------------------------------------------------
     contains
         !---------------------------------------------------------------------------------
-        ! Class methods
+        ! Type-bound procedures
         !---------------------------------------------------------------------------------
         procedure, public :: create => create_mac_grid
         procedure, public :: destroy => destroy_mac_grid
@@ -163,7 +163,7 @@ contains
 
     function mac_grid_constructor(x_interval, y_interval, nx, ny) result (return_value)
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         real (wp), contiguous, intent (in) :: x_interval(:) !! Interval: A <= x <= B
         real (wp), contiguous, intent (in) :: y_interval(:) !! Interval: C <= y <= D
@@ -180,7 +180,7 @@ contains
 
     subroutine create_mac_grid(this, x_interval, y_interval, nx, ny )
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         class (MacGrid),       intent (in out) :: this
         real (wp), contiguous, intent (in)     :: x_interval(:) !! Interval: A <= x <= B
@@ -216,7 +216,7 @@ contains
 
     subroutine destroy_mac_grid(this)
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         class (MacGrid), intent (in out) :: this
         !--------------------------------------------------------------------------------
@@ -300,12 +300,12 @@ contains
 
     subroutine print_to_unformatted_binary_files(this, header )
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         class (MacGrid),   intent (in out) :: this
         character (len=*), intent (in)     :: header
         !--------------------------------------------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !--------------------------------------------------------------------------------
         integer (ip)  :: file_unit
         integer (ip)  :: record_length
@@ -358,7 +358,7 @@ contains
 
     subroutine finalize_mac_grid(this)
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         type (MacGrid), intent (in out) :: this
         !--------------------------------------------------------------------------------

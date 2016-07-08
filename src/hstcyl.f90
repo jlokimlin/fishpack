@@ -343,7 +343,7 @@ module module_hstcyl
         poistgg
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     ! Everything is private unless stated otherwise
     private
@@ -356,7 +356,7 @@ contains
     subroutine hstcyl(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: m
         integer (ip), intent (in)     :: mbdcnd
@@ -376,7 +376,7 @@ contains
         real (wp),    intent (in)     :: bdd(:)
         real (wp),    intent (in out) :: f(:,:)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: irwk, icwk
         type (Fish)  :: workspace
@@ -415,7 +415,7 @@ contains
         subroutine hstcyll(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
             bdd, elmbda, f, idimf, pertrb, ierror, w)
             !-----------------------------------------------
-            ! Dictionary: calling arguments
+            ! Dummy arguments
             !-----------------------------------------------
             integer (ip), intent (in)     :: m
             integer (ip), intent (in)     :: mbdcnd
@@ -436,7 +436,7 @@ contains
             real (wp),    intent (in out) :: f(idimf,*)
             real (wp),    intent (in out) :: w(*)
             !-----------------------------------------------
-            ! Dictionary: local variables
+            ! Local variables
             !-----------------------------------------------
             integer (ip) :: np, iwb, iwc, iwr, i, j, k, lp, ierr1
             real (wp)    :: dr, dr2, dt, dt2, temp
@@ -577,7 +577,7 @@ contains
         pure subroutine check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, &
             elmbda, idimf, ierror)
             !--------------------------------------------------------------------------------
-            ! Dictionary: calling arguments
+            ! Dummy arguments
             !--------------------------------------------------------------------------------
             integer (ip), intent (in)  :: m
             integer (ip), intent (in)  :: mbdcnd

@@ -68,7 +68,7 @@ program thwsplr
         FishpackSolver
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     !-----------------------------------------------
     ! Dictionary

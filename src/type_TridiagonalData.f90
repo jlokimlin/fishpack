@@ -11,7 +11,7 @@ module type_TridiagonalData
         Grid
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     ! Everything is private unless stated otherwise
     private
@@ -28,7 +28,7 @@ module type_TridiagonalData
     ! Declare derived data type
     type, public :: TridiagonalData
         !---------------------------------------------------------------------------------
-        ! Class variables
+        ! Type components
         !---------------------------------------------------------------------------------
         logical,                             public :: initialized = .false.
         integer (ip),                        public :: X_BOUNDARY_CONDITION = -1
@@ -40,7 +40,7 @@ module type_TridiagonalData
         !---------------------------------------------------------------------------------
     contains
         !---------------------------------------------------------------------------------
-        ! Class methods
+        ! Type-bound procedures
         !---------------------------------------------------------------------------------
         procedure,                  public  :: create => create_tridiagonal_data
         procedure,                  public  :: destroy => destroy_tridiagonal_data
@@ -57,7 +57,7 @@ module type_TridiagonalData
         subroutine proc_interface(this, grid_type )
             import :: TridiagonalData, Grid, wp
             !--------------------------------------------------------------------------------
-            ! Dictionary: calling arguments
+            ! Dummy arguments
             !--------------------------------------------------------------------------------
             class (TridiagonalData), intent (in out) :: this
             class (Grid),            intent (in out) :: grid_type
@@ -71,7 +71,7 @@ contains
 
     subroutine create_tridiagonal_data(this, nx, x_type, y_type, proc )
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         class (TridiagonalData), intent (in out)  :: this
         integer (ip),            intent (in)      :: nx
@@ -120,7 +120,7 @@ contains
 
     subroutine destroy_tridiagonal_data(this)
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         class (TridiagonalData), intent (in out)   :: this
         !--------------------------------------------------------------------------------
@@ -206,7 +206,7 @@ contains
         !  = 4 if x(i,0) =  x(i,1) and x(i,ny+1) = -x(i,ny)
         !
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         integer (ip), intent (in)   :: type
         integer (ip), intent (out)  :: return_value
@@ -245,7 +245,7 @@ contains
         ! = 1 if a(1) = c(nx) = 0
         !
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         integer (ip), intent (in)   :: type
         integer (ip), intent (out)  :: return_value
@@ -276,7 +276,7 @@ contains
         !< Finalize object
         !
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         type (TridiagonalData), intent (in out) :: this
         !--------------------------------------------------------------------------------

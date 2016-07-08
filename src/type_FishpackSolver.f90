@@ -44,7 +44,7 @@ module type_FishpackSolver
     use module_sepx4, only: sepx4
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     ! Everything is private unless stated otherwise
     private
@@ -54,7 +54,7 @@ module type_FishpackSolver
     type, public :: FishpackSolver
     contains
         !---------------------------------------------------------------------------------
-        ! Class methods
+        ! Type-bound procedures
         !---------------------------------------------------------------------------------
         procedure, nopass, public :: blktri
         procedure, nopass, public :: cblktri

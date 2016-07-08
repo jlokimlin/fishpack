@@ -27,7 +27,7 @@ module type_HelmholtzSolver
         StaggeredGrid
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     ! Everything is private unless stated otherwise
     private
@@ -36,11 +36,11 @@ module type_HelmholtzSolver
     ! Declare derived data type
     type, extends (HelmholtzData), public ::  HelmholtzSolver
         !---------------------------------------------------------------------------------
-        ! Class variables
+        ! Type components
         !---------------------------------------------------------------------------------
     contains
         !---------------------------------------------------------------------------------
-        ! Class methods
+        ! Type-bound procedures
         !---------------------------------------------------------------------------------
         procedure, public :: solve_2d_helmholtz_centered
         procedure, public :: solve_2d_helmholtz_staggered
@@ -63,7 +63,7 @@ contains
         ! (d/dx)(du/dx) + (d/dy)(du/dy)+ lambda * u = f(x, y).
         !
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         class (HelmholtzSolver), intent (in out) :: this
         real (wp),               intent (in)     :: helmholtz_constant
@@ -72,7 +72,7 @@ contains
         real (wp),    optional,  intent (out)    :: perturbation
         integer (ip), optional,  intent (out)    :: error_flag
         !--------------------------------------------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !--------------------------------------------------------------------------------
         integer (ip)  :: error_flag_op
         real (wp)     :: perturbation_op
@@ -196,7 +196,7 @@ contains
         real (wp),    optional,  intent (out)    :: perturbation
         integer (ip), optional,  intent (out)    :: error_flag
         !--------------------------------------------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !--------------------------------------------------------------------------------
         integer (ip) :: error_flag_op
         real (wp)    :: perturbation_op
@@ -304,7 +304,7 @@ contains
 
     subroutine finalize_helmholtz_solver(this)
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         type (HelmholtzSolver), intent (in out) :: this
         !--------------------------------------------------------------------------------

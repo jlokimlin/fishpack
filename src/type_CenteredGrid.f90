@@ -11,7 +11,7 @@ module type_CenteredGrid
         Grid
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     ! Everything is private unless stated otherwise
     private
@@ -26,14 +26,14 @@ module type_CenteredGrid
     ! Declare derived data type
     type, extends (Grid), public :: CenteredGrid
         !---------------------------------------------------------------------------------
-        ! Class variables
+        ! Type components
         !---------------------------------------------------------------------------------
         real (wp), allocatable, public :: x(:)
         real (wp), allocatable, public :: y(:)
         !---------------------------------------------------------------------------------
     contains
         !---------------------------------------------------------------------------------
-        ! Class methods
+        ! Type-bound procedures
         !---------------------------------------------------------------------------------
         procedure, public :: create => create_centered_grid
         procedure, public :: destroy => destroy_centered_grid
@@ -55,7 +55,7 @@ contains
 
     function centered_grid_constructor(x_interval, y_interval, nx, ny) result (return_value)
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         real (wp), contiguous, intent (in) :: x_interval(:) !! Interval: A <= x <= B
         real (wp), contiguous, intent (in) :: y_interval(:) !! Interval: C <= y <= D
@@ -71,7 +71,7 @@ contains
 
     subroutine create_centered_grid(this, x_interval, y_interval, nx, ny )
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         class (CenteredGrid),  intent (in out) :: this
         real (wp), contiguous, intent (in)     :: x_interval(:) !! Interval: A <= x <= B
@@ -105,7 +105,7 @@ contains
 
     subroutine destroy_centered_grid(this)
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         class (CenteredGrid), intent (in out) :: this
         !--------------------------------------------------------------------------------
@@ -149,7 +149,7 @@ contains
 
     subroutine finalize_centered_grid(this)
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         type (CenteredGrid), intent (in out) :: this
         !--------------------------------------------------------------------------------

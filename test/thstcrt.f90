@@ -44,7 +44,7 @@ program thstcrt
         FishpackGrid
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     !-----------------------------------------------
     ! Dictionary

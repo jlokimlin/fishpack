@@ -337,7 +337,7 @@ module module_hwscyl
         genbunn
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     ! Everything is private unless stated otherwise
     private
@@ -350,7 +350,7 @@ contains
     subroutine hwscyl(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: m
         integer (ip), intent (in)     :: mbdcnd
@@ -370,7 +370,7 @@ contains
         real (wp),    intent (in)     :: bdd(:)
         real (wp),    intent (in out) :: f(:,:)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         type (Fish)  :: workspace
         integer (ip) :: irwk, icwk
@@ -449,7 +449,7 @@ contains
     subroutine hwscyll(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror, w)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: m
         integer (ip), intent (in)     :: mbdcnd
@@ -470,7 +470,7 @@ contains
         real (wp),    intent (in out) :: f(idimf,*)
         real (wp),    intent (in out) :: w(*)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: mp1, np1, np, mstart, mstop, munk, nstart, nstop, nunk
         integer (ip) :: id2, id3, id4, id5, id6, istart

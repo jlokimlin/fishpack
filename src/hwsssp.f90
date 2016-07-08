@@ -405,7 +405,7 @@ module module_hwsssp
         genbunn
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     ! Everything is private unless stated otherwise
     private
@@ -418,7 +418,7 @@ contains
     subroutine hwsssp(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
         bdps, bdpf, elmbda, f, idimf, pertrb, ierror)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: m
         integer (ip), intent (in)     :: mbdcnd
@@ -438,7 +438,7 @@ contains
         real (wp),    intent (in)     :: bdpf(:)
         real (wp),    intent (in out) :: f(:,:)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         type (Fish)  :: workspace
         integer (ip) :: irwk, icwk
@@ -529,7 +529,7 @@ contains
     subroutine hwssspp(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, &
         nbdcnd, bdps, bdpf, elmbda, f, idimf, pertrb, ierror, w)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: m
         integer (ip), intent (in)     :: mbdcnd
@@ -564,7 +564,7 @@ contains
         bdps, bdpf, elmbda, f, idimf, pertrb, am, bm, cm, sn, ss, &
         sint, d, error_flag)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: m
         integer (ip), intent (in)     :: mbdcnd
@@ -591,7 +591,7 @@ contains
         real (wp),    intent (out)    :: d(*)
         integer (ip), intent (out)    :: error_flag
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: mp1, np1, i, inp, isp, mbr, its, itf, itsp, itfm, munk
         integer (ip) :: iid, ii, nbr, jps, jpf, jpsp, jpfm, nunk, ising

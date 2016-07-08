@@ -62,7 +62,7 @@ module module_comf
         ip ! Integer precision
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     ! Everything is private unless stated otherwise
     private
@@ -75,11 +75,11 @@ module module_comf
     ! Declare derived data type
     type, public :: ComfAux
         !--------------------------------------------------
-        ! Class variables
+        ! Type components
         !--------------------------------------------------
     contains
         !--------------------------------------------------
-        ! Class methods
+        ! Type-bound procedures
         !--------------------------------------------------
         procedure, nopass, public :: ppsgf
         procedure, nopass, public :: ppspf
@@ -92,7 +92,7 @@ module module_comf
         function comf_interface(x, iz, c, a, bh) result (return_value)
             import :: ip, wp
             !-----------------------------------------------
-            ! Dictionary: calling arguments
+            ! Dummy arguments
             !-----------------------------------------------
             integer (ip), intent (in) :: iz
             real (wp),    intent (in) :: x
@@ -110,7 +110,7 @@ contains
 
     pure function ppsgf(x, iz, c, a, bh) result (return_value)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in) :: iz
         real (wp),    intent (in) :: x
@@ -127,7 +127,7 @@ contains
 
     pure function ppspf(x, iz, c, a, bh) result (return_value)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in) :: iz
         real (wp),    intent (in) :: x
@@ -144,7 +144,7 @@ contains
 
     pure function psgf(x, iz, c, a, bh) result (return_value)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in) :: iz
         real (wp),    intent (in) :: x
@@ -153,7 +153,7 @@ contains
         real (wp),    intent (in) :: bh(*)
         real (wp)                 :: return_value
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: j
         real (wp)    :: fsg, hsg, dd

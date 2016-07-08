@@ -422,7 +422,7 @@ module module_hw3crt
         pois3dd
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     ! Everything is private unless stated otherwise
     private
@@ -436,7 +436,7 @@ contains
         bdys, bdyf, zs, zf, n, nbdcnd, bdzs, bdzf, elmbda, ldimf, &
         mdimf, f, pertrb, ierror)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)      :: l
         integer (ip), intent (in)      :: lbdcnd
@@ -463,7 +463,7 @@ contains
         real (wp),    intent (in)      :: bdzf(:,:)
         real (wp),    intent (in out)  :: f(:,:,:)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         type (Fish)  :: workspace
         integer (ip) :: irwk, icwk
@@ -508,7 +508,7 @@ contains
         mbdcnd, bdys, bdyf, zs, zf, n, nbdcnd, bdzs, bdzf, elmbda, &
         ldimf, mdimf, f, pertrb, ierror, w)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)      :: l
         integer (ip), intent (in)      :: lbdcnd
@@ -536,7 +536,7 @@ contains
         real (wp),    intent (in out)  :: f(ldimf, mdimf, *)
         real (wp),    intent (in out)  :: w(*)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: mstart, mstop, mp1, mp, munk, np, np1
         integer (ip) :: nstart, nstop, nunk, lp1, lp, lstart
@@ -809,7 +809,7 @@ contains
     pure subroutine check_input_arguments(l, lbdcnd, m, mbdcnd, n, nbdcnd, &
         ldimf, mdimf, xs, xf, ys, yf, zs, zf, ierror)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)      :: l
         integer (ip), intent (in)      :: lbdcnd
@@ -827,7 +827,7 @@ contains
         real (wp),    intent (in)      :: zf
         integer (ip), intent (out)     :: ierror
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
 
         if (xf <= xs) then

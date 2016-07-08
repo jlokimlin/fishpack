@@ -270,7 +270,7 @@ module module_cblktri
         Fish => FishpackWorkspace
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     ! Everything is private unless stated otherwise
     private
@@ -299,7 +299,7 @@ contains
     subroutine cblktri(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
         idimy, y, ierror, w)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: iflg
         integer (ip), intent (in)     :: np
@@ -317,7 +317,7 @@ contains
         complex (wp), intent (in out) :: y(:,:)
         class (Fish), intent (in out) :: w
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: m2, nh, nl, iwah, iw1, iwbh
         integer (ip) :: iw2, iw3, iwd, iww, iwu, irwk, icwk
@@ -423,6 +423,7 @@ contains
                                 cxw(iw1), cxw(iw2), cxw(iw3), cxw(iwd), cxw(iww), &
                                 cxw(iwu), proc, cproc)
                     end select
+
                 end associate
 
         end select
@@ -446,7 +447,7 @@ contains
         ! of the b polynomials are complex.
         !
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: n
         integer (ip), intent (in)     :: m
@@ -469,7 +470,7 @@ contains
         !procedure (proc_sub)          :: prdct
         !procedure (cproc_sub)         :: cprdct
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: kdo, l, ir, i2, i1, i3, i4, irm1, im2, nm2, im3, nm3
         integer (ip) :: im1, nm1, iif, i, ipi1, ipi2, ipi3, idxc, nc, idxa, na, ip2, np2
@@ -695,7 +696,7 @@ contains
 
     function cbsrh(xll, xrr, iz, c, a, bh, f, sgn) result(return_value)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip)           :: iz
         real (wp), intent (in) :: xll
@@ -707,7 +708,7 @@ contains
         real (wp), intent (in)     :: sgn
         real (wp)                   :: return_value
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         real (wp) :: r1, xl, xr, dx, x
         !-----------------------------------------------
@@ -762,7 +763,7 @@ contains
         ! less than zero for some j.  ah, bh are temporary work arrays.
         !
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)  :: n
         integer (ip), intent (out) :: ierror
@@ -774,7 +775,7 @@ contains
         real (wp) :: bh(*)
         complex (wp) :: bc(*)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: j, if_rename, kdo, l, ir, i2, i4
         integer (ip) ::  ipl, ifd, i, ib, nb, js, jf
@@ -919,7 +920,7 @@ contains
         ! isgn  determines whether or not a change in sign is made
         !
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: nd
         integer (ip), intent (in)     :: nm1
@@ -939,7 +940,7 @@ contains
         complex (wp), intent (in out) :: w(*)
         complex (wp)                  :: yy(*)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: j, mm, id, m1, m2, ia, iflg, k
         real (wp)    :: rt
@@ -1059,7 +1060,7 @@ contains
         ! isgn  determines whether or not a change in sign is made
         !
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in) :: nd
         integer (ip), intent (in) :: nm1
@@ -1079,7 +1080,7 @@ contains
         complex (wp), intent (in out) :: d(*)
         complex (wp), intent (in out) :: u(*)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: j, mm, mm2, id, m1, m2, ia, iflg, k
         real (wp) :: rt
@@ -1200,7 +1201,7 @@ contains
     subroutine cindxa(i, ir, idxa, na)
 
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)  :: i
         integer (ip), intent (in)  :: ir
@@ -1219,14 +1220,14 @@ contains
     subroutine cindxb(i, ir, idx, idp)
 
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in) :: i
         integer (ip), intent (in) :: ir
         integer (ip), intent (out) :: idx
         integer (ip), intent (out) :: idp
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: izh, id, ipl
         !-----------------------------------------------
@@ -1263,7 +1264,7 @@ contains
 
     subroutine cindxc(i, ir, idxc, nc)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)  :: i
         integer (ip), intent (in)  :: ir
@@ -1292,7 +1293,7 @@ contains
         !       which enters through bp
         !
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)  :: n
         integer (ip), intent (out) :: ierror
@@ -1302,7 +1303,7 @@ contains
         real (wp)                  :: bh(*)
         complex (wp)               :: cbp(*)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip)         :: iz, izm, izm2, j, nt, modiz
         integer (ip)         :: iis, iif, ig, it, icv, i3, i2, nhalf
@@ -1513,7 +1514,7 @@ contains
         ! is  determines whether or not a change in sign is made
         !
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)  :: nd
         integer (ip), intent (in)  :: nm1
@@ -1533,7 +1534,7 @@ contains
         complex (wp), intent (out) :: w(m)
         complex (wp), intent (out) :: u(m)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: j, mm, id, ibr, m1, m2, ia, k
         real (wp)    :: rt
@@ -1649,7 +1650,7 @@ contains
         ! is  determines whether or not a change in sign is made
         !
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)  :: nd
         integer (ip), intent (in)  :: nm1
@@ -1669,7 +1670,7 @@ contains
         complex (wp), intent (out) :: u(m)
         complex (wp), intent (out) :: w(m)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: j, mm, mm2, id, ibr, m1, m2, ia, k
         real (wp)    :: rt
@@ -1827,14 +1828,14 @@ contains
         !
         !
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: n
         integer (ip), intent (out)    :: ierr
         real (wp),    intent (in out) :: d(n)
         real (wp),    intent (in out) :: e2(n)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: i, j, l, m, ii, l1, mml, nhalf, ntop
         real (wp) :: b, c, f, g, h, p, r, s, dhold

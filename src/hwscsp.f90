@@ -12,7 +12,7 @@ module module_hwscsp
         BlktriAux
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     ! Everything is private unless stated otherwise
     private
@@ -457,7 +457,7 @@ contains
         !                          NCAR TN/IA-109, July, 1975, 138 pp.
         !
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: intl
         integer (ip), intent (in)     :: m
@@ -479,7 +479,7 @@ contains
         real (wp),    intent (in out) :: f(:,:)
         class (fishpackworkspace)     :: w
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip), save :: i1, i2, i3, i4, i5, i6, i7, i8, i9, i10
         integer (ip)       :: nck, l, k, np, irwk, icwk, np1, mp1
@@ -645,7 +645,7 @@ contains
         nbdcnd, bdrs, bdrf, elmbda, f, idimf, pertrb, w, wc, s, an, bn &
         , cn, r, am, bm, cm, sint, bmh, ierror)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: intl
         integer (ip), intent (in)     :: m
@@ -678,7 +678,7 @@ contains
         real (wp),    intent (in out) :: bmh(:)
         complex (wp)                  :: wc(:)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip)         :: mp1, i, np1, j, mp, np
         integer (ip)         :: its, itf, itsp, itfm, ictr, jrs

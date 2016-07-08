@@ -14,11 +14,11 @@ module type_FishpackGrid
     ! Declare derived data type
     type, public ::  FishpackGrid
         !--------------------------------------------------------------
-        ! Class variables
+        ! Type components
         !--------------------------------------------------------------
     contains
         !--------------------------------------------------------------
-        ! Class methods
+        ! Type-bound procedures
         !--------------------------------------------------------------
         procedure, nopass :: linspace
         procedure, nopass :: get_staggered_grid
@@ -33,7 +33,7 @@ contains
     function linspace(start, stop, num, endpoint) &
         result (return_value)
         !--------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------
         real (wp),              intent (in) :: start
         real (wp),              intent (in) :: stop
@@ -41,7 +41,7 @@ contains
         logical,      optional, intent (in) :: endpoint
         real (wp), allocatable              :: return_value(:)
         !--------------------------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !--------------------------------------------------------------
         integer (ip)     :: num_op, div, i
         real (wp)        :: delta, step
@@ -78,14 +78,14 @@ contains
     function get_centered_grid(start, stop, num) &
         result (return_value)
         !--------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------
         real (wp),    intent (in) :: start
         real (wp),    intent (in) :: stop
         integer (ip), intent (in) :: num
         real (wp), allocatable    :: return_value(:)
         !--------------------------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !--------------------------------------------------------------
         integer (ip) :: i
         real (wp)    :: delta, step
@@ -110,14 +110,14 @@ contains
     function get_staggered_grid(start, stop, num) &
         result (return_value)
         !--------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------
         real (wp),    intent (in) :: start
         real (wp),    intent (in) :: stop
         integer (ip), intent (in) :: num
         real (wp), allocatable    :: return_value(:)
         !--------------------------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !--------------------------------------------------------------
         integer (ip) :: i
         real (wp)    :: step

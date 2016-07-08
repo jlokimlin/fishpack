@@ -8,7 +8,7 @@ module type_PoissonSolver
         HelmholtzSolver
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     ! Everything is private unless stated otherwise
     private
@@ -18,11 +18,11 @@ module type_PoissonSolver
     ! Declare derived data type
     type, extends (HelmholtzSolver), public :: PoissonSolver
         !---------------------------------------------------------------------------------
-        ! Class variables
+        ! Type components
         !---------------------------------------------------------------------------------
     contains
         !---------------------------------------------------------------------------------
-        ! Class methods
+        ! Type-bound procedures
         !---------------------------------------------------------------------------------
         procedure, public :: solve_2d_poisson_centered
         procedure, public :: solve_2d_poisson_staggered
@@ -39,7 +39,7 @@ contains
     subroutine solve_2d_poisson_centered(this, source_term, solution)
         !
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         class (PoissonSolver), intent (in out) :: this
         real (wp),             intent (in out) :: source_term(:,:)
@@ -72,13 +72,13 @@ contains
     subroutine solve_2d_poisson_staggered(this, source_term, solution)
         !
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         class (PoissonSolver), intent (in out) :: this
         real (wp),             intent (in out) :: source_term(:,:)
         real (wp),             intent (out)    :: solution(:,:)
         !--------------------------------------------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !--------------------------------------------------------------------------------
         real (wp), parameter :: HELMHOLTZ_CONSTANT = 0.0_wp
         !--------------------------------------------------------------------------------
@@ -106,7 +106,7 @@ contains
 
     subroutine finalize_poisson_solver(this)
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         type (PoissonSolver), intent (in out) :: this
         !--------------------------------------------------------------------------------

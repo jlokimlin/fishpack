@@ -45,7 +45,7 @@ program tsepeli
         FishpackWorkspace
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     !-----------------------------------------------
     ! Dictionary
@@ -188,7 +188,7 @@ contains
 
     pure function ue (s, t) result( return_value )
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         real (wp), intent (in) :: s
         real (wp), intent (in) :: t
@@ -202,7 +202,7 @@ contains
 
     pure function uxe (s, t) result( return_value )
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         real (wp), intent (in) :: s
         real (wp), intent (in) :: t
@@ -216,7 +216,7 @@ contains
 
     pure function uxxe(s, t) result( return_value )
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         real (wp), intent (in) :: s
         real (wp), intent (in) :: t
@@ -230,7 +230,7 @@ contains
 
     pure function uye(s, t) result( return_value )
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         real (wp), intent (in) :: s
         real (wp), intent (in) :: t
@@ -243,7 +243,7 @@ contains
 
     pure function uyye (s, t) result( return_value )
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         real (wp), intent (in) :: s
         real (wp), intent (in) :: t
@@ -256,7 +256,7 @@ contains
 
     pure subroutine get_coefficients_in_x_direction(x, af, bf, cf)
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         real (wp), intent (in)  :: x
         real (wp), intent (out) :: af
@@ -275,7 +275,7 @@ contains
 
     pure subroutine get_coefficients_in_y_direction(y, df, ef, ff)
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         real (wp), intent (in)  :: y
         real (wp), intent (out) :: df

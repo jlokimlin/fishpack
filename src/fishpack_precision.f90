@@ -30,7 +30,7 @@ contains
 
     pure function pimach(dum) result (return_value)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         real (wp), optional, intent (in) :: dum
         real (wp)                        :: return_value
@@ -50,7 +50,7 @@ contains
         ! the smallest number EPS of the kind wp such that 1 + EPS > 1.
         !
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         real (wp), optional, intent (in) :: dum
         real (wp)                        :: return_value

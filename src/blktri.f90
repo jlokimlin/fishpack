@@ -273,7 +273,7 @@ module module_blktri
         comf_interface
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     ! Everything is private unless stated otherwise
     private
@@ -281,9 +281,12 @@ module module_blktri
     public :: blktrii
     public :: BlktriAux
 
+
+
+    ! Declare derived data type
     type, public :: BlktriAux
         !-------------------------------------------------
-        ! Class variables
+        ! Type components
         !-------------------------------------------------
         integer (ip) :: npp
         integer (ip) :: k
@@ -294,18 +297,24 @@ module module_blktri
         !-------------------------------------------------
     contains
         !-------------------------------------------------
-        ! Class methods
+        ! Type-bound procedures
         !-------------------------------------------------
         procedure, nopass, public  :: blktrii
         !-------------------------------------------------
     end type BlktriAux
 
+
+
     !---------------------------------------------------------------------------------
-    ! Dictionary: global variables confined to the module
+    ! Dictionary: Variables confined to the module
     !---------------------------------------------------------------------------------
-    integer (ip)  :: npp, k, nm, ncmplx, ik
-    real (wp)     :: cnv
+    integer (ip), private :: npp, k, nm, ncmplx, ik
+    real (wp),    private :: ZERO = 0.0_wp
+    real (wp),    private :: ONE = 1.0_wp
+    real (wp),    private :: TWO = 2.0_wp
+    real (wp),    private :: cnv
     !---------------------------------------------------------------------------------
+
 
 
 contains
@@ -314,7 +323,7 @@ contains
     subroutine blktri(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
         idimy, y, ierror, workspace)
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         integer (ip), intent (in)     :: iflg
         integer (ip), intent (in)     :: np
@@ -332,7 +341,7 @@ contains
         real (wp),    intent (in out) :: y(:,:)
         class (Fish), intent (in out) :: workspace
         !--------------------------------------------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !--------------------------------------------------------------------------------
         integer (ip)  :: irwk, icwk
         !--------------------------------------------------------------------------------
@@ -371,8 +380,8 @@ contains
             !
             !==> Solve system
             !
-            call blktrii(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, idimy, y, &
-                ierror, rew, cxw)
+            call blktrii(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
+                idimy, y, ierror, rew, cxw)
 
         end associate
 
@@ -382,7 +391,7 @@ contains
     subroutine blktrii( iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
         idimy, y, ierror, w, wc)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: iflg
         integer (ip), intent (in)     :: np
@@ -401,7 +410,7 @@ contains
         real (wp),    intent (in out) :: w(:)
         complex (wp), intent (in out) :: wc(:)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip)       ::  nh, iwah, iwbh
         integer (ip), save :: iw1, iw2, iw3, iww, iwu, iwd, nl
@@ -502,7 +511,7 @@ contains
         !
         !
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: n
         integer (ip), intent (in)     :: m
@@ -526,7 +535,7 @@ contains
         complex (wp), intent (in)     :: cw2(*)
         complex (wp), intent (in)     :: cw3(*)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: kdo, l, ir, i2, i1, i3, i4, irm1, im2, nm2, im3, nm3
         integer (ip) :: im1, nm1, i0, iif, i, ipi1, ipi2, ipi3, idxc, nc, idxa, na, ip2
@@ -578,8 +587,8 @@ contains
                     w1, m, am, bm, cm, wd, ww, wu)
 
                 if (ipi2 > nm) then
-                    w3(:m) = 0.0_wp
-                    w2(:m) = 0.0_wp
+                    w3(:m) = ZERO
+                    w2(:m) = ZERO
                 else
                     call prdct(np2, b(ip2), np1, b(ip1), np3, b(ip3), 0, dum, &
                         y(1, ipi2), w3, m, am, bm, cm, wd, ww, wu)
@@ -598,8 +607,9 @@ contains
             call indxb(i - i1, k - 2, im1, nm1)
             call indxb(i + i1, k - 2, ip1, np1)
             call indxb(i, k - 1, iz, nz)
-            call prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dum, y(1, i) &
-                , w1, m, am, bm, cm, wd, ww, wu)
+            call prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dum, &
+                y(1, i), w1, m, am, bm, cm, wd, ww, wu)
+
             izr = i
             w2(:m) = w1(:m)
 
@@ -661,11 +671,11 @@ contains
             call indxb(iif, k - 1, iip, np)
 
             if (ncmplx /= 0) then
-                call cprdct(nm + 1, bc(iip), nm1, b(im1), 0, dum, 0, dum, y( &
-                    1, nm+1), y(1, nm+1), m, am, bm, cm, cw1, cw2, cw3)
+                call cprdct(nm + 1, bc(iip), nm1, b(im1), 0, dum, 0, dum, &
+                    y(1, nm+1), y(1, nm+1), m, am, bm, cm, cw1, cw2, cw3)
             else
-                call prdct(nm + 1, b(iip), nm1, b(im1), 0, dum, 0, dum, y(1, &
-                    nm+1), y(1, nm+1), m, am, bm, cm, wd, ww, wu)
+                call prdct(nm + 1, b(iip), nm1, b(im1), 0, dum, 0, dum, &
+                    y(1, nm+1), y(1, nm+1), m, am, bm, cm, wd, ww, wu)
             end if
 
             w1(:m) = an(1)*y(:m, nm+1)
@@ -752,21 +762,21 @@ contains
                 ipi1 = i + i1
                 ipi2 = i + i2
 
-                call indxa (i, ir, idxa, na)
-                call indxc (i, ir, idxc, nc)
+                call indxa(i, ir, idxa, na)
+                call indxc(i, ir, idxc, nc)
                 call indxb(i, ir, iz, nz)
                 call indxb(imi1, irm1, im1, nm1)
                 call indxb(ipi1, irm1, ip1, np1)
 
                 if (i <= i2) then
-                    w1(:m) = 0.0_wp
+                    w1(:m) = ZERO
                 else
                     call prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa), &
                         y(1,imi2), w1, m, am, bm, cm, wd, ww, wu)
                 end if
 
                 if (ipi2 > nm) then
-                    w2(:m) = 0.0_wp
+                    w2(:m) = ZERO
                 else
                     call prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc), &
                         y(1,ipi2), w2, m, am, bm, cm, wd, ww, wu)
@@ -785,7 +795,7 @@ contains
 
     function bsrh(xll, xrr, iz, c, a, bh, f, sgn) result (return_value)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         real (wp),    intent (in)  :: xll
         real (wp),    intent (in)  :: xrr
@@ -797,20 +807,20 @@ contains
         real (wp),    intent (in)  :: sgn
         real (wp)                  :: return_value
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         real (wp) :: r1, xl, xr, dx, x
         !-----------------------------------------------
 
         xl = xll
         xr = xrr
-        dx = 0.5_wp * abs(xr - xl)
-        x = 0.5_wp * (xl + xr)
+        dx = abs(xr - xl)/2
+        x = (xl + xr)/2
         r1 = sgn * f(x, iz, c, a, bh)
 
-        if (r1 >= 0.0_wp) then
-            if (r1 == 0.0_wp) then
-                return_value = 0.5_wp * (xl + xr)
+        if (r1 >= ZERO) then
+            if (r1 == ZERO) then
+                return_value = (xl + xr)/2
                 return
             end if
             xr = x
@@ -818,28 +828,29 @@ contains
             xl = x
         end if
 
-        dx = 0.5_wp * dx
+        dx = dx/2
 
-        do while (dx - cnv > 0.0_wp)
+        do while (dx - cnv > ZERO)
 
-            x = 0.5_wp * (xl + xr)
+            x = (xl + xr)/2
             r1 = sgn * f(x, iz, c, a, bh)
 
-            if (r1 >= 0.0_wp) then
-                if (r1 == 0.0_wp) then
-                    return_value = 0.5_wp * (xl + xr)
+            if (r1 >= ZERO) then
+                if (r1 == ZERO) then
+                    return_value = (xl + xr)/2
                     return
                 end if
                 xr = x
             else
                 xl = x
             end if
-            dx = 0.5_wp * dx
+            dx = dx/2
         end do
 
-        return_value = 0.5_wp * (xl + xr)
+        return_value = (xl + xr)/2
 
     end function bsrh
+
 
 
     subroutine compb(n, ierror, an, bn, cn, b, bc, ah, bh)
@@ -852,7 +863,7 @@ contains
         !     less than zero for some j.  ah, bh are temporary work arrays.
         !
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: n
         integer (ip), intent (out)    :: ierror
@@ -864,11 +875,11 @@ contains
         real (wp),    intent (in out) :: bh(*)
         complex (wp), intent (in out) :: bc(*)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
-        integer (ip)         :: j, if, kdo, l, ir, i2, i4, ipl, ifd, i, ib, nb, js, jf
-        integer (ip)         ::  ls, lh, nmp, l1, l2, j2, j1, n2m2
-        real (wp)            :: bnorm, arg, d1, d2, d3
+        integer (ip)  :: j, if, kdo, l, ir, i2, i4, ipl, ifd, i, ib, nb, js, jf
+        integer (ip)  :: ls, lh, nmp, l1, l2, j2, j1, n2m2
+        real (wp)     :: bnorm, arg, d1, d2, d3
         !-----------------------------------------------
 
         bnorm = abs(bn(1))
@@ -877,7 +888,7 @@ contains
             bnorm = max(bnorm, abs(bn(j)))
             arg = an(j)*cn(j-1)
 
-            if (arg < 0.0_wp) then
+            if (arg < ZERO) then
                 ierror = 5
                 return
             end if
@@ -931,7 +942,7 @@ contains
                 l2 = mod(j + nm - 1, nmp) + 1
                 arg = an(l1)*cn(l2)
 
-                if (arg < 0.0_wp) then
+                if (arg < ZERO) then
                     ierror = 5
                     return
                 end if
@@ -1009,7 +1020,7 @@ contains
         ! isgn  determines whether or not a change in sign is made
         !
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)  :: nd
         integer (ip), intent (in)  :: nm1
@@ -1029,14 +1040,14 @@ contains
         complex (wp), intent (out) :: w(m)
         complex (wp), intent (out) :: y(m)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: j, mm, id, m1, m2, ia, iflg, k
         real (wp)    :: rt
         complex (wp) :: crt, den, y1, y2
         !-----------------------------------------------
 
-        y = cmplx(x, 0.0_wp, kind=wp)
+        y = cmplx(x, ZERO, kind=wp)
 
         mm = m - 1
         id = nd
@@ -1066,10 +1077,10 @@ contains
 
                 den = b(1) - crt - c(1)*d(2)
 
-                if (abs(den) /= 0.0_wp) then
+                if (abs(den) /= ZERO) then
                     y(1) = (y(1)-c(1)*w(2))/den
                 else
-                    y(1) = cmplx(1.0_wp, 0.0_wp, kind=wp)
+                    y(1) = cmplx(ONE, ZERO, kind=wp)
                 end if
 
                 y(2:m) = w(2:m) - d(2:m)*y(1:m-1)
@@ -1085,7 +1096,7 @@ contains
                         rt = bm1(m1)
                         m1 = m1 - 1
                     else
-                        if (abs(bm1(m1)) - abs(bm2(m2)) > 0.0_wp) then
+                        if (abs(bm1(m1)) - abs(bm2(m2)) > ZERO) then
                             rt = bm1(m1)
                             m1 = m1 - 1
                         else
@@ -1148,7 +1159,7 @@ contains
         ! isgn  determines whether or not a change in sign is made
         !
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)  :: nd
         integer (ip), intent (in)  :: nm1
@@ -1168,14 +1179,14 @@ contains
         complex (wp), intent (out) :: u(m)
         complex (wp), intent (out) :: y(m)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: j, mm, mm2, id, m1, m2, ia, iflg, k
         real (wp)    :: rt
         complex (wp) :: v, den, bh, ym, am, y1, y2, yh, crt
         !-----------------------------------------------
 
-        y = cmplx(x, 0.0_wp, kind=wp)
+        y = cmplx(x, ZERO, kind=wp)
 
         mm = m - 1
         mm2 = m - 2
@@ -1201,7 +1212,7 @@ contains
                 d(1) = c(1)/den
                 u(1) = a(1)/den
                 y(1) = y(1)/den
-                v = cmplx(c(m), 0.0_wp, kind=wp)
+                v = cmplx(c(m), ZERO, kind=wp)
 
                 if (mm2 >= 2) then
                     do j = 2, mm2
@@ -1223,10 +1234,10 @@ contains
                 ym = ym - v*y(m-2)
                 den = bh - am*d(m-1)
 
-                if (abs(den) /= 0.0_wp) then
+                if (abs(den) /= ZERO) then
                     y(m) = (ym - am*y(m-1))/den
                 else
-                    y(m) = cmplx(1.0_wp, 0.0_wp, kind=wp)
+                    y(m) = cmplx(ONE, ZERO, kind=wp)
                 end if
 
                 y(m-1) = y(m-1) - d(m-1)*y(m)
@@ -1246,7 +1257,7 @@ contains
                         rt = bm1(m1)
                         m1 = m1 - 1
                     else
-                        if (abs(bm1(m1)) - abs(bm2(m2)) > 0.0_wp) then
+                        if (abs(bm1(m1)) - abs(bm2(m2)) > ZERO) then
                             rt = bm1(m1)
                             m1 = m1 - 1
                         else
@@ -1296,7 +1307,7 @@ contains
 
     pure subroutine indxa(i, ir, idxa, na)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)  :: i
         integer (ip), intent (in)  :: ir
@@ -1315,14 +1326,14 @@ contains
 
     pure subroutine indxb(i, ir, idx, idp)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)  :: i
         integer (ip), intent (in)  :: ir
         integer (ip), intent (out) :: idx
         integer (ip), intent (out) :: idp
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: izh, id, ipl
         !-----------------------------------------------
@@ -1357,10 +1368,11 @@ contains
     end subroutine indxb
 
 
+
     pure subroutine indxc(i, ir, idxc, nc)
 
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)  :: i
         integer (ip), intent (in)  :: ir
@@ -1377,6 +1389,7 @@ contains
     end subroutine indxc
 
 
+
     subroutine ppadd(n, ierror, a, c, cbp, bp, bh)
         !
         ! Purpose
@@ -1391,7 +1404,7 @@ contains
         ! which enters through bp
         !
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: n
         integer (ip), intent (out)    :: ierror
@@ -1401,7 +1414,7 @@ contains
         real (wp),    intent (in out) :: bh(n)
         complex (wp), intent (in out) :: cbp(n)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip)   :: iz, izm, izm2, j, nt, modiz, is
         integer (ip)   :: iif, ig, it, icv, i3, i2, nhalf
@@ -1432,8 +1445,8 @@ contains
         is = 1
 
         if (modiz /= 0) then
-            if (a(1) >= 0.0_wp) then
-                if (a(1) == 0.0_wp) then
+            if (a(1) >= ZERO) then
+                if (a(1) == ZERO) then
                     ierror = 4
                     return
                 end if
@@ -1444,16 +1457,16 @@ contains
             xl = xl - db
             r4 = comf_aux%psgf(xl, iz, c, a, bh)
 
-            do while(r4 <= 0.0_wp)
+            do while (r4 <= ZERO)
                 xl = xl - db
                 r4 = comf_aux%psgf(xl, iz, c, a, bh)
             end do
 
-            sgn = -1.0_wp
+            sgn = -ONE
 
             temp = bsrh(xl, bh(1), iz, c, a, bh, psgf, sgn)
 
-            cbp(1) = cmplx(temp, 0.0_wp, kind=wp)
+            cbp(1) = cmplx(temp, ZERO, kind=wp)
 
             bp(1) = real(cbp(1), kind=wp)
 
@@ -1465,7 +1478,7 @@ contains
 
         if (modiz /= 0) then
 
-            if (a(1) == 0.0_wp) then
+            if (a(1) == ZERO) then
                 ierror = 4
                 return
             end if
@@ -1475,15 +1488,15 @@ contains
             xr = xr + db
             r5 = comf_aux%psgf(xr, iz, c, a, bh)
 
-            do while (r5 < 0.0_wp)
+            do while (r5 < ZERO)
                 xr = xr + db
                 r5 = comf_aux%psgf(xr, iz, c, a, bh)
             end do
 
-            sgn = 1.0_wp
+            sgn = ONE
             temp = bsrh(bh(iz), xr, iz, c, a, bh, psgf, sgn)
 
-            cbp(iz) = cmplx(temp, 0.0_wp, kind=wp)
+            cbp(iz) = cmplx(temp, ZERO, kind=wp)
             iif = iz - 2
 
         end if
@@ -1492,26 +1505,26 @@ contains
 
             xl = bh(ig)
             xr = bh(ig+1)
-            sgn = -1.0_wp
+            sgn = -ONE
             xm = bsrh(xl, xr, iz, c, a, bh, ppspf, sgn)
             psg = comf_aux%psgf(xm, iz, c, a, bh)
 
-            if_block: block
+            block_construct: block
 
                 if (abs(psg) > EPS) then
 
                     r6 = psg*comf_aux%psgf(xm, iz, c, a, bh)
 
-                    if (r6 > 0.0_wp) exit if_block
+                    if (r6 > ZERO) exit block_construct
 
-                    if (r6 /= 0.0_wp) then
+                    if (r6 /= ZERO) then
 
-                        sgn = 1.0_wp
+                        sgn = ONE
                         temp = bsrh(bh(ig), xm, iz, c, a, bh, psgf, sgn)
-                        cbp(ig) = cmplx(temp, 0.0_wp, kind=wp)
-                        sgn = -1.0_wp
+                        cbp(ig) = cmplx(temp, ZERO, kind=wp)
+                        sgn = -ONE
                         temp = bsrh(xm, bh(ig+1), iz, c, a, bh, psgf, sgn)
-                        cbp(ig+1) = cmplx(temp, 0.0_wp, kind=wp)
+                        cbp(ig+1) = cmplx(temp, ZERO, kind=wp)
 
                         cycle main_loop
                     !
@@ -1520,28 +1533,28 @@ contains
                     end if
                 end if
 
-                cbp(ig) = cmplx(xm, 0.0_wp, kind=wp)
-                cbp(ig+1) = cmplx(xm, 0.0_wp, kind=wp)
+                cbp(ig) = cmplx(xm, ZERO, kind=wp)
+                cbp(ig+1) = cmplx(xm, ZERO, kind=wp)
 
                 cycle main_loop
             !
             !==> case of a complex zero
             !
-            end block if_block
+            end block block_construct
 
             it = 0
             icv = 0
-            cx = cmplx(xm, 0.0_wp, kind=wp)
+            cx = cmplx(xm, ZERO, kind=wp)
 
             loop_120: do
 
-                fsg = cmplx(1.0_wp, 0.0_wp, kind=wp)
-                hsg = cmplx(1.0_wp, 0.0_wp, kind=wp)
-                fp = 0.0_wp
-                fpp = 0.0_wp
+                fsg = cmplx(ONE, ZERO, kind=wp)
+                hsg = cmplx(ONE, ZERO, kind=wp)
+                fp = ZERO
+                fpp = ZERO
 
                 do j = 1, iz
-                    dd = 1.0_wp/(cx - bh(j))
+                    dd = ONE/(cx - bh(j))
                     fsg = fsg*a(j)*dd
                     hsg = hsg*c(j)*dd
                     fp = fp + dd
@@ -1550,34 +1563,34 @@ contains
 
                 select case (modiz)
                     case (0)
-                        f = cmplx(1.0_wp, 0.0_wp, kind=wp) - fsg - hsg
+                        f = cmplx(ONE, ZERO, kind=wp) - fsg - hsg
                     case default
-                        f = cmplx(1.0_wp, 0.0_wp, kind=wp) + fsg + hsg
+                        f = cmplx(ONE, ZERO, kind=wp) + fsg + hsg
                 end select
 
                 i3 = 0
 
-                if (abs(fp) > 0.0_wp) then
+                if (abs(fp) > ZERO) then
                     i3 = 1
                     r3 = -f/fp
                 end if
 
                 i2 = 0
 
-                if (abs(fpp) > 0.0_wp) then
+                if (abs(fpp) > ZERO) then
 
                     i2 = 1
-                    cdis = sqrt(fp**2 - 2.0_wp*f*fpp)
+                    cdis = sqrt((fp**2) - TWO * f * fpp)
                     r1 = cdis - fp
                     r2 = (-fp) - cdis
 
-                    if (abs(r1) - abs(r2) > 0.0_wp) then
+                    if (abs(r1) - abs(r2) > ZERO) then
                         r1 = r1/fpp
                     else
                         r1 = r2/fpp
                     end if
 
-                    r2 = 2.0_wp*f/fpp/r1
+                    r2 = ((TWO*f)/fpp)/r1
 
                     if (abs(r2) < abs(r1)) r1 = r2
 
@@ -1610,8 +1623,8 @@ contains
 
         end do main_loop
 
-        if (abs(cbp(n)) - abs(cbp(1)) <= 0.0_wp) then
-            if (abs(cbp(n)) - abs(cbp(1)) == 0.0_wp) then
+        if (abs(cbp(n)) - abs(cbp(1)) <= ZERO) then
+            if (abs(cbp(n)) - abs(cbp(1)) == ZERO) then
                 ierror = 4
                 return
             end if
@@ -1627,7 +1640,7 @@ contains
 
         ncmplx = 1
 
-        if (any(aimag(cbp(2:iz)) /= 0.0_wp)) return
+        if (any(aimag(cbp(2:iz)) /= ZERO)) return
 
         ncmplx = 0
         bp(1) = real(cbp(1), kind=wp)
@@ -1653,7 +1666,7 @@ contains
         ! is  determines whether or not a change in sign is made
         !
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)  :: nd
         integer (ip), intent (in)  :: nm1
@@ -1673,7 +1686,7 @@ contains
         real (wp),    intent (out) :: w(m)
         real (wp),    intent (out) :: u(m)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: j, mm, id, ibr, m1, m2, ia, k
         real (wp)    :: rt, den
@@ -1726,9 +1739,9 @@ contains
             end do
 
             den = b(1) - rt - c(1)*d(2)
-            w(1) = 1.0_wp
+            w(1) = ONE
 
-            if (den /= 0.0_wp) w(1) = (y(1)-c(1)*w(2))/den
+            if (den /= ZERO) w(1) = (y(1)-c(1)*w(2))/den
 
             do j = 2, m
                 w(j) = w(j) - d(j)*w(j-1)
@@ -1800,7 +1813,7 @@ contains
         ! is  determines whether or not a change in sign is made
         !
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)  :: nd
         integer (ip), intent (in)  :: nm1
@@ -1820,7 +1833,7 @@ contains
         real (wp),    intent (out) :: u(m)
         real (wp),    intent (out) :: w(m)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: j, mm, mm2, id, ibr, m1, m2, ia, k
         real (wp)    :: rt, bh, ym, den, v, am
@@ -1865,7 +1878,7 @@ contains
             w(1) = y(1)/den
             v = c(m)
 
-            if (mm2 - 2 >= 0) then
+            if (mm2 >= 2) then
                 do j = 2, mm2
                     den = b(j) - rt - a(j)*d(j-1)
                     d(j) = c(j)/den
@@ -1885,10 +1898,10 @@ contains
             ym = ym - v*w(m-2)
             den = bh - am*d(m-1)
 
-            if (den /= 0.0_wp) then
+            if (den /= ZERO) then
                 w(m) = (ym - am*w(m-1))/den
             else
-                w(m) = 1.0_wp
+                w(m) = ONE
             end if
 
             w(m-1) = w(m-1) - d(m-1)*w(m)
@@ -1905,8 +1918,8 @@ contains
                     cycle main_loop
                 else
 
-                    if (m2 > 0 .and. abs(bm1(m1)) - abs(bm2(m2)) <= 0.0_wp) then
-                        if (ibr <= 0 .and. abs(bm2(m2)-bd(id)) - abs(bm2(m2)-rt) < 0.0_wp) then
+                    if (m2 > 0 .and. abs(bm1(m1)) - abs(bm2(m2)) <= ZERO) then
+                        if (ibr <= 0 .and. abs(bm2(m2)-bd(id)) - abs(bm2(m2)-rt) < ZERO) then
                             y = w
                             ibr = 1
                             cycle main_loop
@@ -1917,7 +1930,7 @@ contains
                         end if
                     end if
 
-                    if (ibr <= 0 .and. abs(bm1(m1)-bd(id)) - abs(bm1(m1)-rt) < 0.0_wp) then
+                    if (ibr <= 0 .and. abs(bm1(m1)-bd(id)) - abs(bm1(m1)-rt) < ZERO) then
                         y = w
                         ibr = 1
                         cycle main_loop
@@ -1929,7 +1942,7 @@ contains
                     end if
                 end if
 
-                if (ibr <= 0 .and. abs(bm2(m2)-bd(id)) - abs(bm2(m2)-rt) < 0.0_wp) then
+                if (ibr <= 0 .and. abs(bm2(m2)-bd(id)) - abs(bm2(m2)-rt) < ZERO) then
                     y = w
                     ibr = 1
                 else
@@ -1985,17 +1998,17 @@ contains
         !     the relative precision of floating point arithmetic.
         !
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: n
         integer (ip), intent (out)    :: ierr
         real (wp),    intent (in out) :: d(n)
         real (wp),    intent (in out) :: e2(n)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
-        integer (ip)         :: i, j, l, m, ii, l1, mml, nhalf, ntop
-        real (wp)            :: b, c, f, g, h, p, r, s, dhold
+        integer (ip)  :: i, j, l, m, ii, l1, mml, nhalf, ntop
+        real (wp)     :: b, c, f, g, h, p, r, s, dhold
         !-----------------------------------------------
 
         ierr = 0
@@ -2003,9 +2016,9 @@ contains
         if (n == 1) return
 
         e2(:n-1) = e2(2:n)**2
-        f = 0.0_wp
-        b = 0.0_wp
-        e2(n) = 0.0_wp
+        f = ZERO
+        b = ZERO
+        e2(n) = ZERO
 
         main_loop: do l = 1, n
             j = 0
@@ -2029,79 +2042,76 @@ contains
             !
             end do
 
-            if_block: block
+            if_construct: if (m /= l) then
 
-                if (m /= l) then
+                loop_105: do
 
-                    loop_105: do
-
-                        if (j == 30) then
-                            !
-                            !==> set error: no convergence to an
-                            !    eigenvalue after 30 iterations
-                            !
-                            ierr = l
-                            return
-                        end if
-
-                        j = j + 1
+                    if (j == 30) then
                         !
-                        !==> form shift
+                        !==> set error: no convergence to an
+                        !    eigenvalue after 30 iterations
                         !
-                        l1 = l + 1
-                        s = sqrt(e2(l))
-                        g = d(l)
-                        p = (d(l1)-g)/(2.0*s)
-                        r = sqrt(p**2 + 1.0_wp)
-                        d(l) = s/(p + sign(r, p))
-                        h = g - d(l)
-                        d(l1:n) = d(l1:n) - h
-                        f = f + h
-                        !
-                        !==> rational ql transformation
-                        !
-                        if (g == 0.0_wp) then
-                            g = b
-                        else
-                            g = d(m)
-                        end if
+                        ierr = l
+                        return
+                    end if
 
-                        h = g
-                        s = 0.0_wp
-                        mml = m - l
-                        !
-                        !==> for i = m-1 step -1 until l do
-                        !
-                        do ii = 1, mml
-                            i = m - ii
-                            p = g*h
-                            r = p + e2(i)
-                            e2(i+1) = s*r
-                            s = e2(i)/r
-                            d(i+1) = h + s*(h + d(i))
-                            g = d(i) - e2(i)/g
+                    j = j + 1
+                    !
+                    !==> form shift
+                    !
+                    l1 = l + 1
+                    s = sqrt(e2(l))
+                    g = d(l)
+                    p = (d(l1)-g)/(2.0*s)
+                    r = sqrt(p**2 + ONE)
+                    d(l) = s/(p + sign(r, p))
+                    h = g - d(l)
+                    d(l1:n) = d(l1:n) - h
+                    f = f + h
+                    !
+                    !==> rational ql transformation
+                    !
+                    if (g == ZERO) then
+                        g = b
+                    else
+                        g = d(m)
+                    end if
 
-                            if (g == 0.0_wp) g = b
+                    h = g
+                    s = ZERO
+                    mml = m - l
+                    !
+                    !==> for i = m-1 step -1 until l do
+                    !
+                    do ii = 1, mml
+                        i = m - ii
+                        p = g*h
+                        r = p + e2(i)
+                        e2(i+1) = s*r
+                        s = e2(i)/r
+                        d(i+1) = h + s*(h + d(i))
+                        g = d(i) - e2(i)/g
 
-                            h = g*p/r
-                        end do
-                        !
-                        e2(l) = s*g
-                        d(l) = h
-                        !
-                        !==> guard against underflowed h
-                        !
-                        if (h == 0.0_wp) exit if_block
+                        if (g == ZERO) g = b
 
-                        if (abs(e2(l)) <= abs(c/h)) exit if_block
+                        h = g*p/r
+                    end do
+                    !
+                    e2(l) = s*g
+                    d(l) = h
+                    !
+                    !==> guard against underflowed h
+                    !
+                    if (h == ZERO) exit if_construct
 
-                        e2(l) = h*e2(l)
+                    if (abs(e2(l)) <= abs(c/h)) exit if_construct
 
-                        if (e2(l) == 0.0_wp) exit loop_105
+                    e2(l) = h*e2(l)
 
-                    end do loop_105
-                end if
-            end block if_block
+                    if (e2(l) == ZERO) exit loop_105
+
+                end do loop_105
+            end if if_construct
 
             p = d(l) + f
             !

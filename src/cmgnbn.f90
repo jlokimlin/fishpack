@@ -228,7 +228,7 @@ module module_cmgnbn
         Fish => FishpackWorkspace
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     ! Everything is private unless stated otherwise
     private
@@ -240,7 +240,7 @@ contains
 
     subroutine cmgnbn(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: nperod
         integer (ip), intent (in)     :: n
@@ -253,7 +253,7 @@ contains
         complex (wp), intent (in)     :: c(:)
         complex (wp), intent (in out) :: y(:,:)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: irwk, icwk
         type (Fish)  :: workspace
@@ -320,7 +320,7 @@ contains
 
     subroutine cmgnbnn(nperod, n, mperod, m, a, b, c, idimy, y, w)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: nperod
         integer (ip), intent (in)     :: n
@@ -333,7 +333,7 @@ contains
         complex (wp), intent (in out) :: y(:,:)
         complex (wp), intent (in out) :: w(:)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: workspace_indices(11)
         integer (ip) :: i, k, j, mp, np, ipstor
@@ -515,7 +515,7 @@ end subroutine cmgnbnn
 
 pure function get_workspace_indices(n, m) result (return_value)
     !-----------------------------------------------
-    ! Dictionary: calling arguments
+    ! Dummy arguments
     !-----------------------------------------------
     integer (ip), intent (in) :: n
     integer (ip), intent (in) :: m
@@ -545,7 +545,7 @@ subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
     !     istag = 2 if the last diagonal block is the matrix a+i.
     !
     !-----------------------------------------------
-    ! Dictionary: calling arguments
+    ! Dummy arguments
     !-----------------------------------------------
     integer (ip), intent (in)     :: mr
     integer (ip), intent (in)     :: nr
@@ -561,7 +561,7 @@ subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
     complex (wp), intent (in out) :: tcos(mr)
     complex (wp), intent (in out) :: p(nr*4)
     !-----------------------------------------------
-    ! Dictionary: local variables
+    ! Local variables
     !-----------------------------------------------
     integer (ip) :: m, n, iip, ipstor, jsh, kr, irreg, jstsav, i, lr, nun
     integer (ip) :: jst, jsp, l, nodd, j, jm1, jp1, jm2, jp2, jm3, jp3, noddpr
@@ -877,7 +877,7 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
     !     dirichlet condition at top.  (for this case, must have istag = 1.)
     !
     !-----------------------------------------------
-    ! Dictionary: calling arguments
+    ! Dummy arguments
     !-----------------------------------------------
     integer (ip), intent (in) :: m
     integer (ip), intent (in) :: n
@@ -898,7 +898,7 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
     complex (wp) :: tcos(m)
     complex (wp), intent (in out) :: p(n*4)
     !-----------------------------------------------
-    ! Dictionary: local variables
+    ! Local variables
     !-----------------------------------------------
     integer (ip) :: k(4)
     integer (ip) :: mr, iip
@@ -1351,7 +1351,7 @@ subroutine cmposp(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
     !     conditions.
     !
     !-----------------------------------------------
-    ! Dictionary: calling arguments
+    ! Dummy arguments
     !-----------------------------------------------
     integer (ip), intent (in) :: m
     integer (ip), intent (in) :: n
@@ -1370,7 +1370,7 @@ subroutine cmposp(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
     complex (wp) :: tcos(*)
     complex (wp) :: p(n*4)
     !-----------------------------------------------
-    ! Dictionary: local variables
+    ! Local variables
     !-----------------------------------------------
     integer (ip) :: mr, nr, nrm1, j, nrmj, nrpj, i, lh
     real (wp)    :: ipstor
@@ -1507,7 +1507,7 @@ pure subroutine cmpcsg(n, ijump, fnum, fden, a)
     !
     !
     !-----------------------------------------------
-    ! Dictionary: calling arguments
+    ! Dummy arguments
     !-----------------------------------------------
     integer (ip), intent (in)  :: n
     integer (ip), intent (in)  :: ijump
@@ -1515,7 +1515,7 @@ pure subroutine cmpcsg(n, ijump, fnum, fden, a)
     real (wp),    intent (in)  :: fden
     complex (wp), intent (out) :: a(*)
     !-----------------------------------------------
-    ! Dictionary: local variables
+    ! Local variables
     !-----------------------------------------------
     integer (ip)         :: k3, k4, k, k1, k5, i, k2, np1
     real (wp)            :: pibyn, x, y
@@ -1559,7 +1559,7 @@ subroutine cmpmrg(tcos, i1, m1, i2, m2, i3)
     !
     !
     !-----------------------------------------------
-    ! Dictionary: calling arguments
+    ! Dummy arguments
     !-----------------------------------------------
     integer (ip), intent (in)     :: i1
     integer (ip), intent (in)     :: m1
@@ -1568,7 +1568,7 @@ subroutine cmpmrg(tcos, i1, m1, i2, m2, i3)
     integer (ip), intent (in)     :: i3
     complex (wp), intent (in out) :: tcos(*)
     !-----------------------------------------------
-    ! Dictionary: local variables
+    ! Local variables
     !-----------------------------------------------
     integer (ip) :: j11, j3, j1, j2, j, l, k, m
     complex (wp) :: x, y
@@ -1630,7 +1630,7 @@ subroutine cmptrx(idegbr, idegcr, m, a, b, c, y, tcos, d, w)
     !     tridiagonal  ( . . . , a(i), b(i), c(i), . . . ).
     !
     !-----------------------------------------------
-    ! Dictionary: calling arguments
+    ! Dummy arguments
     !-----------------------------------------------
     integer (ip), intent (in)     :: idegbr
     integer (ip), intent (in)     :: idegcr
@@ -1643,7 +1643,7 @@ subroutine cmptrx(idegbr, idegcr, m, a, b, c, y, tcos, d, w)
     complex (wp), intent (out)    :: d(m)
     complex (wp), intent (out)    :: w(m)
     !-----------------------------------------------
-    ! Dictionary: local variables
+    ! Local variables
     !-----------------------------------------------
     integer (ip) :: mm1, ifb, ifc, l, lint, k, i, iip
     complex (wp) :: x, xx, z
@@ -1700,7 +1700,7 @@ end subroutine cmptrx
 
 subroutine cmptr3(m, a, b, c, k, y1, y2, y3, tcos, d, w1, w2, w3)
     !-----------------------------------------------
-    ! Dictionary: calling arguments
+    ! Dummy arguments
     !-----------------------------------------------
     integer (ip), intent (in)     :: m
     integer (ip), intent (in)     :: k(4)
@@ -1716,7 +1716,7 @@ subroutine cmptr3(m, a, b, c, k, y1, y2, y3, tcos, d, w1, w2, w3)
     complex (wp), intent (out)    :: w2(m)
     complex (wp), intent (out)    :: w3(m)
     !-----------------------------------------------
-    ! Dictionary: local variables
+    ! Local variables
     !-----------------------------------------------
     integer (ip) :: mm1, k1, k2, k3, k4
     integer (ip) :: if1, if2, if3, if4, k2k3k4, l1, l2

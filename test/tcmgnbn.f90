@@ -150,7 +150,7 @@ program tcmgnbn
         FishpackGrid
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     !------------------------------------------------------------------
     ! Dictionary
@@ -229,7 +229,7 @@ contains
 
     pure subroutine get_coefficients(x, y, a, b, c)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         real (wp),                 intent (in)  :: x(:)
         real (wp),                 intent (in)  :: y(:)
@@ -237,7 +237,7 @@ contains
         complex (wp), allocatable, intent (out) :: b(:)
         complex (wp), allocatable, intent (out) :: c(:)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip)            :: m, k
         real (wp)               :: dx, dy, s, t, t2
@@ -273,13 +273,13 @@ contains
 
     pure subroutine get_right_hand_side(x, y, f)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         real (wp),    intent (in)  :: x(:)
         real (wp),    intent (in)  :: y(:)
         complex (wp), intent (out) :: f(:,:)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: n, m, k, j
         real (wp)    :: dx, dy, s, t, t2, t4

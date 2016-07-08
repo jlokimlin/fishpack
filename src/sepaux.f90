@@ -70,7 +70,7 @@ module module_sepaux
         ip ! Integer precision
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     ! Everything is private unless stated otherwise
     private
@@ -79,7 +79,7 @@ module module_sepaux
 
     type, public :: SepAux
         !---------------------------------------------------------------------------------
-        ! Class variables
+        ! Type components
         !---------------------------------------------------------------------------------
         integer (ip), public :: kswx, kswy, k, l, mit, nit, is, ms, js, ns
         real (wp),    public :: ait, bit, cit, dit
@@ -87,7 +87,7 @@ module module_sepaux
         !---------------------------------------------------------------------------------
     contains
         !---------------------------------------------------------------------------------
-        ! Class methods
+        ! Type-bound procedures
         !---------------------------------------------------------------------------------
         procedure, public :: seport
         procedure, public :: sepmin
@@ -102,7 +102,7 @@ module module_sepaux
         pure subroutine get_coefficients(x, a, b, c)
             import :: wp
             !-----------------------------------------------
-            ! Dictionary: calling arguments
+            ! Dummy arguments
             !-----------------------------------------------
             real (wp), intent (in)  :: x
             real (wp), intent (out) :: a
@@ -124,7 +124,7 @@ contains
         !     the constant array in a weighted least squares norm
         !
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         class (SepAux), intent (in out) :: this
         real (wp),      intent (in out) :: usol(:,:)
@@ -132,7 +132,7 @@ contains
         real (wp),      intent (in)     :: zm(:)
         real (wp),      intent (out)    :: pertrb
         !--------------------------------------------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !--------------------------------------------------------------------------------
         integer (ip) :: istr, ifnl, jstr, jfnl, i, ii
         real (wp)    :: ute, ete
@@ -205,7 +205,7 @@ contains
         !     least squares norm
         !
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         class (SepAux), intent (in out) :: this
         real (wp),      intent (in out) :: usol(:,:)
@@ -213,7 +213,7 @@ contains
         real (wp),      intent (in)     :: zm(:)
         real (wp),      intent (out)    :: pertrb
         !--------------------------------------------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !--------------------------------------------------------------------------------
         integer (ip) :: istr, ifnl, jstr, jfnl, i, ii
         real (wp)    :: ute, ete
@@ -277,7 +277,7 @@ contains
         !     c(n) in the (n, 1) position, and all other elements zero.
         !
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         class (SepAux), intent (in out) :: this
         integer (ip),   intent (in)     :: n
@@ -288,7 +288,7 @@ contains
         real (wp),      intent (in out) :: u(n)
         real (wp),      intent (in out) :: z(n)
         !--------------------------------------------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !--------------------------------------------------------------------------------
         integer (ip) :: nm2, j, nm1
         real (wp)    :: bn, v, den, an
@@ -362,7 +362,7 @@ contains
         !
         !
         !--------------------------------------------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !--------------------------------------------------------------------------------
         class (SepAux), intent (in out) :: this
         integer (ip),   intent (in)     :: i
@@ -486,7 +486,7 @@ contains
         !     partial derivatives of u at the (i, j) mesh point
         !
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         class (SepAux), intent (in out) :: this
         integer (ip),   intent (in)     :: idmn

@@ -445,7 +445,7 @@ module module_sepx4
         get_coefficients
 
     ! Explicit typing only!
-    implicit None
+    implicit none
 
     ! Everything is private unless stated otherwise
     private
@@ -458,7 +458,7 @@ contains
         d, n, nbdcnd, bdc, bdd, cofx, grhs, usol, idmn, pertrb, &
         ierror)
         !--------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------
         integer (ip), intent (in)     :: iorder
         integer (ip), intent (in)     :: m
@@ -482,7 +482,7 @@ contains
         real (wp),    intent (out)    :: usol(:,:)
         procedure (get_coefficients)  :: cofx
         !--------------------------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !--------------------------------------------------------------
         integer (ip)  :: l, k, length, irwk, icwk
         integer (ip)  :: workspace_indices(13)
@@ -551,7 +551,7 @@ contains
 
     pure subroutine compute_workspace_dimensions(n, l, k, length, irwk, icwk)
         !--------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------
         integer (ip), intent (in)  :: n
         integer (ip), intent (in)  :: l
@@ -576,7 +576,7 @@ contains
 
     pure function get_workspace_indices(length, l, k) result (return_value)
         !--------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------
         integer (ip), intent (in) :: length
         integer (ip), intent (in) :: l
@@ -616,7 +616,7 @@ contains
         !     solution is generated in usol.
         !
         !--------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------
         class (SepAux), intent (in out) :: sep_aux
         integer (ip),   intent (in)     :: iorder
@@ -653,7 +653,7 @@ contains
         real (wp),      intent (in out) :: usol(:,:)
         procedure (get_coefficients)    :: cofx
         !--------------------------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !--------------------------------------------------------------
         integer (ip) :: i, i1, mp, np, local_error_flag
         real (wp)    :: xi, ai, bi, ci, axi, bxi, cxi
@@ -1056,7 +1056,7 @@ contains
         ! This program checks the input parameters for errors
         !
         !--------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------
         integer (ip), intent (in)    :: iorder
         integer (ip), intent (in)    :: m
@@ -1071,7 +1071,7 @@ contains
         real (wp),    intent (in)    :: d
         procedure (get_coefficients) :: cofx
         !--------------------------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !--------------------------------------------------------------
         integer (ip) :: i
         real (wp)    :: xi, ai, bi, ci
@@ -1130,7 +1130,7 @@ contains
         !     must solve is a singular operator
         !
         !--------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------
         class (SepAux), intent (in out) :: sep_aux
         integer (ip),   intent (in)     :: mbdcnd
@@ -1140,7 +1140,7 @@ contains
         logical ,       intent (out)    :: singlr
         procedure (get_coefficients)    :: cofx
         !--------------------------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !--------------------------------------------------------------
         integer (ip) :: i
         real (wp)    :: xi, ai, bi, ci
@@ -1221,7 +1221,7 @@ contains
         !     hand side when calling blktri for a fourth order solution.
         !
         !--------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------
         class (SepAux), intent (in out) :: sep_aux
         integer (ip),   intent (in)     :: idmn
@@ -1229,7 +1229,7 @@ contains
         real (wp),      intent (in out) :: grhs(:,:)
         procedure (get_coefficients)    :: cofx
         !--------------------------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !--------------------------------------------------------------
         integer (ip) :: i, j
         real (wp)    :: xi, ai, bi, ci

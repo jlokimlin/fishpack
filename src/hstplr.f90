@@ -361,7 +361,7 @@ module module_hstplr
         poistgg
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     ! Everything is private unless stated otherwise
     private
@@ -374,7 +374,7 @@ contains
     subroutine hstplr( a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror )
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: m
         integer (ip), intent (in)     :: mbdcnd
@@ -394,7 +394,7 @@ contains
         real (wp),    intent (in)     :: bdd(:)
         real (wp),    intent (in out) :: f(:,:)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: irwk, icwk
         type (Fish)  :: workspace
@@ -473,7 +473,7 @@ contains
     subroutine hstplrr(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror, w)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: m
         integer (ip), intent (in)     :: mbdcnd
@@ -494,7 +494,7 @@ contains
         real (wp),    intent (in out) :: f(idimf,*)
         real (wp),    intent (in out) :: w(*)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: np, isw, mb, iwb, iwc, iwr, i, j, k, lp, local_error_flag
         real    (wp) :: dr, dr2, dth, dth2, a1, a2

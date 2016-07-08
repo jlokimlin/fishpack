@@ -8,7 +8,7 @@ module type_RectangularDomain
         stderr => ERROR_UNIT
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     ! Everything is private unless stated otherwise
     private
@@ -17,7 +17,7 @@ module type_RectangularDomain
     ! Declare derived data type
     type, public :: RectangularDomain
         !-------------------------------------------------------------------------------
-        ! Class variables
+        ! Type components
         !-------------------------------------------------------------------------------
         logical,   public  :: initialized = .false.
         real (wp), public  :: A = 0.0_wp  !! A <= x <= B
@@ -27,7 +27,7 @@ module type_RectangularDomain
         !-------------------------------------------------------------------------------
     contains
         !-------------------------------------------------------------------------------
-        ! Class methods
+        ! Type-bound procedures
         !-------------------------------------------------------------------------------
         procedure, non_overridable, public  :: create => create_rectangular_domain
         procedure, non_overridable, public  :: destroy => destroy_rectangular_domain
@@ -43,7 +43,7 @@ contains
 
     subroutine create_rectangular_domain(this, x_interval, y_interval )
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         class (RectangularDomain), intent (in out)  :: this
         real (wp),                 intent (in)      :: x_interval(:) !! A <= x <= B
@@ -71,7 +71,7 @@ contains
         !
         ! Purpose:
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         class (RectangularDomain), intent (in out)   :: this
         !--------------------------------------------------------------------------------
@@ -93,7 +93,7 @@ contains
 
     subroutine copy_rectangular_domain(this, rectangle_to_be_copied )
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         class (RectangularDomain), intent (out) :: this
         class (RectangularDomain), intent (in)  :: rectangle_to_be_copied
@@ -112,7 +112,7 @@ contains
 
     subroutine finalize_rectangular_domain(this)
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         type (RectangularDomain), intent (in out) :: this
         !--------------------------------------------------------------------------------

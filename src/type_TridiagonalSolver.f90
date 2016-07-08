@@ -27,7 +27,7 @@ module type_TridiagonalSolver
         poistg
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     ! Everything is private unless stated otherwise
     private
@@ -36,11 +36,11 @@ module type_TridiagonalSolver
     ! Declare derived data type
     type, extends( TridiagonalData ), public :: TridiagonalSolver
        !---------------------------------------------------------------------------------
-       ! Class variables
+       ! Type components
        !---------------------------------------------------------------------------------
     contains
         !---------------------------------------------------------------------------------
-        ! Class methods
+        ! Type-bound procedures
         !---------------------------------------------------------------------------------
         procedure, public :: solve_2d_real_linear_system_staggered
         procedure, public :: solve_2d_real_linear_system_centered
@@ -54,7 +54,7 @@ contains
 
     subroutine finalize_tridiagonal_solver(this)
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         type (TridiagonalSolver), intent (in out) :: this
         !--------------------------------------------------------------------------------
@@ -67,14 +67,14 @@ contains
     subroutine solve_2d_real_linear_system_staggered( & ! POISTG
         this, source, solution, error_flag )
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         class (TridiagonalSolver), intent (in out) :: this
         real (wp), contiguous,     intent (in out) :: source(:,:)
         real (wp), contiguous,     intent (out)    :: solution(:,:)
         integer (ip), optional,    intent (out)    :: error_flag
         !--------------------------------------------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !--------------------------------------------------------------------------------
         integer (ip)   :: local_error_flag
         !--------------------------------------------------------------------------------
@@ -156,14 +156,14 @@ contains
     subroutine solve_2d_real_linear_system_centered( & ! genbun
         this, source, solution, error_flag )
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         class (TridiagonalSolver), intent (in out) :: this
         real (wp), contiguous,     intent (in out) :: source(:,:)
         real (wp), contiguous,     intent (out)    :: solution(:,:)
         integer (ip), optional,    intent (out)    :: error_flag
         !--------------------------------------------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !--------------------------------------------------------------------------------
         integer (ip)   :: local_error_flag
         !--------------------------------------------------------------------------------

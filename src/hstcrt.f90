@@ -303,7 +303,7 @@ module module_hstcrt
         ip ! Integer precision
 
     use type_FishpackWorkspace, only: &
-        FishpackWorkspace
+        Fish => FishpackWorkspace
 
     use module_genbun, only: &
         genbunn
@@ -312,20 +312,31 @@ module module_hstcrt
         poistgg
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     ! Everything is private unless stated otherwise
     private
     public :: hstcrt
 
 
+    !---------------------------------------------------------------------------------
+    ! Dictionary: Variables confined to the module
+    !---------------------------------------------------------------------------------
+    real (wp), private :: ZERO = 0.0_wp
+    real (wp), private :: ONE = 1.0_wp
+    real (wp), private :: TWO = 2.0_wp
+    !---------------------------------------------------------------------------------
+
+
+
 contains
+
 
 
     subroutine hstcrt(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: m
         integer (ip), intent (in)     :: mbdcnd
@@ -345,22 +356,22 @@ contains
         real (wp),    intent (in)     :: bdd(:)
         real (wp),    intent (in out) :: f(:,:)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
-        type (FishpackWorkspace) :: workspace
-        integer (ip)             :: irwk, icwk
+        type (Fish)  :: workspace
+        integer (ip) :: irwk, icwk
         !-----------------------------------------------
 
         !
         !==> Check validity of input arguments
         !
-        if ((a-b) >= 0.0_wp) then
+        if ((a-b) >= ZERO) then
             ierror = 1
             return
         else if (mbdcnd < 0 .or. mbdcnd > 4) then
             ierror = 2
             return
-        else if ((c-d) >= 0.0_wp) then
+        else if ((c-d) >= ZERO) then
             ierror = 3
             return
         else if(3 > n) then
@@ -392,9 +403,8 @@ contains
         call workspace%create(irwk, icwk, ierror)
 
         associate( rew => workspace%real_workspace )
-
             !
-            !==> Solver system
+            !==> Solve system
             !
             call hstcrtt(a, b, m, mbdcnd, bda, bdb, &
                 c, d, n, nbdcnd, bdc, bdd, &
@@ -410,10 +420,11 @@ contains
     end subroutine hstcrt
 
 
+
     subroutine hstcrtt(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror, w)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: m
         integer (ip), intent (in)     :: mbdcnd
@@ -434,12 +445,12 @@ contains
         real (wp),    intent (in out) :: f(:,:)
         real (wp),    intent (in out) :: w(*)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: nperod, mperod, np, mp
         integer (ip) :: id2, id3, id4, local_error_flag
         real (wp)    :: dx, twdelx, delxsq, dy
-        real (wp)    :: twdely, dy2, twdysq, s, st2
+        real (wp)    :: twdely, dy2, twdysq, s, two_s
         !-----------------------------------------------
 
         nperod = nbdcnd
@@ -451,12 +462,12 @@ contains
         end if
 
         dx = (b - a)/m
-        twdelx = 1.0_wp/dx
-        delxsq = 2.0_wp/dx**2
+        twdelx = ONE/dx
+        delxsq = TWO/dx**2
         dy = (d - c)/n
-        twdely = 1.0_wp/dy
+        twdely = ONE/dy
         dy2 = dy**2
-        twdysq = 2.0_wp/dy2
+        twdysq = TWO/dy2
         np = nbdcnd + 1
         mp = mbdcnd + 1
         !
@@ -466,9 +477,9 @@ contains
         id3 = id2 + m
         id4 = id3 + m
         s = (dy/dx)**2
-        st2 = 2.0_wp*s
+        two_s = TWO*s
         w(:m) = s
-        w(id2+1:m+id2) = (-st2) + elmbda*dy2
+        w(id2+1:m+id2) = (-two_s) + elmbda*dy2
         w(id3+1:m+id3) = s
         !
         !==> Set boundary data for x-boundaries.
@@ -512,14 +523,14 @@ contains
         f(:m, :n) = f(:m, :n)*dy2
 
         if (mperod /= 0) then
-            w(1) = 0.0_wp
-            w(id4) = 0.0_wp
+            w(1) = ZERO
+            w(id4) = ZERO
         end if
 
-        pertrb = 0.0_wp
+        pertrb = ZERO
 
-        if (elmbda >= 0.0_wp) then
-            if (elmbda /= 0.0_wp) then
+        if (elmbda >= ZERO) then
+            if (elmbda /= ZERO) then
                 ierror = 6
                 return
             else

@@ -66,10 +66,10 @@ program thstcyl
         FishpackGrid
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     !-----------------------------------------------
-    ! Dictionary: local variables
+    ! Local variables
     !-----------------------------------------------
     type (FishpackSolver)   :: solver
     type (FishpackGrid)     :: grid

@@ -498,7 +498,7 @@ module module_hstcsp
         BlktriAux
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     ! Everything is private unless stated otherwise
     private
@@ -511,7 +511,7 @@ contains
     subroutine hstcsp(intl, a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, &
         bdc, bdd, elmbda, f, idimf, pertrb, ierror, w)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in out) :: intl
         integer (ip), intent (in)     :: m
@@ -533,7 +533,7 @@ contains
         real (wp),    intent (in out) :: f(:,:)
         class (Fish), intent (in out) :: w
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip)         :: k, l, np, irwk, icwk, local_error_flag
         integer (ip), save   :: workspace_indices(8)
@@ -679,7 +679,7 @@ contains
         bdc, bdd, elmbda, f, idimf, pertrb, ierror, am, bm, cm, an, bn, &
         cn, snth, rsq, w, wc)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: intl
         integer (ip), intent (in)     :: m
@@ -710,7 +710,7 @@ contains
         real (wp),    intent (in out) :: w(:)
         complex (wp), intent (in out) :: wc(:)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip)     :: i, j, isw, nb
         real (wp)        :: dth, dthsq, dr, x, y, a2, a1, a3

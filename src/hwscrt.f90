@@ -318,17 +318,27 @@ module module_hwscrt
         ip ! Integer precision
 
     use type_FishpackWorkspace, only: &
-        FishpackWorkspace
+        Fish => FishpackWorkspace
 
     use module_genbun, only: &
         genbunn
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     ! Everything is private unless stated otherwise
     private
     public :: hwscrt
+
+
+    !---------------------------------------------------------------------------------
+    ! Dictionary: Variables confined to the module
+    !---------------------------------------------------------------------------------
+    real (wp), private :: ZERO = 0.0_wp
+    real (wp), private :: ONE = 1.0_wp
+    real (wp), private :: TWO = 2.0_wp
+    !---------------------------------------------------------------------------------
+
 
 
 contains
@@ -337,42 +347,42 @@ contains
     subroutine hwscrt(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
-        integer (ip),          intent (in)     :: m
-        integer (ip),          intent (in)     :: mbdcnd
-        integer (ip),          intent (in)     :: n
-        integer (ip),          intent (in)     :: nbdcnd
-        integer (ip),          intent (in)     :: idimf
-        integer (ip),          intent (out)    :: ierror
-        real (wp),             intent (in)     :: a
-        real (wp),             intent (in)     :: b
-        real (wp),             intent (in)     :: c
-        real (wp),             intent (in)     :: d
-        real (wp),             intent (in)     :: elmbda
-        real (wp),             intent (out)    :: pertrb
-        real (wp), contiguous, intent (in)     :: bda(:)
-        real (wp), contiguous, intent (in)     :: bdb(:)
-        real (wp), contiguous, intent (in)     :: bdc(:)
-        real (wp), contiguous, intent (in)     :: bdd(:)
-        real (wp), contiguous, intent (in out) :: f(:,:)
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: mbdcnd
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: nbdcnd
+        integer (ip), intent (in)     :: idimf
+        integer (ip), intent (out)    :: ierror
+        real (wp),    intent (in)     :: a
+        real (wp),    intent (in)     :: b
+        real (wp),    intent (in)     :: c
+        real (wp),    intent (in)     :: d
+        real (wp),    intent (in)     :: elmbda
+        real (wp),    intent (out)    :: pertrb
+        real (wp),    intent (in)     :: bda(:)
+        real (wp),    intent (in)     :: bdb(:)
+        real (wp),    intent (in)     :: bdc(:)
+        real (wp),    intent (in)     :: bdd(:)
+        real (wp),    intent (in out) :: f(:,:)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
-        type (FishpackWorkspace) :: workspace
-        integer (ip)             :: irwk, icwk
+        type (Fish)  :: workspace
+        integer (ip) :: irwk, icwk
         !-----------------------------------------------
 
         !
         !==>  Check validity of input parameters.
         !
-        if ((a - b) >= 0.0_wp) then
+        if ((a - b) >= ZERO) then
             ierror = 1
             return
         else if (mbdcnd < 0 .or. mbdcnd > 4) then
             ierror = 2
             return
-        else if ((c - d) >= 0.0_wp) then
+        else if ((c - d) >= ZERO) then
             ierror = 3
             return
         else if (n <= 3) then
@@ -394,7 +404,7 @@ contains
         !
         !==> Estimate real workspace size (generous estimate)
         !
-        associate( int_arg => real(n + 1, kind=wp)/log(2.0_wp) )
+        associate( int_arg => real(n + 1, kind=wp)/log(TWO) )
 
             irwk = 4*(n+1)+(13+int(int_arg, kind=ip))*(m + 1)
             icwk = 0
@@ -413,8 +423,8 @@ contains
             !
             !==> Solve system
             !
-            call hwscrtt( a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
-                elmbda, f, idimf, pertrb, ierror, rew )
+            call hwscrtt(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
+                elmbda, f, idimf, pertrb, ierror, rew)
 
         end associate
 
@@ -427,10 +437,10 @@ contains
 
 
 
-    subroutine hwscrtt( a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
-        bdd, elmbda, f, idimf, pertrb, ierror, w )
+    subroutine hwscrtt(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
+        bdd, elmbda, f, idimf, pertrb, ierror, w)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip),          intent (in)     :: m
         integer (ip),          intent (in)     :: mbdcnd
@@ -444,20 +454,20 @@ contains
         real (wp),             intent (in)     :: d
         real (wp),             intent (in)     :: elmbda
         real (wp),             intent (out)    :: pertrb
-        real (wp), contiguous, intent (in)     :: bda(:)
-        real (wp), contiguous, intent (in)     :: bdb(:)
-        real (wp), contiguous, intent (in)     :: bdc(:)
-        real (wp), contiguous, intent (in)     :: bdd(:)
-        real (wp),             intent (in out) :: f(idimf, *)
-        real (wp),             intent (in out) :: w(*)
+        real (wp),             intent (in)     :: bda(:)
+        real (wp),             intent (in)     :: bdb(:)
+        real (wp),             intent (in)     :: bdc(:)
+        real (wp),             intent (in)     :: bdd(:)
+        real (wp),             intent (in out) :: f(idimf,*)
+        real (wp), contiguous, intent (in out) :: w(:)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: nperod, mperod, np, np1, mp, mp1, nstart, nstop, nskip
         integer (ip) :: nunk, mstart, mstop, mskip, munk, id2, id3, id4
         integer (ip) :: local_error_flag
         real (wp)    :: dx, twdelx, delxsq, dy
-        real (wp)    :: twdely, delysq, s, st2
+        real (wp)    :: twdely, delysq, s, two_s
         !-----------------------------------------------
 
         nperod = nbdcnd
@@ -469,11 +479,11 @@ contains
         end if
 
         dx = (b - a)/m
-        twdelx = 2.0_wp/dx
-        delxsq = 1.0_wp/dx**2
+        twdelx = TWO/dx
+        delxsq = ONE/dx**2
         dy = (d - c)/n
-        twdely = 2.0_wp/dy
-        delysq = 1.0_wp/dy**2
+        twdely = TWO/dy
+        delysq = ONE/dy**2
         np = nbdcnd + 1
         np1 = n + 1
         mp = mbdcnd + 1
@@ -563,57 +573,62 @@ contains
         id3 = id2 + munk
         id4 = id3 + munk
         s = delysq*delxsq
-        st2 = 2.0_wp*s
+        two_s = TWO*s
         w(:munk) = s
-        w(id2+1:munk+id2) = (-st2) + elmbda*delysq
+        w(id2+1:munk+id2) = (-two_s) + elmbda*delysq
         w(id3+1:munk+id3) = s
 
         if (mp /= 1) then
-            w(1) = 0.0_wp
-            w(id4) = 0.0_wp
+            w(1) = ZERO
+            w(id4) = ZERO
         end if
 
         select case (mp)
             case (3)
-                w(id2) = st2
+                w(id2) = two_s
             case (4)
-                w(id2) = st2
-                w(id3+1) = st2
+                w(id2) = two_s
+                w(id3+1) = two_s
             case (5)
-                w(id3+1) = st2
+                w(id3+1) = two_s
         end select
 
-        pertrb = 0.0_wp
-        if ( elmbda >= 0.0_wp ) then
-            if ( elmbda /= 0.0_wp ) then
+        pertrb = ZERO
+        if (elmbda >= ZERO) then
+            if (elmbda /= ZERO) then
                 ierror = 6
-            else
-
             end if
         end if
 
-        !
-        !==> Solve system
-        !
-        local_error_flag = 0
-        call genbunn(nperod, nunk, mperod, munk, w(1), w(id2+1), w(id3+1), &
-            idimf, f(mstart, nstart), local_error_flag, w(id4+1))
+        ! Set worspace pointers
+        associate( &
+            iw1 => 1, &
+            iw2 => id2 + 1, &
+            iw3 => id3 + 1, &
+            iw4 => id4 + 1 &
+            )
 
-        if (local_error_flag /= 0) then
-            error stop 'fishpack library: genbunn call failed in hwscrtt'
-        end if
+            !
+            !==> Solve system
+            !
+            call genbunn(nperod, nunk, mperod, munk, w(iw1:), w(iw2:), w(iw3:), &
+                idimf, f(mstart, nstart), local_error_flag, w(iw4:))
+
+            ! Check error flag
+            if (local_error_flag /= 0) then
+                error stop 'fishpack library: genbunn call failed in hwscrtt'
+            end if
+
+        end associate
+
         !
-        !     Fill in identical values when have periodic boundary conditions.
+        !==>  Fill in identical values when have periodic boundary conditions.
         !
-        if (nbdcnd == 0) then
-            f(mstart:mstop, np1) = f(mstart:mstop, 1)
-        end if
+        if (nbdcnd == 0) f(mstart:mstop, np1) = f(mstart:mstop, 1)
 
         if (mbdcnd == 0) then
             f(mp1, nstart:nstop) = f(1, nstart:nstop)
-            if (nbdcnd == 0) then
-                f(mp1, np1) = f(1, np1)
-            end if
+            if (nbdcnd == 0) f(mp1, np1) = f(1, np1)
         end if
 
     end subroutine hwscrtt

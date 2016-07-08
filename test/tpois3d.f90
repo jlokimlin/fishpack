@@ -44,7 +44,7 @@ program tpois3d
         FishpackSolver
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     !-----------------------------------------------
     ! Dictionary

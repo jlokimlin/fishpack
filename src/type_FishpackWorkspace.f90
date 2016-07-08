@@ -56,7 +56,7 @@ module type_FishpackWorkspace
     ! Declare derived data type
     type, public :: FishpackWorkspace
         !---------------------------------------------------------------------------------
-        ! Class variables
+        ! Type components
         !---------------------------------------------------------------------------------
         real (wp),    allocatable :: real_workspace(:)
         complex (wp), allocatable :: complex_workspace(:)
@@ -64,7 +64,7 @@ module type_FishpackWorkspace
         !---------------------------------------------------------------------------------
     contains
         !---------------------------------------------------------------------------------
-        ! Class methods
+        ! Type-bound procedures
         !---------------------------------------------------------------------------------
         procedure,         public :: create => create_fishpack_workspace
         procedure,         public :: destroy => destroy_fishpack_workspace
@@ -88,14 +88,14 @@ contains
         ! (e.g., this would happen if m,n are too large for the computers memory
         !
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         class (FishpackWorkspace), intent (in out) :: this
         integer (ip),              intent (in)     :: irwk ! required real work space length
         integer (ip),              intent (in)     :: icwk ! required integer work space length
         integer (ip), optional,    intent (in out) :: ierror
         !--------------------------------------------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !--------------------------------------------------------------------------------
         integer (ip) :: allocation_status
         !--------------------------------------------------------------------------------
@@ -156,14 +156,14 @@ contains
         ! requirements (generous estimate) of blktri for n,m values
         !
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         integer (ip), intent (in)  :: n
         integer (ip), intent (in)  :: m
         integer (ip), intent (out) :: irwk
         integer (ip), intent (out) :: icwk
         !--------------------------------------------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !--------------------------------------------------------------------------------
         integer (ip) :: log2n
         !--------------------------------------------------------------------------------
@@ -198,13 +198,13 @@ contains
         ! requirement (generously) of genbun for the current n,m
         !
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         integer (ip), intent (in)  :: n
         integer (ip), intent (in)  :: m
         integer (ip), intent (out) :: irwk
         !--------------------------------------------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !--------------------------------------------------------------------------------
         integer (ip) :: log2n
         !--------------------------------------------------------------------------------
@@ -234,7 +234,7 @@ contains
         ! It should be called after a fishpack solver has finished
         !
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         class (FishpackWorkspace), intent (in out) :: this
         !--------------------------------------------------------------------------------
@@ -260,7 +260,7 @@ contains
 
     subroutine finalize_fishpack_workspace(this)
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         type (FishpackWorkspace), intent (in out) :: this
         !--------------------------------------------------------------------------------

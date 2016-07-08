@@ -45,7 +45,7 @@ program thwscyl
         FishpackGrid
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     !-----------------------------------------------
     ! Dictionary

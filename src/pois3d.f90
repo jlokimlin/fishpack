@@ -250,7 +250,7 @@ module module_pois3d
         FFTpack
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     ! Everything is private unless stated otherwise
     private
@@ -264,7 +264,7 @@ contains
     subroutine pois3d( lperod, l, c1, mperod, m, c2, nperod, n, a, b, c, &
         ldimf, mdimf, f, ierror)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: lperod
         integer (ip), intent (in)     :: l
@@ -282,7 +282,7 @@ contains
         real (wp),    intent (in out) :: c(:)
         real (wp),    intent (in out) :: f(:,:,:)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip)  :: irwk, icwk
         type (Fish)   :: workspace
@@ -320,7 +320,7 @@ contains
     subroutine pois3dd(lperod, l, c1, mperod, m, c2, nperod, n, a, b, &
         c, ldimf, mdimf, f, ierror, w)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: lperod
         integer (ip), intent (in)     :: l
@@ -339,7 +339,7 @@ contains
         real (wp),    intent (in out) :: f(ldimf, mdimf, *)
         real (wp),    intent (in out) :: w(*)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: nh, nhm1, nodd, i, j, k
         integer (ip) :: workspace_indices(6)
@@ -465,7 +465,7 @@ contains
     pure subroutine check_input_arguments(lperod, l, mperod, m, nperod, n, &
         a, b, c, ldimf, mdimf, ierror)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)   :: lperod
         integer (ip), intent (in)   :: l
@@ -530,7 +530,7 @@ contains
 
     pure function get_pois3dd_workspace_indices(l, m, n) result (return_value)
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         integer (ip), intent (in)     :: l
         integer (ip), intent (in)     :: m
@@ -556,7 +556,7 @@ contains
     subroutine pos3d1(lp, l, mp, m, n, a, b, c, ldimf, mdimf, f, xrt, &
         yrt, t, d, wx, wy, c1, c2, bb)
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         integer (ip), intent (in)     :: lp
         integer (ip), intent (in)     :: l
@@ -579,7 +579,7 @@ contains
         real (wp),    intent (in out) :: wy(*)
         real (wp),    intent (in out) :: bb(*)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip)         :: lr, mr, nr, lrdel, i, mrdel, j, ifwrd, is, k
         real (wp)            :: scalx, dx, di, scaly, dy, dj
@@ -834,7 +834,7 @@ contains
 
     subroutine trid(mr, a, b, c, y, d)
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: mr
         real (wp),    intent (in)     :: a(mr)
@@ -843,7 +843,7 @@ contains
         real (wp),    intent (in out) :: y(mr)
         real (wp),    intent (in out) :: d(mr)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: m, mm1, i, iip
         real (wp)    :: z

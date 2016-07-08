@@ -43,10 +43,10 @@ program thstplr
         FishpackSolver
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     !-----------------------------------------------
-    ! Dictionary: local variables
+    ! Local variables
     !-----------------------------------------------
     type (FishpackSolver)    :: solver
     integer (ip)             :: idimf, m, mbdcnd, n, nbdcnd, i, j, ierror

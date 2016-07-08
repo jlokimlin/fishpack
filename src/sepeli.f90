@@ -516,7 +516,7 @@ module module_sepeli
         get_coefficients
 
     ! Explicit typing only!
-    implicit None
+    implicit none
 
     ! Everything is private unless stated otherwise
     private
@@ -530,7 +530,7 @@ contains
         beta, c, d, n, nbdcnd, bdc, gama, bdd, xnu, cofx, cofy, grhs, &
         usol, idmn, workspace, pertrb, ierror)
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         integer (ip),              intent (in)     :: intl
         integer (ip),              intent (in)     :: iorder
@@ -559,7 +559,7 @@ contains
         procedure (get_coefficients)               :: cofx
         procedure (get_coefficients)               :: cofy
         !--------------------------------------------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !--------------------------------------------------------------------------------
         integer (ip)        :: k, l, np, irwk, icwk
         integer (ip),  save :: sepeli_workspace_indices(12)
@@ -630,7 +630,7 @@ contains
 
         pure function get_sepeli_workspace_indices(irwk, l, k) result (return_value)
             !--------------------------------------------------------------------------------
-            ! Dictionary: calling arguments
+            ! Dummy arguments
             !--------------------------------------------------------------------------------
             integer (ip), intent (in) :: irwk
             integer (ip), intent (in) :: l
@@ -669,7 +669,7 @@ contains
             !     solution is generated in usol.
             !
             !--------------------------------------------------------------------------------
-            ! Dictionary: calling arguments
+            ! Dummy arguments
             !--------------------------------------------------------------------------------
             class (SepAux), intent (in out) :: sep_aux
             integer (ip),   intent (in)     :: intl
@@ -712,7 +712,7 @@ contains
             procedure (get_coefficients)    :: cofx
             procedure (get_coefficients)    :: cofy
             !--------------------------------------------------------------------------------
-            ! Dictionary: local variables
+            ! Local variables
             !--------------------------------------------------------------------------------
             integer (ip) :: i, j, i1, mp, np
             real (wp)    :: xi, ai, bi, ci, axi, bxi, cxi
@@ -1129,7 +1129,7 @@ contains
             !
             !
             !--------------------------------------------------------------------------------
-            ! Dictionary: calling arguments
+            ! Dummy arguments
             !--------------------------------------------------------------------------------
             integer (ip), intent (in)    :: intl
             integer (ip), intent (in)    :: iorder
@@ -1146,7 +1146,7 @@ contains
             procedure (get_coefficients) :: cofx
             procedure (get_coefficients) :: cofy
             !--------------------------------------------------------------------------------
-            ! Dictionary: calling arguments
+            ! Dummy arguments
             !--------------------------------------------------------------------------------
             integer (ip) :: i, j
             real (wp)    :: dlx, dly, xi, ai, bi, ci, yj, dj, ej, fj
@@ -1241,7 +1241,7 @@ contains
             !     must solve is a singular operator
             !
             !--------------------------------------------------------------------------------
-            ! Dictionary: calling arguments
+            ! Dummy arguments
             !--------------------------------------------------------------------------------
             class (SepAux), intent (in out) :: sep_aux
             integer (ip),   intent (in)     :: mbdcnd
@@ -1254,7 +1254,7 @@ contains
             procedure (get_coefficients)    :: cofx
             procedure (get_coefficients)    :: cofy
             !--------------------------------------------------------------------------------
-            ! Dictionary: local variables
+            ! Local variables
             !--------------------------------------------------------------------------------
             integer (ip) :: i, j
             real (wp)    :: xi, ai, bi, ci, yj, dj, ej, fj
@@ -1358,7 +1358,7 @@ contains
             !     hand side when calling blktri for a fourth order solution.
             !
             !--------------------------------------------------------------------------------
-            ! Dictionary: calling arguments
+            ! Dummy arguments
             !--------------------------------------------------------------------------------
             class (SepAux), intent (in out) :: sep_aux
             integer (ip),   intent (in)     :: idmn
@@ -1367,7 +1367,7 @@ contains
             procedure (get_coefficients)    :: cofx
             procedure (get_coefficients)    :: cofy
             !--------------------------------------------------------------------------------
-            ! Dictionary: local variables
+            ! Local variables
             !--------------------------------------------------------------------------------
             integer (ip) :: j, i
             real (wp)    :: yj, dj, ej, fj, xi, ai, bi, ci

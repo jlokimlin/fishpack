@@ -151,7 +151,7 @@ program tgenbun
         CenteredGrid
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     !--------------------------------------------------------------------------------
     ! Dictionary
@@ -282,7 +282,7 @@ contains
         ! User-supplied subroutine to assign coefficients
         !
         !--------------------------------------------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !--------------------------------------------------------------------------------
         class (TridiagonalData), intent (in out)  :: solver
         class (Grid),            intent (in out)  :: centered_grid

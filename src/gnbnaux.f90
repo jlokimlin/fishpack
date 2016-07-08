@@ -73,19 +73,19 @@ module module_gnbnaux
         PI
 
     ! Explicit typing only
-    implicit None
+    implicit none
 
     ! Everything is private unless stated otherwise
     private
     public :: GenbunAux
 
+
+
+    ! Declare derived data type
     type, public :: GenbunAux
-        !--------------------------------------------------
-        ! Class variables
-        !--------------------------------------------------
     contains
         !--------------------------------------------------
-        ! Class methods
+        ! Type-bound procedures
         !--------------------------------------------------
         procedure, nopass, public :: cosgen
         procedure, nopass, public :: merger
@@ -93,6 +93,16 @@ module module_gnbnaux
         procedure, nopass, public :: tri3
         !--------------------------------------------------
     end type GenbunAux
+
+
+    !---------------------------------------------------------------------------------
+    ! Dictionary: Variables confined to the module
+    !---------------------------------------------------------------------------------
+    real (wp), private :: ZERO = 0.0_wp
+    real (wp), private :: ONE = 1.0_wp
+    real (wp), private :: TWO = 2.0_wp
+    !---------------------------------------------------------------------------------
+
 
 
 contains
@@ -123,7 +133,7 @@ contains
         !
         !
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)  :: n
         integer (ip), intent (in)  :: ijump
@@ -131,44 +141,45 @@ contains
         real (wp),    intent (in)  :: fden
         real (wp),    intent (out) :: a(n)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: k3, k4, k, k1, k5, i, k2, np1
         real (wp)    :: pibyn, x, y
         !-----------------------------------------------
 
-        if (n /= 0) then
-            select case (ijump)
-                case (1)
-                    !
-                    !==> ijump == 1
-                    !
-                    np1 = n + 1
-                    y = PI/(real(n, kind=wp) + fden)
+        if (n == 0) return
 
-                    do i = 1, n
-                        x = real(np1 - i, kind=wp) - fnum
-                        a(i) = 2.0_wp * cos(x*y)
-                    end do
+        select case (ijump)
+            case (1)
+                !
+                !==> ijump == 1
+                !
+                np1 = n + 1
+                y = PI/(real(n, kind=wp) + fden)
 
-                case default
-                    !
-                    !==> ijump /= 1
-                    !
-                    k3 = n/ijump + 1
-                    k4 = k3 - 1
-                    pibyn = PI/(n + ijump)
-                    do k = 1, ijump
-                        k1 = (k - 1)*k3
-                        k5 = (k - 1)*k4
-                        do i = 1, k4
-                            x = k1 + i
-                            k2 = k5 + i
-                            a(k2) = -2.0_wp * cos(x*pibyn)
-                        end do
+                do i = 1, n
+                    x = real(np1 - i, kind=wp) - fnum
+                    a(i) = TWO * cos(x*y)
+                end do
+
+            case default
+                !
+                !==> ijump /= 1
+                !
+                k3 = n/ijump + 1
+                k4 = k3 - 1
+                pibyn = PI/(n + ijump)
+                do k = 1, ijump
+                    k1 = (k - 1)*k3
+                    k5 = (k - 1)*k4
+                    do i = 1, k4
+                        x = k1 + i
+                        k2 = k5 + i
+                        a(k2) = -TWO * cos(x*pibyn)
                     end do
-            end select
-        end if
+                end do
+        end select
+
 
     end subroutine cosgen
 
@@ -183,7 +194,7 @@ contains
         !     tridiagonal  ( . . . , a(i), b(i), c(i), . . . ).
         !
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: idegbr
         integer (ip), intent (in)     :: idegcr
@@ -196,7 +207,7 @@ contains
         real (wp),    intent (in out) :: d(m)
         real (wp),    intent (in out) :: w(m)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: mm1, ifb, ifc, l, lint, k, i, ip
         real (wp)    :: x, xx, z
@@ -219,20 +230,20 @@ contains
                 y = xx*y
             end if
 
-            z = 1.0_wp/(b(1)-x)
+            z = ONE/(b(1)-x)
             d(1) = c(1)*z
             y(1) = y(1)*z
 
             do i = 2, mm1
-                z = 1.0_wp/(b(i)-x-a(i)*d(i-1))
+                z = ONE/(b(i)-x-a(i)*d(i-1))
                 d(i) = c(i)*z
                 y(i) = (y(i)-a(i)*y(i-1))*z
             end do
 
             z = b(m) - x - a(m)*d(mm1)
 
-            if (z == 0.0_wp) then
-                y(m) = 0.0_wp
+            if (z == ZERO) then
+                y(m) = ZERO
             else
                 y(m) = (y(m)-a(m)*y(mm1))/z
             end if
@@ -263,7 +274,7 @@ contains
         !  tridiagonal (..., a(i), b(i), c(i), ...)
         !
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: m
         integer (ip), intent (in)     :: k(4)
@@ -279,7 +290,7 @@ contains
         real (wp),    intent (in out) :: w2(m)
         real (wp),    intent (in out) :: w3(m)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: mm1, k1, k2, k3, k4, if1, if2, if3, if4, k2k3k4, l1, l2
         integer (ip) :: l3, lint1, lint2, lint3, kint1, kint2, kint3, n, i, ipp
@@ -319,14 +330,14 @@ contains
                 if (n == l3) w3 = y3
             end if
 
-            z = 1.0_wp/(b(1)-x)
+            z = ONE/(b(1)-x)
             d(1) = c(1)*z
             y1(1) = y1(1)*z
             y2(1) = y2(1)*z
             y3(1) = y3(1)*z
 
             do i = 2, m
-                z = 1.0_wp/(b(i)-x-a(i)*d(i-1))
+                z = ONE/(b(i)-x-a(i)*d(i-1))
                 d(i) = c(i)*z
                 y1(i) = (y1(i)-a(i)*y1(i-1))*z
                 y2(i) = (y2(i)-a(i)*y2(i-1))*z
@@ -381,7 +392,7 @@ contains
         !
         !
         !-----------------------------------------------
-        ! Dictionary: calling arguments
+        ! Dummy arguments
         !-----------------------------------------------
         integer (ip), intent (in)     :: i1
         integer (ip), intent (in)     :: m1
@@ -390,7 +401,7 @@ contains
         integer (ip), intent (in)     :: i3
         real (wp),    intent (in out) :: tcos(*)
         !-----------------------------------------------
-        ! Dictionary: local variables
+        ! Local variables
         !-----------------------------------------------
         integer (ip) :: j11, j3, j1, j2, j, l, k, m
         real (wp)    :: x, y
@@ -408,21 +419,21 @@ contains
                     j11 = j1
                     j3 = max(m1, j11)
 
-                    do_block: block
+                    block_construct: block
                         do j1 = j11, j3
                             j = j + 1
                             l = j1 + i1
                             x = tcos(l)
                             l = j2 + i2
                             y = tcos(l)
-                            if (x - y > 0.0_wp) exit do_block
+                            if (x - y > ZERO) exit block_construct
                             tcos(j) = x
                         end do
 
                         if (j2 > m2) return
                         exit if_construct
 
-                    end block do_block
+                    end block block_construct
 
                     tcos(j) = y
                     j2 = j2 + 1
