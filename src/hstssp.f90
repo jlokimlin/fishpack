@@ -464,37 +464,18 @@ contains
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip)  :: irwk, icwk
-        type (Fish)   :: workspace
+        type (Fish) :: workspace
         !-----------------------------------------------
 
-        ! initialize error flag
-        ierror = 0
+        ! Check validity of input arguments
+        call check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, idimf, ierror)
 
-        ! Check input arguments
-        if (a < ZERO .or. b > PI) ierror = 1
-        if (a >= b) ierror = 2
-        if (mbdcnd <= 0 .or. mbdcnd > 9) ierror = 3
-        if (c >= d) ierror = 4
-        if (3 > n) ierror = 5
-        if (nbdcnd < 0 .or. nbdcnd >= 5) ierror = 6
-        if (a > ZERO .and. (mbdcnd==5.or.mbdcnd==6.or.mbdcnd==9))ierror=7
-        if (a == ZERO .and. (mbdcnd==3.or.mbdcnd==4.or.mbdcnd==8))ierror=8
-        if (b < PI .and. mbdcnd >= 7) ierror = 9
-        if (b == PI .and. (mbdcnd==2.or.mbdcnd==3.or.mbdcnd==6))ierror=10
-        if (mbdcnd >= 5 .and. (nbdcnd==1 .or. nbdcnd==2 .or. nbdcnd==4)) &
-            ierror = 11
-        if (idimf < m) ierror = 12
-        if (3 > m) ierror = 13
         if (ierror /= 0) return
 
         !
         !==> Allocate memory
         !
-        call workspace%get_genbun_workspace_dimensions(n, m, irwk)
-        irwk = irwk + 3 * m
-        icwk = 0
-        call workspace%create(irwk, icwk)
+        workspace = get_workspace(n, m)
 
         associate( rew => workspace%real_workspace )
             !
@@ -511,6 +492,108 @@ contains
         call workspace%destroy()
 
     end subroutine hstssp
+
+
+
+    pure function get_workspace(n, m) result (return_value)
+        !-----------------------------------------------
+        ! Dummy arguments
+        !-----------------------------------------------
+        integer (ip), intent (in)  :: n, m
+        type (Fish)                :: return_value
+        !-----------------------------------------------
+        ! Local variables
+        !-----------------------------------------------
+        integer (ip)  :: irwk, icwk
+        !-----------------------------------------------
+
+        ! Get workspace dimensions for genbun
+        call return_value%get_genbun_workspace_dimensions(n, m, irwk)
+
+        ! Adjust workspace for hstssp
+        irwk = irwk + 3 * m
+        icwk = 0
+
+        ! Allocate memory
+        call return_value%create(irwk, icwk)
+
+    end function get_workspace
+
+
+
+    pure subroutine check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, idimf, ierror)
+        !-----------------------------------------------
+        ! Dummy arguments
+        !-----------------------------------------------
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: mbdcnd
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: nbdcnd
+        integer (ip), intent (in)     :: idimf
+        integer (ip), intent (out)    :: ierror
+        real (wp),    intent (in)     :: a
+        real (wp),    intent (in)     :: b
+        real (wp),    intent (in)     :: c
+        real (wp),    intent (in)     :: d
+        !-----------------------------------------------
+
+        ! Check input arguments
+        if (a < ZERO .or. b > PI) then
+            ierror = 1
+            return
+        else if (a >= b) then
+            ierror = 2
+            return
+        else if (mbdcnd <= 0 .or. mbdcnd > 9) then
+            ierror = 3
+            return
+        else if (c >= d) then
+            ierror = 4
+            return
+        else if (3 > n) then
+            ierror = 5
+            return
+        else if (nbdcnd < 0 .or. nbdcnd >= 5) then
+            ierror = 6
+            return
+        else if (a > ZERO) then
+            select case (mbdcnd)
+                case (5:6,9)
+                    ierror = 7
+                    return
+            end select
+        else if (a == ZERO) then
+            select case (mbdcnd)
+                case (3:4, 8)
+                    ierror=8
+                    return
+            end select
+        else if (b < PI .and. mbdcnd >= 7) then
+            ierror = 9
+        else if (b == PI) then
+            select case (mbdcnd)
+                case (2:3, 6)
+                    ierror = 10
+                    return
+            end select
+        else if (mbdcnd >= 5) then
+            select case (nbdcnd)
+                case (1:2, 4)
+                    ierror = 11
+                    return
+            end select
+        else if (idimf < m) then
+            ierror = 12
+            return
+        else if (3 > m) then
+            ierror = 13
+            return
+        else
+            ierror = 0
+        end if
+
+    end subroutine check_input_arguments
+
 
 
     subroutine hstsspp(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &

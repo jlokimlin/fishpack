@@ -80,7 +80,7 @@ contains
 
 
 
-    subroutine create_fishpack_workspace(this, irwk, icwk, ierror)
+    pure subroutine create_fishpack_workspace(this, irwk, icwk, ierror)
         !
         ! Remark:
         !
@@ -93,7 +93,7 @@ contains
         class (FishpackWorkspace), intent (in out) :: this
         integer (ip),              intent (in)     :: irwk ! required real work space length
         integer (ip),              intent (in)     :: icwk ! required integer work space length
-        integer (ip), optional,    intent (in out) :: ierror
+        integer (ip), optional,    intent (out)    :: ierror
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
@@ -103,15 +103,14 @@ contains
         ! Ensure that object is usable
         call this%destroy()
 
-        !
-        !==> allocate irwk words of real workspace
-        !
-        if (irwk > 0) then
 
-            ! Allocate memory
-            allocate(this%real_workspace(irwk), stat=allocation_status)
+        if (irwk > 0) then
             !
-            ! Check if allocation was successful
+            !==> allocate irwk words of real workspace
+            !
+            allocate( this%real_workspace(irwk), stat=allocation_status )
+
+            ! Check if real allocation was successful
             if (allocation_status /= 0 ) then
                 error stop 'Object of class (FishpackWorkspace): '&
                     //'failed to allocate real_workspace array '&
@@ -119,15 +118,13 @@ contains
             end if
         end if
 
-        !
-        !==> allocate icwk words of complex workspace
-        !
         if (icwk > 0) then
+            !
+            !==> allocate icwk words of complex workspace
+            !
+            allocate( this%complex_workspace(icwk), stat=allocation_status )
 
-            ! Allocate memory
-            allocate(this%complex_workspace(icwk), stat=allocation_status)
-
-            ! Check if allocation was successful
+            ! Check if complex allocation was successful
             if (allocation_status /= 0 ) then
                 error stop 'Object of class (FishpackWorkspace): '&
                     //'failed to allocate complex_workspace array '&
@@ -148,7 +145,7 @@ contains
 
 
 
-    subroutine get_block_tridiagonal_workpace_dimensions(n, m, irwk, icwk)
+    pure subroutine get_block_tridiagonal_workpace_dimensions(n, m, irwk, icwk)
         !
         ! Purpose:
         !
@@ -190,7 +187,7 @@ contains
 
 
 
-    subroutine get_genbun_workspace_dimensions(n, m, irwk)
+    pure subroutine get_genbun_workspace_dimensions(n, m, irwk)
         !
         ! Purpose:
         !
@@ -226,7 +223,7 @@ contains
 
 
 
-    subroutine destroy_fishpack_workspace(this)
+    pure subroutine destroy_fishpack_workspace(this)
         !
         ! Purpose:
         !
@@ -258,7 +255,7 @@ contains
 
 
 
-    subroutine finalize_fishpack_workspace(this)
+    elemental subroutine finalize_fishpack_workspace(this)
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------

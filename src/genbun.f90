@@ -273,26 +273,19 @@ contains
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        integer (ip) :: irwk, icwk
         type (Fish)  :: workspace
         !--------------------------------------------------------------
 
         !
         !==> Allocate memory
-
-        ! Compute real workspace size for genbun algorithm
-        call workspace%get_genbun_workspace_dimensions(n, m, irwk)
-
-        ! No need to allocate complex arrays
-        icwk = 0
-
-        call workspace%create(irwk, icwk)
-
         !
-        !==> Solve system
-        !
+        workspace = get_workspace(n, m)
+
+
         associate( rew => workspace%real_workspace )
-
+            !
+            !==> Solve system
+            !
             call genbunn(nperod, n, mperod, m, a, b, c, idimy, y, ierror, rew)
 
         end associate
@@ -303,6 +296,7 @@ contains
         call workspace%destroy()
 
     end subroutine genbun
+
 
 
     subroutine genbunn(nperod, n, mperod, m, a, b, c, idimy, y, ierror, w)
@@ -340,7 +334,7 @@ contains
         !
         !==> Compute workspace indices
         !
-        workspace_indices = get_genbunn_workspace_indices(n, m)
+        workspace_indices = get_workspace_indices(n, m)
 
         associate( &
             mp1 => workspace_indices(1), &
@@ -548,6 +542,7 @@ contains
     end subroutine genbunn
 
 
+
     pure subroutine check_input_arguments(nperod, n, mperod, m, idimy, ierror, a, b, c)
         !--------------------------------------------------------------
         ! Dummy arguments
@@ -593,7 +588,33 @@ contains
     end subroutine check_input_arguments
 
 
-    pure function get_genbunn_workspace_indices(n, m) result (return_value)
+
+    pure function get_workspace(n, m) result (return_value)
+        !-----------------------------------------------
+        ! Dummy arguments
+        !-----------------------------------------------
+        integer (ip), intent (in)  :: n, m
+        type (Fish)                :: return_value
+        !-----------------------------------------------
+        ! Local variables
+        !-----------------------------------------------
+        integer (ip)  :: irwk, icwk
+        !-----------------------------------------------
+
+        ! Get workspace dimensions for genbun
+        call return_value%get_genbun_workspace_dimensions(n, m, irwk)
+
+        ! No need to allocate complex arrays
+        icwk = 0
+
+        ! Allocate memory
+        call return_value%create(irwk, icwk)
+
+    end function get_workspace
+
+
+
+    pure function get_workspace_indices(n, m) result (return_value)
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
@@ -615,7 +636,7 @@ contains
             i(12) = i(11) + 4 * n
         end associate
 
-    end function get_genbunn_workspace_indices
+    end function get_workspace_indices
 
 
 

@@ -358,13 +358,56 @@ contains
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        type (Fish)  :: workspace
-        integer (ip) :: irwk, icwk
+        type (Fish) :: workspace
         !-----------------------------------------------
 
         !
         !==> Check validity of input arguments
         !
+        call check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, idimf, ierror)
+
+        if (ierror /= 0) return
+
+        !
+        !==> Allocate memory
+        !
+        workspace = get_workspace(n, m)
+
+        associate( rew => workspace%real_workspace )
+            !
+            !==> Solve system
+            !
+            call hstcrtt(a, b, m, mbdcnd, bda, bdb, &
+                c, d, n, nbdcnd, bdc, bdd, &
+                elmbda, f, idimf, pertrb, ierror, rew)
+
+        end associate
+
+        !
+        !==> Release memory
+        !
+        call workspace%destroy()
+
+    end subroutine hstcrt
+
+
+
+    pure subroutine check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, idimf, ierror)
+        !-----------------------------------------------
+        ! Dummy arguments
+        !-----------------------------------------------
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: mbdcnd
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: nbdcnd
+        integer (ip), intent (in)     :: idimf
+        integer (ip), intent (out)    :: ierror
+        real (wp),    intent (in)     :: a
+        real (wp),    intent (in)     :: b
+        real (wp),    intent (in)     :: c
+        real (wp),    intent (in)     :: d
+        !-----------------------------------------------
+
         if ((a-b) >= ZERO) then
             ierror = 1
             return
@@ -390,34 +433,33 @@ contains
             ierror = 0
         end if
 
-        ! compute required real work space
-        call workspace%get_genbun_workspace_dimensions(n, m, irwk)
+    end subroutine check_input_arguments
 
-        ! Adjust workspace sizes for solver
+
+
+    pure function get_workspace(n, m) result (return_value)
+        !-----------------------------------------------
+        ! Dummy arguments
+        !-----------------------------------------------
+        integer (ip), intent (in)  :: n, m
+        type (Fish)                :: return_value
+        !-----------------------------------------------
+        ! Local variables
+        !-----------------------------------------------
+        integer (ip)  :: irwk, icwk
+        !-----------------------------------------------
+
+        ! Get workspace dimensions for genbun
+        call return_value%get_genbun_workspace_dimensions(n, m, irwk)
+
+        ! Adjust workspace for hstcrt
         irwk = irwk + 3 * m
         icwk = 0
 
-        !
-        !==> Allocate memory
-        !
-        call workspace%create(irwk, icwk, ierror)
+        ! Allocate memory
+        call return_value%create(irwk, icwk)
 
-        associate( rew => workspace%real_workspace )
-            !
-            !==> Solve system
-            !
-            call hstcrtt(a, b, m, mbdcnd, bda, bdb, &
-                c, d, n, nbdcnd, bdc, bdd, &
-                elmbda, f, idimf, pertrb, ierror, rew)
-
-        end associate
-
-        !
-        !==> Release memory
-        !
-        call workspace%destroy()
-
-    end subroutine hstcrt
+    end function get_workspace
 
 
 
@@ -443,7 +485,7 @@ contains
         real (wp),    intent (in)     :: bdc(:)
         real (wp),    intent (in)     :: bdd(:)
         real (wp),    intent (in out) :: f(:,:)
-        real (wp),    intent (in out) :: w(*)
+        real (wp),    intent (in out), contiguous :: w(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -552,18 +594,41 @@ contains
             end if
         end if
 
-        !
-        !==> Solve system
-        !
-        local_error_flag = 0
 
-        if (nperod /= 0) then
-            call poistgg(nperod, n, mperod, m, w(1), w(id2+1), w(id3+1), &
-                idimf, f, local_error_flag, w(id4+1))
-        else
-            call genbunn(nperod, n, mperod, m, w(1), w(id2+1), w(id3+1), &
-                idimf, f, local_error_flag, w(id4+1))
-        end if
+        associate( &
+            iw1 => 1, &
+            iw2 => id2 + 1, &
+            iw3 => id3 + 1, &
+            iw4 => id4 + 1 &
+            )
+            select case (nperod)
+                case (0)
+                    !
+                    !==> Solve system with call to genbunn
+                    !
+                    call genbunn(nperod, n, mperod, m, w(iw1:), w(iw2:), w(iw3:), &
+                        idimf, f, local_error_flag, w(iw4:))
+
+                    ! Check error flag
+                    if (local_error_flag /= 0) then
+                        error stop 'fishpack library: genbunn call failed in hstcrt'
+                    end if
+
+                case default
+                    !
+                    !==> Solve system with call to poistgg
+                    !
+                    call poistgg(nperod, n, mperod, m, w(iw1:), w(iw2:), w(iw3:), &
+                        idimf, f, local_error_flag, w(iw4:))
+
+                    ! Check error flag
+                    if (local_error_flag /= 0) then
+                        error stop 'fishpack library: poistgg call failed in hstcrt'
+                    end if
+
+            end select
+
+        end associate
 
     end subroutine hstcrtt
 
