@@ -47,8 +47,8 @@
 !                        for unknown x values, where i=1, 2, ..., l,
 !                        j=1, 2, ..., m, and k=1, 2, ..., n
 !
-!                        c1*(x(i-1, j, k) -2.0_wp *x(i, j, k) +x(i+1, j, k)) +
-!                        c2*(x(i, j-1, k) -2.0_wp *x(i, j, k) +x(i, j+1, k)) +
+!                        c1*(x(i-1, j, k) -TWO *x(i, j, k) +x(i+1, j, k)) +
+!                        c2*(x(i, j-1, k) -TWO *x(i, j, k) +x(i, j+1, k)) +
 !                        a(k)*x(i, j, k-1) +b(k)*x(i, j, k)+ c(k)*x(i, j, k+1)
 !                        = f(i, j, k)
 !
@@ -206,7 +206,7 @@
 !                        uniform random number generator was used to
 !                        create a solution array x for the system given
 !                        in the 'purpose' section with
-!                          a(k) = c(k) = -0.5_wp *b(k) = 1,  k=1, 2, ..., n
+!                          a(k) = c(k) = -HALF *b(k) = 1,  k=1, 2, ..., n
 !                        and, when nperod = 1
 !                          a(1) = c(n) = 0
 !                          a(n) = c(1) = 2.
@@ -256,6 +256,17 @@ module module_pois3d
     private
     public :: pois3d
     public :: pois3dd
+
+
+    !---------------------------------------------------------------
+    ! Dictionary: Variables confined to the module
+    !---------------------------------------------------------------
+    real (wp), private :: ZERO = 0.0_wp
+    real (wp), private :: HALF = 0.5_wp
+    real (wp), private :: ONE = 1.0_wp
+    real (wp), private :: TWO = 2.0_wp
+    real (wp), private :: FOUR = 4.0_wp
+    !---------------------------------------------------------------
 
 
 contains
@@ -337,7 +348,7 @@ contains
         real (wp),    intent (in out) :: b(n)
         real (wp),    intent (in out) :: c(n)
         real (wp),    intent (in out) :: f(ldimf, mdimf, *)
-        real (wp),    intent (in out) :: w(*)
+        real (wp), contiguous, intent (in out) :: w(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -392,14 +403,14 @@ contains
                             w(k+nh) = f(i, j, nh-k) + f(i, j, k+nh)
                         end do
 
-                        w(nh) = 2.0_wp*f(i, j, nh)
+                        w(nh) = TWO*f(i, j, nh)
 
                         select case (nodd)
                             case (1)
-                                f(i, j, :n) = w(:n)
+                                f(i, j,:n) = w(:n)
                             case (2)
-                                w(n) = 2.0_wp * f(i, j, n)
-                                f(i, j, :n) = w(:n)
+                                w(n) = TWO * f(i, j, n)
+                                f(i, j,:n) = w(:n)
                         end select
 
                     end do
@@ -412,38 +423,38 @@ contains
                 temp_save(5) = b(n)
                 temp_save(6) = a(n)
 
-                c(nhm1) = 0.0_wp
-                a(nh) = 0.0_wp
-                c(nh) = 2.0_wp*c(nh)
+                c(nhm1) = ZERO
+                a(nh) = ZERO
+                c(nh) = TWO*c(nh)
 
                 select case (nodd)
+                    case (2)
+                        a(n) = c(nh)
                     case default
                         b(nhm1) = b(nhm1) - a(nh-1)
                         b(n) = b(n) + a(n)
-                    case (2)
-                        a(n) = c(nh)
                 end select
 
             end if
 
             call pos3d1(lp, l, mp, m, n, a, b, c, ldimf, mdimf, f, &
-                w, w(iwyrt), w(iwt), w(iwd), w(iwx), w(iwy), c1, c2, w(iwbb))
+                w, w(iwyrt:), w(iwt:), w(iwd:), w(iwx:), w(iwy:), c1, c2, w(iwbb:))
 
             if (np == 1) then
 
                 do i = 1, l
                     do j = 1, m
                         w(nh-1:nh-nhm1:(-1))= &
-                            0.5_wp *(f(i, j, nh+1:nhm1+nh)+f(i, j, :nhm1))
+                            HALF *(f(i, j, nh+1:nhm1+nh)+f(i, j,:nhm1))
                         w(nh+1:nhm1+nh) = &
-                            0.5_wp *(f(i, j, nh+1:nhm1+nh)-f(i, j, :nhm1))
-                        w(nh) = 0.5_wp *f(i, j, nh)
+                            HALF *(f(i, j, nh+1:nhm1+nh)-f(i, j,:nhm1))
+                        w(nh) = HALF *f(i, j, nh)
                         select case (nodd)
                             case (1)
-                                f(i, j, :n) = w(:n)
+                                f(i, j,:n) = w(:n)
                             case (2)
-                                w(n) = 0.5_wp * f(i, j, n)
-                                f(i, j, :n) = w(:n)
+                                w(n) = HALF * f(i, j, n)
+                                f(i, j,:n) = w(:n)
                         end select
                     end do
                 end do
@@ -515,7 +526,7 @@ contains
                     ierror = 9
                     return
                 end if
-            else if (nperod == 1 .and. (a(1) /= 0.0_wp .or. c(n) /= 0.0_wp)) then
+            else if (nperod == 1 .and. (a(1) /= ZERO .or. c(n) /= ZERO)) then
                 ierror = 10
                 return
             else
@@ -529,14 +540,14 @@ contains
 
 
     pure function get_pois3dd_workspace_indices(l, m, n) result (return_value)
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
         ! Dummy arguments
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
         integer (ip), intent (in)     :: l
         integer (ip), intent (in)     :: m
         integer (ip), intent (in)     :: n
         integer (ip)                  :: return_value(6)
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
 
         associate( i => return_value )
 
@@ -555,9 +566,9 @@ contains
 
     subroutine pos3d1(lp, l, mp, m, n, a, b, c, ldimf, mdimf, f, xrt, &
         yrt, t, d, wx, wy, c1, c2, bb)
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
         ! Dummy arguments
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
         integer (ip), intent (in)     :: lp
         integer (ip), intent (in)     :: l
         integer (ip), intent (in)     :: mp
@@ -594,15 +605,15 @@ contains
         !
         lrdel = ((lp - 1)*(lp - 3)*(lp - 5))/3
         scalx = lr + lrdel
-        dx = PI/(2.0_wp*scalx)
+        dx = PI/(TWO*scalx)
 
         select case (lp)
             case (1)
-                xrt(1) = 0.0_wp
-                xrt(lr) = -4.0_wp*c1
+                xrt(1) = ZERO
+                xrt(lr) = -FOUR*c1
 
                 do i = 3, lr, 2
-                    xrt(i-1) = -4.0_wp*c1*sin(real(i - 1, kind=wp)*dx)**2
+                    xrt(i-1) = -FOUR*c1*sin(real(i - 1, kind=wp)*dx)**2
                     xrt(i) = xrt(i-1)
                 end do
 
@@ -612,19 +623,19 @@ contains
 
                 select case (lp)
                     case (2)
-                        di = 0.0_wp
+                        di = ZERO
                     case (3, 5)
-                        di = 0.5_wp
-                        scalx = 2.0_wp*scalx
+                        di = HALF
+                        scalx = TWO*scalx
                     case (4)
-                        di = 1.0_wp
+                        di = ONE
                 end select
 
                 do i = 1, lr
-                    xrt(i) = -4.0_wp*c1*sin((real(i, kind=wp) - di)*dx)**2
+                    xrt(i) = -FOUR*c1*sin((real(i, kind=wp) - di)*dx)**2
                 end do
 
-                scalx = 2.0_wp*scalx
+                scalx = TWO*scalx
 
                 if ( lp /= 1 ) then
                     select case (lp)
@@ -638,11 +649,11 @@ contains
                             call fft%cosqi(lr, wx)
                         case default
 
-                            xrt(1) = 0.0_wp
-                            xrt(lr) = -4.0_wp*c1
+                            xrt(1) = ZERO
+                            xrt(lr) = -FOUR*c1
 
                             do i = 3, lr, 2
-                                xrt(i-1) = -4.0_wp*c1*sin(real(i - 1)*dx)**2
+                                xrt(i-1) = -FOUR*c1*sin(real(i - 1)*dx)**2
                                 xrt(i) = xrt(i-1)
                             end do
 
@@ -653,15 +664,15 @@ contains
 
         mrdel = ((mp - 1)*(mp - 3)*(mp - 5))/3
         scaly = mr + mrdel
-        dy = PI/(2.0_wp*scaly)
+        dy = PI/(TWO*scaly)
 
         select case (mp)
             case (1)
-                yrt(1) = 0.0_wp
-                yrt(mr) = -4.0_wp*c2
+                yrt(1) = ZERO
+                yrt(mr) = -FOUR*c2
 
                 do j = 3, mr, 2
-                    yrt(j-1) = -4.0_wp*c2*sin(real(j - 1, kind=wp)*dy)**2
+                    yrt(j-1) = -FOUR*c2*sin(real(j - 1, kind=wp)*dy)**2
                     yrt(j) = yrt(j-1)
                 end do
 
@@ -671,27 +682,27 @@ contains
 
                 select case (mp)
                     case (2)
-                        dj = 0.0_wp
+                        dj = ZERO
                     case (3, 5)
-                        dj = 0.5_wp
-                        scaly = 2.0_wp*scaly
+                        dj = HALF
+                        scaly = TWO*scaly
                     case (4)
-                        dj = 1.0_wp
+                        dj = ONE
                 end select
 
                 do j = 1, mr
-                    yrt(j) = -4.0_wp*c2*sin((real(j, kind=wp) - dj)*dy)**2
+                    yrt(j) = -FOUR*c2*sin((real(j, kind=wp) - dj)*dy)**2
                 end do
 
-                scaly = 2.0_wp * scaly
+                scaly = TWO * scaly
 
                 select case (mp)
                     case (1)
-                        yrt(1) = 0.0_wp
-                        yrt(mr) = -4.0_wp*c2
+                        yrt(1) = ZERO
+                        yrt(mr) = -FOUR*c2
 
                         do j = 3, mr, 2
-                            yrt(j-1) = -4.0_wp*c2*sin(real(j - 1, kind=wp)*dy)**2
+                            yrt(j-1) = -FOUR*c2*sin(real(j - 1, kind=wp)*dy)**2
                             yrt(j) = yrt(j-1)
                         end do
 
@@ -760,7 +771,7 @@ contains
             end do
 
             if (ifwrd == 2) then
-                f(:lr, :mr, :nr) = f(:lr, :mr, :nr)/(scalx*scaly)
+                f(:lr,:mr,:nr) = f(:lr,:mr,:nr)/(scalx*scaly)
                 return
             end if
 
@@ -807,11 +818,11 @@ contains
                         do i = 1, lr
                             do j = 1, mr
                                 bb(:nr) = b(:nr) + xrt(i) + yrt(j)
-                                t(:nr) = f(i, j, :nr)
+                                t(:nr) = f(i, j,:nr)
 
                                 call trid(nr, a, bb, c, t, d)
 
-                                f(i, j, :nr) = t(:nr)
+                                f(i, j,:nr) = t(:nr)
                             end do
                         end do
                         ifwrd = 2
@@ -827,7 +838,7 @@ contains
             exit x_transform
         end do x_transform
 
-        f(:lr, :mr, :nr) = f(:lr, :mr, :nr)/(scalx*scaly)
+        f(:lr,:mr,:nr) = f(:lr,:mr,:nr)/(scalx*scaly)
 
     end subroutine pos3d1
 
@@ -851,20 +862,20 @@ contains
 
         m = mr
         mm1 = m - 1
-        z = 1.0_wp/b(1)
+        z = ONE/b(1)
         d(1) = c(1)*z
         y(1) = y(1)*z
 
         do i = 2, mm1
-            z = 1.0_wp/(b(i)-a(i)*d(i-1))
+            z = ONE/(b(i)-a(i)*d(i-1))
             d(i) = c(i)*z
             y(i) = (y(i)-a(i)*y(i-1))*z
         end do
 
         z = b(m) - a(m)*d(mm1)
 
-        if (z == 0.0_wp) then
-            y(m) = 0.0_wp
+        if (z == ZERO) then
+            y(m) = ZERO
         else
             y(m) = (y(m)-a(m)*y(mm1))/z
         end if

@@ -429,6 +429,15 @@ module module_hw3crt
     public :: hw3crt
 
 
+    !---------------------------------------------------------------
+    ! Dictionary: Variables confined to the module
+    !---------------------------------------------------------------
+    real (wp), private :: ZERO = 0.0_wp
+    real (wp), private :: ONE = 1.0_wp
+    real (wp), private :: TWO = 2.0_wp
+    !---------------------------------------------------------------
+
+
 contains
 
 
@@ -534,7 +543,7 @@ contains
         real (wp),    intent (in)      :: bdzs(ldimf, *)
         real (wp),    intent (in)      :: bdzf(ldimf, *)
         real (wp),    intent (in out)  :: f(ldimf, mdimf, *)
-        real (wp),    intent (in out)  :: w(*)
+        real (wp), contiguous, intent (in out) :: w(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -547,8 +556,8 @@ contains
         !-----------------------------------------------
 
         dy = (yf - ys)/m
-        twbydy = 2.0_wp/dy
-        c2 = 1.0_wp/dy**2
+        twbydy = TWO/dy
+        c2 = ONE/dy**2
         mstart = 1
         mstop = m
         mp1 = m + 1
@@ -570,9 +579,9 @@ contains
 
         munk = mstop - mstart + 1
         dz = (zf - zs)/n
-        twbydz = 2.0_wp/dz
+        twbydz = TWO/dz
         np = nbdcnd + 1
-        c3 = 1.0_wp/dz**2
+        c3 = ONE/dz**2
         np1 = n + 1
         nstart = 1
         nstop = n
@@ -590,8 +599,8 @@ contains
         nunk = nstop - nstart + 1
         lp1 = l + 1
         dx = (xf - xs)/l
-        c1 = 1.0_wp/dx**2
-        twbydx = 2.0_wp/dx
+        c1 = ONE/dx**2
+        twbydx = TWO/dx
         lp = lbdcnd + 1
         lstart = 1
         lstop = l
@@ -681,19 +690,19 @@ contains
         iww = iwc + nunk
         w(:nunk) = c3
         w(iwc:nunk-1+iwc) = c3
-        w(iwb:nunk-1+iwb) = (-2.0_wp*c3) + elmbda
+        w(iwb:nunk-1+iwb) = (-TWO*c3) + elmbda
 
         select case (np)
             case (3)
-                w(iwb-1) = 2.0_wp*c3
+                w(iwb-1) = TWO*c3
             case (4)
-                w(iwc) = 2.0_wp*c3
-                w(iwb-1) = 2.0_wp*c3
+                w(iwc) = TWO*c3
+                w(iwb-1) = TWO*c3
             case (5)
-                w(iwc) = 2.0_wp*c3
+                w(iwc) = TWO*c3
         end select
 
-        pertrb = 0.0_wp
+        pertrb = ZERO
         !
         !==> For singular problems adjust data to insure a solution will exist.
         !
@@ -704,8 +713,8 @@ contains
                     case (1, 4)
                         select case (np)
                             case (1, 4)
-                                if (elmbda >= 0.0_wp) then
-                                    if (elmbda /= 0.0_wp) then
+                                if (elmbda >= ZERO) then
+                                    if (elmbda /= ZERO) then
                                         ierror = 12
                                         return
                                     else
@@ -715,7 +724,7 @@ contains
                                         xlp = (2 + lp)/3
                                         ylp = (2 + mp)/3
                                         zlp = (2 + np)/3
-                                        s1 = 0.0_wp
+                                        s1 = ZERO
 
                                         do k = 2, nstpm1
                                             do j = 2, mstpm1
@@ -737,19 +746,19 @@ contains
                                             s = s + sum(f(2:lstpm1, j, 1)+f(2:lstpm1, j, nstop))
                                         end do
 
-                                        s2 = 0.0_wp
+                                        s2 = ZERO
                                         s2 = sum(f(2:lstpm1, 1, 1)+f(2:lstpm1, 1, nstop) &
                                             + f(2:lstpm1, mstop, 1)+f(2:lstpm1, mstop, nstop))
                                         s = s2/ylp + s
-                                        s2 = 0.0_wp
+                                        s2 = ZERO
                                         s2 = sum(f(1, 2:mstpm1, 1)+f(1, 2:mstpm1, nstop) &
                                             + f(lstop, 2:mstpm1, 1)+f(lstop, 2:mstpm1, nstop))
                                         s = s2/xlp + s
                                         pertrb = &
-                                            (s/zlp + s1)/((real(lunk + 1) - xlp) &
-                                            *(real(munk + 1) - ylp)*(real(nunk + 1) - zlp))
-                                        f(:lunk, :munk, :nunk) = &
-                                            f(:lunk, :munk, :nunk) - pertrb
+                                            (s/zlp + s1)/((real(lunk + 1, kind=wp) - xlp) &
+                                            *(real(munk + 1, kind=wp) - ylp)*(real(nunk + 1, kind=wp) - zlp))
+                                        f(:lunk,:munk,:nunk) = &
+                                            f(:lunk,:munk,:nunk) - pertrb
                                     end if
                                 end if
                         end select
@@ -761,14 +770,18 @@ contains
                 nperod = 0
             case default
                 nperod = 1
-                w(1) = 0.0_wp
-                w(iww-1) = 0.0_wp
+                w(1) = ZERO
+                w(iww-1) = ZERO
         end select
 
+        !
+        !==> Solve system
+        !
         call pois3dd(lbdcnd, lunk, c1, mbdcnd, munk, c2, nperod, nunk, w, &
-            w(iwb), w(iwc), ldimf, mdimf, f(lstart, mstart, nstart), &
-            local_error_flag, w(iww))
+            w(iwb:), w(iwc:), ldimf, mdimf, f(lstart, mstart, nstart), &
+            local_error_flag, w(iww:))
 
+        ! Check error flag
         if (local_error_flag /= 0) then
             error stop 'fishpack library: pois3dd call failed in hw3crtt'
         end if

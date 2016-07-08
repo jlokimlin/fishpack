@@ -53,9 +53,9 @@ module type_FishpackSolver
     ! Declare derived data type
     type, public :: FishpackSolver
     contains
-        !---------------------------------------------------------------------------------
+        !---------------------------------------------------------------
         ! Type-bound procedures
-        !---------------------------------------------------------------------------------
+        !---------------------------------------------------------------
         procedure, nopass, public :: blktri
         procedure, nopass, public :: cblktri
         procedure, nopass, public :: cmgnbn
@@ -75,7 +75,7 @@ module type_FishpackSolver
         procedure, nopass, public :: poistg
         procedure, nopass, public :: sepeli
         procedure, nopass, public :: sepx4
-        !---------------------------------------------------------------------------------
+        !---------------------------------------------------------------
     end type FishpackSolver
 
 

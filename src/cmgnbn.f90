@@ -46,7 +46,7 @@
 !                        it solves the complex linear system of equation
 !
 !                        a(i)*x(i-1, j) + b(i)*x(i, j) + c(i)*x(i+1, j)
-!                        + x(i, j-1) - 2.0_wp * x(i, j) + x(i, j+1) = y(i, j)
+!                        + x(i, j-1) - TWO * x(i, j) + x(i, j+1) = y(i, j)
 !
 !                        for i = 1, 2, ..., m  and  j = 1, 2, ..., n.
 !
@@ -174,7 +174,7 @@
 !                        to create a solution array x for the system
 !                        given in the 'purpose' description above
 !                        with
-!                          a(i) = c(i) = -0.5_wp * b(i) = 1, i=1, 2, ..., m
+!                          a(i) = c(i) = -HALF * b(i) = 1, i=1, 2, ..., m
 !
 !                        and, when mperod = 1
 !
@@ -235,6 +235,16 @@ module module_cmgnbn
     public :: cmgnbn
 
 
+    !---------------------------------------------------------------
+    ! Dictionary: Variables confined to the module
+    !---------------------------------------------------------------
+    real (wp), private :: ZERO = 0.0_wp
+    real (wp), private :: HALF = 0.5_wp
+    real (wp), private :: ONE = 1.0_wp
+    real (wp), private :: TWO = 2.0_wp
+    !---------------------------------------------------------------
+
+
 contains
 
 
@@ -278,13 +288,13 @@ contains
             ierror = 5
             return
         else if (mperod /= 1) then
-            if (any(abs(a(2:m)-c(1)) /= 0.0_wp) .or. &
-                any(abs(c(2:m)-c(1)) /= 0.0_wp) .or. &
-                any(abs(b(2:m)-b(1)) /= 0.0_wp)) then
+            if (any(abs(a(2:m)-c(1)) /= ZERO) .or. &
+                any(abs(c(2:m)-c(1)) /= ZERO) .or. &
+                any(abs(b(2:m)-b(1)) /= ZERO)) then
                 ierror = 6
                 return
             end if
-        else if (abs(a(1)) /= 0.0_wp .and. abs(c(m)) /= 0.0_wp) then
+        else if (abs(a(1)) /= ZERO .and. abs(c(m)) /= ZERO) then
             ierror = 7
             return
         else
@@ -295,7 +305,7 @@ contains
         !==> Allocate memory
         !
         irwk = 0
-        icwk = (10 + int(log(real(n, kind=wp))/log(2.0_wp), kind=ip))*m + 4*n
+        icwk = (10 + int(log(real(n, kind=wp))/log(TWO), kind=ip))*m + 4*n
         call workspace%create(irwk, icwk, ierror)
 
         ! Check if allocation was succesful
@@ -363,7 +373,7 @@ contains
                 k = iwbc + i - 1
                 w(k) = -c(i)
                 k = iwbb + i - 1
-                w(k) = 2.0_wp - b(i)
+                w(k) = TWO - b(i)
                 y(i, :n) = -y(i, :n)
             end do
 
@@ -418,7 +428,7 @@ contains
         case (1)
             goto 127
         case (2)
-            w(1) = cmplx(real(ipstor + iwp - 1, kind=wp), 0.0_wp, kind=wp)
+            w(1) = cmplx(real(ipstor + iwp - 1, kind=wp), ZERO, kind=wp)
             return
     end select
 114 continue
@@ -437,21 +447,21 @@ contains
             w(i) = y(mh-i, j) - y(i+mh, j)
             w(i+mh) = y(mh-i, j) + y(i+mh, j)
         end do
-        w(mh) = 2.0_wp * y(mh, j)
+        w(mh) = TWO * y(mh, j)
         select case (modd)
             case (1)
                 y(:m, j) = w(:m)
             case (2)
-                w(m) = 2.0_wp * y(m, j)
+                w(m) = TWO * y(m, j)
                 y(:m, j) = w(:m)
         end select
     end do
 
     k = iwbc + mhm1 - 1
     i = iwba + mhm1
-    w(k) = 0.0_wp
-    w(i) = 0.0_wp
-    w(k+1) = 2.0_wp * w(k+1)
+    w(k) = ZERO
+    w(i) = ZERO
+    w(k+1) = TWO * w(k+1)
 
     select case (modd)
         case default
@@ -493,19 +503,19 @@ contains
 127 continue
 
     do j = 1, n
-        w(mh-1:mh-mhm1:(-1)) = 0.5_wp * (y(mh+1:mhm1+mh, j)+y(:mhm1, j))
-        w(mh+1:mhm1+mh) = 0.5_wp * (y(mh+1:mhm1+mh, j)-y(:mhm1, j))
-        w(mh) = 0.5_wp * y(mh, j)
+        w(mh-1:mh-mhm1:(-1)) = HALF * (y(mh+1:mhm1+mh, j)+y(:mhm1, j))
+        w(mh+1:mhm1+mh) = HALF * (y(mh+1:mhm1+mh, j)-y(:mhm1, j))
+        w(mh) = HALF * y(mh, j)
         select case (modd)
             case (1)
                 y(:m, j) = w(:m)
             case (2)
-                w(m) = 0.5_wp * y(m, j)
+                w(m) = HALF * y(m, j)
                 y(:m, j) = w(:m)
         end select
     end do
 
-    w(1) = cmplx(real(ipstor + iwp - 1, kind=wp), 0.0_wp, kind=wp)
+    w(1) = cmplx(real(ipstor + iwp - 1, kind=wp), ZERO, kind=wp)
 
 end associate
 
@@ -572,7 +582,7 @@ subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
 
     m = mr
     n = nr
-    fi = 1.0_wp/istag
+    fi = ONE/istag
     iip = -m
     ipstor = 0
     jsh = 0
@@ -582,13 +592,13 @@ subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
             kr = 0
             irreg = 1
             if (n > 1) goto 106
-            tcos(1) = 0.0_wp
+            tcos(1) = ZERO
         case (2)
             kr = 1
             jstsav = 1
             irreg = 2
             if (n > 1) goto 106
-            tcos(1) = cmplx(-1.0_wp, 0.0_wp, kind=wp)
+            tcos(1) = cmplx(-ONE, ZERO, kind=wp)
     end select
 
     b(:m) = q(:m, 1)
@@ -597,7 +607,7 @@ subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
     goto 183
 106 continue
     lr = 0
-    p(1:m) = 0.0_wp
+    p(1:m) = ZERO
     nun = n
     jst = 1
     jsp = n
@@ -618,7 +628,7 @@ subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
             if (irreg /= 1) jsp = jsp - l
     end select
 
-    call cmpcsg(jst, 1, 0.5_wp, 0.0_wp, tcos)
+    call cmpcsg(jst, 1, HALF, ZERO, tcos)
 
     if (l <= jsp) then
         do j = l, jsp, l
@@ -629,7 +639,7 @@ subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
             jm3 = jm2 - jsh
             jp3 = jp2 + jsh
             if (jst == 1) then
-                b(:m) = 2.0_wp * q(:m, j)
+                b(:m) = TWO * q(:m, j)
                 q(:m, j) = q(:m, jm2) + q(:m, jp2)
             else
                 do i = 1, m
@@ -674,20 +684,20 @@ subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
     if (jst /= 1) goto 123
     do i = 1, m
         b(i) = q(i, j)
-        q(i, j) = 0.0_wp
+        q(i, j) = ZERO
     end do
     goto 130
 123 continue
     select case (noddpr)
         case default
-            b(:m) = 0.5_wp * (q(:m, jm2)-q(:m, jm1)-q(:m, jm3)) + p(iip+1:m+iip) &
+            b(:m) = HALF * (q(:m, jm2)-q(:m, jm1)-q(:m, jm3)) + p(iip+1:m+iip) &
                 + q(:m, j)
         case (2)
-            b(:m) = 0.5_wp * (q(:m, jm2)-q(:m, jm1)-q(:m, jm3)) + q(:m, jp2) - q( &
+            b(:m) = HALF * (q(:m, jm2)-q(:m, jm1)-q(:m, jm3)) + q(:m, jp2) - q( &
                 :m, jp1) + q(:m, j)
     end select
 
-    q(:m, j) = 0.5_wp * (q(:m, j)-q(:m, jm1)-q(:m, jp1))
+    q(:m, j) = HALF * (q(:m, j)-q(:m, jm1)-q(:m, jp1))
 130 continue
     call cmptrx(jst, 0, m, ba, bb, bc, b, tcos, d, w)
     iip = iip + m
@@ -700,10 +710,10 @@ subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
             tcos(krpi) = tcos(i)
         end do
     else
-        call cmpcsg (lr, jstsav, 0.0_wp, fi, tcos(jst+1))
+        call cmpcsg (lr, jstsav, ZERO, fi, tcos(jst+1))
         call cmpmrg (tcos, 0, jst, jst, lr, kr)
     end if
-    call cmpcsg (kr, jstsav, 0.0_wp, fi, tcos)
+    call cmpcsg (kr, jstsav, ZERO, fi, tcos)
     call cmptrx(kr, kr, m, ba, bb, bc, b, tcos, d, w)
     q(:m, j) = q(:m, jm2) + b(:m) + p(iip+1:m+iip)
     lr = kr
@@ -725,8 +735,8 @@ case (2)
             ideg = jst
             kr = l
         case (2)
-            call cmpcsg (kr, jstsav, 0.0_wp, fi, tcos)
-            call cmpcsg (lr, jstsav, 0.0_wp, fi, tcos(kr+1))
+            call cmpcsg (kr, jstsav, ZERO, fi, tcos)
+            call cmpcsg (lr, jstsav, ZERO, fi, tcos(kr+1))
             ideg = kr
             kr = kr + jst
     end select
@@ -736,10 +746,10 @@ case (2)
         b(:m) = q(:m, j)
         q(:m, j) = q(:m, jm2)
     else
-        b(:m) = q(:m, j) + 0.5_wp * (q(:m, jm2)-q(:m, jm1)-q(:m, jm3))
+        b(:m) = q(:m, j) + HALF * (q(:m, jm2)-q(:m, jm1)-q(:m, jm3))
         select case (irreg)
             case default
-                q(:m, j) = q(:m, jm2) + 0.5_wp * (q(:m, j)-q(:m, jm1)-q(:m, jp1))
+                q(:m, j) = q(:m, jm2) + HALF * (q(:m, j)-q(:m, jm1)-q(:m, jp1))
                 irreg = 2
             case (2)
                 select case (noddpr)
@@ -768,12 +778,12 @@ end select
     b(:m) = q(:m, j)
     select case (irreg)
         case default
-            call cmpcsg (jst, 1, 0.5_wp, 0.0_wp, tcos)
+            call cmpcsg (jst, 1, HALF, ZERO, tcos)
             ideg = jst
         case (2)
             kr = lr + jst
-            call cmpcsg (kr, jstsav, 0.0_wp, fi, tcos)
-            call cmpcsg (lr, jstsav, 0.0_wp, fi, tcos(kr+1))
+            call cmpcsg (kr, jstsav, ZERO, fi, tcos)
+            call cmpcsg (lr, jstsav, ZERO, fi, tcos(kr+1))
             ideg = kr
     end select
 
@@ -782,7 +792,7 @@ end select
     jp1 = j + jsh
     select case (irreg)
         case default
-            q(:m, j) = 0.5_wp * (q(:m, j)-q(:m, jm1)-q(:m, jp1)) + b(:m)
+            q(:m, j) = HALF * (q(:m, j)-q(:m, jm1)-q(:m, jp1)) + b(:m)
         case (2)
             select case (noddpr)
                 case default
@@ -818,15 +828,15 @@ end select
         b(:m) = q(:m, j) + q(:m, jm2) + q(:m, jp2)
     end if
 170 continue
-    call cmpcsg (jst, 1, 0.5_wp, 0.0_wp, tcos)
+    call cmpcsg (jst, 1, HALF, ZERO, tcos)
     ideg = jst
     jdeg = 0
     goto 172
 171 continue
     if (j + l > n) lr = lr - jst
     kr = jst + lr
-    call cmpcsg (kr, jstsav, 0.0_wp, fi, tcos)
-    call cmpcsg (lr, jstsav, 0.0_wp, fi, tcos(kr+1))
+    call cmpcsg (kr, jstsav, ZERO, fi, tcos)
+    call cmpcsg (lr, jstsav, ZERO, fi, tcos(kr+1))
     ideg = kr
     jdeg = lr
 172 continue
@@ -836,7 +846,7 @@ end select
     else
         if (jp2 > n) goto 177
 175 continue
-    q(:m, j) = 0.5_wp * (q(:m, j)-q(:m, jm1)-q(:m, jp1)) + b(:m)
+    q(:m, j) = HALF * (q(:m, j)-q(:m, jm1)-q(:m, jp1)) + b(:m)
     cycle
 177 continue
     select case (irreg)
@@ -857,7 +867,7 @@ end do
 l = l/2
 goto 164
 183 continue
-    w(1) = cmplx(real(ipstor, kind=wp), 0.0_wp, kind=wp)
+    w(1) = cmplx(real(ipstor, kind=wp), ZERO, kind=wp)
 
 end subroutine cmposd
 
@@ -917,8 +927,8 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
         )
 
         fistag = 3 - istag
-        fnum = 1.0_wp/istag
-        fden = 0.5_wp * real(istag - 1, kind=wp)
+        fnum = ONE/istag
+        fden = HALF * real(istag - 1, kind=wp)
         mr = m
         iip = -mr
         ipstor = 0
@@ -935,7 +945,7 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
                 goto 103
         end select
 101 continue
-    q(:mr, n) = 0.5_wp * q(:mr, n)
+    q(:mr, n) = HALF * q(:mr, n)
     select case (mixbnd)
         case (1)
             goto 103
@@ -958,7 +968,7 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
 
     jstop = nlast - jr
     if (nrod == 0) jstop = jstop - i2r
-    call cmpcsg (i2r, 1, 0.5_wp, 0.0_wp, tcos)
+    call cmpcsg (i2r, 1, HALF, ZERO, tcos)
     i2rby2 = i2r/2
     if (jstop < jstart) then
         j = jr
@@ -977,7 +987,7 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
             end if
             if (i2r == 1) then
                 if (j == 1) jm2 = jp2
-                b(:mr) = 2.0_wp * q(:mr, j)
+                b(:mr) = TWO * q(:mr, j)
                 q(:mr, j) = q(:mr, jm2) + q(:mr, jp2)
             else
                 do i = 1, mr
@@ -1009,7 +1019,7 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
             b(:mr) = fistag*q(:mr, j)
             q(:mr, j) = q(:mr, jm2)
         else
-            b(:mr) = q(:mr, j) + 0.5_wp * (q(:mr, jm2)-q(:mr, jm1)-q(:mr, jm3))
+            b(:mr) = q(:mr, j) + HALF * (q(:mr, jm2)-q(:mr, jm1)-q(:mr, jm3))
             if (nrodpr == 0) then
                 q(:mr, j) = q(:mr, jm2) + p(iip+1:mr+iip)
                 iip = iip - mr
@@ -1017,12 +1027,12 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
                 q(:mr, j) = q(:mr, j) - q(:mr, jm1) + q(:mr, jm2)
             end if
             if (lr /= 0) then
-                call cmpcsg (lr, 1, 0.5_wp, fden, tcos(kr+1))
+                call cmpcsg (lr, 1, HALF, fden, tcos(kr+1))
             else
                 b(:mr) = fistag*b(:mr)
             end if
         end if
-        call cmpcsg (kr, 1, 0.5_wp, fden, tcos)
+        call cmpcsg (kr, 1, HALF, fden, tcos)
         call cmptrx(kr, lr, mr, a, bb, c, b, tcos, d, w)
         q(:mr, j) = q(:mr, j) + b(:mr)
         kr = kr + i2r
@@ -1038,18 +1048,18 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
                 case default
                     p(:mr) = b(:mr)
                     b(:mr) = b(:mr) + q(:mr, n)
-                    tcos(1) = cmplx(1.0_wp, 0.0_wp, kind=wp)
-                    tcos(2) = 0.0_wp
+                    tcos(1) = cmplx(ONE, ZERO, kind=wp)
+                    tcos(2) = ZERO
                     call cmptrx(1, 1, mr, a, bb, c, b, tcos, d, w)
                     q(:mr, j) = q(:mr, jm2) + p(:mr) + b(:mr)
                     goto 150
                 case (1)
                     p(:mr) = b(:mr)
-                    q(:mr, j) = q(:mr, jm2) + 2.0_wp * q(:mr, jp2) + 3.0_wp*b(:mr)
+                    q(:mr, j) = q(:mr, jm2) + TWO * q(:mr, jp2) + 3.0_wp*b(:mr)
                     goto 150
             end select
         end if
-        b(:mr) = q(:mr, j) + 0.5_wp * (q(:mr, jm2)-q(:mr, jm1)-q(:mr, jm3))
+        b(:mr) = q(:mr, j) + HALF * (q(:mr, jm2)-q(:mr, jm1)-q(:mr, jm3))
         if (nrodpr == 0) then
             b(:mr) = b(:mr) + p(iip+1:mr+iip)
         else
@@ -1058,10 +1068,10 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
         call cmptrx(i2r, 0, mr, a, bb, c, b, tcos, d, w)
         iip = iip + mr
         ipstor = max(ipstor, iip + mr)
-        p(iip+1:mr+iip) = b(:mr) + 0.5_wp * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
+        p(iip+1:mr+iip) = b(:mr) + HALF * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
         b(:mr) = p(iip+1:mr+iip) + q(:mr, jp2)
         if (lr /= 0) then
-            call cmpcsg (lr, 1, 0.5_wp, fden, tcos(i2r+1))
+            call cmpcsg (lr, 1, HALF, fden, tcos(i2r+1))
             call cmpmrg (tcos, 0, i2r, i2r, lr, kr)
         else
             do i = 1, i2r
@@ -1069,7 +1079,7 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
                 tcos(ii) = tcos(i)
             end do
         end if
-        call cmpcsg (kr, 1, 0.5_wp, fden, tcos)
+        call cmpcsg (kr, 1, HALF, fden, tcos)
         if (lr == 0) then
             select case (istag)
                 case (1)
@@ -1120,18 +1130,18 @@ goto 104
             end select
 156     continue
         b(:mr) = q(:mr, 2)
-        tcos(1) = 0.0_wp
+        tcos(1) = ZERO
         call cmptrx(1, 0, mr, a, bb, c, b, tcos, d, w)
         q(:mr, 2) = b(:mr)
-        b(:mr) = 4.0_wp*b(:mr) + q(:mr, 1) + 2.0_wp * q(:mr, 3)
-        tcos(1) = cmplx(-2.0_wp, 0.0_wp, kind=wp)
-        tcos(2) = cmplx(2.0_wp, 0.0_wp, kind=wp)
+        b(:mr) = 4.0_wp*b(:mr) + q(:mr, 1) + TWO * q(:mr, 3)
+        tcos(1) = cmplx(-TWO, ZERO, kind=wp)
+        tcos(2) = cmplx(TWO, ZERO, kind=wp)
         i1 = 2
         i2 = 0
         call cmptrx(i1, i2, mr, a, bb, c, b, tcos, d, w)
         q(:mr, 2) = q(:mr, 2) + b(:mr)
-        b(:mr) = q(:mr, 1) + 2.0_wp * q(:mr, 2)
-        tcos(1) = 0.0_wp
+        b(:mr) = q(:mr, 1) + TWO * q(:mr, 2)
+        tcos(1) = ZERO
         call cmptrx(1, 0, mr, a, bb, c, b, tcos, d, w)
         q(:mr, 1) = b(:mr)
         jr = 1
@@ -1148,28 +1158,28 @@ goto 104
             goto 170
     end select
 162 continue
-    b(:mr) = q(:mr, j) + 0.5_wp * q(:mr, 1) - q(:mr, jm1) + q(:mr, nlast) - &
+    b(:mr) = q(:mr, j) + HALF * q(:mr, 1) - q(:mr, jm1) + q(:mr, nlast) - &
         q(:mr, jm2)
-    call cmpcsg (jr, 1, 0.5_wp, 0.0_wp, tcos)
+    call cmpcsg (jr, 1, HALF, ZERO, tcos)
     call cmptrx(jr, 0, mr, a, bb, c, b, tcos, d, w)
-    q(:mr, j) = 0.5_wp * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1)) + b(:mr)
-    b(:mr) = q(:mr, 1) + 2.0_wp * q(:mr, nlast) + 4.0_wp*q(:mr, j)
+    q(:mr, j) = HALF * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1)) + b(:mr)
+    b(:mr) = q(:mr, 1) + TWO * q(:mr, nlast) + 4.0_wp*q(:mr, j)
     jr2 = 2*jr
-    call cmpcsg (jr, 1, 0.0_wp, 0.0_wp, tcos)
+    call cmpcsg (jr, 1, ZERO, ZERO, tcos)
     tcos(jr+1:jr*2) = -tcos(jr:1:(-1))
     call cmptrx(jr2, 0, mr, a, bb, c, b, tcos, d, w)
     q(:mr, j) = q(:mr, j) + b(:mr)
-    b(:mr) = q(:mr, 1) + 2.0_wp * q(:mr, j)
-    call cmpcsg (jr, 1, 0.5_wp, 0.0_wp, tcos)
+    b(:mr) = q(:mr, 1) + TWO * q(:mr, j)
+    call cmpcsg (jr, 1, HALF, ZERO, tcos)
     call cmptrx(jr, 0, mr, a, bb, c, b, tcos, d, w)
-    q(:mr, 1) = 0.5_wp * q(:mr, 1) - q(:mr, jm1) + b(:mr)
+    q(:mr, 1) = HALF * q(:mr, 1) - q(:mr, jm1) + b(:mr)
     goto 194
 !
 !     case of general n with nr = 3 .
 !
 168 continue
     b(:mr) = q(:mr, 2)
-    q(:mr, 2) = 0.0_wp
+    q(:mr, 2) = ZERO
     b2(:mr) = q(:mr, 3)
     b3(:mr) = q(:mr, 1)
     jr = 1
@@ -1177,52 +1187,52 @@ goto 104
     j = 2
     goto 177
 170 continue
-    b(:mr) = 0.5_wp * q(:mr, 1) - q(:mr, jm1) + q(:mr, j)
+    b(:mr) = HALF * q(:mr, 1) - q(:mr, jm1) + q(:mr, j)
     if (nrod == 0) then
         b(:mr) = b(:mr) + p(iip+1:mr+iip)
     else
         b(:mr) = b(:mr) + q(:mr, nlast) - q(:mr, jm2)
     end if
     do i = 1, mr
-        t = 0.5_wp * (q(i, j)-q(i, jm1)-q(i, jp1))
+        t = HALF * (q(i, j)-q(i, jm1)-q(i, jp1))
         q(i, j) = t
         b2(i) = q(i, nlast) + t
-        b3(i) = q(i, 1) + 2.0_wp * t
+        b3(i) = q(i, 1) + TWO * t
     end do
 177 continue
     k1 = kr + 2*jr - 1
     k2 = kr + jr
-    tcos(k1+1) = cmplx(-2.0_wp, 0.0_wp, kind=wp)
+    tcos(k1+1) = cmplx(-TWO, ZERO, kind=wp)
     k4 = k1 + 3 - istag
-    call cmpcsg (k2 + istag - 2, 1, 0.0_wp, fnum, tcos(k4))
+    call cmpcsg (k2 + istag - 2, 1, ZERO, fnum, tcos(k4))
     k4 = k1 + k2 + 1
-    call cmpcsg (jr - 1, 1, 0.0_wp, 1.0_wp, tcos(k4))
+    call cmpcsg (jr - 1, 1, ZERO, ONE, tcos(k4))
     call cmpmrg (tcos, k1, k2, k1 + k2, jr - 1, 0)
     k3 = k1 + k2 + lr
-    call cmpcsg (jr, 1, 0.5_wp, 0.0_wp, tcos(k3+1))
+    call cmpcsg (jr, 1, HALF, ZERO, tcos(k3+1))
     k4 = k3 + jr + 1
-    call cmpcsg (kr, 1, 0.5_wp, fden, tcos(k4))
+    call cmpcsg (kr, 1, HALF, fden, tcos(k4))
     call cmpmrg (tcos, k3, jr, k3 + jr, kr, k1)
     if (lr /= 0) then
-        call cmpcsg (lr, 1, 0.5_wp, fden, tcos(k4))
+        call cmpcsg (lr, 1, HALF, fden, tcos(k4))
         call cmpmrg (tcos, k3, jr, k3 + jr, lr, k3 - lr)
-        call cmpcsg (kr, 1, 0.5_wp, fden, tcos(k4))
+        call cmpcsg (kr, 1, HALF, fden, tcos(k4))
     end if
     k3 = kr
     k4 = kr
     call cmptr3 (mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
     b(:mr) = b(:mr) + b2(:mr) + b3(:mr)
-    tcos(1) = cmplx(2.0_wp, 0.0_wp, kind=wp)
+    tcos(1) = cmplx(TWO, ZERO, kind=wp)
     call cmptrx(1, 0, mr, a, bb, c, b, tcos, d, w)
     q(:mr, j) = q(:mr, j) + b(:mr)
-    b(:mr) = q(:mr, 1) + 2.0_wp * q(:mr, j)
-    call cmpcsg (jr, 1, 0.5_wp, 0.0_wp, tcos)
+    b(:mr) = q(:mr, 1) + TWO * q(:mr, j)
+    call cmpcsg (jr, 1, HALF, ZERO, tcos)
     call cmptrx(jr, 0, mr, a, bb, c, b, tcos, d, w)
     if (jr == 1) then
         q(:mr, 1) = b(:mr)
         goto 194
     end if
-    q(:mr, 1) = 0.5_wp * q(:mr, 1) - q(:mr, jm1) + b(:mr)
+    q(:mr, 1) = HALF * q(:mr, 1) - q(:mr, jm1) + b(:mr)
     goto 194
 end if
 if (n == 2) then
@@ -1230,38 +1240,38 @@ if (n == 2) then
     !     case  n = 2
     !
     b(:mr) = q(:mr, 1)
-    tcos(1) = 0.0_wp
+    tcos(1) = ZERO
     call cmptrx(1, 0, mr, a, bb, c, b, tcos, d, w)
     q(:mr, 1) = b(:mr)
-    b(:mr) = 2.0_wp * (q(:mr, 2)+b(:mr))*fistag
-    tcos(1) = cmplx((-fistag), 0.0_wp, kind=wp)
-    tcos(2) = cmplx(2.0_wp, 0.0_wp, kind=wp)
+    b(:mr) = TWO * (q(:mr, 2)+b(:mr))*fistag
+    tcos(1) = cmplx((-fistag), ZERO, kind=wp)
+    tcos(2) = cmplx(TWO, ZERO, kind=wp)
     call cmptrx(2, 0, mr, a, bb, c, b, tcos, d, w)
     q(:mr, 1) = q(:mr, 1) + b(:mr)
     jr = 1
     i2r = 0
     goto 194
 end if
-b3(:mr) = 0.0_wp
-b(:mr) = q(:mr, 1) + 2.0_wp * p(iip+1:mr+iip)
-q(:mr, 1) = 0.5_wp * q(:mr, 1) - q(:mr, jm1)
-b2(:mr) = 2.0_wp * (q(:mr, 1)+q(:mr, nlast))
+b3(:mr) = ZERO
+b(:mr) = q(:mr, 1) + TWO * p(iip+1:mr+iip)
+q(:mr, 1) = HALF * q(:mr, 1) - q(:mr, jm1)
+b2(:mr) = TWO * (q(:mr, 1)+q(:mr, nlast))
 k1 = kr + jr - 1
-tcos(k1+1) = cmplx(-2.0_wp, 0.0_wp, kind=wp)
+tcos(k1+1) = cmplx(-TWO, ZERO, kind=wp)
 k4 = k1 + 3 - istag
-call cmpcsg (kr + istag - 2, 1, 0.0_wp, fnum, tcos(k4))
+call cmpcsg (kr + istag - 2, 1, ZERO, fnum, tcos(k4))
 k4 = k1 + kr + 1
-call cmpcsg (jr - 1, 1, 0.0_wp, 1.0_wp, tcos(k4))
+call cmpcsg (jr - 1, 1, ZERO, ONE, tcos(k4))
 call cmpmrg (tcos, k1, kr, k1 + kr, jr - 1, 0)
-call cmpcsg (kr, 1, 0.5_wp, fden, tcos(k1+1))
+call cmpcsg (kr, 1, HALF, fden, tcos(k1+1))
 k2 = kr
 k4 = k1 + k2 + 1
-call cmpcsg (lr, 1, 0.5_wp, fden, tcos(k4))
+call cmpcsg (lr, 1, HALF, fden, tcos(k4))
 k3 = lr
 k4 = 0
 call cmptr3 (mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
 b(:mr) = b(:mr) + b2(:mr)
-tcos(1) = cmplx(2.0_wp, 0.0_wp, kind=wp)
+tcos(1) = cmplx(TWO, ZERO, kind=wp)
 call cmptrx(1, 0, mr, a, bb, c, b, tcos, d, w)
 q(:mr, 1) = q(:mr, 1) + b(:mr)
 goto 194
@@ -1274,7 +1284,7 @@ goto 194
 196 continue
     jm2 = nlast - i2r
     if (jr == 1) then
-        q(:mr, nlast) = 0.0_wp
+        q(:mr, nlast) = ZERO
     else
         if (nrod == 0) then
             q(:mr, nlast) = p(iip+1:mr+iip)
@@ -1283,8 +1293,8 @@ goto 194
             q(:mr, nlast) = q(:mr, nlast) - q(:mr, jm2)
         end if
     end if
-    call cmpcsg (kr, 1, 0.5_wp, fden, tcos)
-    call cmpcsg (lr, 1, 0.5_wp, fden, tcos(kr+1))
+    call cmpcsg (kr, 1, HALF, fden, tcos)
+    call cmpcsg (lr, 1, HALF, fden, tcos(kr+1))
     if (lr == 0) then
         b(:mr) = fistag*b(:mr)
     end if
@@ -1312,7 +1322,7 @@ goto 194
         jstop = nlast - jr
     end if
     lr = kr - jr
-    call cmpcsg (jr, 1, 0.5_wp, 0.0_wp, tcos)
+    call cmpcsg (jr, 1, HALF, ZERO, tcos)
     do j = jstart, jstop, jstep
         jm2 = j - jr
         jp2 = j + jr
@@ -1322,11 +1332,11 @@ goto 194
             b(:mr) = q(:mr, j) + q(:mr, jm2) + q(:mr, jp2)
         end if
         if (jr == 1) then
-            q(:mr, j) = 0.0_wp
+            q(:mr, j) = ZERO
         else
             jm1 = j - i2r
             jp1 = j + i2r
-            q(:mr, j) = 0.5_wp * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
+            q(:mr, j) = HALF * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
         end if
         call cmptrx(jr, 0, mr, a, bb, c, b, tcos, d, w)
         q(:mr, j) = q(:mr, j) + b(:mr)
@@ -1336,7 +1346,7 @@ goto 194
     if (nlastp /= nlast) goto 194
     goto 206
 222 continue
-    w(1) = cmplx(real(ipstor, kind=wp), 0.0_wp, kind=wp)
+    w(1) = cmplx(real(ipstor, kind=wp), ZERO, kind=wp)
 
 end associate
 
@@ -1396,8 +1406,8 @@ subroutine cmposp(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
             end do
         end do
 
-        q(:mr, nr) = 2.0_wp * q(:mr, nr)
-        q(:mr, n) = 2.0_wp * q(:mr, n)
+        q(:mr, nr) = TWO * q(:mr, nr)
+        q(:mr, n) = TWO * q(:mr, n)
 
         call cmposd (mr, nrm1, 1, a, bb, c, q, idimq, b, w, d, tcos, p)
 
@@ -1412,15 +1422,15 @@ subroutine cmposp(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
             nrmj = nr - j
             nrpj = nr + j
             do i = 1, mr
-                s = 0.5_wp * (q(i, nrpj)+q(i, nrmj))
-                t = 0.5_wp * (q(i, nrpj)-q(i, nrmj))
+                s = HALF * (q(i, nrpj)+q(i, nrmj))
+                t = HALF * (q(i, nrpj)-q(i, nrmj))
                 q(i, nrmj) = s
                 q(i, nrpj) = t
             end do
         end do
 
-        q(:mr, nr) = 0.5_wp * q(:mr, nr)
-        q(:mr, n) = 0.5_wp * q(:mr, n)
+        q(:mr, nr) = HALF * q(:mr, nr)
+        q(:mr, n) = HALF * q(:mr, n)
 
     else
 
@@ -1434,7 +1444,7 @@ subroutine cmposp(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
             end do
         end do
 
-        q(:mr, nr) = 2.0_wp * q(:mr, nr)
+        q(:mr, nr) = TWO * q(:mr, nr)
         lh = nrm1/2
 
         do j = 1, lh
@@ -1458,14 +1468,14 @@ subroutine cmposp(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
         do j = 1, nrm1
             nrpj = nr + j
             do i = 1, mr
-                s = 0.5_wp * (q(i, nrpj)+q(i, j))
-                t = 0.5_wp * (q(i, nrpj)-q(i, j))
+                s = HALF * (q(i, nrpj)+q(i, j))
+                t = HALF * (q(i, nrpj)-q(i, j))
                 q(i, nrpj) = t
                 q(i, j) = s
             end do
         end do
 
-        q(:mr, nr) = 0.5_wp * q(:mr, nr)
+        q(:mr, nr) = HALF * q(:mr, nr)
 
         do j = 1, lh
             nrmj = nr - j
@@ -1477,7 +1487,7 @@ subroutine cmposp(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
         end do
     end if
 
-    w(1) = cmplx(ipstor, 0.0_wp, kind=wp)
+    w(1) = cmplx(ipstor, ZERO, kind=wp)
 
 end subroutine cmposp
 
@@ -1532,7 +1542,7 @@ pure subroutine cmpcsg(n, ijump, fnum, fden, a)
                 do i = 1, k4
                     x = k1 + i
                     k2 = k5 + i
-                    a(k2) = cmplx((-2.0_wp * cos(x*pibyn)), 0.0_wp, kind=wp)
+                    a(k2) = cmplx((-TWO * cos(x*pibyn)), ZERO, kind=wp)
                 end do
             end do
         else
@@ -1540,7 +1550,7 @@ pure subroutine cmpcsg(n, ijump, fnum, fden, a)
             y = PI/(real(n, kind=wp) + fden)
             do i = 1, n
                 x = real(np1 - i, kind=wp) - fnum
-                a(i) = cmplx(2.0_wp * cos(x*y), 0.0_wp, kind=wp)
+                a(i) = cmplx(TWO * cos(x*y), ZERO, kind=wp)
             end do
         end if
     end if
@@ -1590,7 +1600,7 @@ subroutine cmpmrg(tcos, i1, m1, i2, m2, i3)
                         x = tcos(l)
                         l = j2 + i2
                         y = tcos(l)
-                        if (real(x - y, kind=wp) > 0.0_wp) exit block_construct
+                        if (real(x - y, kind=wp) > ZERO) exit block_construct
                         tcos(j) = x
                     end do
                     if (j2 > m2) return
@@ -1665,20 +1675,20 @@ subroutine cmptrx(idegbr, idegcr, m, a, b, c, y, tcos, d, w)
             y = xx*y
         end if
 
-        z = 1.0_wp/(b(1)-x)
+        z = ONE/(b(1)-x)
         d(1) = c(1)*z
         y(1) = y(1)*z
 
         do i = 2, mm1
-            z = 1.0_wp/(b(i)-x-a(i)*d(i-1))
+            z = ONE/(b(i)-x-a(i)*d(i-1))
             d(i) = c(i)*z
             y(i) = (y(i)-a(i)*y(i-1))*z
         end do
 
         z = b(m) - x - a(m)*d(mm1)
 
-        if (abs(z) == 0.0_wp) then
-            y(m) = 0.0_wp
+        if (abs(z) == ZERO) then
+            y(m) = ZERO
         else
             y(m) = (y(m)-a(m)*y(mm1))/z
         end if
@@ -1759,14 +1769,14 @@ subroutine cmptr3(m, a, b, c, k, y1, y2, y3, tcos, d, w1, w2, w3)
             if (n == l3) w3 = y3
         end if
 
-        z = 1.0_wp/(b(1)-x)
+        z = ONE/(b(1)-x)
         d(1) = c(1)*z
         y1(1) = y1(1)*z
         y2(1) = y2(1)*z
         y3(1) = y3(1)*z
 
         do i = 2, m
-            z = 1.0_wp/(b(i)-x-a(i)*d(i-1))
+            z = ONE/(b(i)-x-a(i)*d(i-1))
             d(i) = c(i)*z
             y1(i) = (y1(i)-a(i)*y1(i-1))*z
             y2(i) = (y2(i)-a(i)*y2(i-1))*z

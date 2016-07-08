@@ -45,19 +45,19 @@ module type_HelmholtzData
     private
     public :: HelmholtzData
 
-    !--------------------------------------------------------------------------------
+    !--------------------------------------------------------------
     ! Dictionary: variables confined to the module
-    !---------------------------------------------------------------------------------
+    !---------------------------------------------------------------
     character (len=250) :: error_message !! Probably long enough
     integer (ip)        :: allocate_status  !! To check allocation status
     integer (ip)        :: deallocate_status !! To check deallocation status
-    !---------------------------------------------------------------------------------
+    !---------------------------------------------------------------
 
     ! Declare derived data type
     type, public ::  HelmholtzData
-        !---------------------------------------------------------------------------------
+        !---------------------------------------------------------------
         ! Type components
-        !---------------------------------------------------------------------------------
+        !---------------------------------------------------------------
         logical,                             public :: initialized = .false.
         integer (ip),                        public :: Y_BOUNDARY_CONDITION_TYPE = -1 !! Boundary conditions in the vertical direction
         integer (ip),                        public :: X_BOUNDARY_CONDITION_TYPE = -1 !! Boundary conditions in the horizontal direction
@@ -67,30 +67,30 @@ module type_HelmholtzData
         real (wp), allocatable,              public :: north(:)
         type (RectangularDomain),            public :: domain
         procedure (proc_interface), pointer, public :: assign_boundary_data => null()
-        !---------------------------------------------------------------------------------
+        !---------------------------------------------------------------
     contains
-        !---------------------------------------------------------------------------------
+        !---------------------------------------------------------------
         ! Type-bound procedures
-        !---------------------------------------------------------------------------------
+        !---------------------------------------------------------------
         procedure, public                   :: create => create_helmholtz_data
         procedure, public                   :: destroy => destroy_helmholtz_data
         procedure, non_overridable, public  :: create_helmholtz_data
         procedure, non_overridable, public  :: destroy_helmholtz_data
         procedure, nopass,          private :: get_boundary_condition_type
         !final                               :: finalize_helmholtz_data
-        !---------------------------------------------------------------------------------
+        !---------------------------------------------------------------
     end type HelmholtzData
 
 
     abstract interface
         subroutine proc_interface(this, grid_type)
             import :: HelmholtzData, Grid, wp
-            !--------------------------------------------------------------------------------
+            !--------------------------------------------------------------
             ! Dummy arguments
-            !--------------------------------------------------------------------------------
+            !--------------------------------------------------------------
             class (HelmholtzData), intent (in out) :: this
             class (Grid),          intent (in out) :: grid_type
-            !--------------------------------------------------------------------------------
+            !--------------------------------------------------------------
         end subroutine proc_interface
     end interface
 
@@ -99,9 +99,9 @@ contains
 
 
     subroutine create_helmholtz_data(this, nx, ny, x_type, y_type, rectangular_domain, func)
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
         ! Dummy arguments
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
         class (HelmholtzData),     intent (in out)            :: this
         integer (ip),              intent (in)                :: nx
         integer (ip),              intent (in)                :: ny
@@ -109,7 +109,7 @@ contains
         integer (ip),              intent (in),     optional  :: y_type
         class (RectangularDomain), intent (in out), optional  :: rectangular_domain
         procedure (proc_interface),                 optional  :: func
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
 
         ! Ensure that object is usable
         call this%destroy()
@@ -176,11 +176,11 @@ contains
 
 
     subroutine destroy_helmholtz_data(this)
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
         ! Dummy arguments
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
         class (HelmholtzData), intent (in out)   :: this
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
 
         ! Check flag
         if (this%initialized .eqv. .false. ) then
@@ -274,12 +274,12 @@ contains
 
 
     subroutine get_boundary_condition_type(type, return_value)
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
         ! Dummy arguments
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
         integer (ip), intent (in)   :: type
         integer (ip), intent (out)  :: return_value
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
 
         select case (type)
             case (0:4)
@@ -295,11 +295,11 @@ contains
 
 
     subroutine finalize_helmholtz_data(this)
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
         ! Dummy arguments
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
         type (HelmholtzData), intent (in out) :: this
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
 
         call this%destroy()
 
