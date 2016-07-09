@@ -504,6 +504,14 @@ module module_hstcsp
     private
     public :: hstcsp
 
+    !---------------------------------------------------------------
+    ! Dictionary: Variables confined to the module
+    !---------------------------------------------------------------
+    real (wp), private :: ZERO = 0.0_wp
+    real (wp), private :: HALF = 0.5_wp
+    real (wp), private :: ONE = 1.0_wp
+    real (wp), private :: TWO = 2.0_wp
+    !---------------------------------------------------------------
 
 contains
 
@@ -533,16 +541,127 @@ contains
         real (wp),    intent (in out) :: f(:,:)
         class (Fish), intent (in out) :: w
         !-----------------------------------------------
-        ! Local variables
-        !-----------------------------------------------
-        integer (ip)         :: k, l, np, irwk, icwk, local_error_flag
-        integer (ip), save   :: workspace_indices(8)
-        !-----------------------------------------------
 
         !
         !==> Check for invalid input parameters
         !
-        if (a < 0.0_wp .or. b > PI) then
+        call check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, elmbda, idimf, ierror)
+
+        if (ierror /= 0) return
+
+        !
+        !==> Allocate memory on first call
+        !
+        if (intl == 0) call setup_workspace(n, m, w)
+
+        associate( &
+            iw1 => w%workspace_indices(1), &
+            iwbm => w%workspace_indices(2), &
+            iwcm => w%workspace_indices(3), &
+            iwan => w%workspace_indices(4), &
+            iwbn => w%workspace_indices(5), &
+            iwcn => w%workspace_indices(6), &
+            iwsnth => w%workspace_indices(7), &
+            iwrsq => w%workspace_indices(8), &
+            rew => w%real_workspace, &
+            cxw => w%complex_workspace &
+            )
+            !
+            !==> Solve system
+            !
+            call hstcs1(intl, a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
+                elmbda, f, idimf, pertrb, ierror, rew(iw1:), rew(iwbm:), rew(iwcm:), &
+                rew(iwan:), rew(iwbn:), rew(iwcn:), rew(iwsnth:), rew(iwrsq:), &
+                rew, cxw)
+
+        end associate
+
+
+
+    end subroutine hstcsp
+
+
+
+    pure subroutine setup_workspace(n, m, workspace)
+        !-----------------------------------------------
+        ! Dummy arguments
+        !-----------------------------------------------
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: m
+        class (Fish), intent (in out) :: workspace
+        !-----------------------------------------------
+        ! Local variables
+        !-----------------------------------------------
+        integer (ip), parameter :: NUMBER_OF_INDICES = 8
+        integer (ip)            :: irwk, icwk
+        !-----------------------------------------------
+
+        ! Ensure that object is usable
+        call workspace%destroy()
+
+        !
+        !==> Allocate memory for integer indices
+        !
+        allocate( workspace%workspace_indices(NUMBER_OF_INDICES) )
+
+        associate( &
+            iw1 => workspace%workspace_indices(1), &
+            iwbm => workspace%workspace_indices(2), &
+            iwcm => workspace%workspace_indices(3), &
+            iwan => workspace%workspace_indices(4), &
+            iwbn => workspace%workspace_indices(5), &
+            iwcn => workspace%workspace_indices(6), &
+            iwsnth => workspace%workspace_indices(7), &
+            iwrsq => workspace%workspace_indices(8) &
+            )
+
+            !
+            ! Compute blktri requirements in irwk, icwk
+            call workspace%get_block_tridiagonal_workpace_dimensions(n, m, irwk, icwk)
+            !
+            !==> Set work space indices
+            !
+            iw1 = irwk + 1
+            iwbm = iw1 + m
+            iwcm = iwbm + m
+            iwan = iwcm + m
+            iwbn = iwan + n
+            iwcn = iwbn + n
+            iwsnth = iwcn + n
+            iwrsq = iwsnth + m
+
+            !
+            !==>  Allocate memory for real and complex workspace arrays
+            !
+            irwk = iwrsq + n
+            icwk = icwk + 3 * (m + 1)
+            allocate( workspace%real_workspace(irwk) )
+            allocate( workspace%complex_workspace(icwk) )
+
+        end associate
+
+    end subroutine setup_workspace
+
+
+
+    pure subroutine check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, elmbda, idimf, ierror)
+        !-----------------------------------------------
+        ! Dummy arguments
+        !-----------------------------------------------
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: mbdcnd
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: nbdcnd
+        integer (ip), intent (in)     :: idimf
+        integer (ip), intent (out)    :: ierror
+        real (wp),    intent (in)     :: a
+        real (wp),    intent (in)     :: b
+        real (wp),    intent (in)     :: c
+        real (wp),    intent (in)     :: d
+        real (wp),    intent (in)     :: elmbda
+        !-----------------------------------------------
+
+        if (a < ZERO .or. b > PI) then
             ierror = 1
             return
         else if (a >= b) then
@@ -551,7 +670,7 @@ contains
         else if (mbdcnd < 1 .or. mbdcnd > 9) then
             ierror = 3
             return
-        else if (c < 0.0_wp) then
+        else if (c < ZERO) then
             ierror = 4
             return
         else if (c >= d) then
@@ -569,7 +688,7 @@ contains
                     ierror = 8
                     return
             end select
-        else if (c > 0.0_wp .and. 5 <= nbdcnd) then
+        else if (c > ZERO .and. 5 <= nbdcnd) then
             ierror = 9
             return
         else if (idimf < m) then
@@ -578,13 +697,13 @@ contains
         else if (m < 5) then
             ierror = 12
             return
-        else if (a == 0.0_wp .and. mbdcnd /= 5.and. mbdcnd /= 6.and. mbdcnd /= 9) then
-            ierror=13
+        else if (a == ZERO .and. mbdcnd /= 5.and. mbdcnd /= 6.and. mbdcnd /= 9) then
+            ierror = 13
             return
         else if (b == PI .and. mbdcnd <= 6) then
             ierror = 14
             return
-        else if (a > 0.0_wp) then
+        else if (a > ZERO) then
             select case (mbdcnd)
                 case (5:6, 9)
                     ierror=15
@@ -593,85 +712,14 @@ contains
         else if (b < PI .and. 7 <= mbdcnd) then
             ierror = 16
             return
-        else if (elmbda /= 0.0_wp .and. 5 <= nbdcnd) then
+        else if (elmbda /= ZERO .and. 5 <= nbdcnd) then
             ierror = 17
             return
         else
             ierror = 0
         end if
 
-        associate( &
-            iw1 => workspace_indices(1), &
-            iwbm => workspace_indices(2), &
-            iwcm => workspace_indices(3), &
-            iwan => workspace_indices(4), &
-            iwbn => workspace_indices(5), &
-            iwcn => workspace_indices(6), &
-            iwsnth => workspace_indices(7), &
-            iwrsq => workspace_indices(8) &
-            )
-
-            if (intl == 0) then
-                !
-                !==> Compute workspace indices and required workspace sizes
-                !
-                k = m + 1
-                l = n + 1
-                np = nbdcnd
-                !
-                !==> Compute blktri requirements in irwk, icwk
-                !
-                call w%get_block_tridiagonal_workpace_dimensions(n, m, irwk, icwk)
-                !
-                !==> Set work space indices
-                !
-                iw1 = irwk + 1
-                iwbm = iw1 + m
-                iwcm = iwbm + m
-                iwan = iwcm + m
-                iwbn = iwan + n
-                iwcn = iwbn + n
-                iwsnth = iwcn + n
-                iwrsq = iwsnth + m
-                !
-                !==>  Allocate workspace arrays
-                !
-                irwk = iwrsq + n
-                icwk = icwk + 3*k
-                call w%create(irwk, icwk, ierror)
-
-                ! Check if allocation was successful
-                if (ierror == 20) return
-
-            end if
-
-            ! Initialize error flag
-            local_error_flag = 0
-
-            associate( &
-                rew => w%real_workspace, &
-                cxw => w%complex_workspace &
-                )
-
-                !
-                !==> Solve system
-                !
-                call hstcs1(intl, a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
-                    elmbda, f, idimf, pertrb, local_error_flag, rew(iw1:), rew(iwbm:), rew(iwcm:), &
-                    rew(iwan:), rew(iwbn:), rew(iwcn:), rew(iwsnth:), rew(iwrsq:), &
-                    rew, cxw)
-
-            end associate
-
-            !
-            !==>  Set error flag from lower routine
-            !
-            ierror = local_error_flag
-
-        end associate
-
-
-    end subroutine hstcsp
+    end subroutine check_input_arguments
 
 
 
@@ -699,16 +747,16 @@ contains
         real (wp),    intent (in)     :: bdc(:)
         real (wp),    intent (in)     :: bdd(:)
         real (wp),    intent (in out) :: f(idimf,n)
-        real (wp),    intent (out)    :: am(:)
-        real (wp),    intent (out)    :: bm(:)
-        real (wp),    intent (out)    :: cm(:)
-        real (wp),    intent (out)    :: an(:)
-        real (wp),    intent (out)    :: bn(:)
-        real (wp),    intent (out)    :: cn(:)
-        real (wp),    intent (in out) :: snth(:)
-        real (wp),    intent (in out) :: rsq(:)
-        real (wp),    intent (in out) :: w(:)
-        complex (wp), intent (in out) :: wc(:)
+        real (wp),    intent (out), contiguous :: am(:)
+        real (wp),    intent (out), contiguous :: bm(:)
+        real (wp),    intent (out), contiguous :: cm(:)
+        real (wp),    intent (out), contiguous :: an(:)
+        real (wp),    intent (out), contiguous :: bn(:)
+        real (wp),    intent (out), contiguous :: cn(:)
+        real (wp),    intent (out), contiguous :: snth(:)
+        real (wp),    intent (out), contiguous :: rsq(:)
+        real (wp),    intent (out), contiguous :: w(:)
+        complex (wp), intent (out), contiguous :: wc(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -721,13 +769,13 @@ contains
         dthsq = dth**2
 
         do i = 1, m
-            snth(i) = sin(a + (real(i, kind=wp) - 0.5_wp)*dth)
+            snth(i) = sin(a + (real(i, kind=wp) - HALF)*dth)
         end do
 
         dr = (d - c)/n
 
         do j = 1, n
-            rsq(j) = (c + (real(j, kind=wp) - 0.5_wp)*dr)**2
+            rsq(j) = (c + (real(j, kind=wp) - HALF)*dr)**2
         end do
         !
         !     multiply right side by r(j)**2
@@ -739,13 +787,13 @@ contains
         !
         !      define coefficients am, bm, cm
         !
-        x = 1.0_wp/(2.0_wp*cos(dth/2))
+        x = ONE/(TWO*cos(dth/2))
         am(2:m) = (snth(:m-1)+snth(2:m))*x
         cm(:m-1) = am(2:m)
         am(1) = sin(a)
         cm(m) = sin(b)
         do i = 1, m
-            x = 1.0_wp/snth(i)
+            x = ONE/snth(i)
             y = x/dthsq
             am(i) = am(i)*y
             cm(i) = cm(i)*y
@@ -763,109 +811,115 @@ contains
         isw = 1
         nb = nbdcnd
 
-        if (c == 0.0_wp .and. nb == 2) nb = 6
+        if (c == ZERO .and. nb == 2) nb = 6
         !
         !==> Enter data on theta boundaries
         !
         select case (mbdcnd)
             case (1:2, 7)
                 bm(1) = bm(1) - am(1)
-                x = 2.0_wp*am(1)
-                f(1, :n) = f(1, :n) - x*bda(:n)
+                x = TWO*am(1)
+                f(1, :n) = f(1, :n) - x*bda
             case (3:4, 8)
                 bm(1) = bm(1) + am(1)
                 x = dth*am(1)
-                f(1, :n) = f(1, :n) + x*bda(:n)
+                f(1, :n) = f(1, :n) + x*bda
         end select
 
         select case (mbdcnd)
             case (1, 4:5)
                 bm(m) = bm(m) - cm(m)
-                x = 2.0_wp*cm(m)
-                f(m, :n) = f(m, :n) - x*bdb(:n)
+                x = TWO*cm(m)
+                f(m, :n) = f(m, :n) - x*bdb
             case (2:3, 6)
                 bm(m) = bm(m) + cm(m)
                 x = dth*cm(m)
-                f(m, :n) = f(m, :n) - x*bdb(:n)
+                f(m, :n) = f(m, :n) - x*bdb
         end select
 
         select case (nb)
             case (1:2)
                 bn(1) = bn(1) - an(1)
-                x = 2.0_wp*an(1)
-                f(:m, 1) = f(:m, 1) - x*bdc(:m)
+                x = TWO*an(1)
+                f(:m, 1) = f(:m, 1) - x*bdc
             case (3:4)
                 bn(1) = bn(1) + an(1)
                 x = dr*an(1)
-                f(:m, 1) = f(:m, 1) + x*bdc(:m)
+                f(:m, 1) = f(:m, 1) + x*bdc
         end select
 
         select case (nb)
             case (1, 4:5)
                 bn(n) = bn(n) - cn(n)
-                x = 2.0_wp*cn(n)
-                f(:m, n) = f(:m, n) - x*bdd(:m)
+                x = TWO*cn(n)
+                f(:m, n) = f(:m, n) - x*bdd
             case (2:3, 6)
                 bn(n) = bn(n) + cn(n)
                 x = dr*cn(n)
-                f(:m, n) = f(:m, n) - x*bdd(:m)
+                f(:m, n) = f(:m, n) - x*bdd
         end select
 
-        pertrb = 0.0_wp
+        pertrb = ZERO
 
-        case_block: block
-            select case (mbdcnd)
-                case (1:2, 4:5, 7)
-                    exit case_block
-                case (3, 6, 8:9)
-                    select case (nb)
-                        case (1:2, 4:5)
-                            exit case_block
-                        case (3, 6)
-                            if (elmbda >= 0.0_wp) then
-                                if (elmbda /= 0.0_wp) then
-                                    ierror = 10
-                                else
-                                    isw = 2
-                                    do i = 1, m
-                                        x = 0.0_wp
-                                        x = sum(f(i, :n))
-                                        pertrb = pertrb + x*snth(i)
-                                    end do
-                                    x = 0.0_wp
-                                    x = sum(rsq(:n))
-                                    pertrb = 2.0_wp*(pertrb*sin(dth/2.))/(x*(cos(a) - cos(b)))
-                                    do j = 1, n
-                                        x = rsq(j)*pertrb
-                                        f(:m, j) = f(:m, j) - x
-                                    end do
-                                end if
+        case_construct: select case (mbdcnd)
+            case (1:2, 4:5, 7)
+                exit case_construct
+            case (3, 6, 8:9)
+                select case (nb)
+                    case (1:2, 4:5)
+                        exit case_construct
+                    case (3, 6)
+                        if (elmbda >= ZERO) then
+                            if (elmbda /= ZERO) then
+                                ierror = 10
+                            else
+                                isw = 2
+                                do i = 1, m
+                                    x = ZERO
+                                    x = sum(f(i, :n))
+                                    pertrb = pertrb + x*snth(i)
+                                end do
+                                x = ZERO
+                                x = sum(rsq(:n))
+                                pertrb = TWO*(pertrb*sin(dth/2))/(x*(cos(a) - cos(b)))
+                                do j = 1, n
+                                    x = rsq(j)*pertrb
+                                    f(:m, j) = f(:m, j) - x
+                                end do
                             end if
-                    end select
-            end select
-        end block case_block
+                        end if
+                end select
+        end select case_construct
 
-        a2 = sum(f(:m, 1))
-        a2 = a2/rsq(1)
-        !
-        !     initialize blktri
-        !
-        ierror = 0
-        if (intl == 0) call aux%blktrii(0, 1, n, an, bn, cn, 1, m, am, bm, cm, idimf, f, ierror, w, wc)
+        a2 = sum(f(:m, 1))/rsq(1)
+
+        if (intl == 0) then
+            !
+            !==> Initialize blktri
+            !
+            call aux%blktrii(0, 1, n, an, bn, cn, 1, m, am, bm, cm, idimf, f, ierror, w, wc)
+
+            ! Check error flag
+            if (ierror /= 0) then
+                error stop 'fishpack library: blktrii initialization call failed in hstcs1'
+            end if
+
+        end if
 
         call aux%blktrii(1, 1, n, an, bn, cn, 1, m, am, bm, cm, idimf, f, ierror, w, wc)
 
+        ! Check error flag
         if (ierror /= 0) then
             error stop 'fishpack library: blktrii call failed in hstcs1'
         end if
 
-        if (.not.(isw /=2 .or. c /= 0.0_wp .or. nbdcnd /= 2)) then
-            a3 = 0.0_wp
+        if (.not.(isw /=2 .or. c /= ZERO .or. nbdcnd /= 2)) then
+            a3 = ZERO
             a1 = dot_product(snth(:m), f(:m, 1))
             a3 = sum(snth(:m))
             a1 = a1 + rsq(1)*a2/2
 
-            if (mbdcnd == 3) a1=a1+(sin(b)*bdb(1)-sin(a)*bda(1))/(2.0_wp*(b-a))
+            if (mbdcnd == 3) a1=a1+(sin(b)*bdb(1)-sin(a)*bda(1))/(TWO*(b-a))
 
             a1 = a1/a3
             a1 = bdc(1) - a1

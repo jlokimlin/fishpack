@@ -387,7 +387,6 @@ contains
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: irwk, icwk
         type (Fish)  :: workspace
         !-----------------------------------------------
 
@@ -540,20 +539,20 @@ contains
 
             select case (np)
                 case (2:3)
-                    f(:m, 1) = f(:m, 1) - temp*bdc(:m)
+                    f(:m, 1) = f(:m, 1) - temp*bdc
                 case (4:5)
                     temp = ONE/dt
-                    f(:m, 1) = f(:m, 1) + temp*bdc(:m)
+                    f(:m, 1) = f(:m, 1) + temp*bdc
             end select
 
             temp = TWO/dt2
 
             select case (np)
                 case (2, 5)
-                    f(:m, n) = f(:m, n) - temp*bdd(:m)
+                    f(:m, n) = f(:m, n) - temp*bdd
                 case (3:4)
                     temp = ONE/dt
-                    f(:m, n) = f(:m, n) - temp*bdd(:m)
+                    f(:m, n) = f(:m, n) - temp*bdd
             end select
 
         end if

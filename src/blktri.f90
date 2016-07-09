@@ -352,7 +352,7 @@ contains
         !
         !==> Allocate memory on first call
         !
-        if (iflg == 0) call allocate_workspace(n, m, workspace)
+        if (iflg == 0) call setup_workspace(n, m, workspace)
 
         associate( &
             rew => workspace%real_workspace, &
@@ -399,25 +399,28 @@ contains
 
 
 
-    subroutine allocate_workspace(n, m, workspace)
+    pure subroutine setup_workspace(n, m, workspace)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)  :: n, m
-        class (Fish), intent (out) :: workspace
+        integer (ip), intent (in)     :: n, m
+        class (Fish), intent (in out) :: workspace
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
         integer (ip)  :: irwk, icwk
         !-----------------------------------------------
 
+        ! Ensure that object is usable
+        call workspace%destroy()
+
         ! Compute workspace dimensions
         call workspace%get_block_tridiagonal_workpace_dimensions(n, m, irwk, icwk)
 
-        ! Allocate memory for workspace
+        ! Allocate memory for real and complex workspace arrays
         call workspace%create(irwk, icwk)
 
-    end subroutine allocate_workspace
+    end subroutine setup_workspace
 
 
 
