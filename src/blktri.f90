@@ -278,6 +278,7 @@ module module_blktri
     ! Everything is private unless stated otherwise
     private
     public :: blktri
+    public :: blktrii
     public :: BlktriAux
 
 
@@ -294,114 +295,36 @@ module module_blktri
         integer (ip) :: ik
         real (wp)    :: cnv
         !-------------------------------------------------
-        ! Type components
-        !-------------------------------------------------
-        procedure (real_product),  pointer :: prdct => null()
-        procedure (cmplx_product), pointer :: cprdct => null()
-        !-------------------------------------------------
     contains
         !-------------------------------------------------
         ! Type-bound procedures
         !-------------------------------------------------
-        procedure, public :: blktrii
-        procedure, public :: blktr1
-        procedure, public :: bsrh
-        procedure, public :: compb
-        procedure, public :: indxa
-        procedure, public :: indxb
-        procedure, public :: indxc
-        procedure, public :: ppadd
-        procedure, public :: tevls
+        procedure, nopass, public  :: blktrii
         !-------------------------------------------------
     end type BlktriAux
 
 
 
-
-    interface
-        pure subroutine real_product(this, nd, bd, nm1, bm1, nm2, bm2, na, &
-            aa, x, y, m, a, b, c, d, w, u)
-            import :: BlktriAux, ip, wp
-            !----------------------------------------------------------
-            ! Dummy arguments
-            !----------------------------------------------------------
-            class (BlktriAux), intent (in out) :: this
-            integer (ip), intent (in)  :: nd
-            integer (ip), intent (in)  :: nm1
-            integer (ip), intent (in)  :: nm2
-            integer (ip), intent (in)  :: na
-            integer (ip), intent (in)  :: m
-            real (wp),    intent (in)  :: bd(nd)
-            real (wp),    intent (in)  :: bm1(nm1)
-            real (wp),    intent (in)  :: bm2(nm2)
-            real (wp),    intent (in)  :: aa(na)
-            real (wp),    intent (in)  :: x(m)
-            real (wp),    intent (out) :: y(m)
-            real (wp),    intent (in)  :: a(m)
-            real (wp),    intent (in)  :: b(m)
-            real (wp),    intent (in)  :: c(m)
-            real (wp),    intent (out) :: d(m)
-            real (wp),    intent (out) :: w(m)
-            real (wp),    intent (out) :: u(m)
-            !----------------------------------------------------------
-        end subroutine real_product
-
-        pure subroutine cmplx_product(this, nd, bd, nm1, bm1, nm2, bm2, na, &
-            aa, x, yy, m, a, b, c, d, w, y)
-            import :: BlktriAux, ip, wp
-            !----------------------------------------------------------
-            ! Dummy arguments
-            !----------------------------------------------------------
-            class (BlktriAux), intent (in out) :: this
-            integer (ip), intent (in)  :: nd
-            integer (ip), intent (in)  :: nm1
-            integer (ip), intent (in)  :: nm2
-            integer (ip), intent (in)  :: na
-            integer (ip), intent (in)  :: m
-            real (wp),    intent (in)  :: bm1(nm1)
-            real (wp),    intent (in)  :: bm2(nm2)
-            real (wp),    intent (in)  :: aa(na)
-            real (wp),    intent (in)  :: x(m)
-            real (wp),    intent (out) :: yy(m)
-            real (wp),    intent (in)  :: a(m)
-            real (wp),    intent (in)  :: b(m)
-            real (wp),    intent (in)  :: c(m)
-            complex (wp), intent (in)  :: bd(nd)
-            complex (wp), intent (out) :: d(m)
-            complex (wp), intent (out) :: w(m)
-            complex (wp), intent (out) :: y(m)
-            !----------------------------------------------------------
-        end subroutine cmplx_product
-    end interface
-
-
-
-    !---------------------------------------------------------------
+    !---------------------------------------------------------------------------------
     ! Dictionary: Variables confined to the module
-    !---------------------------------------------------------------
-    integer (ip), protected :: npp
-    integer (ip), protected :: k
-    integer (ip), protected :: nm
-    integer (ip), protected :: ncmplx
-    integer (ip), protected :: ik
-    real (wp),    protected :: cnv
-    real (wp), parameter, private :: ZERO = 0.0_wp
-    real (wp), parameter, private :: ONE = 1.0_wp
-    real (wp), parameter, private :: TWO = 2.0_wp
-    !---------------------------------------------------------------
+    !---------------------------------------------------------------------------------
+    integer (ip), private :: npp, k, nm, ncmplx, ik
+    real (wp),    private :: ZERO = 0.0_wp
+    real (wp),    private :: ONE = 1.0_wp
+    real (wp),    private :: TWO = 2.0_wp
+    real (wp),    private :: cnv
+    !---------------------------------------------------------------------------------
 
 
 
 contains
 
 
-
-
     subroutine blktri(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
         idimy, y, ierror, workspace)
-        !--------------------------------------------------------------
+        !--------------------------------------------------------------------------------
         ! Dummy arguments
-        !--------------------------------------------------------------
+        !--------------------------------------------------------------------------------
         integer (ip), intent (in)     :: iflg
         integer (ip), intent (in)     :: np
         integer (ip), intent (in)     :: n
@@ -417,48 +340,11 @@ contains
         real (wp),    intent (in out) :: cm(:)
         real (wp),    intent (in out) :: y(:,:)
         class (Fish), intent (in out) :: workspace
-        !--------------------------------------------------------------
+        !--------------------------------------------------------------------------------
         ! Local variables
-        !--------------------------------------------------------------
-        type (BlktriAux) :: aux
-        !--------------------------------------------------------------
-
-        !
-        !==> Check validity of input arguments
-        !
-        call check_input_arguments(n, m, idimy, ierror)
-
-        if (ierror /= 0) return
-
-        !
-        !==> Allocate memory on first call
-        !
-        if (iflg == 0) call setup_workspace(n, m, workspace)
-
-        associate( &
-            rew => workspace%real_workspace, &
-            cxw => workspace%complex_workspace &
-            )
-            !
-            !==> Solve system
-            !
-            call aux%blktrii(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
-                idimy, y, ierror, rew, cxw)
-
-        end associate
-
-    end subroutine blktri
-
-
-    pure subroutine check_input_arguments(n, m, idimy, ierror)
-        !--------------------------------------------------------------
-        ! Dummy arguments
-        !--------------------------------------------------------------
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: idimy
-        integer (ip), intent (out)    :: ierror
-        !--------------------------------------------------------------
+        !--------------------------------------------------------------------------------
+        integer (ip)  :: irwk, icwk
+        !--------------------------------------------------------------------------------
 
         !
         !==> Check validity of input arguments
@@ -476,57 +362,53 @@ contains
             ierror = 0
         end if
 
-    end subroutine check_input_arguments
+
+        if (iflg == 0) then
+
+            ! compute and allocate real and complex required work space
+            call workspace%compute_blktri_workspace_lengths(n, m, irwk, icwk)
+
+            ! Allocate memory for workspace
+            call workspace%create(irwk, icwk, ierror)
+
+        end if
+
+        associate( &
+            rew => workspace%real_workspace, &
+            cxw => workspace%complex_workspace &
+            )
+            !
+            !==> Solve system
+            !
+            call blktrii(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
+                idimy, y, ierror, rew, cxw)
+
+        end associate
+
+    end subroutine blktri
 
 
-
-    pure subroutine setup_workspace(n, m, workspace)
-        !-----------------------------------------------
-        ! Dummy arguments
-        !-----------------------------------------------
-        integer (ip), intent (in)     :: n, m
-        class (Fish), intent (in out) :: workspace
-        !-----------------------------------------------
-        ! Local variables
-        !-----------------------------------------------
-        integer (ip)  :: irwk, icwk
-        !-----------------------------------------------
-
-        ! Ensure that object is usable
-        call workspace%destroy()
-
-        ! Compute workspace dimensions
-        call workspace%compute_blktri_workspace_lengths(n, m, irwk, icwk)
-
-        ! Allocate memory for real and complex workspace arrays
-        call workspace%create(irwk, icwk)
-
-    end subroutine setup_workspace
-
-
-
-    subroutine blktrii(this, iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
+    subroutine blktrii( iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
         idimy, y, ierror, w, wc)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        class (BlktriAux), intent (in out) :: this
-        integer (ip),      intent (in)     :: iflg
-        integer (ip),      intent (in)     :: np
-        integer (ip),      intent (in)     :: n
-        integer (ip),      intent (in)     :: mp
-        integer (ip),      intent (in)     :: m
-        integer (ip),      intent (in)     :: idimy
-        integer (ip),      intent (out)    :: ierror
-        real (wp),         intent (in out) :: an(:)
-        real (wp),         intent (in out) :: bn(:)
-        real (wp),         intent (in out) :: cn(:)
-        real (wp),         intent (in out) :: am(:)
-        real (wp),         intent (in out) :: bm(:)
-        real (wp),         intent (in out) :: cm(:)
-        real (wp),         intent (in out) :: y(:,:)
-        real (wp),         intent (in out), contiguous :: w(:)
-        complex (wp),      intent (in out), contiguous :: wc(:)
+        integer (ip), intent (in)     :: iflg
+        integer (ip), intent (in)     :: np
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: mp
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: idimy
+        integer (ip), intent (out)    :: ierror
+        real (wp),    intent (in out) :: an(:)
+        real (wp),    intent (in out) :: bn(:)
+        real (wp),    intent (in out) :: cn(:)
+        real (wp),    intent (in out) :: am(:)
+        real (wp),    intent (in out) :: bm(:)
+        real (wp),    intent (in out) :: cm(:)
+        real (wp),    intent (in out) :: y(:,:)
+        real (wp),    intent (in out) :: w(:)
+        complex (wp), intent (in out) :: wc(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -534,16 +416,24 @@ contains
         integer (ip), save :: iw1, iw2, iw3, iww, iwu, iwd, nl
         !----------------------------------------------
 
-
         ! test m and n for the proper form
+        !
         nm = n
         !
-        !==> Check input arguments again
-        !    for solvers which call blktrii directly
+        !==> Check again for solvers which call blktrii directly
         !
-        call check_input_arguments(n, m, idimy, ierror)
-
-        if (ierror /= 0) return
+        if (m < 5) then
+            ierror = 1
+            return
+        else if (nm < 3) then
+            ierror = 2
+            return
+        else if (idimy < m) then
+            ierror = 3
+            return
+        else
+            ierror = 0
+        end if
 
         select case (iflg)
             case (0)
@@ -582,37 +472,30 @@ contains
                 iww = iwd + m
                 iwu = iww + m
 
-                call this%compb(nl, ierror, an, bn, cn, w, wc, w(iwah:), w(iwbh:))
+                call compb(nl, ierror, an, bn, cn, w, wc, w(iwah:), w(iwbh:))
 
             case default
 
                 ! *** Important to reset nm for np = 0
                 if (npp == 0) nm = n - 1
 
-                ! Release procedure pointer association
-                if (associated(this%prdct)) nullify( this%prdct )
-                if (associated(this%cprdct)) nullify( this%cprdct )
-
                 select case (mp)
                     case (0)
-                        this%prdct => prodp
-                        this%cprdct => cprodp
+                        call blktr1(nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, &
+                            w(iw1:), w(iw2:), w(iw3:), w(iwd:), w(iww:), w(iwu:), wc(iw1:), &
+                            wc(iw2:), wc(iw3:), prodp, cprodp)
                     case default
-                        this%prdct => prod
-                        this%cprdct => cprod
+                        call blktr1(nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, &
+                            w(iw1:), w(iw2:), w(iw3:), w(iwd:), w(iww:), w(iwu:), wc(iw1:), &
+                            wc(iw2:), wc(iw3:), prod, cprod)
                 end select
-
-                call this%blktr1(nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, &
-                    w(iw1:), w(iw2:), w(iw3:), w(iwd:), w(iww:), w(iwu:), wc(iw1:), &
-                    wc(iw2:), wc(iw3:))
         end select
-
 
     end subroutine blktrii
 
 
-    subroutine blktr1(this, n, an, bn, cn, m, am, bm, cm, idimy, y, b, bc, &
-        w1, w2, w3, wd, ww, wu, cw1, cw2, cw3)
+    subroutine blktr1(n, an, bn, cn, m, am, bm, cm, idimy, y, b, bc, &
+        w1, w2, w3, wd, ww, wu, cw1, cw2, cw3, prdct, cprdct)
         !
         ! Purpose:
         !
@@ -630,28 +513,27 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        class (BlktriAux), intent (in out) :: this
-        integer (ip),      intent (in)     :: n
-        integer (ip),      intent (in)     :: m
-        integer (ip),      intent (in)     :: idimy
-        real (wp),         intent (in)     :: an(:)
-        real (wp),         intent (in)     :: bn(:)
-        real (wp),         intent (in)     :: cn(:)
-        real (wp),         intent (in)     :: am(:)
-        real (wp),         intent (in)     :: bm(:)
-        real (wp),         intent (in)     :: cm(:)
-        real (wp),         intent (in out) :: y(idimy,*)!(:,:)
-        real (wp),         intent (in out) :: b(*)
-        real (wp),         intent (in out) :: w1(m)
-        real (wp),         intent (in out) :: w2(m)
-        real (wp),         intent (in out) :: w3(m)
-        real (wp),         intent (in out) :: wd(m)
-        real (wp),         intent (in out) :: ww(m)
-        real (wp),         intent (in out) :: wu(m)
-        complex (wp),      intent (in out) :: bc(m)
-        complex (wp),      intent (in out) :: cw1(m)
-        complex (wp),      intent (in out) :: cw2(m)
-        complex (wp),      intent (in out) :: cw3(m)
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: idimy
+        real (wp),    intent (in)     :: an(:)
+        real (wp),    intent (in)     :: bn(:)
+        real (wp),    intent (in)     :: cn(:)
+        real (wp),    intent (in)     :: am(:)
+        real (wp),    intent (in)     :: bm(:)
+        real (wp),    intent (in)     :: cm(:)
+        real (wp),    intent (in out) :: y(:,:)
+        real (wp),    intent (in)     :: b(*)
+        real (wp),    intent (in out) :: w1(*)
+        real (wp),    intent (in out) :: w2(*)
+        real (wp),    intent (in out) :: w3(*)
+        real (wp),    intent (in)     :: wd(*)
+        real (wp),    intent (in)     :: ww(*)
+        real (wp),    intent (in)     :: wu(*)
+        complex (wp), intent (in)     :: bc(*)
+        complex (wp), intent (in)     :: cw1(*)
+        complex (wp), intent (in)     :: cw2(*)
+        complex (wp), intent (in)     :: cw3(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -659,19 +541,8 @@ contains
         integer (ip) :: im1, nm1, i0, iif, i, ipi1, ipi2, ipi3, idxc, nc, idxa, na, ip2
         integer (ip) :: np2, ip1, np1, ip3, np3, iz, nz, izr, ll, ifd, iip, np
         integer (ip) :: imi1, imi2
-        real (wp)    :: dum(1)
+        real (wp)    :: dum
         !-----------------------------------------------
-
-
-        ! Initialize
-        iz = 0
-        iip = 0
-        ip1 = 0
-        ip2 = 0
-        ip3 = 0
-        im1 = 0
-        im3 = 0
-        iif = 0
 
         !
         !==> begin reduction phase
@@ -684,13 +555,13 @@ contains
             i3 = i2 + i1
             i4 = i2 + i2
             irm1 = ir - 1
-            call this%indxb(i2, ir, im2, nm2)
-            call this%indxb(i1, irm1, im3, nm3)
-            call this%indxb(i3, irm1, im1, nm1)
+            call indxb(i2, ir, im2, nm2)
+            call indxb(i1, irm1, im3, nm3)
+            call indxb(i3, irm1, im1, nm1)
 
             i0 = 0
 
-            call this%prdct(nm2, b(im2), nm3, b(im3), nm1, b(im1), i0, dum, &
+            call prdct(nm2, b(im2), nm3, b(im3), nm1, b(im1), i0, dum, &
                 y(1, i2), w3, m, am, bm, cm, wd, ww, wu)
 
             iif = 2**k
@@ -703,25 +574,25 @@ contains
                 ipi2 = i + i2
                 ipi3 = i + i3
 
-                call this%indxc(i, ir, idxc, nc)
+                call indxc(i, ir, idxc, nc)
 
                 if (i >= iif) cycle
 
-                call this%indxa(i, ir, idxa, na)
-                call this%indxb(i - i1, irm1, im1, nm1)
-                call this%indxb(ipi2, ir, ip2, np2)
-                call this%indxb(ipi1, irm1, ip1, np1)
-                call this%indxb(ipi3, irm1, ip3, np3)
-                call this%prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa:), w3, &
+                call indxa(i, ir, idxa, na)
+                call indxb(i - i1, irm1, im1, nm1)
+                call indxb(ipi2, ir, ip2, np2)
+                call indxb(ipi1, irm1, ip1, np1)
+                call indxb(ipi3, irm1, ip3, np3)
+                call prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa), w3, &
                     w1, m, am, bm, cm, wd, ww, wu)
 
                 if (ipi2 > nm) then
                     w3(:m) = ZERO
                     w2(:m) = ZERO
                 else
-                    call this%prdct(np2, b(ip2), np1, b(ip1), np3, b(ip3), 0, dum, &
+                    call prdct(np2, b(ip2), np1, b(ip1), np3, b(ip3), 0, dum, &
                         y(1, ipi2), w3, m, am, bm, cm, wd, ww, wu)
-                    call this%prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc:), w3, &
+                    call prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc), w3, &
                         w2, m, am, bm, cm, wd, ww, wu)
                 end if
                 y(:m, i) = w1(:m) + w2(:m) + y(:m, i)
@@ -733,10 +604,10 @@ contains
             i = iif/2
             i1 = i/2
 
-            call this%indxb(i - i1, k - 2, im1, nm1)
-            call this%indxb(i + i1, k - 2, ip1, np1)
-            call this%indxb(i, k - 1, iz, nz)
-            call this%prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dum, &
+            call indxb(i - i1, k - 2, im1, nm1)
+            call indxb(i + i1, k - 2, ip1, np1)
+            call indxb(i, k - 1, iz, nz)
+            call prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dum, &
                 y(1, i), w1, m, am, bm, cm, wd, ww, wu)
 
             izr = i
@@ -749,16 +620,16 @@ contains
                 i1 = i2/2
                 i = i2
 
-                call this%indxc (i, ir, idxc, nc)
-                call this%indxb(i, ir, iz, nz)
-                call this%indxb(i - i1, ir - 1, im1, nm1)
-                call this%indxb(i + i1, ir - 1, ip1, np1)
-                call this%prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc:), w1, &
+                call indxc (i, ir, idxc, nc)
+                call indxb(i, ir, iz, nz)
+                call indxb(i - i1, ir - 1, im1, nm1)
+                call indxb(i + i1, ir - 1, ip1, np1)
+                call prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc), w1, &
                     w1, m, am, bm, cm, wd, ww, wu)
 
                 w1(:m) = y(:m, i) + w1(:m)
 
-                call this%prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, &
+                call prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, &
                     dum, w1, w1, m, am, bm, cm, wd, ww, wu)
             end do
 
@@ -775,16 +646,16 @@ contains
 
                     if (i > nm) cycle outer_loop
 
-                    call this%indxa(i, ir, idxa, na)
-                    call this%indxb(i, ir, iz, nz)
-                    call this%indxb(i - i1, ir - 1, im1, nm1)
-                    call this%indxb(i + i1, ir - 1, ip1, np1)
-                    call this%prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa:), &
+                    call indxa (i, ir, idxa, na)
+                    call indxb(i, ir, iz, nz)
+                    call indxb(i - i1, ir - 1, im1, nm1)
+                    call indxb(i + i1, ir - 1, ip1, np1)
+                    call prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa), &
                         w2, w2, m, am, bm, cm, wd, ww, wu)
 
                     w2(:m) = y(:m, i) + w2(:m)
 
-                    call this%prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dum, &
+                    call prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dum, &
                         w2, w2, m, am, bm, cm, wd, ww, wu)
 
                     izr = i
@@ -796,14 +667,14 @@ contains
 
             y(:m, nm+1) = y(:m, nm+1) - cn(nm+1)*w1(:m) - an(nm+1)*w2(:m)
 
-            call this%indxb(iif/2, k - 1, im1, nm1)
-            call this%indxb(iif, k - 1, iip, np)
+            call indxb(iif/2, k - 1, im1, nm1)
+            call indxb(iif, k - 1, iip, np)
 
             if (ncmplx /= 0) then
-                call this%cprdct(nm + 1, bc(iip), nm1, b(im1), 0, dum, 0, dum, &
+                call cprdct(nm + 1, bc(iip), nm1, b(im1), 0, dum, 0, dum, &
                     y(1, nm+1), y(1, nm+1), m, am, bm, cm, cw1, cw2, cw3)
             else
-                call this%prdct(nm + 1, b(iip), nm1, b(im1), 0, dum, 0, dum, &
+                call prdct(nm + 1, b(iip), nm1, b(im1), 0, dum, 0, dum, &
                     y(1, nm+1), y(1, nm+1), m, am, bm, cm, wd, ww, wu)
             end if
 
@@ -819,13 +690,13 @@ contains
                 i1 = i2/2
                 i = i4
 
-                call this%indxa (i, ir, idxa, na)
-                call this%indxb(i - i2, ir, im2, nm2)
-                call this%indxb(i - i2 - i1, ir - 1, im3, nm3)
-                call this%indxb(i - i1, ir - 1, im1, nm1)
-                call this%prdct(nm2, b(im2), nm3, b(im3), nm1, b(im1), 0, dum, &
+                call indxa (i, ir, idxa, na)
+                call indxb(i - i2, ir, im2, nm2)
+                call indxb(i - i2 - i1, ir - 1, im3, nm3)
+                call indxb(i - i1, ir - 1, im1, nm1)
+                call prdct(nm2, b(im2), nm3, b(im3), nm1, b(im1), 0, dum, &
                     w1, w1, m, am, bm, cm, wd, ww, wu)
-                call this%prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa:), w1, &
+                call prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa), w1, &
                     w1, m, am, bm, cm, wd, ww, wu)
 
                 y(:m, i) = y(:m, i) - w1(:m)
@@ -853,15 +724,15 @@ contains
 
                     end if
 
-                    call this%indxc(i, ir, idxc, nc)
-                    call this%indxb(ipi2, ir, ip2, np2)
-                    call this%indxb(ipi1, irm1, ip1, np1)
-                    call this%indxb(ipi3, irm1, ip3, np3)
+                    call indxc(i, ir, idxc, nc)
+                    call indxb(ipi2, ir, ip2, np2)
+                    call indxb(ipi1, irm1, ip1, np1)
+                    call indxb(ipi3, irm1, ip3, np3)
 
-                    call this%prdct(np2, b(ip2), np1, b(ip1), np3, b(ip3), 0, &
+                    call prdct(np2, b(ip2), np1, b(ip1), np3, b(ip3), 0, &
                         dum, w2, w2, m, am, bm, cm, wd, ww, wu)
 
-                    call this%prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc:), &
+                    call prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc), &
                         w2, w2, m, am, bm, cm, wd, ww, wu)
 
                     y(:m, i) = y(:m, i) - w2(:m)
@@ -891,43 +762,41 @@ contains
                 ipi1 = i + i1
                 ipi2 = i + i2
 
-                call this%indxa(i, ir, idxa, na)
-                call this%indxc(i, ir, idxc, nc)
-                call this%indxb(i, ir, iz, nz)
-                call this%indxb(imi1, irm1, im1, nm1)
-                call this%indxb(ipi1, irm1, ip1, np1)
+                call indxa(i, ir, idxa, na)
+                call indxc(i, ir, idxc, nc)
+                call indxb(i, ir, iz, nz)
+                call indxb(imi1, irm1, im1, nm1)
+                call indxb(ipi1, irm1, ip1, np1)
 
                 if (i <= i2) then
                     w1(:m) = ZERO
                 else
-                    call this%prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa:), &
+                    call prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa), &
                         y(1,imi2), w1, m, am, bm, cm, wd, ww, wu)
                 end if
 
                 if (ipi2 > nm) then
                     w2(:m) = ZERO
                 else
-                    call this%prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc:), &
+                    call prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc), &
                         y(1,ipi2), w2, m, am, bm, cm, wd, ww, wu)
                 end if
 
                 w1(:m) = y(:m, i) + w1(:m) + w2(:m)
 
-                call this%prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dum, &
+                call prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dum, &
                     w1, y(1, i), m, am, bm, cm, wd, ww, wu)
             end do inner_back_sub
         end do
-
 
     end subroutine blktr1
 
 
 
-    function bsrh(this, xll, xrr, iz, c, a, bh, f, sgn) result (return_value)
+    function bsrh(xll, xrr, iz, c, a, bh, f, sgn) result (return_value)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        class (BlktriAux), intent (in out) :: this
         real (wp),    intent (in)  :: xll
         real (wp),    intent (in)  :: xrr
         integer (ip), intent (in)  :: iz
@@ -942,7 +811,6 @@ contains
         !-----------------------------------------------
         real (wp) :: r1, xl, xr, dx, x
         !-----------------------------------------------
-
 
         xl = xll
         xr = xrr
@@ -981,12 +849,11 @@ contains
 
         return_value = (xl + xr)/2
 
-
     end function bsrh
 
 
 
-    subroutine compb(this, n, ierror, an, bn, cn, b, bc, ah, bh)
+    subroutine compb(n, ierror, an, bn, cn, b, bc, ah, bh)
         !
         ! Purpose:
         !
@@ -998,7 +865,6 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        class (BlktriAux), intent (in out) :: this
         integer (ip), intent (in)     :: n
         integer (ip), intent (out)    :: ierror
         real (wp),    intent (in)     :: an(*)
@@ -1016,10 +882,6 @@ contains
         real (wp)     :: bnorm, arg, d1, d2, d3
         !-----------------------------------------------
 
-
-        ! Initialize
-        j1 = 0
-        j2 = 0
         bnorm = abs(bn(1))
 
         do j = 2, nm
@@ -1045,7 +907,7 @@ contains
             ipl = i4 - 1
             ifd = if - i4
             do i = i4, ifd, i4
-                call this%indxb(i, l, ib, nb)
+                call indxb(i, l, ib, nb)
 
                 if (nb <= 0) cycle outer_loop
 
@@ -1055,7 +917,7 @@ contains
                 bh(:jf-js+1) = bn(js:jf)
                 ah(:jf-js+1) = b(js:jf)
 
-                call this%tevls(nb, bh, ah, ierror)
+                call tevls(nb, bh, ah, ierror)
 
                 if (ierror /= 0) then
                     ierror = 4
@@ -1089,15 +951,15 @@ contains
                 ah(j) = -bn(l1)
             end do
 
-            call this%tevls(nb, ah, bh, ierror)
+            call tevls(nb, ah, bh, ierror)
 
             if (ierror /= 0) then
                 ierror = 4
                 return
             end if
 
-            call this%indxb(if, k - 1, j2, lh)
-            call this%indxb(if/2, k - 1, j1, lh)
+            call indxb(if, k - 1, j2, lh)
+            call indxb(if/2, k - 1, j1, lh)
 
             j2 = j2 + 1
             lh = j2
@@ -1121,18 +983,18 @@ contains
 
             b(lh) = b(n2m2+1)
 
-            call this%indxb(if, k - 1, j1, j2)
+            call indxb(if, k - 1, j1, j2)
 
             j2 = j1 + nmp + nmp
 
-            call this%ppadd(nm + 1, ierror, an, cn, bc(j1), b(j1), b(j2))
+            call ppadd(nm + 1, ierror, an, cn, bc(j1), b(j1), b(j2))
         end if
 
     end subroutine compb
 
 
 
-    pure subroutine cprod(this, nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, b, c, d, w, y)
+    pure subroutine cprod(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, b, c, d, w, y)
         !
         ! Purpose:
         !
@@ -1160,7 +1022,6 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        class (BlktriAux), intent (in out) :: this
         integer (ip), intent (in)  :: nd
         integer (ip), intent (in)  :: nm1
         integer (ip), intent (in)  :: nm2
@@ -1185,7 +1046,6 @@ contains
         real (wp)    :: rt
         complex (wp) :: crt, den, y1, y2
         !-----------------------------------------------
-
 
         y = cmplx(x, ZERO, kind=wp)
 
@@ -1279,7 +1139,7 @@ contains
     end subroutine cprod
 
 
-    pure subroutine cprodp(this, nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, &
+    pure subroutine cprodp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, yy, m, a, &
         b, c, d, u, y)
         !
         ! Purpose:
@@ -1301,7 +1161,6 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        class (BlktriAux), intent (in out) :: this
         integer (ip), intent (in)  :: nd
         integer (ip), intent (in)  :: nm1
         integer (ip), intent (in)  :: nm2
@@ -1446,11 +1305,10 @@ contains
 
 
 
-    pure subroutine indxa(this, i, ir, idxa, na)
+    pure subroutine indxa(i, ir, idxa, na)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        class (BlktriAux), intent (in out) :: this
         integer (ip), intent (in)  :: i
         integer (ip), intent (in)  :: ir
         integer (ip), intent (out) :: idxa
@@ -1466,11 +1324,10 @@ contains
 
 
 
-    pure subroutine indxb(this, i, ir, idx, idp)
+    pure subroutine indxb(i, ir, idx, idp)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        class (BlktriAux), intent (in out) :: this
         integer (ip), intent (in)  :: i
         integer (ip), intent (in)  :: ir
         integer (ip), intent (out) :: idx
@@ -1480,8 +1337,6 @@ contains
         !-----------------------------------------------
         integer (ip) :: izh, id, ipl
         !-----------------------------------------------
-
-
         !
         ! b(idx) is the location of the first root of the b(i, ir) polynomial
         !
@@ -1514,11 +1369,11 @@ contains
 
 
 
-    pure subroutine indxc(this, i, ir, idxc, nc)
+    pure subroutine indxc(i, ir, idxc, nc)
+
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        class (BlktriAux), intent (in out) :: this
         integer (ip), intent (in)  :: i
         integer (ip), intent (in)  :: ir
         integer (ip), intent (out) :: idxc
@@ -1530,11 +1385,12 @@ contains
 
         if (idxc + nc - 1 - nm > 0) nc = 0
 
+
     end subroutine indxc
 
 
 
-    subroutine ppadd(this, n, ierror, a, c, cbp, bp, bh)
+    subroutine ppadd(n, ierror, a, c, cbp, bp, bh)
         !
         ! Purpose
         !
@@ -1550,7 +1406,6 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        class (BlktriAux), intent (in out) :: this
         integer (ip), intent (in)     :: n
         integer (ip), intent (out)    :: ierror
         real (wp),    intent (in)     :: a(n)
@@ -1568,7 +1423,6 @@ contains
         complex (wp)   :: cx, fsg, hsg, dd, f, fp, fpp, cdis, r1, r2, r3
         type (ComfAux) :: comf_aux
         !-----------------------------------------------
-
 
         scnv = sqrt(cnv)
         iz = n
@@ -1610,7 +1464,7 @@ contains
 
             sgn = -ONE
 
-            temp = this%bsrh(xl, bh(1), iz, c, a, bh, psgf, sgn)
+            temp = bsrh(xl, bh(1), iz, c, a, bh, psgf, sgn)
 
             cbp(1) = cmplx(temp, ZERO, kind=wp)
 
@@ -1640,7 +1494,7 @@ contains
             end do
 
             sgn = ONE
-            temp = this%bsrh(bh(iz), xr, iz, c, a, bh, psgf, sgn)
+            temp = bsrh(bh(iz), xr, iz, c, a, bh, psgf, sgn)
 
             cbp(iz) = cmplx(temp, ZERO, kind=wp)
             iif = iz - 2
@@ -1652,7 +1506,7 @@ contains
             xl = bh(ig)
             xr = bh(ig+1)
             sgn = -ONE
-            xm = this%bsrh(xl, xr, iz, c, a, bh, ppspf, sgn)
+            xm = bsrh(xl, xr, iz, c, a, bh, ppspf, sgn)
             psg = comf_aux%psgf(xm, iz, c, a, bh)
 
             block_construct: block
@@ -1666,10 +1520,10 @@ contains
                     if (r6 /= ZERO) then
 
                         sgn = ONE
-                        temp = this%bsrh(bh(ig), xm, iz, c, a, bh, psgf, sgn)
+                        temp = bsrh(bh(ig), xm, iz, c, a, bh, psgf, sgn)
                         cbp(ig) = cmplx(temp, ZERO, kind=wp)
                         sgn = -ONE
-                        temp = this%bsrh(xm, bh(ig+1), iz, c, a, bh, psgf, sgn)
+                        temp = bsrh(xm, bh(ig+1), iz, c, a, bh, psgf, sgn)
                         cbp(ig+1) = cmplx(temp, ZERO, kind=wp)
 
                         cycle main_loop
@@ -1793,10 +1647,11 @@ contains
 
         bp(2:iz) = real(cbp(2:iz))
 
+
     end subroutine ppadd
 
 
-    pure subroutine prod(this, nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, w, u)
+    pure subroutine prod(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, w, u)
         !
         ! prod applies a sequence of matrix operations to the vector x and
         ! stores the result in y
@@ -1813,7 +1668,6 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        class (BlktriAux), intent (in out) :: this
         integer (ip), intent (in)  :: nd
         integer (ip), intent (in)  :: nm1
         integer (ip), intent (in)  :: nm2
@@ -1837,7 +1691,6 @@ contains
         integer (ip) :: j, mm, id, ibr, m1, m2, ia, k
         real (wp)    :: rt, den
         !-----------------------------------------------
-
 
         w = x
         y = w
@@ -1934,7 +1787,7 @@ contains
 
 
 
-    pure subroutine prodp(this, nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, u, w)
+    pure subroutine prodp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, u, w)
         !
         ! purpose:
         !
@@ -1962,7 +1815,6 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        class (BlktriAux), intent (in out) :: this
         integer (ip), intent (in)  :: nd
         integer (ip), intent (in)  :: nm1
         integer (ip), intent (in)  :: nm2
@@ -1986,7 +1838,6 @@ contains
         integer (ip) :: j, mm, mm2, id, ibr, m1, m2, ia, k
         real (wp)    :: rt, bh, ym, den, v, am
         !-----------------------------------------------
-
 
         y = x
         w = y
@@ -2102,12 +1953,11 @@ contains
             end if
         end do main_loop
 
-
     end subroutine prodp
 
 
 
-    subroutine tevls(this, n, d, e2, ierr)
+    subroutine tevls(n, d, e2, ierr)
         !
         ! Purpose:
         !
@@ -2150,7 +2000,6 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        class (BlktriAux), intent (in out) :: this
         integer (ip), intent (in)     :: n
         integer (ip), intent (out)    :: ierr
         real (wp),    intent (in out) :: d(n)
@@ -2169,7 +2018,6 @@ contains
         e2(:n-1) = e2(2:n)**2
         f = ZERO
         b = ZERO
-        c = ZERO
         e2(n) = ZERO
 
         main_loop: do l = 1, n
@@ -2214,7 +2062,7 @@ contains
                     l1 = l + 1
                     s = sqrt(e2(l))
                     g = d(l)
-                    p = (d(l1)-g)/(TWO*s)
+                    p = (d(l1)-g)/(2.0*s)
                     r = sqrt(p**2 + ONE)
                     d(l) = s/(p + sign(r, p))
                     h = g - d(l)
@@ -2298,10 +2146,9 @@ contains
                 d(ntop+1) = dhold
             end do
         end if
-        !
-        !==> last card of tqlrat
-        !
-
+    !
+    !==> last card of tqlrat
+    !
     end subroutine tevls
 
 

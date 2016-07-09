@@ -277,10 +277,14 @@ module module_cblktri
     public :: cblktri
 
     !---------------------------------------------------------------
-    ! Dictionary: global variables confined to the module
+    ! Dictionary: Variables confined to the module
     !---------------------------------------------------------------
-    integer (ip), save :: npp, k, nm, ncmplx, ik
-    real (wp),    save :: cnv
+    integer (ip), save      :: npp, k, nm, ncmplx, ik
+    real (wp),    save      :: cnv
+    real (wp),    parameter :: ZERO = 0.0_wp
+    real (wp),    parameter :: HALF = 0.5_wp
+    real (wp),    parameter :: ONE = 1.0_wp
+    real (wp),    parameter :: TWO = 2.0_wp
     !---------------------------------------------------------------
 
     interface proc_sub
@@ -511,8 +515,8 @@ contains
                 call prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa), w3, &
                     w1, m, am, bm, cm, wd, ww, wu)
                 if (ipi2 > nm) then
-                    w3(:m) = 0.0_wp
-                    w2(:m) = 0.0_wp
+                    w3(:m) = ZERO
+                    w2(:m) = ZERO
                 else
                     call prdct(np2, b(ip2), np1, b(ip1), np3, b(ip3), 0, dum, &
                         y(1, ipi2), w3, m, am, bm, cm, wd, ww, wu)
@@ -672,14 +676,14 @@ contains
                 call cindxb(ipi1, irm1, ip1, np1)
 
                 if (i <= i2) then
-                    w1(:m) = 0.0_wp
+                    w1(:m) = ZERO
                 else
                     call prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa), &
                         y(1,imi2), w1, m, am, bm, cm, wd, ww, wu)
                 end if
 
                 if (ipi2 > nm) then
-                    w2(:m) = 0.0_wp
+                    w2(:m) = ZERO
                 else
                     call prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc), y( &
                         1, ipi2), w2, m, am, bm, cm, wd, ww, wu)
@@ -715,13 +719,13 @@ contains
 
         xl = xll
         xr = xrr
-        dx = 0.5_wp*abs(xr - xl)
-        x = 0.5_wp*(xl + xr)
+        dx = HALF*abs(xr - xl)
+        x = HALF*(xl + xr)
         r1 = sgn*f(x, iz, c, a, bh)
 
-        if (r1 >= 0.0_wp) then
-            if (r1 == 0.0_wp) then
-                return_value = 0.5_wp*(xl + xr)
+        if (r1 >= ZERO) then
+            if (r1 == ZERO) then
+                return_value = HALF*(xl + xr)
                 return
             end if
             xr = x
@@ -729,26 +733,26 @@ contains
             xl = x
         end if
 
-        dx = 0.5_wp * dx
+        dx = HALF * dx
 
         do while (dx > cnv)
 
-            x = 0.5_wp*(xl + xr)
+            x = HALF*(xl + xr)
             r1 = sgn*f(x, iz, c, a, bh)
 
-            if (r1 >= 0.0_wp) then
-                if (r1 == 0.0_wp) then
-                    return_value = 0.5_wp*(xl + xr)
+            if (r1 >= ZERO) then
+                if (r1 == ZERO) then
+                    return_value = HALF*(xl + xr)
                     return
                 end if
                 xr = x
             else
                 xl = x
             end if
-            dx = 0.5_wp*dx
+            dx = HALF*dx
         end do
 
-        return_value = 0.5_wp*(xl + xr)
+        return_value = HALF*(xl + xr)
 
     end function cbsrh
 
@@ -788,7 +792,7 @@ contains
         do j = 2, nm
             bnorm = max(bnorm, abs(bn(j)))
             arg = an(j)*cn(j-1)
-            if (arg < 0.0_wp) then
+            if (arg < ZERO) then
                 ierror = 5
                 return
             end if
@@ -846,7 +850,7 @@ contains
                 l2 = mod(j + nm - 1, nmp) + 1
                 arg = an(l1)*cn(l2)
 
-                if (arg < 0.0_wp) then
+                if (arg < ZERO) then
                     ierror = 5
                     return
                 end if
@@ -975,10 +979,10 @@ contains
 
                 den = b(1) - crt - c(1)*d(2)
 
-                if (abs(den) /= 0.0_wp) then
+                if (abs(den) /= ZERO) then
                     y(1) = (y(1)-c(1)*w(2))/den
                 else
-                    y(1) = cmplx(1.0_wp, 0.0_wp, kind=wp)
+                    y(1) = cmplx(ONE, ZERO, kind=wp)
                 end if
 
                 do j = 2, m
@@ -996,7 +1000,7 @@ contains
                         rt = bm1(m1)
                         m1 = m1 - 1
                     else
-                        if (abs(bm1(m1)) - abs(bm2(m2)) > 0.0_wp) then
+                        if (abs(bm1(m1)) - abs(bm2(m2)) > ZERO) then
                             rt = bm1(m1)
                             m1 = m1 - 1
                         else
@@ -1130,10 +1134,10 @@ contains
                 bh = bh - v*u(m-2)
                 ym = ym - v*y(m-2)
                 den = bh - am*d(m-1)
-                if (abs(den) /= 0.0_wp) then
+                if (abs(den) /= ZERO) then
                     y(m) = (ym - am*y(m-1))/den
                 else
-                    y(m) = cmplx(1.0_wp, 0.0_wp, kind=wp)
+                    y(m) = cmplx(ONE, ZERO, kind=wp)
                 end if
                 y(m-1) = y(m-1) - d(m-1)*y(m)
                 do j = 2, mm
@@ -1332,20 +1336,20 @@ contains
 
             block_110: block
                 if (modiz /= 0) then
-                    if (a(1) < 0.0_wp) exit block_110
-                    if (a(1) == 0.0_wp) exit main_block
+                    if (a(1) < ZERO) exit block_110
+                    if (a(1) == ZERO) exit main_block
                 end if
                 xl = bh(1)
                 db = bh(3) - bh(1)
                 xl = xl - db
                 r4 = psgf(xl, iz, c, a, bh)
-                do while (r4 <= 0.0_wp)
+                do while (r4 <= ZERO)
                     xl = xl - db
                     r4 = psgf(xl, iz, c, a, bh)
                 end do
-                sgn = -1.0_wp
+                sgn = -ONE
                 temp = cbsrh(xl, bh(1), iz, c, a, bh, psgf, sgn)
-                cbp(1) = cmplx(temp, 0.0_wp, kind=wp)
+                cbp(1) = cmplx(temp, ZERO, kind=wp)
                 iis = 2
             end block block_110
 
@@ -1353,20 +1357,20 @@ contains
 
             block_115: block
                 if (modiz /= 0) then
-                    if (a(1) > 0.0_wp) exit block_115
-                    if (a(1) == 0.0_wp) exit main_block
+                    if (a(1) > ZERO) exit block_115
+                    if (a(1) == ZERO) exit main_block
                 end if
                 xr = bh(iz)
                 db = bh(iz) - bh(iz-2)
                 xr = xr + db
                 r5 = psgf(xr, iz, c, a, bh)
-                do while (r5 < 0.0_wp)
+                do while (r5 < ZERO)
                     xr = xr + db
                     r5 = psgf(xr, iz, c, a, bh)
                 end do
-                sgn = 1.0_wp
+                sgn = ONE
                 temp = cbsrh(bh(iz), xr, iz, c, a, bh, psgf, sgn)
-                cbp(iz) = cmplx(temp, 0.0_wp, kind=wp)
+                cbp(iz) = cmplx(temp, ZERO, kind=wp)
                 iif = iz - 2
             end block block_115
 
@@ -1380,20 +1384,20 @@ contains
                 if_block: block
                     if (abs(psg) > EPS) then
                         r6 = psg*ppsgf(xm, iz, c, a, bh)
-                        if (r6 > 0.0_wp) exit if_block
-                        if (r6 /= 0.0_wp) then
-                            sgn = 1.0_wp
-                            cbp(ig) = cmplx(cbsrh(bh(ig), xm, iz, c, a, bh, psgf, sgn), 0.0_wp, kind=wp)
-                            sgn = -1.0_wp
-                            cbp(ig+1) = cmplx(cbsrh(xm, bh(ig+1), iz, c, a, bh, psgf, sgn), 0.0_wp, kind=wp)
+                        if (r6 > ZERO) exit if_block
+                        if (r6 /= ZERO) then
+                            sgn = ONE
+                            cbp(ig) = cmplx(cbsrh(bh(ig), xm, iz, c, a, bh, psgf, sgn), ZERO, kind=wp)
+                            sgn = -ONE
+                            cbp(ig+1) = cmplx(cbsrh(xm, bh(ig+1), iz, c, a, bh, psgf, sgn), ZERO, kind=wp)
                             cycle main_loop
                         !
                         !     case of a multiple zero
                         !
                         end if
                     end if
-                    cbp(ig) = cmplx(xm, 0.0_wp, kind=wp)
-                    cbp(ig+1) = cmplx(xm, 0.0_wp, kind=wp)
+                    cbp(ig) = cmplx(xm, ZERO, kind=wp)
+                    cbp(ig+1) = cmplx(xm, ZERO, kind=wp)
                     cycle main_loop
                 !
                 !     case of a complex zero
@@ -1402,16 +1406,16 @@ contains
 
                 it = 0
                 icv = 0
-                cx = cmplx(xm, 0.0_wp, kind=wp)
+                cx = cmplx(xm, ZERO, kind=wp)
 
                 loop_120: do
-                    fsg = cmplx(1.0_wp, 0.0_wp, kind=wp)
-                    hsg = cmplx(1.0_wp, 0.0_wp, kind=wp)
-                    fp = 0.0_wp
-                    fpp = 0.0_wp
+                    fsg = cmplx(ONE, ZERO, kind=wp)
+                    hsg = cmplx(ONE, ZERO, kind=wp)
+                    fp = ZERO
+                    fpp = ZERO
 
                     do j = 1, iz
-                        dd = 1.0_wp /(cx - bh(j))
+                        dd = ONE /(cx - bh(j))
                         fsg = fsg*a(j)*dd
                         hsg = hsg*c(j)*dd
                         fp = fp + dd
@@ -1419,31 +1423,31 @@ contains
                     end do
 
                     if (modiz == 0) then
-                        f = cmplx(1.0_wp, 0.0_wp, kind=wp) - fsg - hsg
+                        f = cmplx(ONE, ZERO, kind=wp) - fsg - hsg
                     else
-                        f = cmplx(1.0_wp, 0.0_wp, kind=wp) + fsg + hsg
+                        f = cmplx(ONE, ZERO, kind=wp) + fsg + hsg
                     end if
 
                     i3 = 0
 
-                    if (abs(fp) > 0.0_wp) then
+                    if (abs(fp) > ZERO) then
                         i3 = 1
                         r3 = -f/fp
                     end if
 
                     i2 = 0
 
-                    if (abs(fpp) > 0.0_wp) then
+                    if (abs(fpp) > ZERO) then
                         i2 = 1
-                        cdis = sqrt(fp**2 - 2.0_wp*f*fpp)
+                        cdis = sqrt(fp**2 - TWO*f*fpp)
                         r1 = cdis - fp
                         r2 = (-fp) - cdis
-                        if (abs(r1) - abs(r2) > 0.0_wp) then
+                        if (abs(r1) - abs(r2) > ZERO) then
                             r1 = r1/fpp
                         else
                             r1 = r2/fpp
                         end if
-                        r2 = 2.0_wp*f/fpp/r1
+                        r2 = TWO*f/fpp/r1
                         if (abs(r2) < abs(r1)) r1 = r2
                         if (i3 > 0) then
                             if (abs(r3) < abs(r1)) r1 = r3
@@ -1464,8 +1468,8 @@ contains
                 cbp(ig+1) = conjg(cx)
             end do main_loop
 
-            if (abs(cbp(n)) - abs(cbp(1)) <= 0.0_wp) then
-                if (abs(cbp(n)) - abs(cbp(1)) == 0.0_wp) exit main_block
+            if (abs(cbp(n)) - abs(cbp(1)) <= ZERO) then
+                if (abs(cbp(n)) - abs(cbp(1)) == ZERO) exit main_block
                 nhalf = n/2
                 do j = 1, nhalf
                     nt = n - j
@@ -1478,7 +1482,7 @@ contains
             ncmplx = 1
 
             do j = 2, iz
-                if (aimag(cbp(j)) /= 0.0_wp) return
+                if (aimag(cbp(j)) /= ZERO) return
             end do
 
             ncmplx = 0
@@ -1584,9 +1588,9 @@ contains
             end do
 
             den = b(1) - rt - c(1)*d(2)
-            w(1) = cmplx(1.0_wp, 0.0_wp, kind=wp)
+            w(1) = cmplx(ONE, ZERO, kind=wp)
 
-            if (abs(den) /= 0.0_wp) then
+            if (abs(den) /= ZERO) then
                 w(1) = (y(1)-c(1)*w(2))/den
             end if
 
@@ -1736,10 +1740,10 @@ contains
             ym = ym - v*w(m-2)
             den = bh - am*d(m-1)
 
-            if (abs(den) /= 0.0_wp) then
+            if (abs(den) /= ZERO) then
                 w(m) = (ym - am*w(m-1))/den
             else
-                w(m) = cmplx(1.0_wp, 0.0_wp, kind=wp)
+                w(m) = cmplx(ONE, ZERO, kind=wp)
             end if
 
             w(m-1) = w(m-1) - d(m-1)*w(m)
@@ -1845,9 +1849,9 @@ contains
         if (n /= 1) then
 
             e2(:n-1) = e2(2:n)*e2(2:n)
-            f = 0.0_wp
-            b = 0.0_wp
-            e2(n) = 0.0_wp
+            f = ZERO
+            b = ZERO
+            e2(n) = ZERO
 
             main_loop: do l = 1, n
                 j = 0
@@ -1888,8 +1892,8 @@ contains
                             l1 = l + 1
                             s = sqrt(e2(l))
                             g = d(l)
-                            p = (d(l1)-g)/(2.0_wp*s)
-                            r = sqrt(p**2 + 1.0_wp)
+                            p = (d(l1)-g)/(TWO*s)
+                            r = sqrt(p**2 + ONE)
                             d(l) = s/(p + sign(r, p))
                             h = g - d(l)
                             d(l1:n) = d(l1:n) - h
@@ -1899,10 +1903,10 @@ contains
                             !
                             g = d(m)
 
-                            if (g == 0.0_wp) g = b
+                            if (g == ZERO) g = b
 
                             h = g
-                            s = 0.0_wp
+                            s = ZERO
                             mml = m - l
                             !
                             !==> for i=m-1 step -1 until l do --
@@ -1915,7 +1919,7 @@ contains
                                 s = e2(i)/r
                                 d(i+1) = h + s*(h + d(i))
                                 g = d(i) - e2(i)/g
-                                if (g == 0.0_wp) g = b
+                                if (g == ZERO) g = b
                                 h = g*p/r
                             end do
 
@@ -1924,11 +1928,11 @@ contains
                             !
                             !==>  guard against underflowed h
                             !
-                            if (h == 0.0_wp .or. abs(e2(l)) <= abs(c/h)) exit if_block
+                            if (h == ZERO .or. abs(e2(l)) <= abs(c/h)) exit if_block
 
                             e2(l) = h*e2(l)
 
-                            if (e2(l) == 0.0_wp) exit loop_105
+                            if (e2(l) == ZERO) exit loop_105
                         end do loop_105
                     end if
                 end block if_block
