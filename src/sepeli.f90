@@ -669,7 +669,7 @@ contains
             indx(1) = irwk + 1
 
             do j = 1, 6
-                indx(j+1) = indx(j) +  n + 1
+                indx(j+1) = indx(j) + n + 1
             end do
 
             do j = 7, 11
