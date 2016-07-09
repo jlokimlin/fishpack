@@ -265,8 +265,54 @@ contains
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: irwk, icwk
         type (Fish)  :: workspace
+        !-----------------------------------------------
+
+        !
+        !==> Check validity of input arguments
+        !
+        call check_input_arguments(nperod, n, mperod, m, a, b, c, idimy, ierror)
+
+        if (ierror /= 0) return
+
+        !
+        !==> Allocate memory
+        !
+        workspace = get_workspace(n, m)
+
+        associate( &
+            cxw => workspace%complex_workspace, &
+            indx => workspace%workspace_indices &
+            )
+            !
+            !==> Solve system
+            !
+            call cmgnbnn(nperod, n, mperod, m, a, b, c, idimy, y, cxw, indx)
+
+        end associate
+
+        !
+        !==> Release memory
+        !
+        call workspace%destroy()
+
+    end subroutine cmgnbn
+
+
+
+    pure subroutine check_input_arguments(nperod, n, mperod, m, a, b, c, idimy, ierror)
+        !-----------------------------------------------
+        ! Dummy arguments
+        !-----------------------------------------------
+        integer (ip), intent (in)     :: nperod
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: mperod
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: idimy
+        integer (ip), intent (out)    :: ierror
+        complex (wp), intent (in)     :: a(:)
+        complex (wp), intent (in)     :: b(:)
+        complex (wp), intent (in)     :: c(:)
         !-----------------------------------------------
 
         !
@@ -301,34 +347,56 @@ contains
             ierror = 0
         end if
 
+    end subroutine check_input_arguments
+
+
+
+    pure function get_workspace(n, m) result (return_value)
+        !-----------------------------------------------
+        ! Dummy arguments
+        !-----------------------------------------------
+        integer (ip), intent (in) :: n
+        integer (ip), intent (in) :: m
+        type (Fish)               :: return_value
+        !-----------------------------------------------
+        integer (ip)            :: irwk, icwk, j
+        integer (ip), parameter :: NUMBER_OF_INDICES = 11
+        !-----------------------------------------------
+
         !
         !==> Allocate memory
         !
         irwk = 0
         icwk = (10 + int(log(real(n, kind=wp))/log(TWO), kind=ip))*m + 4*n
-        call workspace%create(irwk, icwk, ierror)
+        call return_value%create(irwk, icwk)
 
-        ! Check if allocation was succesful
-        if (ierror == 20) return
+        !
+        !==> Allocate memory for workspace indices
+        !
+        allocate( return_value%workspace_indices(NUMBER_OF_INDICES) )
 
-        associate( cxw => workspace%complex_workspace )
+        associate (&
+            NUM => NUMBER_OF_INDICES, &
+            indx => return_value%workspace_indices &
+            )
             !
-            !==> Solve system
+            !==> Compute workspace indices
             !
-            call cmgnbnn(nperod, n, mperod, m, a, b, c, idimy, y, cxw)
+            indx(1) = m + 1
+
+            do j = 1, NUM - 2
+                indx(j + 1) = indx(j) + m
+            end do
+
+            indx(NUM) = indx(NUM-1) + 4*n
 
         end associate
 
-        !
-        !==> Release memory
-        !
-        call workspace%destroy()
-
-    end subroutine cmgnbn
+    end function get_workspace
 
 
 
-    subroutine cmgnbnn(nperod, n, mperod, m, a, b, c, idimy, y, w)
+    subroutine cmgnbnn(nperod, n, mperod, m, a, b, c, idimy, y, w, workspace_indices)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
@@ -341,17 +409,15 @@ contains
         complex (wp), intent (in)     :: b(:)
         complex (wp), intent (in)     :: c(:)
         complex (wp), intent (in out) :: y(:,:)
-        complex (wp), intent (in out) :: w(:)
+        complex (wp), intent (out), contiguous :: w(:)
+        integer (ip), intent (in),  contiguous :: workspace_indices(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: workspace_indices(11)
         integer (ip) :: i, k, j, mp, np, ipstor
         integer (ip) :: irev, mh, mhm1, modd, nby2, mskip
         complex (wp) :: temp_save
         !-----------------------------------------------
-
-        workspace_indices = get_workspace_indices(n, m)
 
         associate( &
             iwba => workspace_indices(1), &
@@ -520,29 +586,6 @@ contains
 end associate
 
 end subroutine cmgnbnn
-
-
-
-pure function get_workspace_indices(n, m) result (return_value)
-    !-----------------------------------------------
-    ! Dummy arguments
-    !-----------------------------------------------
-    integer (ip), intent (in) :: n
-    integer (ip), intent (in) :: m
-    integer (ip)              :: return_value(11)
-    !-----------------------------------------------
-    integer (ip) :: j
-    !-----------------------------------------------
-
-    associate (i => return_value)
-        i(1) = m + 1
-        do j = 1, 9
-            i(j + 1) = i(j) + m
-        end do
-        i(11) = i(10) + 4*n
-    end associate
-
-end function get_workspace_indices
 
 
 
