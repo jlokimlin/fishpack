@@ -595,7 +595,7 @@ contains
             !
             np = nbdcnd
 
-            call w%get_block_tridiagonal_workpace_dimensions(n, m, irwk, icwk)
+            call w%compute_blktri_workspace_lengths(n, m, irwk, icwk)
 
             np1 = n + 1
             mp1 = m + 1

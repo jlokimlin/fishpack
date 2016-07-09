@@ -428,7 +428,7 @@ contains
         !-----------------------------------------------
 
         ! Get workspace dimensions for genbun
-        call return_value%get_genbun_workspace_dimensions(n, m, irwk)
+        call return_value%compute_genbun_workspace_lengths(n, m, irwk)
 
         ! Adjust workspace for hstcyl
         irwk = irwk + 3 * m

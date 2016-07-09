@@ -66,11 +66,11 @@ module type_FishpackWorkspace
         !---------------------------------------------------------------
         ! Type-bound procedures
         !---------------------------------------------------------------
-        procedure,         public :: create => create_fishpack_workspace
-        procedure,         public :: destroy => destroy_fishpack_workspace
-        procedure, nopass, public :: get_block_tridiagonal_workpace_dimensions
-        procedure, nopass, public :: get_genbun_workspace_dimensions
-        !final                     :: finalize_fishpack_workspace
+        procedure, public :: create => create_fishpack_workspace
+        procedure, public :: destroy => destroy_fishpack_workspace
+        procedure, public :: compute_blktri_workspace_lengths
+        procedure, public :: compute_genbun_workspace_lengths
+        !final             :: finalize_fishpack_workspace
         !---------------------------------------------------------------
     end type FishpackWorkspace
 
@@ -145,7 +145,7 @@ contains
 
 
 
-    pure subroutine get_block_tridiagonal_workpace_dimensions(n, m, irwk, icwk)
+    pure subroutine compute_blktri_workspace_lengths(this, n, m, irwk, icwk)
         !
         ! Purpose:
         !
@@ -155,10 +155,11 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        integer (ip), intent (in)  :: n
-        integer (ip), intent (in)  :: m
-        integer (ip), intent (out) :: irwk
-        integer (ip), intent (out) :: icwk
+        class (FishpackWorkspace), intent (in out) :: this
+        integer (ip),              intent (in)     :: n
+        integer (ip),              intent (in)     :: m
+        integer (ip),              intent (out)    :: irwk
+        integer (ip),              intent (out)    :: icwk
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
@@ -183,11 +184,11 @@ contains
 
         end associate
 
-    end subroutine get_block_tridiagonal_workpace_dimensions
+    end subroutine compute_blktri_workspace_lengths
 
 
 
-    pure subroutine get_genbun_workspace_dimensions(n, m, irwk)
+    pure subroutine compute_genbun_workspace_lengths(this, n, m, irwk)
         !
         ! Purpose:
         !
@@ -197,9 +198,10 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        integer (ip), intent (in)  :: n
-        integer (ip), intent (in)  :: m
-        integer (ip), intent (out) :: irwk
+        class (FishpackWorkspace), intent (in out) :: this
+        integer (ip),              intent (in)     :: n
+        integer (ip),              intent (in)     :: m
+        integer (ip),              intent (out)    :: irwk
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
@@ -219,7 +221,7 @@ contains
 
         irwk = 4*n + (10 + log2n)*m
 
-    end subroutine get_genbun_workspace_dimensions
+    end subroutine compute_genbun_workspace_lengths
 
 
 

@@ -474,8 +474,7 @@ contains
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        type (Fish)  :: workspace
-        integer (ip) :: irwk, icwk
+        type (Fish) :: workspace
         !-----------------------------------------------
 
         !
@@ -490,10 +489,7 @@ contains
         !
         !==> Allocate memory
         !
-        irwk = 30+l+m+5*n+max(l, m, n) + 7*((l+1)/2 + (m+1)/2)
-        icwk = 0
-        call workspace%create(irwk, icwk)
-
+        workspace = get_workspace(n, m, l)
 
         associate( rew => workspace%real_workspace )
             !
@@ -519,38 +515,38 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)      :: l
-        integer (ip), intent (in)      :: lbdcnd
-        integer (ip), intent (in)      :: m
-        integer (ip), intent (in)      :: mbdcnd
-        integer (ip), intent (in)      :: n
-        integer (ip), intent (in)      :: nbdcnd
-        integer (ip), intent (in)      :: ldimf
-        integer (ip), intent (in)      :: mdimf
-        integer (ip), intent (out)     :: ierror
-        real (wp),    intent (in)      :: xs
-        real (wp),    intent (in)      :: xf
-        real (wp),    intent (in)      :: ys
-        real (wp),    intent (in)      :: yf
-        real (wp),    intent (in)      :: zs
-        real (wp),    intent (in)      :: zf
-        real (wp),    intent (in)      :: elmbda
-        real (wp),    intent (out)     :: pertrb
-        real (wp),    intent (in)      :: bdxs(mdimf, *)
-        real (wp),    intent (in)      :: bdxf(mdimf, *)
-        real (wp),    intent (in)      :: bdys(ldimf, *)
-        real (wp),    intent (in)      :: bdyf(ldimf, *)
-        real (wp),    intent (in)      :: bdzs(ldimf, *)
-        real (wp),    intent (in)      :: bdzf(ldimf, *)
-        real (wp),    intent (in out)  :: f(ldimf, mdimf, *)
-        real (wp), contiguous, intent (in out) :: w(:)
+        integer (ip), intent (in)     :: l
+        integer (ip), intent (in)     :: lbdcnd
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: mbdcnd
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: nbdcnd
+        integer (ip), intent (in)     :: ldimf
+        integer (ip), intent (in)     :: mdimf
+        integer (ip), intent (out)    :: ierror
+        real (wp),    intent (in)     :: xs
+        real (wp),    intent (in)     :: xf
+        real (wp),    intent (in)     :: ys
+        real (wp),    intent (in)     :: yf
+        real (wp),    intent (in)     :: zs
+        real (wp),    intent (in)     :: zf
+        real (wp),    intent (in)     :: elmbda
+        real (wp),    intent (out)    :: pertrb
+        real (wp),    intent (in)     :: bdxs(:,:)
+        real (wp),    intent (in)     :: bdxf(:,:)
+        real (wp),    intent (in)     :: bdys(:,:)
+        real (wp),    intent (in)     :: bdyf(:,:)
+        real (wp),    intent (in)     :: bdzs(:,:)
+        real (wp),    intent (in)     :: bdzf(:,:)
+        real (wp),    intent (in out) :: f(ldimf, mdimf, *)
+        real (wp),    intent (out), contiguous :: w(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
         integer (ip) :: mstart, mstop, mp1, mp, munk, np, np1
         integer (ip) :: nstart, nstop, nunk, lp1, lp, lstart
         integer (ip) :: lstop, j, k, lunk, iwb, iwc, iww
-        integer (ip) :: mstpm1, lstpm1, nstpm1, nperod, local_error_flag
+        integer (ip) :: mstpm1, lstpm1, nstpm1, nperod
         real (wp)    :: dy, twbydy, c2, dz, twbydz, c3, dx
         real (wp)    :: c1, twbydx, xlp, ylp, zlp, s1, s2, s
         !-----------------------------------------------
@@ -693,12 +689,12 @@ contains
         w(iwb:nunk-1+iwb) = (-TWO*c3) + elmbda
 
         select case (np)
-            case (3)
+            case (3:4)
                 w(iwb-1) = TWO*c3
-            case (4)
-                w(iwc) = TWO*c3
-                w(iwb-1) = TWO*c3
-            case (5)
+        end select
+
+        select case (np)
+            case (4:5)
                 w(iwc) = TWO*c3
         end select
 
@@ -733,7 +729,7 @@ contains
                                             end do
                                             s2 = sum(f(2:lstpm1, 1, k)+f(2:lstpm1, mstop, k))
                                             s2 = (s2 + (f(1, 1, k) + f(1, mstop, k) &
-                                                +f(lstop, 1, k) + f(lstop,mstop, k))/xlp)/ylp
+                                                + f(lstop, 1, k) + f(lstop,mstop, k))/xlp)/ylp
                                             s1 = s1 + s2
                                         end do
 
@@ -779,12 +775,13 @@ contains
         !
         call pois3dd(lbdcnd, lunk, c1, mbdcnd, munk, c2, nperod, nunk, w, &
             w(iwb:), w(iwc:), ldimf, mdimf, f(lstart, mstart, nstart), &
-            local_error_flag, w(iww:))
+            ierror, w(iww:))
 
         ! Check error flag
-        if (local_error_flag /= 0) then
+        if (ierror /= 0) then
             error stop 'fishpack library: pois3dd call failed in hw3crtt'
         end if
+
         !
         !==> Fill in sides for periodic boundary conditions.
         !
@@ -881,6 +878,29 @@ contains
         end if
 
     end subroutine check_input_arguments
+
+
+
+    pure function get_workspace(n, m, l) result (return_value)
+        !-----------------------------------------------
+        ! Dummy arguments
+        !-----------------------------------------------
+        integer (ip), intent (in)  :: n, m, l
+        type (Fish)                :: return_value
+        !-----------------------------------------------
+        ! Local variables
+        !-----------------------------------------------
+        integer (ip)  :: irwk, icwk
+        !-----------------------------------------------
+
+        ! Adjust workspace for hw3crt
+        irwk = 30 + l + m + 5*n + max(n, m, l) + 7*((l+1)/2 + (m+1)/2)
+        icwk = 0
+
+        ! Allocate memory
+        call return_value%create(irwk, icwk)
+
+    end function get_workspace
 
 
 

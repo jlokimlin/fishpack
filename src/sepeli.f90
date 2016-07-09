@@ -434,7 +434,7 @@
 !                          the discretization may lead to a block
 !                          tridiagonal linear system which is not
 !                          diagonally dominant (for example, this
-!                          happens if cfun=0 and bfun/(2.0_wp *dlx) greater
+!                          happens if cfun=0 and bfun/(TWO *dlx) greater
 !                          than afun/dlx**2).  in this case solution
 !                          may fail.  this cannot happen in the limit
 !                          as dlx, dly approach zero.  hence, the
@@ -506,10 +506,10 @@ module module_sepeli
         ip ! Integer precision
 
     use type_FishpackWorkspace, only: &
-        FishpackWorkspace
+        Fish => FishpackWorkspace
 
     use module_blktri, only: &
-        blktrii
+        BlktriAux
 
     use module_sepaux, only: &
         SepAux, &
@@ -522,6 +522,14 @@ module module_sepeli
     private
     public :: sepeli
 
+    !---------------------------------------------------------------
+    ! Dictionary: Variables confined to the module
+    !---------------------------------------------------------------
+    real (wp), private :: ZERO = 0.0_wp
+    real (wp), private :: HALF = 0.5_wp
+    real (wp), private :: TWO = 2.0_wp
+    !---------------------------------------------------------------
+
 
 contains
 
@@ -529,915 +537,919 @@ contains
     subroutine sepeli(intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, &
         beta, c, d, n, nbdcnd, bdc, gama, bdd, xnu, cofx, cofy, grhs, &
         usol, idmn, workspace, pertrb, ierror)
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
         ! Dummy arguments
-        !--------------------------------------------------------------------------------
-        integer (ip),              intent (in)     :: intl
-        integer (ip),              intent (in)     :: iorder
-        integer (ip),              intent (in)     :: m
-        integer (ip),              intent (in)     :: mbdcnd
-        integer (ip),              intent (in)     :: n
-        integer (ip),              intent (in)     :: nbdcnd
-        integer (ip),              intent (in)     :: idmn
-        integer (ip),              intent (out)    :: ierror
-        real (wp),                 intent (in)     :: a
-        real (wp),                 intent (in)     :: b
-        real (wp),                 intent (in)     :: alpha
-        real (wp),                 intent (in)     :: beta
-        real (wp),                 intent (in)     :: c
-        real (wp),                 intent (in)     :: d
-        real (wp),                 intent (in)     :: gama
-        real (wp),                 intent (in)     :: xnu
-        real (wp),                 intent (out)    :: pertrb
-        real (wp), contiguous,     intent (in)     :: bda(:)
-        real (wp), contiguous,     intent (in)     :: bdb(:)
-        real (wp), contiguous,     intent (in)     :: bdc(:)
-        real (wp), contiguous,     intent (in)     :: bdd(:)
-        real (wp)                                  :: grhs(:,:)
-        real (wp)                                  :: usol(:,:)
-        class (FishpackWorkspace)                  :: workspace
-        procedure (get_coefficients)               :: cofx
-        procedure (get_coefficients)               :: cofy
-        !--------------------------------------------------------------------------------
+        !--------------------------------------------------------------
+        integer (ip), intent (in)     :: intl
+        integer (ip), intent (in)     :: iorder
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: mbdcnd
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: nbdcnd
+        integer (ip), intent (in)     :: idmn
+        integer (ip), intent (out)    :: ierror
+        real (wp),    intent (in)     :: a
+        real (wp),    intent (in)     :: b
+        real (wp),    intent (in)     :: alpha
+        real (wp),    intent (in)     :: beta
+        real (wp),    intent (in)     :: c
+        real (wp),    intent (in)     :: d
+        real (wp),    intent (in)     :: gama
+        real (wp),    intent (in)     :: xnu
+        real (wp),    intent (out)    :: pertrb
+        real (wp),    intent (in)     :: bda(:)
+        real (wp),    intent (in)     :: bdb(:)
+        real (wp),    intent (in)     :: bdc(:)
+        real (wp),    intent (in)     :: bdd(:)
+        real (wp),    intent (in out) :: grhs(:,:)
+        real (wp),    intent (in out) :: usol(:,:)
+        class (Fish), intent (in out) :: workspace
+        !--------------------------------------------------------------
+        ! Dummy procedure arguments
+        !--------------------------------------------------------------
+        procedure (get_coefficients) :: cofx
+        procedure (get_coefficients) :: cofy
+        !--------------------------------------------------------------
         ! Local variables
-        !--------------------------------------------------------------------------------
-        integer (ip)        :: k, l, np, irwk, icwk
-        integer (ip),  save :: sepeli_workspace_indices(12)
-        type (SepAux), save :: sep_aux
-        !-----------------------------------------------
+        !--------------------------------------------------------------
+        type (SepAux), save :: aux
+        !--------------------------------------------------------------
 
-        !     save local variable work space pointers for noninitial call
         !
-        !==>  check input arguments
+        !==> Check validity of input arguments
         !
-        call check_input_parameters(intl, iorder, a, b, m, mbdcnd, c, d, n, nbdcnd, cofx, &
-            cofy, idmn, ierror)
+        call check_input_arguments(intl, iorder, a, b, m, mbdcnd, c, d, n, &
+            nbdcnd, cofx, cofy, idmn, ierror)
 
-        if (ierror /= 0) then
-            return
-        end if
+        ! Check error flag
+        if (ierror /= 0) return
 
-        if (intl == 0) then
-            !
-            !==> allocate space and set work space indices on initial call only
-            !
-            k = m + 1
-            l = n + 1
-            !
-            !==> compute required blktri workspace lengths
-            !
-            np = nbdcnd
+        !
+        !==> allocate workspace arrays on initial call only
+        !
+        if (intl == 0) call setup_workspace(n, m, workspace)
 
-            call workspace%get_block_tridiagonal_workpace_dimensions(n, m, irwk, icwk)
-            !
-            !==> Set work space indices
-            !
-            sepeli_workspace_indices = get_sepeli_workspace_indices(irwk, l, k)
-            !
-            !==> Set work space requirements
-            !
-            irwk = sepeli_workspace_indices(12) + k
-            icwk = icwk + 3*(m + 1)
-            !
-            !==> Allocate memory
-            !
-            call workspace%create(irwk, icwk, ierror)
-
-        end if
-        ierror = 0
-        !     compute second or fourth order solution
         associate( &
-            i => sepeli_workspace_indices, &
+            indx => workspace%workspace_indices, &
             rew => workspace%real_workspace, &
             cxw => workspace%complex_workspace &
             )
 
             !
-            !==> Solve system
+            !==> Compute 2nd or 4th order solution
             !
-            call spelip(sep_aux, intl, iorder, a, b, m, mbdcnd, &
+            call spelip(aux, intl, iorder, a, b, m, mbdcnd, &
                 bda, alpha, bdb, beta, c, d, n, &
                 nbdcnd, bdc, gama, bdd, xnu, cofx, cofy, &
-                rew(i(1):), rew(i(2):), rew(i(3):), rew(i(4):), &
-                rew(i(5):), rew(i(6):), rew(i(7):), rew(i(8):), &
-                rew(i(9):), rew(i(10):), rew(i(11):), rew(i(12):), &
-                grhs, usol, idmn, rew, cxw, &
-                pertrb, ierror)
+                rew(indx(1):), rew(indx(2):), rew(indx(3):), rew(indx(4):), &
+                rew(indx(5):), rew(indx(6):), rew(indx(7):), rew(indx(8):), &
+                rew(indx(9):), rew(indx(10):), rew(indx(11):), rew(indx(12):), &
+                grhs, usol, idmn, rew, cxw, pertrb, ierror)
 
         end associate
 
-    contains
-
-        pure function get_sepeli_workspace_indices(irwk, l, k) result (return_value)
-            !--------------------------------------------------------------------------------
-            ! Dummy arguments
-            !--------------------------------------------------------------------------------
-            integer (ip), intent (in) :: irwk
-            integer (ip), intent (in) :: l
-            integer (ip), intent (in) :: k
-            integer (ip)              :: return_value(12)
-            !--------------------------------------------------------------------------------
-            integer (ip) :: j !! Counter
-            !--------------------------------------------------------------------------------
-
-            associate( i => return_value)
-                i(1) = irwk + 1
-
-                do j = 1, 6
-                    i(j+1) = i(j) + l
-                end do
-
-                do j = 7, 11
-                    i(j+1) = i(j) + k
-                end do
-            end associate
-
-        end function get_sepeli_workspace_indices
+    end subroutine sepeli
 
 
 
-        subroutine spelip(sep_aux, intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, &
-            beta, c, d, n, nbdcnd, bdc, gama, bdd, xnu, cofx, cofy, an, bn, &
-            cn, dn, un, zn, am, bm, cm, dm, um, zm, grhs, usol, idmn, w, &
-            wc, pertrb, ierror)
+    pure subroutine setup_workspace(n, m, workspace)
+        !-----------------------------------------------
+        ! Dummy arguments
+        !-----------------------------------------------
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: m
+        class (Fish), intent (in out) :: workspace
+        !-----------------------------------------------
+        ! Local variables
+        !-----------------------------------------------
+        integer (ip) :: irwk, icwk
+        !-----------------------------------------------
+
+        ! Ensure that object is usable
+        call workspace%destroy()
+
+        ! Compute required blktri workspace lengths
+        call workspace%compute_blktri_workspace_lengths(n, m, irwk, icwk)
+
+        ! Set workspace indices
+        allocate( workspace%workspace_indices(12) )
+
+        associate( indx => workspace%workspace_indices )
+
+            indx = get_workspace_indices(irwk, n, m)
+
+            ! Adjust workspace requirements for sepeli
+            irwk = indx(12) + m + 1
+            icwk = icwk + 3 * (m + 1)
+
+        end associate
+
+        ! Allocate memory for real and complex workspace arrays
+        allocate( workspace%real_workspace(irwk) )
+        allocate( workspace%complex_workspace(icwk) )
+
+    end subroutine setup_workspace
+
+
+
+    pure function get_workspace_indices(irwk, n, m) result (return_value)
+        !--------------------------------------------------------------
+        ! Dummy arguments
+        !--------------------------------------------------------------
+        integer (ip), intent (in) :: irwk
+        integer (ip), intent (in) :: n
+        integer (ip), intent (in) :: m
+        integer (ip)              :: return_value(12)
+        !--------------------------------------------------------------
+        integer (ip) :: j !! Counter
+        !--------------------------------------------------------------
+
+        associate( indx => return_value)
+
+            indx(1) = irwk + 1
+
+            do j = 1, 6
+                indx(j+1) = indx(j) +  n + 1
+            end do
+
+            do j = 7, 11
+                indx(j+1) = indx(j) + m + 1
+            end do
+
+        end associate
+
+    end function get_workspace_indices
+
+
+
+    subroutine spelip(sep_aux, intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, &
+        beta, c, d, n, nbdcnd, bdc, gama, bdd, xnu, cofx, cofy, an, bn, &
+        cn, dn, un, zn, am, bm, cm, dm, um, zm, grhs, usol, idmn, w, &
+        wc, pertrb, ierror)
+        !
+        ! Purpose:
+        !
+        !     spelip sets up vectors and arrays for input to blktri
+        !     and computes a second order solution in usol.  a return jump to
+        !     sepeli occurrs if iorder=2.  if iorder=4 a fourth order
+        !     solution is generated in usol.
+        !
+        !--------------------------------------------------------------
+        ! Dummy arguments
+        !--------------------------------------------------------------
+        class (SepAux), intent (in out) :: sep_aux
+        integer (ip),   intent (in)     :: intl
+        integer (ip),   intent (in)     :: iorder
+        integer (ip),   intent (in)     :: m
+        integer (ip),   intent (in)     :: mbdcnd
+        integer (ip),   intent (in)     :: n
+        integer (ip),   intent (in)     :: nbdcnd
+        integer (ip),   intent (in)     :: idmn
+        integer (ip),   intent (out)    :: ierror
+        real (wp),      intent (in)     :: a
+        real (wp),      intent (in)     :: b
+        real (wp),      intent (in)     :: alpha
+        real (wp),      intent (in)     :: beta
+        real (wp),      intent (in)     :: c
+        real (wp),      intent (in)     :: d
+        real (wp),      intent (in)     :: gama
+        real (wp),      intent (in)     :: xnu
+        real (wp),      intent (out)    :: pertrb
+        real (wp),      intent (in)     :: bda(:)
+        real (wp),      intent (in)     :: bdb(:)
+        real (wp),      intent (in)     :: bdc(:)
+        real (wp),      intent (in)     :: bdd(:)
+        real (wp),      intent (out), contiguous :: an(:)
+        real (wp),      intent (out), contiguous :: bn(:)
+        real (wp),      intent (out), contiguous :: cn(:)
+        real (wp),      intent (out), contiguous :: dn(:)
+        real (wp),      intent (out), contiguous :: un(:)
+        real (wp),      intent (out), contiguous :: zn(:)
+        real (wp),      intent (out), contiguous :: am(:)
+        real (wp),      intent (out), contiguous :: bm(:)
+        real (wp),      intent (out), contiguous :: cm(:)
+        real (wp),      intent (out), contiguous :: dm(:)
+        real (wp),      intent (out), contiguous :: um(:)
+        real (wp),      intent (out), contiguous :: zm(:)
+        real (wp),      intent (in out)          :: grhs(:,:)
+        real (wp),      intent (in out)          :: usol(:,:)
+        real (wp),      intent (out), contiguous :: w(:)
+        complex (wp),   intent (out), contiguous :: wc(:)
+        !--------------------------------------------------------------
+        ! Dummy procedure arguments
+        !--------------------------------------------------------------
+        procedure (get_coefficients)  :: cofx
+        procedure (get_coefficients)  :: cofy
+        !--------------------------------------------------------------
+        ! Local variables
+        !--------------------------------------------------------------
+        integer (ip)     :: i, j, i1, mp, np
+        real (wp)        :: xi, ai, bi, ci, axi, bxi, cxi
+        real (wp)        :: yj, dj, ej, fj, dyj, eyj
+        real (wp)        :: fyj, ax1, cxm, dy1, fyn, prtrb
+        logical          :: singular
+        type (BlktriAux) :: aux
+        !--------------------------------------------------------------
+
+        ! Associate various quantities
+        associate( &
+            kswx => sep_aux%kswx, &
+            kswy => sep_aux%kswy, &
+            k => sep_aux%k, &
+            l=>sep_aux%l, &
+            mit=>sep_aux%mit, &
+            nit=> sep_aux%nit, &
+            is=> sep_aux%is, &
+            ms=> sep_aux%ms, &
+            js=> sep_aux%js, &
+            ns=> sep_aux%ns, &
+            ait => sep_aux%ait, &
+            bit => sep_aux%bit, &
+            cit => sep_aux%cit, &
+            dit => sep_aux%dit, &
+            dlx => sep_aux%dlx, &
+            dly => sep_aux%dly, &
+            tdlx3 => sep_aux%tdlx3, &
+            tdly3 => sep_aux%tdly3, &
+            dlx4 => sep_aux%dlx4, &
+            dly4 => sep_aux%dly4 &
+            )
+
+            !     set parameters internally
             !
-            ! Purpose:
+            kswx = mbdcnd + 1
+            kswy = nbdcnd + 1
+            k = m + 1
+            l = n + 1
+            ait = a
+            bit = b
+            cit = c
+            dit = d
             !
-            !     spelip sets up vectors and arrays for input to blktri
-            !     and computes a second order solution in usol.  a return jump to
-            !     sepeli occurrs if iorder=2.  if iorder=4 a fourth order
-            !     solution is generated in usol.
+            !==> set right hand side values from grhs in usol on the interior
+            !    and non-specified boundaries.
             !
-            !--------------------------------------------------------------------------------
-            ! Dummy arguments
-            !--------------------------------------------------------------------------------
-            class (SepAux), intent (in out) :: sep_aux
-            integer (ip),   intent (in)     :: intl
-            integer (ip),   intent (in)     :: iorder
-            integer (ip),   intent (in)     :: m
-            integer (ip),   intent (in)     :: mbdcnd
-            integer (ip),   intent (in)     :: n
-            integer (ip),   intent (in)     :: nbdcnd
-            integer (ip),   intent (in)     :: idmn
-            integer (ip),   intent (out)    :: ierror
-            real (wp),      intent (in)     :: a
-            real (wp),      intent (in)     :: b
-            real (wp),      intent (in)     :: alpha
-            real (wp),      intent (in)     :: beta
-            real (wp),      intent (in)     :: c
-            real (wp),      intent (in)     :: d
-            real (wp),      intent (in)     :: gama
-            real (wp),      intent (in)     :: xnu
-            real (wp),      intent (out)    :: pertrb
-            real (wp),      intent (in)     :: bda(:)
-            real (wp),      intent (in)     :: bdb(:)
-            real (wp),      intent (in)     :: bdc(:)
-            real (wp),      intent (in)     :: bdd(:)
-            real (wp),      intent (in out) :: an(:)
-            real (wp),      intent (in out) :: bn(:)
-            real (wp),      intent (in out) :: cn(:)
-            real (wp),      intent (in out) :: dn(:)
-            real (wp),      intent (in out) :: un(:)
-            real (wp),      intent (in out) :: zn(:)
-            real (wp),      intent (in out) :: am(:)
-            real (wp),      intent (in out) :: bm(:)
-            real (wp),      intent (in out) :: cm(:)
-            real (wp),      intent (in out) :: dm(:)
-            real (wp),      intent (in out) :: um(:)
-            real (wp),      intent (in out) :: zm(:)
-            real (wp),      intent (in out) :: grhs(:,:)
-            real (wp),      intent (in out) :: usol(:,:)
-            real (wp),      intent (in out) :: w(:)
-            complex (wp)                    :: wc(:)
-            procedure (get_coefficients)    :: cofx
-            procedure (get_coefficients)    :: cofy
-            !--------------------------------------------------------------------------------
-            ! Local variables
-            !--------------------------------------------------------------------------------
-            integer (ip) :: i, j, i1, mp, np
-            real (wp)    :: xi, ai, bi, ci, axi, bxi, cxi
-            real (wp)    :: yj, dj, ej, fj, dyj, eyj
-            real (wp)    :: fyj, ax1, cxm, dy1, fyn, prtrb
-            logical      :: singular
-            !--------------------------------------------------------------------------------
+            usol(2:m, 2:n) = grhs(2:m, 2:n)
 
-            ! Associate various quantities
-            associate( &
-                kswx => sep_aux%kswx, &
-                kswy => sep_aux%kswy, &
-                k => sep_aux%k, &
-                l=>sep_aux%l, &
-                mit=>sep_aux%mit, &
-                nit=> sep_aux%nit, &
-                is=> sep_aux%is, &
-                ms=> sep_aux%ms, &
-                js=> sep_aux%js, &
-                ns=> sep_aux%ns, &
-                ait => sep_aux%ait, &
-                bit => sep_aux%bit, &
-                cit => sep_aux%cit, &
-                dit => sep_aux%dit, &
-                dlx => sep_aux%dlx, &
-                dly => sep_aux%dly, &
-                tdlx3 => sep_aux%tdlx3, &
-                tdly3 => sep_aux%tdly3, &
-                dlx4 => sep_aux%dlx4, &
-                dly4 => sep_aux%dly4 &
-                )
+            if (kswx /= 2 .and. kswx /= 3) then
+                usol(1, 2:n) = grhs(1, 2:n)
+            end if
 
-                !     set parameters internally
+            if (kswx /= 2 .and. kswx /= 5) then
+                usol(k, 2:n) = grhs(k, 2:n)
+            end if
+
+            if (kswy /= 2 .and. kswy /= 3) then
+                usol(2:m, 1) = grhs(2:m, 1)
+            end if
+
+            if (kswy /= 2 .and. kswy /= 5) then
+                usol(2:m, l) = grhs(2:m, l)
+            end if
+
+            if (kswx/=2 .and. kswx/=3 .and. kswy/=2 .and. kswy/=3) then
+                usol(1, 1)  = grhs(1, 1)
+            end if
+
+            if (kswx/=2 .and. kswx/=5 .and. kswy/=2 .and. kswy/=3) then
+                usol(k, 1) = grhs(k, 1)
+            end if
+
+            if (kswx/=2 .and. kswx/=3 .and. kswy/=2 .and. kswy/=5) then
+                usol(1, l) = grhs(1, l)
+            end if
+
+            if (kswx/=2 .and. kswx/=5 .and. kswy/=2 .and. kswy/=5) then
+                usol(k, l) = grhs(k, l)
+            end if
+
+            i1 = 1
+            !
+            !==> set switches for periodic or non-periodic boundaries
+            !
+            mp = 1
+            np = 1
+
+            if (kswx == 1) then
+                mp = 0
+            end if
+
+            if (kswy == 1) then
+                np = 0
+            end if
+            !
+            !     set dlx, dly and size of block tri-diagonal system generated
+            !     in nint, mint
+            !
+            dlx = (bit - ait)/m
+            mit = k - 1
+
+            select case (kswx)
+                case (2)
+                    mit = k - 2
+                case (4)
+                    mit = k
+            end select
+
+            dly = (dit - cit)/n
+            nit = l - 1
+
+            select case (kswy)
+                case (2)
+                    nit = l - 2
+                case (4)
+                    nit = l
+            end select
+
+            tdlx3 = TWO * (dlx**3)
+            dlx4 = dlx**4
+            tdly3 = TWO * (dly**3)
+            dly4 = dly**4
+            !
+            !==> set subscript limits for portion of array to input to blktri
+            !
+            is = 1
+            js = 1
+
+            if (kswx==2 .or. kswx==3) then
+                is = 2
+            end if
+
+            if (kswy==2 .or. kswy==3) then
+                js = 2
+            end if
+
+            ns = nit + js - 1
+            ms = mit + is - 1
+            !
+            !     set x - direction
+            !
+            do i = 1, mit
+                xi = ait + real(is + i - 2, kind=wp)*dlx
+                call cofx(xi, ai, bi, ci)
+                axi = (ai/dlx - HALF*bi)/dlx
+                bxi = (-TWO*ai/dlx**2) + ci
+                cxi = (ai/dlx + HALF*bi)/dlx
+                am(i) = axi
+                bm(i) = bxi
+                cm(i) = cxi
+            end do
+            !
+            !     set y direction
+            !
+            do j = 1, nit
+                yj = cit + real(js + j - 2, kind=wp)*dly
+                call cofy(yj, dj, ej, fj)
+                dyj = (dj/dly - HALF*ej)/dly
+                eyj = (-TWO*dj/dly**2) + fj
+                fyj = (dj/dly + HALF*ej)/dly
+                an(j) = dyj
+                bn(j) = eyj
+                cn(j) = fyj
+            end do
+            !
+            !     adjust edges in x direction unless periodic
+            !
+            ax1 = am(1)
+            cxm = cm(mit)
+            select case (kswx)
+                case (2)
+                    !
+                    !     dirichlet-dirichlet in x direction
+                    !
+                    am(1) = ZERO
+                    cm(mit) = ZERO
+                case (5)
+                    !
+                    !     mixed-dirichlet in x direction
+                    !
+                    am(1) = ZERO
+                    bm(1) = bm(1) + TWO*alpha*dlx*ax1
+                    cm(1) = cm(1) + ax1
+                    cm(mit) = ZERO
+                case (3)
+                    !
+                    !     dirichlet-mixed in x direction
+                    !
+                    am(1) = ZERO
+                    am(mit) = am(mit) + cxm
+                    bm(mit) = bm(mit) - TWO*beta*dlx*cxm
+                    cm(mit) = ZERO
                 !
-                kswx = mbdcnd + 1
-                kswy = nbdcnd + 1
-                k = m + 1
-                l = n + 1
-                ait = a
-                bit = b
-                cit = c
-                dit = d
+                !     mixed - mixed in x direction
                 !
-                !==> set right hand side values from grhs in usol on the interior
-                !    and non-specified boundaries.
+                case (4)
+                    am(1) = ZERO
+                    bm(1) = bm(1) + TWO*dlx*alpha*ax1
+                    cm(1) = cm(1) + ax1
+                    am(mit) = am(mit) + cxm
+                    bm(mit) = bm(mit) - TWO*dlx*beta*cxm
+                    cm(mit) = ZERO
+            end select
+            !
+            !     adjust in y direction unless periodic
+            !
+            dy1 = an(1)
+            fyn = cn(nit)
+
+            select case (kswy)
+                case (2)
+                    !
+                    !     dirichlet-dirichlet in y direction
+                    !
+                    an(1) = ZERO
+                    cn(nit) = ZERO
+                case (5)
+                    !
+                    !     mixed-dirichlet in y direction
+                    !
+                    an(1) = ZERO
+                    bn(1) = bn(1) + TWO*dly*gama*dy1
+                    cn(1) = cn(1) + dy1
+                    cn(nit) = ZERO
+                case (3)
+                    !
+                    !     dirichlet-mixed in y direction
+                    !
+                    an(1) = ZERO
+                    an(nit) = an(nit) + fyn
+                    bn(nit) = bn(nit) - TWO*dly*xnu*fyn
+                    cn(nit) = ZERO
+                case (4)
+                    !
+                    !     mixed - mixed direction in y direction
+                    !
+                    an(1) = ZERO
+                    bn(1) = bn(1) + TWO*dly*gama*dy1
+                    cn(1) = cn(1) + dy1
+                    an(nit) = an(nit) + fyn
+                    bn(nit) = bn(nit) - TWO * dly*xnu*fyn
+                    cn(nit) = ZERO
+            end select
+
+            if (kswx /= 1) then
                 !
-                usol(2:m, 2:n) = grhs(2:m, 2:n)
-
-                if (kswx /= 2 .and. kswx /= 3) then
-                    usol(1, 2:n) = grhs(1, 2:n)
-                end if
-
-                if (kswx /= 2 .and. kswx /= 5) then
-                    usol(k, 2:n) = grhs(k, 2:n)
-                end if
-
-                if (kswy /= 2 .and. kswy /= 3) then
-                    usol(2:m, 1) = grhs(2:m, 1)
-                end if
-
-                if (kswy /= 2 .and. kswy /= 5) then
-                    usol(2:m, l) = grhs(2:m, l)
-                end if
-
-                if (kswx/=2 .and. kswx/=3 .and. kswy/=2 .and. kswy/=3) then
-                    usol(1, 1)  = grhs(1, 1)
-                end if
-
-                if (kswx/=2 .and. kswx/=5 .and. kswy/=2 .and. kswy/=3) then
-                    usol(k, 1) = grhs(k, 1)
-                end if
-
-                if (kswx/=2 .and. kswx/=3 .and. kswy/=2 .and. kswy/=5) then
-                    usol(1, l) = grhs(1, l)
-                end if
-
-                if (kswx/=2 .and. kswx/=5 .and. kswy/=2 .and. kswy/=5) then
-                    usol(k, l) = grhs(k, l)
-                end if
-
-                i1 = 1
+                !     adjust usol along x edge
                 !
-                !==> set switches for periodic or non-periodic boundaries
-                !
-                mp = 1
-                np = 1
-
-                if (kswx == 1) then
-                    mp = 0
-                end if
-
-                if (kswy == 1) then
-                    np = 0
-                end if
-                !
-                !     set dlx, dly and size of block tri-diagonal system generated
-                !     in nint, mint
-                !
-                dlx = (bit - ait)/m
-                mit = k - 1
-
-                select case (kswx)
-                    case (2)
-                        mit = k - 2
-                    case (4)
-                        mit = k
-                end select
-
-                dly = (dit - cit)/n
-                nit = l - 1
-
-                select case (kswy)
-                    case (2)
-                        nit = l - 2
-                    case (4)
-                        nit = l
-                end select
-
-                tdlx3 = 2.0_wp * (dlx**3)
-                dlx4 = dlx**4
-                tdly3 = 2.0_wp * (dly**3)
-                dly4 = dly**4
-                !
-                !==> set subscript limits for portion of array to input to blktri
-                !
-                is = 1
-                js = 1
-
                 if (kswx==2 .or. kswx==3) then
-                    is = 2
+                    if (kswx==2 .or. kswx==5) then
+                        usol(is, js:ns) = usol(is, js:ns) - ax1*usol(1, js:ns)
+                        usol(ms, js:ns) = usol(ms, js:ns) - cxm*usol(k, js:ns)
+                    else
+                        usol(is, js:ns) = usol(is, js:ns) - ax1*usol(1, js:ns)
+                        usol(ms, js:ns) = usol(ms, js:ns) - TWO * dlx*cxm*bdb(js:ns)
+                    end if
+                else
+                    if (kswx==2 .or. kswx==5) then
+                        usol(is, js:ns) = usol(is, js:ns) + TWO * dlx*ax1*bda(js:ns)
+                        usol(ms, js:ns) = usol(ms, js:ns) - cxm*usol(k, js:ns)
+                    else
+                        usol(is, js:ns) = usol(is, js:ns) + TWO * dlx*ax1*bda(js:ns)
+                        usol(ms, js:ns) = usol(ms, js:ns) - TWO * dlx*cxm*bdb(js:ns)
+                    end if
                 end if
+            end if
 
+            if (kswy /= 1) then
+                !
+                !     adjust usol along y edge
+                !
                 if (kswy==2 .or. kswy==3) then
-                    js = 2
-                end if
-
-                ns = nit + js - 1
-                ms = mit + is - 1
-                !
-                !     set x - direction
-                !
-                do i = 1, mit
-                    xi = ait + real(is + i - 2, kind=wp)*dlx
-                    call cofx(xi, ai, bi, ci)
-                    axi = (ai/dlx - 0.5_wp*bi)/dlx
-                    bxi = (-2.0_wp*ai/dlx**2) + ci
-                    cxi = (ai/dlx + 0.5_wp*bi)/dlx
-                    am(i) = axi
-                    bm(i) = bxi
-                    cm(i) = cxi
-                end do
-                !
-                !     set y direction
-                !
-                do j = 1, nit
-                    yj = cit + real(js + j - 2, kind=wp)*dly
-                    call cofy(yj, dj, ej, fj)
-                    dyj = (dj/dly - 0.5_wp*ej)/dly
-                    eyj = (-2.0_wp*dj/dly**2) + fj
-                    fyj = (dj/dly + 0.5_wp*ej)/dly
-                    an(j) = dyj
-                    bn(j) = eyj
-                    cn(j) = fyj
-                end do
-                !
-                !     adjust edges in x direction unless periodic
-                !
-                ax1 = am(1)
-                cxm = cm(mit)
-                select case (kswx)
-                    case (2)
-                        !
-                        !     dirichlet-dirichlet in x direction
-                        !
-                        am(1) = 0.0_wp
-                        cm(mit) = 0.0_wp
-                    case (5)
-                        !
-                        !     mixed-dirichlet in x direction
-                        !
-                        am(1) = 0.0_wp
-                        bm(1) = bm(1) + 2.0_wp*alpha*dlx*ax1
-                        cm(1) = cm(1) + ax1
-                        cm(mit) = 0.0_wp
-                    case (3)
-                        !
-                        !     dirichlet-mixed in x direction
-                        !
-                        am(1) = 0.0_wp
-                        am(mit) = am(mit) + cxm
-                        bm(mit) = bm(mit) - 2.0_wp*beta*dlx*cxm
-                        cm(mit) = 0.0_wp
-                    !
-                    !     mixed - mixed in x direction
-                    !
-                    case (4)
-                        am(1) = 0.0_wp
-                        bm(1) = bm(1) + 2.0_wp*dlx*alpha*ax1
-                        cm(1) = cm(1) + ax1
-                        am(mit) = am(mit) + cxm
-                        bm(mit) = bm(mit) - 2.0_wp*dlx*beta*cxm
-                        cm(mit) = 0.0_wp
-                end select
-                !
-                !     adjust in y direction unless periodic
-                !
-                dy1 = an(1)
-                fyn = cn(nit)
-
-                select case (kswy)
-                    case (2)
-                        !
-                        !     dirichlet-dirichlet in y direction
-                        !
-                        an(1) = 0.0_wp
-                        cn(nit) = 0.0_wp
-                    case (5)
-                        !
-                        !     mixed-dirichlet in y direction
-                        !
-                        an(1) = 0.0_wp
-                        bn(1) = bn(1) + 2.0_wp*dly*gama*dy1
-                        cn(1) = cn(1) + dy1
-                        cn(nit) = 0.0_wp
-                    case (3)
-                        !
-                        !     dirichlet-mixed in y direction
-                        !
-                        an(1) = 0.0_wp
-                        an(nit) = an(nit) + fyn
-                        bn(nit) = bn(nit) - 2.0_wp*dly*xnu*fyn
-                        cn(nit) = 0.0_wp
-                    case (4)
-                        !
-                        !     mixed - mixed direction in y direction
-                        !
-                        an(1) = 0.0_wp
-                        bn(1) = bn(1) + 2.0_wp*dly*gama*dy1
-                        cn(1) = cn(1) + dy1
-                        an(nit) = an(nit) + fyn
-                        bn(nit) = bn(nit) - 2.0_wp * dly*xnu*fyn
-                        cn(nit) = 0.0_wp
-                end select
-
-                if (kswx /= 1) then
-                    !
-                    !     adjust usol along x edge
-                    !
-                    if (kswx==2 .or. kswx==3) then
-                        if (kswx==2 .or. kswx==5) then
-                            usol(is, js:ns) = usol(is, js:ns) - ax1*usol(1, js:ns)
-                            usol(ms, js:ns) = usol(ms, js:ns) - cxm*usol(k, js:ns)
-                        else
-                            usol(is, js:ns) = usol(is, js:ns) - ax1*usol(1, js:ns)
-                            usol(ms, js:ns) = usol(ms, js:ns) - 2.0_wp * dlx*cxm*bdb(js:ns)
-                        end if
+                    if (kswy==2 .or. kswy==5) then
+                        usol(is:ms, js) = usol(is:ms, js) - dy1*usol(is:ms, 1)
+                        usol(is:ms, ns) = usol(is:ms, ns) - fyn*usol(is:ms, l)
                     else
-                        if (kswx==2 .or. kswx==5) then
-                            usol(is, js:ns) = usol(is, js:ns) + 2.0_wp * dlx*ax1*bda(js:ns)
-                            usol(ms, js:ns) = usol(ms, js:ns) - cxm*usol(k, js:ns)
-                        else
-                            usol(is, js:ns) = usol(is, js:ns) + 2.0_wp * dlx*ax1*bda(js:ns)
-                            usol(ms, js:ns) = usol(ms, js:ns) - 2.0_wp * dlx*cxm*bdb(js:ns)
-                        end if
+                        usol(is:ms, js) = usol(is:ms, js) - dy1*usol(is:ms, 1)
+                        usol(is:ms, ns) = usol(is:ms, ns) - TWO * dly*fyn*bdd(is:ms)
                     end if
-                end if
-
-                if (kswy /= 1) then
-                    !
-                    !     adjust usol along y edge
-                    !
-                    if (kswy==2 .or. kswy==3) then
-                        if (kswy==2 .or. kswy==5) then
-                            usol(is:ms, js) = usol(is:ms, js) - dy1*usol(is:ms, 1)
-                            usol(is:ms, ns) = usol(is:ms, ns) - fyn*usol(is:ms, l)
-                        else
-                            usol(is:ms, js) = usol(is:ms, js) - dy1*usol(is:ms, 1)
-                            usol(is:ms, ns) = usol(is:ms, ns) - 2.0_wp * dly*fyn*bdd(is:ms)
-                        end if
+                else
+                    if (kswy==2 .or. kswy==5) then
+                        usol(is:ms, js) = usol(is:ms, js) + TWO * dly*dy1*bdc(is:ms)
+                        usol(is:ms, ns) = usol(is:ms, ns) - fyn*usol(is:ms, l)
                     else
-                        if (kswy==2 .or. kswy==5) then
-                            usol(is:ms, js) = usol(is:ms, js) + 2.0_wp * dly*dy1*bdc(is:ms)
-                            usol(is:ms, ns) = usol(is:ms, ns) - fyn*usol(is:ms, l)
-                        else
-                            usol(is:ms, js) = usol(is:ms, js) + 2.0_wp * dly*dy1*bdc(is:ms)
-                            usol(is:ms, ns) = usol(is:ms, ns) - 2.0_wp * dly*fyn*bdd(is:ms)
-                        end if
+                        usol(is:ms, js) = usol(is:ms, js) + TWO * dly*dy1*bdc(is:ms)
+                        usol(is:ms, ns) = usol(is:ms, ns) - TWO * dly*fyn*bdd(is:ms)
                     end if
                 end if
-                !
-                !==> save adjusted edges in grhs if iorder=4
-                !
-                if (iorder == 4) then
-                    grhs(is, js:ns) = usol(is, js:ns)
-                    grhs(ms, js:ns) = usol(ms, js:ns)
-                    grhs(is:ms, js) = usol(is:ms, js)
-                    grhs(is:ms, ns) = usol(is:ms, ns)
-                end if
-
-                ! Initialize perturbation
-                pertrb = 0.0_wp
-                !
-                !==> check if operator is singular
-                !
-                call check_if_singular(sep_aux, mbdcnd, nbdcnd, alpha, beta, &
-                    gama, xnu, cofx, cofy, singular)
-                !
-                !==> compute non-zero eigenvector in null space of transpose
-                !     if singular
-                !
-                if (singular .eqv. .true.) then
-                    call sep_aux%septri(mit, am, bm, cm, dm, um, zm)
-                end if
-
-                if (singular .eqv. .true.) then
-                    call sep_aux%septri(nit, an, bn, cn, dn, un, zn)
-                end if
-                !
-                !==> make initialization call to blktrii
-                !
-                if (intl == 0) then
-                    call blktrii(intl, np, nit, an, bn, cn, mp, mit, am, bm, cm, &
-                        idmn, usol(is:, js:), ierror, w, wc)
-
-                    ! Check error flag
-                    if (ierror /= 0) then
-                        return
-                    end if
-                end if
-                !
-                !     adjust right hand side if necessary
-                !
-                if (singular .eqv. .true.) then
-                    call sep_aux%seport(usol, zn, zm, pertrb)
-                end if
-                !
-                !     compute solution
-                !
-                call blktrii(i1, np, nit, an, bn, cn, mp, mit, am, bm, cm, idmn, &
-                    usol(is:, js:), ierror, w, wc)
-
-                if (ierror /= 0) then
-                    return
-                end if
-                !
-                !     set periodic boundaries if necessary
-                !
-                if (kswx == 1) then
-                    usol(k, :l) = usol(1, :l)
-                end if
-
-                if (kswy == 1) then
-                    usol(:k, l) = usol(:k, 1)
-                end if
-                !
-                !     minimize solution with respect to weighted least squares
-                !     norm if operator is singular
-                !
-                if (singular .eqv. .true.) then
-                    call sep_aux%sepmin(usol, zn, zm, prtrb)
-                end if
-                !
-                !     return if deferred corrections and a fourth order solution are
-                !     not flagged
-                !
-                if (iorder == 2) then
-                    return
-                end if
-                !
-                !     compute new right hand side for fourth order solution
-                !
-                call defer(sep_aux, cofx, cofy, idmn, usol, grhs)
-
-                if (singular .eqv. .true.) then
-                    call sep_aux%seport(usol, zn, zm, pertrb)
-                end if
-                !
-                !     compute fourth order solution
-                !
-                call blktrii(i1, np, nit, an, bn, cn, mp, mit, am, bm, cm, idmn, &
-                    usol(is:, js:), ierror, w, wc)
-
-                if (ierror /= 0) then
-                    return
-                end if
-                !
-                !     set periodic boundaries if necessary
-                !
-                if (kswx == 1) then
-                    usol(k, :l) = usol(1, :l)
-                end if
-                if (kswy == 1) then
-                    usol(:k, l) = usol(:k, 1)
-                end if
-                !
-                !     minimize solution with respect to weighted least squares
-                !     norm if operator is singular
-                !
-                if (singular .eqv. .true.) then
-                    call sep_aux%sepmin(usol, zn, zm, prtrb)
-                end if
-
-            end associate
-
-        end subroutine spelip
-
-
-        subroutine check_input_parameters(intl, iorder, a, b, m, mbdcnd, c, d, n, nbdcnd, &
-            cofx, cofy, idmn, ierror)
-            !
-            ! Purpose:
-            !
-            ! This program checks the input arguments for errors
-            !
-            !
-            !--------------------------------------------------------------------------------
-            ! Dummy arguments
-            !--------------------------------------------------------------------------------
-            integer (ip), intent (in)    :: intl
-            integer (ip), intent (in)    :: iorder
-            integer (ip), intent (in)    :: m
-            integer (ip), intent (in)    :: mbdcnd
-            integer (ip), intent (in)    :: n
-            integer (ip), intent (in)    :: nbdcnd
-            integer (ip), intent (in)    :: idmn
-            integer (ip), intent (out)   :: ierror
-            real (wp),    intent (in)    :: a
-            real (wp),    intent (in)    :: b
-            real (wp),    intent (in)    :: c
-            real (wp),    intent (in)    :: d
-            procedure (get_coefficients) :: cofx
-            procedure (get_coefficients) :: cofy
-            !--------------------------------------------------------------------------------
-            ! Dummy arguments
-            !--------------------------------------------------------------------------------
-            integer (ip) :: i, j
-            real (wp)    :: dlx, dly, xi, ai, bi, ci, yj, dj, ej, fj
-            !-----------------------------------------------
-
-            !     check definition of solution region
-            !
-            if (a>=b .or. c>=d) then
-                ierror = 1
-                return
             end if
             !
-            !     check boundary condition arguments
+            !==> save adjusted edges in grhs if iorder=4
             !
-            if (mbdcnd<0 .or. mbdcnd>4) then
-                ierror = 2
-                return
+            if (iorder == 4) then
+                grhs(is, js:ns) = usol(is, js:ns)
+                grhs(ms, js:ns) = usol(ms, js:ns)
+                grhs(is:ms, js) = usol(is:ms, js)
+                grhs(is:ms, ns) = usol(is:ms, ns)
             end if
-            if (nbdcnd<0 .or. nbdcnd>4) then
-                ierror = 3
-                return
+
+            ! Initialize perturbation
+            pertrb = ZERO
+            !
+            !==> check if operator is singular
+            !
+            call is_PDE_singular(sep_aux, mbdcnd, nbdcnd, alpha, beta, &
+                gama, xnu, cofx, cofy, singular)
+            !
+            !==> compute non-zero eigenvector in null space of transpose
+            !     if singular
+            !
+            if (singular) then
+                call sep_aux%septri(mit, am, bm, cm, dm, um, zm)
             end if
-            !
-            !     check first dimension in calling routine
-            !
-            if (idmn < 7) then
-                ierror = 5
-                return
-            end if
-            !
-            !     check m, n
-            !
-            if (m>idmn - 1 .or. m<6) then
-                ierror = 6
-                return
-            end if
-            if (n < 5) then
-                ierror = 7
-                return
-            end if
-            !
-            !     check iorder
-            !
-            if (iorder/=2 .and. iorder/=4) then
-                ierror = 8
-                return
+
+            if (singular) then
+                call sep_aux%septri(nit, an, bn, cn, dn, un, zn)
             end if
             !
-            !     check intl
-            !
-            if (intl/=0 .and. intl/=1) then
-                ierror = 9
-                return
-            end if
-            !
-            !     check that equation is elliptic (only on initial call)
+            !==> make initialization call to blktrii
             !
             if (intl == 0) then
-                dlx = (b - a)/m
-                dly = (d - c)/n
-                outer_loop: do i = 2, m
-                    xi = a + real(i - 1)*dlx
+                call aux%blktrii(intl, np, nit, an, bn, cn, mp, mit, am, bm, cm, &
+                    idmn, usol(is:, js:), ierror, w, wc)
 
-                    call cofx(xi, ai, bi, ci)
-
-                    inner_loop: do j = 2, n
-                        yj = c + real(j - 1)*dly
-                        call cofy(yj, dj, ej, fj)
-
-                        if (ai*dj > 0.0_wp) then
-                            cycle inner_loop
-                        end if
-
-                        ierror = 10
-                        return
-                    end do inner_loop
-                end do outer_loop
-            end if
-            !
-            !     no error found
-            !
-            ierror = 0
-
-        end subroutine check_input_parameters
-
-
-        subroutine check_if_singular(sep_aux, mbdcnd, nbdcnd, alpha, beta, gama, xnu, cofx, cofy, singlr)
-            !
-            ! Purpose:
-            !
-            !     this subroutine checks if the pde   sepeli
-            !     must solve is a singular operator
-            !
-            !--------------------------------------------------------------------------------
-            ! Dummy arguments
-            !--------------------------------------------------------------------------------
-            class (SepAux), intent (in out) :: sep_aux
-            integer (ip),   intent (in)     :: mbdcnd
-            integer (ip),   intent (in)     :: nbdcnd
-            real (wp),      intent (in)     :: alpha
-            real (wp),      intent (in)     :: beta
-            real (wp),      intent (in)     :: gama
-            real (wp),      intent (in)     :: xnu
-            logical ,       intent (out)    :: singlr
-            procedure (get_coefficients)    :: cofx
-            procedure (get_coefficients)    :: cofy
-            !--------------------------------------------------------------------------------
-            ! Local variables
-            !--------------------------------------------------------------------------------
-            integer (ip) :: i, j
-            real (wp)    :: xi, ai, bi, ci, yj, dj, ej, fj
-            !-----------------------------------------------
-
-            ! Associate various quantities
-            associate( &
-                kswx => sep_aux%kswx, &
-                kswy => sep_aux%kswy, &
-                k => sep_aux%k, &
-                l=>sep_aux%l, &
-                mit=>sep_aux%mit, &
-                nit=> sep_aux%nit, &
-                is=> sep_aux%is, &
-                ms=> sep_aux%ms, &
-                js=> sep_aux%js, &
-                ns=> sep_aux%ns, &
-                ait => sep_aux%ait, &
-                bit => sep_aux%bit, &
-                cit => sep_aux%cit, &
-                dit => sep_aux%dit, &
-                dlx => sep_aux%dlx, &
-                dly => sep_aux%dly, &
-                tdlx3 => sep_aux%tdlx3, &
-                tdly3 => sep_aux%tdly3, &
-                dlx4 => sep_aux%dlx4, &
-                dly4 => sep_aux%dly4 &
-                )
-
-                ! Initialize flag
-                singlr = .false.
-                !
-                !     check if the boundary conditions are
-                !     entirely periodic and/or mixed
-                !
-                if(mbdcnd/=0.and.mbdcnd/=3.or.nbdcnd/=0.and.nbdcnd/=3) then
+                ! Check error flag
+                if (ierror /= 0) then
                     return
                 end if
-                !
-                !     check that mixed conditions are pure neuman
-                !
-                if (mbdcnd == 3) then
-                    if (alpha/=0.0_wp .or. beta/=0.0_wp) then
-                        return
-                    end if
-                end if
+            end if
+            !
+            !     adjust right hand side if necessary
+            !
+            if (singular) then
+                call sep_aux%seport(usol, zn, zm, pertrb)
+            end if
+            !
+            !     compute solution
+            !
+            call aux%blktrii(i1, np, nit, an, bn, cn, mp, mit, am, bm, cm, idmn, &
+                usol(is:, js:), ierror, w, wc)
 
-                if (nbdcnd == 3) then
-                    if (gama/=0.0_wp .or. xnu/=0.0_wp) then
-                        return
-                    end if
-                end if
-                !
-                !     check that non-derivative coefficient functions
-                !     are zero
-                !
+            if (ierror /= 0) then
+                return
+            end if
+            !
+            !     set periodic boundaries if necessary
+            !
+            if (kswx == 1) then
+                usol(k, :l) = usol(1, :l)
+            end if
+
+            if (kswy == 1) then
+                usol(:k, l) = usol(:k, 1)
+            end if
+            !
+            !     minimize solution with respect to weighted least squares
+            !     norm if operator is singular
+            !
+            if (singular) then
+                call sep_aux%sepmin(usol, zn, zm, prtrb)
+            end if
+            !
+            !     return if deferred corrections and a fourth order solution are
+            !     not flagged
+            !
+            if (iorder == 2) return
+            !
+            !     compute new right hand side for fourth order solution
+            !
+            call defer(sep_aux, cofx, cofy, idmn, usol, grhs)
+
+            if (singular) call sep_aux%seport(usol, zn, zm, pertrb)
+            !
+            !     compute fourth order solution
+            !
+            call aux%blktrii(i1, np, nit, an, bn, cn, mp, mit, am, bm, cm, idmn, &
+                usol(is:, js:), ierror, w, wc)
+
+            if (ierror /= 0) return
+            !
+            !     set periodic boundaries if necessary
+            !
+            if (kswx == 1) then
+                usol(k, :l) = usol(1, :l)
+            end if
+            if (kswy == 1) then
+                usol(:k, l) = usol(:k, 1)
+            end if
+            !
+            !     minimize solution with respect to weighted least squares
+            !     norm if operator is singular
+            !
+            if (singular) call sep_aux%sepmin(usol, zn, zm, prtrb)
+
+
+        end associate
+
+    end subroutine spelip
+
+
+    subroutine check_input_arguments(intl, iorder, a, b, m, mbdcnd, c, d, n, nbdcnd, &
+        cofx, cofy, idmn, ierror)
+        !--------------------------------------------------------------
+        ! Dummy arguments
+        !--------------------------------------------------------------
+        integer (ip), intent (in)    :: intl
+        integer (ip), intent (in)    :: iorder
+        integer (ip), intent (in)    :: m
+        integer (ip), intent (in)    :: mbdcnd
+        integer (ip), intent (in)    :: n
+        integer (ip), intent (in)    :: nbdcnd
+        integer (ip), intent (in)    :: idmn
+        integer (ip), intent (out)   :: ierror
+        real (wp),    intent (in)    :: a
+        real (wp),    intent (in)    :: b
+        real (wp),    intent (in)    :: c
+        real (wp),    intent (in)    :: d
+        !--------------------------------------------------------------
+        ! Dummy procedure arguments
+        !--------------------------------------------------------------
+        procedure (get_coefficients) :: cofx
+        procedure (get_coefficients) :: cofy
+        !--------------------------------------------------------------
+        ! Dummy arguments
+        !--------------------------------------------------------------
+        integer (ip) :: i, j
+        real (wp)    :: dlx, dly, xi, ai, bi, ci, yj, dj, ej, fj
+        !-----------------------------------------------
+
+        !     check definition of solution region
+        !
+        if (a>=b .or. c>=d) then
+            ierror = 1
+            return
+        end if
+        !
+        !     check boundary condition arguments
+        !
+        if (mbdcnd<0 .or. mbdcnd>4) then
+            ierror = 2
+            return
+        end if
+        if (nbdcnd<0 .or. nbdcnd>4) then
+            ierror = 3
+            return
+        end if
+        !
+        !     check first dimension in calling routine
+        !
+        if (idmn < 7) then
+            ierror = 5
+            return
+        end if
+        !
+        !     check m, n
+        !
+        if (m>idmn - 1 .or. m<6) then
+            ierror = 6
+            return
+        end if
+        if (n < 5) then
+            ierror = 7
+            return
+        end if
+        !
+        !     check iorder
+        !
+        if (iorder/=2 .and. iorder/=4) then
+            ierror = 8
+            return
+        end if
+        !
+        !     check intl
+        !
+        if (intl/=0 .and. intl/=1) then
+            ierror = 9
+            return
+        end if
+        !
+        !     check that equation is elliptic (only on initial call)
+        !
+        if (intl == 0) then
+            dlx = (b - a)/m
+            dly = (d - c)/n
+            outer_loop: do i = 2, m
+                xi = a + real(i - 1)*dlx
+
+                call cofx(xi, ai, bi, ci)
+
+                inner_loop: do j = 2, n
+                    yj = c + real(j - 1)*dly
+                    call cofy(yj, dj, ej, fj)
+
+                    if (ai*dj > ZERO) cycle inner_loop
+
+                    ierror = 10
+                    return
+                end do inner_loop
+            end do outer_loop
+        end if
+        !
+        !     no error found
+        !
+        ierror = 0
+
+    end subroutine check_input_arguments
+
+
+    subroutine is_PDE_singular(sep_aux, mbdcnd, nbdcnd, alpha, beta, gama, xnu, cofx, cofy, singlr)
+        !
+        ! Purpose:
+        !
+        ! Checks if the PDE that sepeli must solve is a singular operator
+        !
+        !--------------------------------------------------------------
+        ! Dummy arguments
+        !--------------------------------------------------------------
+        class (SepAux), intent (in out) :: sep_aux
+        integer (ip),   intent (in)     :: mbdcnd
+        integer (ip),   intent (in)     :: nbdcnd
+        real (wp),      intent (in)     :: alpha
+        real (wp),      intent (in)     :: beta
+        real (wp),      intent (in)     :: gama
+        real (wp),      intent (in)     :: xnu
+        logical ,       intent (out)    :: singlr
+        procedure (get_coefficients)    :: cofx
+        procedure (get_coefficients)    :: cofy
+        !--------------------------------------------------------------
+        ! Local variables
+        !--------------------------------------------------------------
+        integer (ip) :: i, j
+        real (wp)    :: xi, ai, bi, ci, yj, dj, ej, fj
+        !--------------------------------------------------------------
+
+        ! Associate various quantities
+        associate( &
+            kswx => sep_aux%kswx, &
+            kswy => sep_aux%kswy, &
+            k => sep_aux%k, &
+            l=>sep_aux%l, &
+            mit=>sep_aux%mit, &
+            nit=> sep_aux%nit, &
+            is=> sep_aux%is, &
+            ms=> sep_aux%ms, &
+            js=> sep_aux%js, &
+            ns=> sep_aux%ns, &
+            ait => sep_aux%ait, &
+            bit => sep_aux%bit, &
+            cit => sep_aux%cit, &
+            dit => sep_aux%dit, &
+            dlx => sep_aux%dlx, &
+            dly => sep_aux%dly, &
+            tdlx3 => sep_aux%tdlx3, &
+            tdly3 => sep_aux%tdly3, &
+            dlx4 => sep_aux%dlx4, &
+            dly4 => sep_aux%dly4 &
+            )
+
+            ! Initialize flag
+            singlr = .false.
+            !
+            !     check if the boundary conditions are
+            !     entirely periodic and/or mixed
+            !
+            if(mbdcnd/=0.and.mbdcnd/=3.or.nbdcnd/=0.and.nbdcnd/=3) then
+                return
+            end if
+            !
+            !     check that mixed conditions are pure neuman
+            !
+            if (mbdcnd == 3) then
+                if (alpha/=ZERO .or. beta/=ZERO) return
+            end if
+
+            if (nbdcnd == 3) then
+                if (gama/=ZERO .or. xnu/=ZERO) return
+            end if
+            !
+            !     check that non-derivative coefficient functions
+            !     are zero
+            !
+            do i = is, ms
+                xi = ait + real(i - 1, kind=wp)*dlx
+                call cofx(xi, ai, bi, ci)
+                if (ci == ZERO) cycle
+                return
+            end do
+
+            do j = js, ns
+                yj = cit + real(j - 1, kind=wp)*dly
+                call cofy(yj, dj, ej, fj)
+                if (fj == ZERO) cycle
+                return
+            end do
+            !
+            !     the operator must be singular if this point is reached
+            !
+            singlr = .true.
+
+        end associate
+
+    end subroutine is_PDE_singular
+
+
+    subroutine defer(sep_aux, cofx, cofy, idmn, usol, grhs)
+        !
+        ! Purpose:
+        !
+        !     this subroutine first approximates the truncation error given by
+        !     trun1(x, y)=dlx**2*tx+dly**2*ty where
+        !     tx=afun(x)*uxxxx/12+bfun(x)*uxxx/6 on the interior and
+        !     at the boundaries if periodic(here uxxx, uxxxx are the third
+        !     and fourth partial derivatives of u with respect to x).
+        !     tx is of the form afun(x)/3 * (uxxxx/4 +uxxx/dlx)
+        !     at x=a or x=b if the boundary condition there is mixed.
+        !     tx=0.0 along specified boundaries.  ty has symmetric form
+        !     in y with x, afun(x), bfun(x) replaced by y, dfun(y), efun(y).
+        !     the second order solution in usol is used to approximate
+        !     (via second order finite differencing) the truncation error
+        !     and the result is added to the right hand side in grhs
+        !     and then transferred to usol to be used as a new right
+        !     hand side when calling blktri for a fourth order solution.
+        !
+        !--------------------------------------------------------------
+        ! Dummy arguments
+        !--------------------------------------------------------------
+        class (SepAux), intent (in out) :: sep_aux
+        integer (ip),   intent (in)     :: idmn
+        real (wp),      intent (in out) :: usol(:,:)
+        real (wp),      intent (in out) :: grhs(:,:)
+        !--------------------------------------------------------------
+        ! Dummy procedure arguments
+        !--------------------------------------------------------------
+        procedure (get_coefficients)    :: cofx
+        procedure (get_coefficients)    :: cofy
+        !--------------------------------------------------------------
+        ! Local variables
+        !--------------------------------------------------------------
+        integer (ip) :: j, i
+        real (wp)    :: yj, dj, ej, fj, xi, ai, bi, ci
+        real (wp)    :: uxxx, uxxxx, uyyy, uyyyy, tx, ty
+        !--------------------------------------------------------------
+
+        ! Associate various quantities
+        associate( &
+            kswx => sep_aux%kswx, &
+            kswy => sep_aux%kswy, &
+            k => sep_aux%k, &
+            l=>sep_aux%l, &
+            mit=>sep_aux%mit, &
+            nit=> sep_aux%nit, &
+            is=> sep_aux%is, &
+            ms=> sep_aux%ms, &
+            js=> sep_aux%js, &
+            ns=> sep_aux%ns, &
+            ait => sep_aux%ait, &
+            bit => sep_aux%bit, &
+            cit => sep_aux%cit, &
+            dit => sep_aux%dit, &
+            dlx => sep_aux%dlx, &
+            dly => sep_aux%dly, &
+            tdlx3 => sep_aux%tdlx3, &
+            tdly3 => sep_aux%tdly3, &
+            dlx4 => sep_aux%dlx4, &
+            dly4 => sep_aux%dly4 &
+            )
+
+            !
+            !     compute truncation error approximation over the entire mesh
+            !
+            do j = js, ns
+                yj = cit + real(j - 1, kind=wp)*dly
+                call cofy(yj, dj, ej, fj)
                 do i = is, ms
                     xi = ait + real(i - 1, kind=wp)*dlx
                     call cofx(xi, ai, bi, ci)
-                    if (ci == 0.0_wp) then
-                        cycle
+                    !
+                    !     compute partial derivative approximations at (xi, yj)
+                    !
+                    call sep_aux%sepdx(usol, i, j, uxxx, uxxxx)
+                    call sep_aux%sepdy(usol, idmn, i, j, uyyy, uyyyy)
+                    tx = ai*uxxxx/12 + bi*uxxx/6
+                    ty = dj*uyyyy/12 + ej*uyyy/6
+                    !
+                    !==> reset form of truncation if at boundary which is non-periodic
+                    !
+                    if (kswx/=1 .and. (i==1 .or. i==k)) then
+                        tx = (ai/3) * (uxxxx/4 + uxxx/dlx)
                     end if
-                    return
-                end do
 
-                do j = js, ns
-                    yj = cit + real(j - 1, kind=wp)*dly
-                    call cofy(yj, dj, ej, fj)
-                    if (fj == 0.0_wp) then
-                        cycle
+                    if (kswy/=1 .and. (j==1 .or. j==l)) then
+                        ty = (dj/3) * (uyyyy/4 + uyyy/dly)
                     end if
-                    return
+
+                    grhs(i, j) = grhs(i, j) + (dlx**2)*tx + (dly**2)*ty
                 end do
-                !
-                !     the operator must be singular if this point is reached
-                !
-                singlr = .true.
-
-            end associate
-
-        end subroutine check_if_singular
-
-
-        subroutine defer(sep_aux, cofx, cofy, idmn, usol, grhs)
+            end do
             !
-            ! Purpose:
+            !==> reset the right hand side in usol
             !
-            !     this subroutine first approximates the truncation error given by
-            !     trun1(x, y)=dlx**2*tx+dly**2*ty where
-            !     tx=afun(x)*uxxxx/12.0+bfun(x)*uxxx/6.0 on the interior and
-            !     at the boundaries if periodic(here uxxx, uxxxx are the third
-            !     and fourth partial derivatives of u with respect to x).
-            !     tx is of the form afun(x)/3.0_wp * (uxxxx/4.0+uxxx/dlx)
-            !     at x=a or x=b if the boundary condition there is mixed.
-            !     tx=0.0 along specified boundaries.  ty has symmetric form
-            !     in y with x, afun(x), bfun(x) replaced by y, dfun(y), efun(y).
-            !     the second order solution in usol is used to approximate
-            !     (via second order finite differencing) the truncation error
-            !     and the result is added to the right hand side in grhs
-            !     and then transferred to usol to be used as a new right
-            !     hand side when calling blktri for a fourth order solution.
-            !
-            !--------------------------------------------------------------------------------
-            ! Dummy arguments
-            !--------------------------------------------------------------------------------
-            class (SepAux), intent (in out) :: sep_aux
-            integer (ip),   intent (in)     :: idmn
-            real (wp),      intent (in out) :: usol(:,:)
-            real (wp),      intent (in out) :: grhs(:,:)
-            procedure (get_coefficients)    :: cofx
-            procedure (get_coefficients)    :: cofy
-            !--------------------------------------------------------------------------------
-            ! Local variables
-            !--------------------------------------------------------------------------------
-            integer (ip) :: j, i
-            real (wp)    :: yj, dj, ej, fj, xi, ai, bi, ci
-            real (wp)    :: uxxx, uxxxx, uyyy, uyyyy, tx, ty
-            !-----------------------------------------------
+            usol(is:ms, js:ns) = grhs(is:ms, js:ns)
 
-            ! Associate various quantities
-            associate( &
-                kswx => sep_aux%kswx, &
-                kswy => sep_aux%kswy, &
-                k => sep_aux%k, &
-                l=>sep_aux%l, &
-                mit=>sep_aux%mit, &
-                nit=> sep_aux%nit, &
-                is=> sep_aux%is, &
-                ms=> sep_aux%ms, &
-                js=> sep_aux%js, &
-                ns=> sep_aux%ns, &
-                ait => sep_aux%ait, &
-                bit => sep_aux%bit, &
-                cit => sep_aux%cit, &
-                dit => sep_aux%dit, &
-                dlx => sep_aux%dlx, &
-                dly => sep_aux%dly, &
-                tdlx3 => sep_aux%tdlx3, &
-                tdly3 => sep_aux%tdly3, &
-                dlx4 => sep_aux%dlx4, &
-                dly4 => sep_aux%dly4 &
-                )
+        end associate
 
-                !
-                !     compute truncation error approximation over the entire mesh
-                !
-                do j = js, ns
-                    yj = cit + real(j - 1, kind=wp)*dly
-                    call cofy(yj, dj, ej, fj)
-                    do i = is, ms
-                        xi = ait + real(i - 1, kind=wp)*dlx
-                        call cofx(xi, ai, bi, ci)
-                        !
-                        !     compute partial derivative approximations at (xi, yj)
-                        !
-                        call sep_aux%sepdx(usol, i, j, uxxx, uxxxx)
-                        call sep_aux%sepdy(usol, idmn, i, j, uyyy, uyyyy)
-                        tx = ai*uxxxx/12 + bi*uxxx/6
-                        ty = dj*uyyyy/12 + ej*uyyy/6
-                        !
-                        !==> reset form of truncation if at boundary which is non-periodic
-                        !
-                        if (kswx/=1 .and. (i==1 .or. i==k)) then
-                            tx = (ai/3) * (uxxxx/4 + uxxx/dlx)
-                        end if
+    end subroutine defer
 
-                        if (kswy/=1 .and. (j==1 .or. j==l)) then
-                            ty = (dj/3) * (uyyyy/4 + uyyy/dly)
-                        end if
 
-                        grhs(i, j) = grhs(i, j) + (dlx**2)*tx + (dly**2)*ty
-                    end do
-                end do
-                !
-                !==> reset the right hand side in usol
-                !
-                usol(is:ms, js:ns) = grhs(is:ms, js:ns)
-
-            end associate
-
-        end subroutine defer
-
-    end subroutine sepeli
 
 end module module_sepeli
 !

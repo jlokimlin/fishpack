@@ -443,7 +443,7 @@ contains
         !
         !==> Allocate memory
         !
-        call workspace%get_genbun_workspace_dimensions(n, m, irwk)
+        call workspace%compute_genbun_workspace_lengths(n, m, irwk)
 
         irwk = irwk + 3 * m
         icwk = 0

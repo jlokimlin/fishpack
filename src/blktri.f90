@@ -278,7 +278,6 @@ module module_blktri
     ! Everything is private unless stated otherwise
     private
     public :: blktri
-    public :: blktrii
     public :: BlktriAux
 
 
@@ -288,18 +287,18 @@ module module_blktri
         !-------------------------------------------------
         ! Type components
         !-------------------------------------------------
-        integer (ip) :: npp
-        integer (ip) :: k
-        integer (ip) :: nm
-        integer (ip) :: ncmplx
-        integer (ip) :: ik
-        real (wp)    :: cnv
+        integer (ip), private :: npp
+        integer (ip), private :: k
+        integer (ip), private :: nm
+        integer (ip), private :: ncmplx
+        integer (ip), private :: ik
+        real (wp),    private :: cnv
         !-------------------------------------------------
     contains
         !-------------------------------------------------
         ! Type-bound procedures
         !-------------------------------------------------
-        procedure, nopass, public  :: blktrii
+        procedure, public :: blktrii
         !-------------------------------------------------
     end type BlktriAux
 
@@ -341,6 +340,10 @@ contains
         real (wp),    intent (in out) :: y(:,:)
         class (Fish), intent (in out) :: workspace
         !--------------------------------------------------------------
+        ! Local variables
+        !--------------------------------------------------------------
+        type (BlktriAux) :: aux
+        !--------------------------------------------------------------
 
         !
         !==> Check validity of input arguments
@@ -361,7 +364,7 @@ contains
             !
             !==> Solve system
             !
-            call blktrii(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
+            call aux%blktrii(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
                 idimy, y, ierror, rew, cxw)
 
         end associate
@@ -415,7 +418,7 @@ contains
         call workspace%destroy()
 
         ! Compute workspace dimensions
-        call workspace%get_block_tridiagonal_workpace_dimensions(n, m, irwk, icwk)
+        call workspace%compute_blktri_workspace_lengths(n, m, irwk, icwk)
 
         ! Allocate memory for real and complex workspace arrays
         call workspace%create(irwk, icwk)
@@ -424,27 +427,28 @@ contains
 
 
 
-    subroutine blktrii( iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
+    subroutine blktrii(this, iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
         idimy, y, ierror, w, wc)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: iflg
-        integer (ip), intent (in)     :: np
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: mp
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: idimy
-        integer (ip), intent (out)    :: ierror
-        real (wp),    intent (in out) :: an(:)
-        real (wp),    intent (in out) :: bn(:)
-        real (wp),    intent (in out) :: cn(:)
-        real (wp),    intent (in out) :: am(:)
-        real (wp),    intent (in out) :: bm(:)
-        real (wp),    intent (in out) :: cm(:)
-        real (wp),    intent (in out) :: y(:,:)
-        real (wp),    intent (in out), contiguous :: w(:)
-        complex (wp), intent (in out), contiguous :: wc(:)
+        class (BlktriAux), intent (in out) :: this
+        integer (ip),      intent (in)     :: iflg
+        integer (ip),      intent (in)     :: np
+        integer (ip),      intent (in)     :: n
+        integer (ip),      intent (in)     :: mp
+        integer (ip),      intent (in)     :: m
+        integer (ip),      intent (in)     :: idimy
+        integer (ip),      intent (out)    :: ierror
+        real (wp),         intent (in out) :: an(:)
+        real (wp),         intent (in out) :: bn(:)
+        real (wp),         intent (in out) :: cn(:)
+        real (wp),         intent (in out) :: am(:)
+        real (wp),         intent (in out) :: bm(:)
+        real (wp),         intent (in out) :: cm(:)
+        real (wp),         intent (in out) :: y(:,:)
+        real (wp),         intent (in out), contiguous :: w(:)
+        complex (wp),      intent (in out), contiguous :: wc(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------

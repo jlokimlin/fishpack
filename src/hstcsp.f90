@@ -617,7 +617,7 @@ contains
 
             !
             ! Compute blktri requirements in irwk, icwk
-            call workspace%get_block_tridiagonal_workpace_dimensions(n, m, irwk, icwk)
+            call workspace%compute_blktri_workspace_lengths(n, m, irwk, icwk)
             !
             !==> Set work space indices
             !

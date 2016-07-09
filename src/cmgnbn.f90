@@ -359,6 +359,8 @@ contains
         integer (ip), intent (in) :: m
         type (Fish)               :: return_value
         !-----------------------------------------------
+        ! Local variables
+        !-----------------------------------------------
         integer (ip)            :: irwk, icwk, j
         integer (ip), parameter :: NUMBER_OF_INDICES = 11
         !-----------------------------------------------

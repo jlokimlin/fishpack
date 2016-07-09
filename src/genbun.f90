@@ -602,7 +602,7 @@ contains
         !-----------------------------------------------
 
         ! Get workspace dimensions for genbun
-        call return_value%get_genbun_workspace_dimensions(n, m, irwk)
+        call return_value%compute_genbun_workspace_lengths(n, m, irwk)
 
         ! No need to allocate complex arrays
         icwk = 0
