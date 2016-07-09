@@ -24,7 +24,6 @@ MOD_DIRECTORY = $(LIB_DIRECTORY)
 FC = gfortran-6
 
 FFLAGS = \
--O3 \
 -fmodule-private \
 $(ERROR_WARNING_OPTIONS)
 $(ENFORCE_64_BIT_PRECISION) \

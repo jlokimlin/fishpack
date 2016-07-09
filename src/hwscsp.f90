@@ -732,7 +732,7 @@ contains
         real (wp),    intent (in)     :: bdtf(:)
         real (wp),    intent (in)     :: bdrs(:)
         real (wp),    intent (in)     :: bdrf(:)
-        real (wp),    intent (in out) :: f(idimf,n+1)
+        real (wp),    intent (in out) :: f(idimf,n + 1)
         real (wp),    intent (out), contiguous :: w(:)
         real (wp),    intent (out), contiguous :: s(:)
         real (wp),    intent (out), contiguous :: an(:)
@@ -748,18 +748,18 @@ contains
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip)         :: mp1, i, np1, j, mp, np
-        integer (ip)         :: its, itf, itsp, itfm, ictr, jrs
-        integer (ip)         :: l, jrf, jrsp, jrfm, munk, nunk, ising, iflg
-        real (wp)            :: dth, tdt, hdth, sdts
-        real (wp)            :: theta, t1, dr, hdr
-        real (wp)            :: tdr, dr2, czr, at, ct, wts, wtf
-        real (wp)            :: ar, wtnm, yps, cr, wrs, wrf
-        real (wp)            :: wrz, summation, r2, hne, yhld
-        real (wp)            :: rs2, rf2, rsq, xp, yph, xps
-        real (wp), parameter :: FOUR = 4.0_wp
-        real (wp), parameter :: SIX = 6.0_wp
-        type (BlktriAux)     :: blktri_aux
+        integer (ip)           :: mp1, i, np1, j, mp, np
+        integer (ip)           :: its, itf, itsp, itfm, ictr, jrs
+        integer (ip)           :: l, jrf, jrsp, jrfm, munk, nunk, ising, iflg
+        real (wp)              :: dth, tdt, hdth, sdts
+        real (wp)              :: theta, t1, dr, hdr
+        real (wp)              :: tdr, dr2, czr, at, ct, wts, wtf
+        real (wp)              :: ar, wtnm, yps, cr, wrs, wrf
+        real (wp)              :: wrz, summation, r2, hne, yhld
+        real (wp)              :: rs2, rf2, rsq, xp, yph, xps
+        real (wp), parameter   :: FOUR = 4.0_wp
+        real (wp), parameter   :: SIX = 6.0_wp
+        type (BlktriAux)       :: blktri_aux
         !-----------------------------------------------
 
         mp1 = m + 1
