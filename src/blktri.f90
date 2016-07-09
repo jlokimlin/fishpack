@@ -341,9 +341,42 @@ contains
         real (wp),    intent (in out) :: y(:,:)
         class (Fish), intent (in out) :: workspace
         !--------------------------------------------------------------
-        ! Local variables
+
+        !
+        !==> Check validity of input arguments
+        !
+        call check_input_arguments(n, m, idimy, ierror)
+
+        if (ierror /= 0) return
+
+        !
+        !==> Allocate memory on first call
+        !
+        if (iflg == 0) call allocate_workspace(n, m, workspace)
+
+        associate( &
+            rew => workspace%real_workspace, &
+            cxw => workspace%complex_workspace &
+            )
+            !
+            !==> Solve system
+            !
+            call blktrii(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
+                idimy, y, ierror, rew, cxw)
+
+        end associate
+
+    end subroutine blktri
+
+
+    pure subroutine check_input_arguments(n, m, idimy, ierror)
         !--------------------------------------------------------------
-        integer (ip)  :: irwk, icwk
+        ! Dummy arguments
+        !--------------------------------------------------------------
+        integer (ip), intent (in)     :: n
+        integer (ip), intent (in)     :: m
+        integer (ip), intent (in)     :: idimy
+        integer (ip), intent (out)    :: ierror
         !--------------------------------------------------------------
 
         !
@@ -362,30 +395,30 @@ contains
             ierror = 0
         end if
 
+    end subroutine check_input_arguments
 
-        if (iflg == 0) then
 
-            ! compute and allocate real and complex required work space
-            call workspace%get_block_tridiagonal_workpace_dimensions(n, m, irwk, icwk)
 
-            ! Allocate memory for workspace
-            call workspace%create(irwk, icwk, ierror)
+    subroutine allocate_workspace(n, m, workspace)
+        !-----------------------------------------------
+        ! Dummy arguments
+        !-----------------------------------------------
+        integer (ip), intent (in)  :: n, m
+        class (Fish), intent (out) :: workspace
+        !-----------------------------------------------
+        ! Local variables
+        !-----------------------------------------------
+        integer (ip)  :: irwk, icwk
+        !-----------------------------------------------
 
-        end if
+        ! Compute workspace dimensions
+        call workspace%get_block_tridiagonal_workpace_dimensions(n, m, irwk, icwk)
 
-        associate( &
-            rew => workspace%real_workspace, &
-            cxw => workspace%complex_workspace &
-            )
-            !
-            !==> Solve system
-            !
-            call blktrii(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
-                idimy, y, ierror, rew, cxw)
+        ! Allocate memory for workspace
+        call workspace%create(irwk, icwk)
 
-        end associate
+    end subroutine allocate_workspace
 
-    end subroutine blktri
 
 
     subroutine blktrii( iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
@@ -407,8 +440,8 @@ contains
         real (wp),    intent (in out) :: bm(:)
         real (wp),    intent (in out) :: cm(:)
         real (wp),    intent (in out) :: y(:,:)
-        real (wp),    intent (in out) :: w(:)
-        complex (wp), intent (in out) :: wc(:)
+        real (wp),    intent (in out), contiguous :: w(:)
+        complex (wp), intent (in out), contiguous :: wc(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -420,20 +453,12 @@ contains
         !
         nm = n
         !
-        !==> Check again for solvers which call blktrii directly
+        !==> Check input arguments again
+        !    for solvers which call blktrii directly
         !
-        if (m < 5) then
-            ierror = 1
-            return
-        else if (nm < 3) then
-            ierror = 2
-            return
-        else if (idimy < m) then
-            ierror = 3
-            return
-        else
-            ierror = 0
-        end if
+        call check_input_arguments(n, m, idimy, ierror)
+
+        if (ierror /= 0) return
 
         select case (iflg)
             case (0)
@@ -543,6 +568,16 @@ contains
         integer (ip) :: imi1, imi2
         real (wp)    :: dum
         !-----------------------------------------------
+
+        ! Initialize
+        iz = 0
+        iip = 0
+        ip1 = 0
+        ip2 = 0
+        ip3 = 0
+        im1 = 0
+        im3 = 0
+        iif = 0
 
         !
         !==> begin reduction phase
@@ -882,6 +917,9 @@ contains
         real (wp)     :: bnorm, arg, d1, d2, d3
         !-----------------------------------------------
 
+        ! Initialize
+        j1 = 0
+        j2 = 0
         bnorm = abs(bn(1))
 
         do j = 2, nm
@@ -2018,6 +2056,7 @@ contains
         e2(:n-1) = e2(2:n)**2
         f = ZERO
         b = ZERO
+        c = ZERO
         e2(n) = ZERO
 
         main_loop: do l = 1, n
@@ -2062,7 +2101,7 @@ contains
                     l1 = l + 1
                     s = sqrt(e2(l))
                     g = d(l)
-                    p = (d(l1)-g)/(2.0*s)
+                    p = (d(l1)-g)/(TWO*s)
                     r = sqrt(p**2 + ONE)
                     d(l) = s/(p + sign(r, p))
                     h = g - d(l)
