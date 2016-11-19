@@ -15,7 +15,7 @@ An object-oriented modernization of NCAR's FISHPACK90.
 
 ## What is fishpack?
 
-A collection of Fortran programs and subroutines that solve second- and fourth-order finite difference approximations to separable elliptic Partial Differential Equations (PDEs). 
+A collection of Fortran programs and subroutines that solve 2nd- and 4th-order finite difference approximations to separable elliptic Partial Differential Equations (PDEs). 
 
 These include Helmholtz equations in cartesian, polar, cylindrical, and spherical coordinates, as well as more general separable elliptic equations. The solvers use the cyclic reduction algorithm. When the problem is singular, a least-squares solution is computed. Singularities induced by the coordinate system are handled, including at the origin r=0 in cylindrical coordinates, and at the poles in spherical coordinates.
 
@@ -41,9 +41,7 @@ For bug reports or feature requests please open an issue on github.
 
 Type the following command line arguments
 ```
-git clone https://github.com/jlokimlin/modern_fishpack.git
-
-cd modern_fishpack; make all
+git clone https://github.com/jlokimlin/modern_fishpack.git; cd modern_fishpack; make all
 ```
 
 -----------------------------------------------------------------------------
