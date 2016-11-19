@@ -34,7 +34,7 @@
 !
 program thwscrt
 
-    use, intrinsic :: iso_fortran_env, only: &
+    use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
@@ -49,12 +49,12 @@ program thwscrt
     !-----------------------------------------------
     ! Local variables
     !-----------------------------------------------
-    type (FishpackSolver)    :: solver
-    integer (ip) :: idimf, m, mbdcnd, n, nbdcnd, mp1, np1, i, j, ierror
-    real (wp), dimension(45, 82) :: f
-    real (wp), dimension(81) :: bdb, bda, bdc, bdd, y
-    real (wp), dimension(41) :: x
-    real (wp) :: a, b, c, d, elmbda, HALF_PI, PI2, pertrb, discretization_error, z
+    type(FishpackSolver)    :: solver
+    integer(ip) :: idimf, m, mbdcnd, n, nbdcnd, mp1, np1, i, j, ierror
+    real(wp), dimension(45, 82) :: f
+    real(wp), dimension(81) :: bdb, bda, bdc, bdd, y
+    real(wp), dimension(41) :: x
+    real(wp) :: a, b, c, d, elmbda, HALF_PI, PI2, pertrb, discretization_error, z
     !-----------------------------------------------
     !
     !     from dimension statement we get value of idimf.

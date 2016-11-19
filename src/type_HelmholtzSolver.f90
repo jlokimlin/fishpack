@@ -4,7 +4,7 @@ module type_HelmholtzSolver
         wp, & ! Working precision
         ip ! Integer precision
 
-    use, intrinsic :: iso_fortran_env, only: &
+    use, intrinsic :: ISO_Fortran_env, only: &
         stderr => ERROR_UNIT, &
         stdout => OUTPUT_UNIT
 
@@ -65,22 +65,22 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (HelmholtzSolver), intent (in out) :: this
-        real (wp),               intent (in)     :: helmholtz_constant
-        real (wp),               intent (in out) :: source_term(:,:)
-        real (wp),               intent (out)    :: solution(:,:)
-        real (wp),    optional,  intent (out)    :: perturbation
-        integer (ip), optional,  intent (out)    :: error_flag
+        class(HelmholtzSolver), intent(inout) :: this
+        real(wp),               intent(in)     :: helmholtz_constant
+        real(wp),               intent(inout) :: source_term(:,:)
+        real(wp),               intent(out)    :: solution(:,:)
+        real(wp),    optional,  intent(out)    :: perturbation
+        integer(ip), optional,  intent(out)    :: error_flag
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        integer (ip)  :: error_flag_op
-        real (wp)     :: perturbation_op
+        integer(ip)  :: error_flag_op
+        real(wp)     :: perturbation_op
         !--------------------------------------------------------------
 
         ! Check if object is usable
-        if (this%initialized .eqv. .false.) then
-            error stop 'Uninitialized object of class (HelmholtzSolver) '&
+        if (.not.this%initialized) then
+            error stop 'Uninitialized object of class(HelmholtzSolver) '&
                 //'in solve_2d_helmholtz_centered'
         end if
 
@@ -189,22 +189,22 @@ contains
         !  on a staggered grid in cartesian coordinates.
         !
         !--------------------------------------------------------------
-        class (HelmholtzSolver), intent (in out) :: this
-        real (wp),               intent (in)     :: helmholtz_constant
-        real (wp),               intent (in out) :: source_term(:,:)
-        real (wp),               intent (out)    :: solution(:,:)
-        real (wp),    optional,  intent (out)    :: perturbation
-        integer (ip), optional,  intent (out)    :: error_flag
+        class(HelmholtzSolver), intent(inout) :: this
+        real(wp),               intent(in)     :: helmholtz_constant
+        real(wp),               intent(inout) :: source_term(:,:)
+        real(wp),               intent(out)    :: solution(:,:)
+        real(wp),    optional,  intent(out)    :: perturbation
+        integer(ip), optional,  intent(out)    :: error_flag
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        integer (ip) :: error_flag_op
-        real (wp)    :: perturbation_op
+        integer(ip) :: error_flag_op
+        real(wp)    :: perturbation_op
         !--------------------------------------------------------------
 
         ! Check if object is usable
-        if (this%initialized .eqv. .false.) then
-            error stop 'uninitialized object of class (HelmholtzSolver) '&
+        if (.not.this%initialized) then
+            error stop 'uninitialized object of class(HelmholtzSolver) '&
                 //'in solve_2d_helmholtz_staggered'
         end if
 
@@ -236,7 +236,7 @@ contains
 
         ! Address the error flag
         if (error_flag_op /= 0) then
-            write( stderr, '(a)') 'TYPE (HelmholtzSolver): '&
+            write( stderr, '(a)') 'type(HelmholtzSolver): '&
                 //' in SOLVE_2D_HELMHOLTZ_STAGGERED (hstcrt)'
             select case (error_flag_op)
                 case(1)
@@ -306,7 +306,7 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        type (HelmholtzSolver), intent (in out) :: this
+        type(HelmholtzSolver), intent(inout) :: this
         !--------------------------------------------------------------
 
         call this%destroy()

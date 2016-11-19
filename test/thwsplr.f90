@@ -59,7 +59,7 @@
 !
 program thwsplr
 
-    use, intrinsic :: iso_fortran_env, only: &
+    use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
@@ -73,17 +73,17 @@ program thwsplr
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
-    type (FishpackSolver)        :: solver
-    integer (ip), parameter      :: m = 50
-    integer (ip), parameter      :: n = 48
-    integer (ip), parameter      :: idimf = 100
-    integer (ip)                 :: mbdcnd, nbdcnd, mp1, np1, i, j, ierror
-    real (wp), parameter         :: pi = acos(-1.0_wp)
-    real (wp)                    :: f(idimf, m)
-    real (wp), dimension (m + 1) :: bdc, bdd, r, bda, bdb
-    real (wp), dimension (n + 1) :: theta
-    real (wp)                    :: a, b, c, d, elmbda
-    real (wp)                    :: pertrb, discretization_error, z
+    type(FishpackSolver)        :: solver
+    integer(ip), parameter      :: m = 50
+    integer(ip), parameter      :: n = 48
+    integer(ip), parameter      :: idimf = 100
+    integer(ip)                 :: mbdcnd, nbdcnd, mp1, np1, i, j, ierror
+    real(wp), parameter         :: pi = acos(-1.0_wp)
+    real(wp)                    :: f(idimf, m)
+    real(wp), dimension (m + 1) :: bdc, bdd, r, bda, bdb
+    real(wp), dimension (n + 1) :: theta
+    real(wp)                    :: a, b, c, d, elmbda
+    real(wp)                    :: pertrb, discretization_error, z
     !-----------------------------------------------
 
     a = 0.0_wp

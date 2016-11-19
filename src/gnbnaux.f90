@@ -96,11 +96,11 @@ module module_gnbnaux
 
 
     !---------------------------------------------------------------
-    ! Dictionary: Variables confined to the module
+    ! Variables confined to the module
     !---------------------------------------------------------------
-    real (wp), private :: ZERO = 0.0_wp
-    real (wp), private :: ONE = 1.0_wp
-    real (wp), private :: TWO = 2.0_wp
+    real(wp), private :: ZERO = 0.0_wp
+    real(wp), private :: ONE = 1.0_wp
+    real(wp), private :: TWO = 2.0_wp
     !---------------------------------------------------------------
 
 
@@ -135,16 +135,16 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)  :: n
-        integer (ip), intent (in)  :: ijump
-        real (wp),    intent (in)  :: fnum
-        real (wp),    intent (in)  :: fden
-        real (wp),    intent (out) :: a(n)
+        integer(ip), intent(in)  :: n
+        integer(ip), intent(in)  :: ijump
+        real(wp),    intent(in)  :: fnum
+        real(wp),    intent(in)  :: fden
+        real(wp),    intent(out) :: a(n)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: k3, k4, k, k1, k5, i, k2, np1
-        real (wp)    :: pibyn, x, y
+        integer(ip) :: k3, k4, k, k1, k5, i, k2, np1
+        real(wp)    :: pibyn, x, y
         !-----------------------------------------------
 
         if (n == 0) return
@@ -196,21 +196,21 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: idegbr
-        integer (ip), intent (in)     :: idegcr
-        integer (ip), intent (in)     :: m
-        real (wp),    intent (in)     :: a(m)
-        real (wp),    intent (in)     :: b(m)
-        real (wp),    intent (in)     :: c(m)
-        real (wp),    intent (in out) :: y(m)
-        real (wp),    intent (in)     :: tcos(*)
-        real (wp),    intent (in out) :: d(m)
-        real (wp),    intent (in out) :: w(m)
+        integer(ip), intent(in)     :: idegbr
+        integer(ip), intent(in)     :: idegcr
+        integer(ip), intent(in)     :: m
+        real(wp),    intent(in)     :: a(m)
+        real(wp),    intent(in)     :: b(m)
+        real(wp),    intent(in)     :: c(m)
+        real(wp),    intent(inout) :: y(m)
+        real(wp),    intent(in)     :: tcos(*)
+        real(wp),    intent(inout) :: d(m)
+        real(wp),    intent(inout) :: w(m)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: mm1, ifb, ifc, l, lint, k, i, ip
-        real (wp)    :: x, xx, z
+        integer(ip) :: mm1, ifb, ifc, l, lint, k, i, ip
+        real(wp)    :: x, xx, z
         !-----------------------------------------------
 
         mm1 = m - 1
@@ -276,25 +276,25 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: k(4)
-        real (wp),    intent (in)     :: a(m)
-        real (wp),    intent (in)     :: b(m)
-        real (wp),    intent (in)     :: c(m)
-        real (wp),    intent (in out) :: y1(m)
-        real (wp),    intent (in out) :: y2(m)
-        real (wp),    intent (in out) :: y3(m)
-        real (wp),    intent (in)     :: tcos(*)
-        real (wp),    intent (in out) :: d(m)
-        real (wp),    intent (in out) :: w1(m)
-        real (wp),    intent (in out) :: w2(m)
-        real (wp),    intent (in out) :: w3(m)
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: k(4)
+        real(wp),    intent(in)     :: a(m)
+        real(wp),    intent(in)     :: b(m)
+        real(wp),    intent(in)     :: c(m)
+        real(wp),    intent(inout) :: y1(m)
+        real(wp),    intent(inout) :: y2(m)
+        real(wp),    intent(inout) :: y3(m)
+        real(wp),    intent(in)     :: tcos(*)
+        real(wp),    intent(inout) :: d(m)
+        real(wp),    intent(inout) :: w1(m)
+        real(wp),    intent(inout) :: w2(m)
+        real(wp),    intent(inout) :: w3(m)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: mm1, k1, k2, k3, k4, if1, if2, if3, if4, k2k3k4, l1, l2
-        integer (ip) :: l3, lint1, lint2, lint3, kint1, kint2, kint3, n, i, ipp
-        real (wp)    :: x, z, xx
+        integer(ip) :: mm1, k1, k2, k3, k4, if1, if2, if3, if4, k2k3k4, l1, l2
+        integer(ip) :: l3, lint1, lint2, lint3, kint1, kint2, kint3, n, i, ipp
+        real(wp)    :: x, z, xx
         !-----------------------------------------------
 
         mm1 = m - 1
@@ -394,17 +394,17 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: i1
-        integer (ip), intent (in)     :: m1
-        integer (ip), intent (in)     :: i2
-        integer (ip), intent (in)     :: m2
-        integer (ip), intent (in)     :: i3
-        real (wp),    intent (in out) :: tcos(*)
+        integer(ip), intent(in)     :: i1
+        integer(ip), intent(in)     :: m1
+        integer(ip), intent(in)     :: i2
+        integer(ip), intent(in)     :: m2
+        integer(ip), intent(in)     :: i3
+        real(wp),    intent(inout) :: tcos(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: j11, j3, j1, j2, j, l, k, m
-        real (wp)    :: x, y
+        integer(ip) :: j11, j3, j1, j2, j, l, k, m
+        real(wp)    :: x, y
         !-----------------------------------------------
 
         j1 = 1

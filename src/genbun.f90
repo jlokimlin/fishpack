@@ -168,7 +168,7 @@
 ! PORTABILITY            Fortran 2008 --
 !                        the machine dependent constant pi is
 !                        defined as acos(-ONE) where wp = REAL64
-!                        from the intrinsic module iso_fortran_env.
+!                        from the intrinsic module ISO_Fortran_env.
 !
 ! REFERENCES             Sweet, R., "A cyclic reduction algorithm for
 !                        solving block tridiagonal systems of arbitrary
@@ -245,12 +245,12 @@ module module_genbun
     public :: genbunn
 
     !---------------------------------------------------------------
-    ! Dictionary: Variables confined to the module
+    ! Variables confined to the module
     !---------------------------------------------------------------
-    real (wp), parameter :: ZERO = 0.0_wp
-    real (wp), parameter :: HALF = 0.5_wp
-    real (wp), parameter :: ONE = 1.0_wp
-    real (wp), parameter :: TWO = 2.0_wp
+    real(wp), parameter :: ZERO = 0.0_wp
+    real(wp), parameter :: HALF = 0.5_wp
+    real(wp), parameter :: ONE = 1.0_wp
+    real(wp), parameter :: TWO = 2.0_wp
     !---------------------------------------------------------------
 
 contains
@@ -260,20 +260,20 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        integer (ip), intent (in)     :: nperod
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: mperod
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: idimy
-        integer (ip), intent (out)    :: ierror
-        real (wp),    intent (in)     :: a(:)
-        real (wp),    intent (in)     :: b(:)
-        real (wp),    intent (in)     :: c(:)
-        real (wp),    intent (in out) :: y(idimy,n)
+        integer(ip), intent(in)     :: nperod
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: mperod
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: idimy
+        integer(ip), intent(out)    :: ierror
+        real(wp),    intent(in)     :: a(:)
+        real(wp),    intent(in)     :: b(:)
+        real(wp),    intent(in)     :: c(:)
+        real(wp),    intent(inout) :: y(idimy,n)
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        type (Fish)  :: workspace
+        type(Fish)  :: workspace
         !--------------------------------------------------------------
 
         !
@@ -303,24 +303,24 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        integer (ip),          intent (in)     :: nperod
-        integer (ip),          intent (in)     :: n
-        integer (ip),          intent (in)     :: mperod
-        integer (ip),          intent (in)     :: m
-        integer (ip),          intent (in)     :: idimy
-        integer (ip),          intent (out)    :: ierror
-        real (wp),             intent (in)     :: a(m)
-        real (wp),             intent (in)     :: b(m)
-        real (wp),             intent (in)     :: c(m)
-        real (wp),             intent (in out) :: y(idimy,n)
-        real (wp),             intent (in out) :: w(*)
+        integer(ip),          intent(in)     :: nperod
+        integer(ip),          intent(in)     :: n
+        integer(ip),          intent(in)     :: mperod
+        integer(ip),          intent(in)     :: m
+        integer(ip),          intent(in)     :: idimy
+        integer(ip),          intent(out)    :: ierror
+        real(wp),             intent(in)     :: a(m)
+        real(wp),             intent(in)     :: b(m)
+        real(wp),             intent(in)     :: c(m)
+        real(wp),             intent(inout) :: y(idimy,n)
+        real(wp),             intent(inout) :: w(*)
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        integer (ip)  :: workspace_indices(12)
-        integer (ip)  :: i, k, j, mp, np, irev, mh, mhm1, modd
-        integer (ip)  :: nby2, mskip
-        real (wp)     :: temp, ipstor
+        integer(ip)  :: workspace_indices(12)
+        integer(ip)  :: i, k, j, mp, np, irev, mh, mhm1, modd
+        integer(ip)  :: nby2, mskip
+        real(wp)     :: temp, ipstor
         !--------------------------------------------------------------
 
         !
@@ -547,15 +547,15 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        integer (ip), intent (in)  :: nperod
-        integer (ip), intent (in)  :: n
-        integer (ip), intent (in)  :: mperod
-        integer (ip), intent (in)  :: m
-        integer (ip), intent (in)  :: idimy
-        integer (ip), intent (out) :: ierror
-        real (wp),    intent (in)  :: a(m)
-        real (wp),    intent (in)  :: b(m)
-        real (wp),    intent (in)  :: c(m)
+        integer(ip), intent(in)  :: nperod
+        integer(ip), intent(in)  :: n
+        integer(ip), intent(in)  :: mperod
+        integer(ip), intent(in)  :: m
+        integer(ip), intent(in)  :: idimy
+        integer(ip), intent(out) :: ierror
+        real(wp),    intent(in)  :: a(m)
+        real(wp),    intent(in)  :: b(m)
+        real(wp),    intent(in)  :: c(m)
         !--------------------------------------------------------------
 
         if (3 > m) then
@@ -587,18 +587,16 @@ contains
 
     end subroutine check_input_arguments
 
-
-
-    pure function get_workspace(n, m) result (return_value)
+    function get_workspace(n, m) result (return_value)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)  :: n, m
-        type (Fish)                :: return_value
+        integer(ip), intent(in)  :: n, m
+        type(Fish)                :: return_value
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip)  :: irwk, icwk
+        integer(ip)  :: irwk, icwk
         !-----------------------------------------------
 
         ! Get workspace dimensions for genbun
@@ -612,17 +610,15 @@ contains
 
     end function get_workspace
 
-
-
-    pure function get_workspace_indices(n, m) result (return_value)
+    function get_workspace_indices(n, m) result (return_value)
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        integer (ip), intent (in) :: n
-        integer (ip), intent (in) :: m
-        integer (ip)              :: return_value(12)
+        integer(ip), intent(in) :: n
+        integer(ip), intent(in) :: m
+        integer(ip)             :: return_value(12)
         !--------------------------------------------------------------
-        integer (ip) :: j !! Counter
+        integer(ip) :: j !! Counter
         !--------------------------------------------------------------
 
         associate( i => return_value)
@@ -638,8 +634,6 @@ contains
 
     end function get_workspace_indices
 
-
-
     subroutine poisd2(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
         !
         ! Purpose:
@@ -653,28 +647,28 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        integer (ip), intent (in)     :: mr
-        integer (ip), intent (in)     :: nr
-        integer (ip), intent (in)     :: istag
-        integer (ip), intent (in)     :: idimq
-        real (wp),    intent (in)     :: ba(mr)
-        real (wp),    intent (in)     :: bb(mr)
-        real (wp),    intent (in)     :: bc(mr)
-        real (wp),    intent (in out) :: q(idimq,nr)
-        real (wp),    intent (in out) :: b(mr)
-        real (wp),    intent (in out) :: w(mr)
-        real (wp),    intent (in out) :: d(mr)
-        real (wp),    intent (in out) :: tcos(mr)
-        real (wp),    intent (in out) :: p(4*nr)
+        integer(ip), intent(in)     :: mr
+        integer(ip), intent(in)     :: nr
+        integer(ip), intent(in)     :: istag
+        integer(ip), intent(in)     :: idimq
+        real(wp),    intent(in)     :: ba(mr)
+        real(wp),    intent(in)     :: bb(mr)
+        real(wp),    intent(in)     :: bc(mr)
+        real(wp),    intent(inout) :: q(idimq,nr)
+        real(wp),    intent(inout) :: b(mr)
+        real(wp),    intent(inout) :: w(mr)
+        real(wp),    intent(inout) :: d(mr)
+        real(wp),    intent(inout) :: tcos(mr)
+        real(wp),    intent(inout) :: p(4*nr)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip)     :: m, n, jsh, ipp, ipstor, kr
-        integer (ip)     :: irreg, jstsav, i, lr, nun, nodd, noddpr
-        integer (ip)     :: jst, jsp, l, j, jm1, jp1, jm2, jp2, jm3, jp3
-        integer (ip)     :: krpi, ideg, jdeg
-        real (wp)        :: fi, t
-        type (GenbunAux) :: genbun_aux
+        integer(ip)     :: m, n, jsh, ipp, ipstor, kr
+        integer(ip)     :: irreg, jstsav, i, lr, nun, nodd, noddpr
+        integer(ip)     :: jst, jsp, l, j, jm1, jp1, jm2, jp2, jm3, jp3
+        integer(ip)     :: krpi, ideg, jdeg
+        real(wp)        :: fi, t
+        type(GenbunAux) :: genbun_aux
         !-----------------------------------------------
 
         m = mr
@@ -1046,33 +1040,33 @@ subroutine poisn2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
     !-----------------------------------------------
     ! Dummy arguments
     !-----------------------------------------------
-    integer (ip), intent (in)     :: m
-    integer (ip), intent (in)     :: n
-    integer (ip), intent (in)     :: istag
-    integer (ip), intent (in)     :: mixbnd
-    integer (ip), intent (in)     :: idimq
-    real (wp),    intent (in)     :: a(m)
-    real (wp),    intent (in)     :: bb(m)
-    real (wp),    intent (in)     :: c(m)
-    real (wp),    intent (in out) :: q(idimq,m)
-    real (wp),    intent (in out) :: b(m)
-    real (wp),    intent (in out) :: b2(m)
-    real (wp),    intent (in out) :: b3(m)
-    real (wp),    intent (in out) :: w(m)
-    real (wp),    intent (in out) :: w2(m)
-    real (wp),    intent (in out) :: w3(m)
-    real (wp),    intent (in out) :: d(m)
-    real (wp),    intent (in out) :: tcos(m)
-    real (wp),    intent (in out) :: p(4*n)
+    integer(ip), intent(in)     :: m
+    integer(ip), intent(in)     :: n
+    integer(ip), intent(in)     :: istag
+    integer(ip), intent(in)     :: mixbnd
+    integer(ip), intent(in)     :: idimq
+    real(wp),    intent(in)     :: a(m)
+    real(wp),    intent(in)     :: bb(m)
+    real(wp),    intent(in)     :: c(m)
+    real(wp),    intent(inout) :: q(idimq,m)
+    real(wp),    intent(inout) :: b(m)
+    real(wp),    intent(inout) :: b2(m)
+    real(wp),    intent(inout) :: b3(m)
+    real(wp),    intent(inout) :: w(m)
+    real(wp),    intent(inout) :: w2(m)
+    real(wp),    intent(inout) :: w3(m)
+    real(wp),    intent(inout) :: d(m)
+    real(wp),    intent(inout) :: tcos(m)
+    real(wp),    intent(inout) :: p(4*n)
     !-----------------------------------------------
     ! Local variables
     !-----------------------------------------------
-    integer (ip)     :: k(4)
-    integer (ip)     :: mr, ipp, ipstor, i2r, jr, nr, nlast, kr
-    integer (ip)     :: lr, i, nrod, jstart, jstop, i2rby2, j, jp1, jp2, jp3, jm1
-    integer (ip)     :: jm2, jm3, nrodpr, ii, i1, i2, jr2, nlastp, jstep
-    real (wp)        :: fistag, fnum, fden, fi, t
-    type (GenbunAux) :: genbun_aux
+    integer(ip)     :: k(4)
+    integer(ip)     :: mr, ipp, ipstor, i2r, jr, nr, nlast, kr
+    integer(ip)     :: lr, i, nrod, jstart, jstop, i2rby2, j, jp1, jp2, jp3, jm1
+    integer(ip)     :: jm2, jm3, nrodpr, ii, i1, i2, jr2, nlastp, jstep
+    real(wp)        :: fistag, fnum, fden, fi, t
+    type(GenbunAux) :: genbun_aux
     !-----------------------------------------------
 
     associate( &
@@ -1670,28 +1664,28 @@ subroutine poisp2(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
     !-----------------------------------------------
     ! Dummy arguments
     !-----------------------------------------------
-    integer (ip), intent (in)     :: m
-    integer (ip), intent (in)     :: n
-    integer (ip), intent (in)     :: idimq
-    real (wp),    intent (in)     :: a(m)
-    real (wp),    intent (in)     :: bb(m)
-    real (wp),    intent (in)     :: c(m)
-    real (wp),    intent (in out) :: q(idimq,m)
-    real (wp),    intent (in out) :: b(m)
-    real (wp),    intent (in out) :: b2(m)
-    real (wp),    intent (in out) :: b3(m)
-    real (wp),    intent (in out) :: w(m)
-    real (wp),    intent (in out) :: w2(m)
-    real (wp),    intent (in out) :: w3(m)
-    real (wp),    intent (in out) :: d(m)
-    real (wp),    intent (in out) :: tcos(m)
-    real (wp),    intent (in out) :: p(4*n)
+    integer(ip), intent(in)     :: m
+    integer(ip), intent(in)     :: n
+    integer(ip), intent(in)     :: idimq
+    real(wp),    intent(in)     :: a(m)
+    real(wp),    intent(in)     :: bb(m)
+    real(wp),    intent(in)     :: c(m)
+    real(wp),    intent(inout) :: q(idimq,m)
+    real(wp),    intent(inout) :: b(m)
+    real(wp),    intent(inout) :: b2(m)
+    real(wp),    intent(inout) :: b3(m)
+    real(wp),    intent(inout) :: w(m)
+    real(wp),    intent(inout) :: w2(m)
+    real(wp),    intent(inout) :: w3(m)
+    real(wp),    intent(inout) :: d(m)
+    real(wp),    intent(inout) :: tcos(m)
+    real(wp),    intent(inout) :: p(4*n)
     !-----------------------------------------------
     ! Local variables
     !-----------------------------------------------
-    integer (ip) :: mr, nr, nrm1, j, nrmj, nrpj, i, lh
-    real (wp)    :: ipstor
-    real (wp)    :: s, t
+    integer(ip) :: mr, nr, nrm1, j, nrmj, nrpj, i, lh
+    real(wp)    :: ipstor
+    real(wp)    :: s, t
     !-----------------------------------------------
 
     mr = m

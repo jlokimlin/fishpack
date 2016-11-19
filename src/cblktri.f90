@@ -140,13 +140,13 @@
 !                          idimy >= m.
 !
 !                        w
-!                          a fortran 90 derived type (FishpackWorkspace) variable
+!                          a fortran 90 derived type(FishpackWorkspace) variable
 !                          that must be declared by the user.  the first
 !                          two declarative statements in the user program
 !                          calling cblktri must be:
 !
 !                               use type_FishpackWorkspace
-!                               type (FishpackWorkspace) :: w
+!                               type(FishpackWorkspace) :: w
 !
 !                          the first statement makes the fishpack module
 !                          defined in the file "type_FishpackWorkspace.f90" available to the
@@ -277,14 +277,14 @@ module module_cblktri
     public :: cblktri
 
     !---------------------------------------------------------------
-    ! Dictionary: Variables confined to the module
+    ! Variables confined to the module
     !---------------------------------------------------------------
-    integer (ip), save      :: npp, k, nm, ncmplx, ik
-    real (wp),    save      :: cnv
-    real (wp),    parameter :: ZERO = 0.0_wp
-    real (wp),    parameter :: HALF = 0.5_wp
-    real (wp),    parameter :: ONE = 1.0_wp
-    real (wp),    parameter :: TWO = 2.0_wp
+    integer(ip), save      :: npp, k, nm, ncmplx, ik
+    real(wp),    save      :: cnv
+    real(wp),    parameter :: ZERO = 0.0_wp
+    real(wp),    parameter :: HALF = 0.5_wp
+    real(wp),    parameter :: ONE = 1.0_wp
+    real(wp),    parameter :: TWO = 2.0_wp
     !---------------------------------------------------------------
 
     interface proc_sub
@@ -305,26 +305,26 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: iflg
-        integer (ip), intent (in)     :: np
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: mp
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: idimy
-        integer (ip), intent (out)    :: ierror
-        real (wp),    intent (in)     :: an(:)
-        real (wp),    intent (in)     :: bn(:)
-        real (wp),    intent (in)     :: cn(:)
-        complex (wp), intent (in)     :: am(:)
-        complex (wp), intent (in)     :: bm(:)
-        complex (wp), intent (in)     :: cm(:)
-        complex (wp), intent (in out) :: y(:,:)
-        class (Fish), intent (in out) :: w
+        integer(ip), intent(in)     :: iflg
+        integer(ip), intent(in)     :: np
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: mp
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: idimy
+        integer(ip), intent(out)    :: ierror
+        real(wp),    intent(in)     :: an(:)
+        real(wp),    intent(in)     :: bn(:)
+        real(wp),    intent(in)     :: cn(:)
+        complex(wp), intent(in)     :: am(:)
+        complex(wp), intent(in)     :: bm(:)
+        complex(wp), intent(in)     :: cm(:)
+        complex(wp), intent(inout) :: y(:,:)
+        class(Fish), intent(inout) :: w
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: m2, nh, nl, iwah, iw1, iwbh
-        integer (ip) :: iw2, iw3, iwd, iww, iwu, irwk, icwk
+        integer(ip) :: m2, nh, nl, iwah, iw1, iwbh
+        integer(ip) :: iw2, iw3, iwd, iww, iwu, irwk, icwk
         !-----------------------------------------------
         !
         ! test m and n for the proper form
@@ -453,34 +453,34 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: idimy
-        real (wp),    intent (in)     :: an(:)
-        real (wp),    intent (in)     :: bn(:)
-        real (wp),    intent (in)     :: cn(:)
-        complex (wp), intent (in)     :: am(:)
-        complex (wp), intent (in)     :: bm(:)
-        complex (wp), intent (in)     :: cm(:)
-        real (wp),    intent (out)    :: b(*)
-        complex (wp), intent (in out) :: y(idimy,n)
-        complex (wp), intent (out)    :: bc(*)
-        complex (wp), intent (out)    :: w1(*)
-        complex (wp), intent (out)    :: w2(*)
-        complex (wp), intent (out)    :: w3(*)
-        complex (wp), intent (out)    :: wd(*)
-        complex (wp), intent (out)    :: ww(*)
-        complex (wp), intent (out)    :: wu(*)
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: idimy
+        real(wp),    intent(in)     :: an(:)
+        real(wp),    intent(in)     :: bn(:)
+        real(wp),    intent(in)     :: cn(:)
+        complex(wp), intent(in)     :: am(:)
+        complex(wp), intent(in)     :: bm(:)
+        complex(wp), intent(in)     :: cm(:)
+        real(wp),    intent(out)    :: b(*)
+        complex(wp), intent(inout) :: y(idimy,n)
+        complex(wp), intent(out)    :: bc(*)
+        complex(wp), intent(out)    :: w1(*)
+        complex(wp), intent(out)    :: w2(*)
+        complex(wp), intent(out)    :: w3(*)
+        complex(wp), intent(out)    :: wd(*)
+        complex(wp), intent(out)    :: ww(*)
+        complex(wp), intent(out)    :: wu(*)
         !procedure (proc_sub)          :: prdct
         !procedure (cproc_sub)         :: cprdct
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: kdo, l, ir, i2, i1, i3, i4, irm1, im2, nm2, im3, nm3
-        integer (ip) :: im1, nm1, iif, i, ipi1, ipi2, ipi3, idxc, nc, idxa, na, ip2, np2
-        integer (ip) :: ip1, np1, ip3, np3, iz, nz, izr, ll, ifd
-        integer (ip) :: iip, np, imi1, imi2
-        real (wp)    :: dum
+        integer(ip) :: kdo, l, ir, i2, i1, i3, i4, irm1, im2, nm2, im3, nm3
+        integer(ip) :: im1, nm1, iif, i, ipi1, ipi2, ipi3, idxc, nc, idxa, na, ip2, np2
+        integer(ip) :: ip1, np1, ip3, np3, iz, nz, izr, ll, ifd
+        integer(ip) :: iip, np, imi1, imi2
+        real(wp)    :: dum
         !-----------------------------------------------
 
         !
@@ -702,19 +702,19 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip)           :: iz
-        real (wp), intent (in) :: xll
-        real (wp), intent (in) :: xrr
-        real (wp)              :: c(*)
-        real (wp)              :: a(*)
-        real (wp)              :: bh(*)
+        integer(ip)           :: iz
+        real(wp), intent(in) :: xll
+        real(wp), intent(in) :: xrr
+        real(wp)              :: c(*)
+        real(wp)              :: a(*)
+        real(wp)              :: bh(*)
         procedure (comf_interface) :: f
-        real (wp), intent (in)     :: sgn
-        real (wp)                   :: return_value
+        real(wp), intent(in)     :: sgn
+        real(wp)                   :: return_value
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        real (wp) :: r1, xl, xr, dx, x
+        real(wp) :: r1, xl, xr, dx, x
         !-----------------------------------------------
 
         xl = xll
@@ -769,22 +769,22 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)  :: n
-        integer (ip), intent (out) :: ierror
-        real (wp)                  :: an(*)
-        real (wp),    intent (in)  :: bn(*)
-        real (wp) :: cn(*)
-        real (wp) :: b(*)
-        real (wp) :: ah(*)
-        real (wp) :: bh(*)
-        complex (wp) :: bc(*)
+        integer(ip), intent(in)  :: n
+        integer(ip), intent(out) :: ierror
+        real(wp)                  :: an(*)
+        real(wp),    intent(in)  :: bn(*)
+        real(wp) :: cn(*)
+        real(wp) :: b(*)
+        real(wp) :: ah(*)
+        real(wp) :: bh(*)
+        complex(wp) :: bc(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: j, if_rename, kdo, l, ir, i2, i4
-        integer (ip) ::  ipl, ifd, i, ib, nb, js, jf
-        integer (ip) ::  ls, lh, nmp, l1, l2, j2, j1, n2m2
-        real (wp)    :: bnorm, arg, d1, d2, d3
+        integer(ip) :: j, if_rename, kdo, l, ir, i2, i4
+        integer(ip) ::  ipl, ifd, i, ib, nb, js, jf
+        integer(ip) ::  ls, lh, nmp, l1, l2, j2, j1, n2m2
+        real(wp)    :: bnorm, arg, d1, d2, d3
         !-----------------------------------------------
 
         bnorm = abs(bn(1))
@@ -926,29 +926,29 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: nd
-        integer (ip), intent (in)     :: nm1
-        integer (ip), intent (in)     :: nm2
-        integer (ip), intent (in)     :: na
-        integer (ip), intent (in)     :: m
-        real (wp),    intent (in)     :: bm1(*)
-        real (wp),    intent (in)     :: bm2(*)
-        real (wp),    intent (in)     :: aa(*)
-        complex (wp), intent (in)     :: bd(*)
-        complex (wp), intent (in)     :: x(*)
-        complex (wp), intent (in out) :: y(*)
-        complex (wp), intent (in)     :: a(*)
-        complex (wp), intent (in)     :: b(*)
-        complex (wp), intent (in)     :: c(*)
-        complex (wp), intent (in out) :: d(*)
-        complex (wp), intent (in out) :: w(*)
-        complex (wp)                  :: yy(*)
+        integer(ip), intent(in)     :: nd
+        integer(ip), intent(in)     :: nm1
+        integer(ip), intent(in)     :: nm2
+        integer(ip), intent(in)     :: na
+        integer(ip), intent(in)     :: m
+        real(wp),    intent(in)     :: bm1(*)
+        real(wp),    intent(in)     :: bm2(*)
+        real(wp),    intent(in)     :: aa(*)
+        complex(wp), intent(in)     :: bd(*)
+        complex(wp), intent(in)     :: x(*)
+        complex(wp), intent(inout) :: y(*)
+        complex(wp), intent(in)     :: a(*)
+        complex(wp), intent(in)     :: b(*)
+        complex(wp), intent(in)     :: c(*)
+        complex(wp), intent(inout) :: d(*)
+        complex(wp), intent(inout) :: w(*)
+        complex(wp)                  :: yy(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: j, mm, id, m1, m2, ia, iflg, k
-        real (wp)    :: rt
-        complex (wp) :: crt, den, y1, y2
+        integer(ip) :: j, mm, id, m1, m2, ia, iflg, k
+        real(wp)    :: rt
+        complex(wp) :: crt, den, y1, y2
         !-----------------------------------------------
 
         y(:m) = x(:m)
@@ -1066,29 +1066,29 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: nd
-        integer (ip), intent (in) :: nm1
-        integer (ip), intent (in) :: nm2
-        integer (ip), intent (in) :: na
-        integer (ip), intent (in) :: m
-        real (wp), intent (in) :: bm1(*)
-        real (wp), intent (in) :: bm2(*)
-        real (wp), intent (in) :: aa(*)
-        real (wp) :: yy(*)
-        complex (wp), intent (in) :: bd(*)
-        complex (wp), intent (in) :: x(*)
-        complex (wp), intent (in out) :: y(*)
-        complex (wp), intent (in) :: a(*)
-        complex (wp), intent (in) :: b(*)
-        complex (wp), intent (in) :: c(*)
-        complex (wp), intent (in out) :: d(*)
-        complex (wp), intent (in out) :: u(*)
+        integer(ip), intent(in) :: nd
+        integer(ip), intent(in) :: nm1
+        integer(ip), intent(in) :: nm2
+        integer(ip), intent(in) :: na
+        integer(ip), intent(in) :: m
+        real(wp), intent(in) :: bm1(*)
+        real(wp), intent(in) :: bm2(*)
+        real(wp), intent(in) :: aa(*)
+        real(wp) :: yy(*)
+        complex(wp), intent(in) :: bd(*)
+        complex(wp), intent(in) :: x(*)
+        complex(wp), intent(inout) :: y(*)
+        complex(wp), intent(in) :: a(*)
+        complex(wp), intent(in) :: b(*)
+        complex(wp), intent(in) :: c(*)
+        complex(wp), intent(inout) :: d(*)
+        complex(wp), intent(inout) :: u(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: j, mm, mm2, id, m1, m2, ia, iflg, k
-        real (wp) :: rt
-        complex (wp) :: v, den, bh, ym, am, y1, y2, yh, crt
+        integer(ip) :: j, mm, mm2, id, m1, m2, ia, iflg, k
+        real(wp) :: rt
+        complex(wp) :: v, den, bh, ym, am, y1, y2, yh, crt
         !-----------------------------------------------
 
         y(:m) = x(:m)
@@ -1207,10 +1207,10 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)  :: i
-        integer (ip), intent (in)  :: ir
-        integer (ip), intent (out) :: idxa
-        integer (ip), intent (out) :: na
+        integer(ip), intent(in)  :: i
+        integer(ip), intent(in)  :: ir
+        integer(ip), intent(out) :: idxa
+        integer(ip), intent(out) :: na
         !-----------------------------------------------
 
         na = 2**ir
@@ -1226,14 +1226,14 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: i
-        integer (ip), intent (in) :: ir
-        integer (ip), intent (out) :: idx
-        integer (ip), intent (out) :: idp
+        integer(ip), intent(in) :: i
+        integer(ip), intent(in) :: ir
+        integer(ip), intent(out) :: idx
+        integer(ip), intent(out) :: idp
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: izh, id, ipl
+        integer(ip) :: izh, id, ipl
         !-----------------------------------------------
         !
         ! b(idx) is the location of the first root of the b(i, ir) polynomial
@@ -1270,10 +1270,10 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)  :: i
-        integer (ip), intent (in)  :: ir
-        integer (ip), intent (out) :: idxc
-        integer (ip), intent (out) :: nc
+        integer(ip), intent(in)  :: i
+        integer(ip), intent(in)  :: ir
+        integer(ip), intent(out) :: idxc
+        integer(ip), intent(out) :: nc
         !-----------------------------------------------
 
         nc = 2**ir
@@ -1299,21 +1299,21 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)  :: n
-        integer (ip), intent (out) :: ierror
-        real (wp)                  :: a(*)
-        real (wp)                  :: c(*)
-        real (wp)                  :: bp(*)
-        real (wp)                  :: bh(*)
-        complex (wp)               :: cbp(*)
+        integer(ip), intent(in)  :: n
+        integer(ip), intent(out) :: ierror
+        real(wp)                  :: a(*)
+        real(wp)                  :: c(*)
+        real(wp)                  :: bp(*)
+        real(wp)                  :: bh(*)
+        complex(wp)               :: cbp(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip)         :: iz, izm, izm2, j, nt, modiz
-        integer (ip)         :: iis, iif, ig, it, icv, i3, i2, nhalf
-        real (wp)            :: r4, r5, r6, scnv, xl, db, sgn, xr, xm, psg
-        real (wp)            :: temp
-        complex (wp)         :: cx, fsg, hsg, dd, f, fp, fpp, cdis, r1, r2, r3
+        integer(ip)         :: iz, izm, izm2, j, nt, modiz
+        integer(ip)         :: iis, iif, ig, it, icv, i3, i2, nhalf
+        real(wp)            :: r4, r5, r6, scnv, xl, db, sgn, xr, xm, psg
+        real(wp)            :: temp
+        complex(wp)         :: cx, fsg, hsg, dd, f, fp, fpp, cdis, r1, r2, r3
         !-----------------------------------------------
 
         scnv = sqrt(cnv)
@@ -1520,29 +1520,29 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)  :: nd
-        integer (ip), intent (in)  :: nm1
-        integer (ip), intent (in)  :: nm2
-        integer (ip), intent (in)  :: na
-        integer (ip), intent (in)  :: m
-        real (wp),    intent (in)  :: bd(nd)
-        real (wp),    intent (in)  :: bm1(nm1)
-        real (wp),    intent (in)  :: bm2(nm2)
-        real (wp),    intent (in)  :: aa(na)
-        complex (wp), intent (in)  :: x(m)
-        complex (wp), intent (out) :: y(m)
-        complex (wp), intent (in)  :: a(m)
-        complex (wp), intent (in)  :: b(m)
-        complex (wp), intent (in)  :: c(m)
-        complex (wp), intent (out) :: d(m)
-        complex (wp), intent (out) :: w(m)
-        complex (wp), intent (out) :: u(m)
+        integer(ip), intent(in)  :: nd
+        integer(ip), intent(in)  :: nm1
+        integer(ip), intent(in)  :: nm2
+        integer(ip), intent(in)  :: na
+        integer(ip), intent(in)  :: m
+        real(wp),    intent(in)  :: bd(nd)
+        real(wp),    intent(in)  :: bm1(nm1)
+        real(wp),    intent(in)  :: bm2(nm2)
+        real(wp),    intent(in)  :: aa(na)
+        complex(wp), intent(in)  :: x(m)
+        complex(wp), intent(out) :: y(m)
+        complex(wp), intent(in)  :: a(m)
+        complex(wp), intent(in)  :: b(m)
+        complex(wp), intent(in)  :: c(m)
+        complex(wp), intent(out) :: d(m)
+        complex(wp), intent(out) :: w(m)
+        complex(wp), intent(out) :: u(m)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: j, mm, id, ibr, m1, m2, ia, k
-        real (wp)    :: rt
-        complex (wp) :: den
+        integer(ip) :: j, mm, id, ibr, m1, m2, ia, k
+        real(wp)    :: rt
+        complex(wp) :: den
         !-----------------------------------------------
 
         w = x
@@ -1656,29 +1656,29 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)  :: nd
-        integer (ip), intent (in)  :: nm1
-        integer (ip), intent (in)  :: nm2
-        integer (ip), intent (in)  :: na
-        integer (ip), intent (in)  :: m
-        real (wp),    intent (in)  :: bd(nd)
-        real (wp),    intent (in)  :: bm1(nm1)
-        real (wp),    intent (in)  :: bm2(nm2)
-        real (wp),    intent (in)  :: aa(na)
-        complex (wp), intent (in)  :: x(m)
-        complex (wp), intent (out) :: y(m)
-        complex (wp), intent (in)  :: a(m)
-        complex (wp), intent (in)  :: b(m)
-        complex (wp), intent (in)  :: c(m)
-        complex (wp), intent (out) :: d(m)
-        complex (wp), intent (out) :: u(m)
-        complex (wp), intent (out) :: w(m)
+        integer(ip), intent(in)  :: nd
+        integer(ip), intent(in)  :: nm1
+        integer(ip), intent(in)  :: nm2
+        integer(ip), intent(in)  :: na
+        integer(ip), intent(in)  :: m
+        real(wp),    intent(in)  :: bd(nd)
+        real(wp),    intent(in)  :: bm1(nm1)
+        real(wp),    intent(in)  :: bm2(nm2)
+        real(wp),    intent(in)  :: aa(na)
+        complex(wp), intent(in)  :: x(m)
+        complex(wp), intent(out) :: y(m)
+        complex(wp), intent(in)  :: a(m)
+        complex(wp), intent(in)  :: b(m)
+        complex(wp), intent(in)  :: c(m)
+        complex(wp), intent(out) :: d(m)
+        complex(wp), intent(out) :: u(m)
+        complex(wp), intent(out) :: w(m)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: j, mm, mm2, id, ibr, m1, m2, ia, k
-        real (wp)    :: rt
-        complex (wp) :: den, ym, v, bh, am
+        integer(ip) :: j, mm, mm2, id, ibr, m1, m2, ia, k
+        real(wp)    :: rt
+        complex(wp) :: den, ym, v, bh, am
         !-----------------------------------------------
 
         y = x
@@ -1834,15 +1834,15 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (out)    :: ierr
-        real (wp),    intent (in out) :: d(n)
-        real (wp),    intent (in out) :: e2(n)
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(out)    :: ierr
+        real(wp),    intent(inout) :: d(n)
+        real(wp),    intent(inout) :: e2(n)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: i, j, l, m, ii, l1, mml, nhalf, ntop
-        real (wp) :: b, c, f, g, h, p, r, s, dhold
+        integer(ip) :: i, j, l, m, ii, l1, mml, nhalf, ntop
+        real(wp) :: b, c, f, g, h, p, r, s, dhold
         !-----------------------------------------------
 
         ierr = 0

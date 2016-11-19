@@ -41,16 +41,16 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (PoissonSolver), intent (in out) :: this
-        real (wp),             intent (in out) :: source_term(:,:)
-        real (wp),             intent (out)    :: solution(:,:)
+        class(PoissonSolver), intent(inout) :: this
+        real(wp),             intent(inout) :: source_term(:,:)
+        real(wp),             intent(out)    :: solution(:,:)
         !--------------------------------------------------------------
-        real (wp), parameter :: HELMHOLTZ_CONSTANT = 0.0_wp
+        real(wp), parameter :: HELMHOLTZ_CONSTANT = 0.0_wp
         !--------------------------------------------------------------
 
         ! Check if object is usable
-        if (this%initialized .eqv. .false.) then
-            error stop 'Uninitialized object of class (PoissonSolver) '&
+        if (.not.this%initialized) then
+            error stop 'Uninitialized object of class(PoissonSolver) '&
                 //'in solve_2d_poisson_centered'
         end if
 
@@ -74,18 +74,18 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (PoissonSolver), intent (in out) :: this
-        real (wp),             intent (in out) :: source_term(:,:)
-        real (wp),             intent (out)    :: solution(:,:)
+        class(PoissonSolver), intent(inout) :: this
+        real(wp),             intent(inout) :: source_term(:,:)
+        real(wp),             intent(out)    :: solution(:,:)
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        real (wp), parameter :: HELMHOLTZ_CONSTANT = 0.0_wp
+        real(wp), parameter :: HELMHOLTZ_CONSTANT = 0.0_wp
         !--------------------------------------------------------------
 
         ! Check if object is usable
-        if (this%initialized .eqv. .false.) then
-            error stop 'Uninitialized object of class (PoissonSolver) '&
+        if (.not.this%initialized) then
+            error stop 'Uninitialized object of class(PoissonSolver) '&
                 //' in solve_2d_poisson_staggered'
         end if
 
@@ -108,7 +108,7 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        type (PoissonSolver), intent (in out) :: this
+        type(PoissonSolver), intent(inout) :: this
         !--------------------------------------------------------------
 
         call this%destroy()

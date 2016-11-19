@@ -376,28 +376,28 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: mbdcnd
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: nbdcnd
-        integer (ip), intent (in)     :: idimf
-        integer (ip), intent (out)    :: ierror
-        real (wp),    intent (in)     :: a
-        real (wp),    intent (in)     :: b
-        real (wp),    intent (in)     :: c
-        real (wp),    intent (in)     :: d
-        real (wp),    intent (in)     :: elmbda
-        real (wp),    intent (out)    :: pertrb
-        real (wp),    intent (in)     :: bda(:)
-        real (wp),    intent (in)     :: bdb(:)
-        real (wp),    intent (in)     :: bdc(:)
-        real (wp),    intent (in)     :: bdd(:)
-        real (wp),    intent (in out) :: f(:,:)
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: mbdcnd
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: nbdcnd
+        integer(ip), intent(in)     :: idimf
+        integer(ip), intent(out)    :: ierror
+        real(wp),    intent(in)     :: a
+        real(wp),    intent(in)     :: b
+        real(wp),    intent(in)     :: c
+        real(wp),    intent(in)     :: d
+        real(wp),    intent(in)     :: elmbda
+        real(wp),    intent(out)    :: pertrb
+        real(wp),    intent(in)     :: bda(:)
+        real(wp),    intent(in)     :: bdb(:)
+        real(wp),    intent(in)     :: bdc(:)
+        real(wp),    intent(in)     :: bdd(:)
+        real(wp),    intent(inout) :: f(:,:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: irwk, icwk
-        type (Fish)  :: workspace
+        integer(ip) :: irwk, icwk
+        type(Fish)  :: workspace
         !-----------------------------------------------
 
         !
@@ -475,28 +475,28 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: mbdcnd
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: nbdcnd
-        integer (ip), intent (in)     :: idimf
-        integer (ip), intent (out)    :: ierror
-        real (wp),    intent (in)     :: a
-        real (wp),    intent (in)     :: b
-        real (wp),    intent (in)     :: c
-        real (wp),    intent (in)     :: d
-        real (wp),    intent (in)     :: elmbda
-        real (wp),    intent (out)    :: pertrb
-        real (wp),    intent (in)     :: bda(:)
-        real (wp),    intent (in)     :: bdb(:)
-        real (wp),    intent (in)     :: bdc(:)
-        real (wp),    intent (in)     :: bdd(:)
-        real (wp),    intent (in out) :: f(idimf,*)
-        real (wp),    intent (in out) :: w(*)
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: mbdcnd
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: nbdcnd
+        integer(ip), intent(in)     :: idimf
+        integer(ip), intent(out)    :: ierror
+        real(wp),    intent(in)     :: a
+        real(wp),    intent(in)     :: b
+        real(wp),    intent(in)     :: c
+        real(wp),    intent(in)     :: d
+        real(wp),    intent(in)     :: elmbda
+        real(wp),    intent(out)    :: pertrb
+        real(wp),    intent(in)     :: bda(:)
+        real(wp),    intent(in)     :: bdb(:)
+        real(wp),    intent(in)     :: bdc(:)
+        real(wp),    intent(in)     :: bdd(:)
+        real(wp),    intent(inout) :: f(idimf,*)
+        real(wp),    intent(inout) :: w(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: np, isw, mb, iwb, iwc, iwr, i, j, k, lp, local_error_flag
+        integer(ip) :: np, isw, mb, iwb, iwc, iwr, i, j, k, lp, local_error_flag
         real    (wp) :: dr, dr2, dth, dth2, a1, a2
         !-----------------------------------------------
 

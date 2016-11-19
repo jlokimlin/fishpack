@@ -35,7 +35,7 @@
 !
 program thwscsp
 
-    use, intrinsic :: iso_fortran_env, only: &
+    use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
@@ -51,15 +51,15 @@ program thwscsp
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
-    type (FishpackSolver)     :: solver
-    type (FishpackWorkspace)  :: workspace
-    integer (ip) :: intl, m, mbdcnd, n, nbdcnd, idimf, mp1, i, np1, j, ierror
-    real (wp), dimension(48, 33) :: f
-    real (wp), dimension(33) :: bdtf, bdts, bdrs, bdrf
-    real (wp), dimension(48) :: theta
-    real (wp), dimension(33) :: r
-    real (wp)                :: ts, tf, rs, rf, elmbda
-    real (wp)                :: dtheta, dr, ci4, pertrb, discretization_error, z, dphi, si
+    type(FishpackSolver)     :: solver
+    type(FishpackWorkspace)  :: workspace
+    integer(ip) :: intl, m, mbdcnd, n, nbdcnd, idimf, mp1, i, np1, j, ierror
+    real(wp), dimension(48, 33) :: f
+    real(wp), dimension(33) :: bdtf, bdts, bdrs, bdrf
+    real(wp), dimension(48) :: theta
+    real(wp), dimension(33) :: r
+    real(wp)                :: ts, tf, rs, rf, elmbda
+    real(wp)                :: dtheta, dr, ci4, pertrb, discretization_error, z, dphi, si
     !-----------------------------------------------
     !
     !     program to illustrate the use of hwscsp

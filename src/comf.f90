@@ -94,12 +94,12 @@ module module_comf
             !-----------------------------------------------
             ! Dummy arguments
             !-----------------------------------------------
-            integer (ip), intent (in) :: iz
-            real (wp),    intent (in) :: x
-            real (wp),    intent (in) :: c(*)
-            real (wp),    intent (in) :: a(*)
-            real (wp),    intent (in) :: bh(*)
-            real (wp)                 :: return_value
+            integer(ip), intent(in) :: iz
+            real(wp),    intent(in) :: x
+            real(wp),    intent(in) :: c(*)
+            real(wp),    intent(in) :: a(*)
+            real(wp),    intent(in) :: bh(*)
+            real(wp)                 :: return_value
             !-----------------------------------------------
         end function comf_interface
     end interface
@@ -112,12 +112,12 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: iz
-        real (wp),    intent (in) :: x
-        real (wp),    intent (in) :: c(*)
-        real (wp),    intent (in) :: a(*)
-        real (wp),    intent (in) :: bh(*)
-        real (wp)                 :: return_value
+        integer(ip), intent(in) :: iz
+        real(wp),    intent(in) :: x
+        real(wp),    intent(in) :: c(*)
+        real(wp),    intent(in) :: a(*)
+        real(wp),    intent(in) :: bh(*)
+        real(wp)                 :: return_value
         !-----------------------------------------------
 
         return_value = sum(1.0_wp/(x - bh(1:iz))**2)
@@ -129,12 +129,12 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: iz
-        real (wp),    intent (in) :: x
-        real (wp),    intent (in) :: c(*)
-        real (wp),    intent (in) :: a(*)
-        real (wp),    intent (in) :: bh(*)
-        real (wp)                 :: return_value
+        integer(ip), intent(in) :: iz
+        real(wp),    intent(in) :: x
+        real(wp),    intent(in) :: c(*)
+        real(wp),    intent(in) :: a(*)
+        real(wp),    intent(in) :: bh(*)
+        real(wp)                 :: return_value
         !-----------------------------------------------
 
         return_value = sum(1.0_wp/(x - bh(1:iz)))
@@ -146,17 +146,17 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: iz
-        real (wp),    intent (in) :: x
-        real (wp),    intent (in) :: c(*)
-        real (wp),    intent (in) :: a(*)
-        real (wp),    intent (in) :: bh(*)
-        real (wp)                 :: return_value
+        integer(ip), intent(in) :: iz
+        real(wp),    intent(in) :: x
+        real(wp),    intent(in) :: c(*)
+        real(wp),    intent(in) :: a(*)
+        real(wp),    intent(in) :: bh(*)
+        real(wp)                 :: return_value
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: j
-        real (wp)    :: fsg, hsg, dd
+        integer(ip) :: j
+        real(wp)    :: fsg, hsg, dd
         !-----------------------------------------------
 
         fsg = 1.0_wp
@@ -191,5 +191,5 @@ end module module_comf
 ! June      2004    Version 5.0, Fortran 90 changes
 ! April     2016    Replaced epmach with intrinsic function epsilon
 !                   and pimach with acos(-1.0_wp) where wp = REAL64 from the
-!                   intrinsic module iso_fortran_env
+!                   intrinsic module ISO_Fortran_env
 !

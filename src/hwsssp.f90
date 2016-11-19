@@ -420,28 +420,28 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: mbdcnd
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: nbdcnd
-        integer (ip), intent (in)     :: idimf
-        integer (ip), intent (out)    :: ierror
-        real (wp),    intent (in)     :: ts
-        real (wp),    intent (in)     :: tf
-        real (wp),    intent (in)     :: ps
-        real (wp),    intent (in)     :: pf
-        real (wp),    intent (in)     :: elmbda
-        real (wp),    intent (out)    :: pertrb
-        real (wp),    intent (in)     :: bdts(:)
-        real (wp),    intent (in)     :: bdtf(:)
-        real (wp),    intent (in)     :: bdps(:)
-        real (wp),    intent (in)     :: bdpf(:)
-        real (wp),    intent (in out) :: f(:,:)
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: mbdcnd
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: nbdcnd
+        integer(ip), intent(in)     :: idimf
+        integer(ip), intent(out)    :: ierror
+        real(wp),    intent(in)     :: ts
+        real(wp),    intent(in)     :: tf
+        real(wp),    intent(in)     :: ps
+        real(wp),    intent(in)     :: pf
+        real(wp),    intent(in)     :: elmbda
+        real(wp),    intent(out)    :: pertrb
+        real(wp),    intent(in)     :: bdts(:)
+        real(wp),    intent(in)     :: bdtf(:)
+        real(wp),    intent(in)     :: bdps(:)
+        real(wp),    intent(in)     :: bdpf(:)
+        real(wp),    intent(inout) :: f(:,:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        type (Fish)  :: workspace
-        integer (ip) :: irwk, icwk
+        type(Fish)  :: workspace
+        integer(ip) :: irwk, icwk
         !-----------------------------------------------
 
 
@@ -531,24 +531,24 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: mbdcnd
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: nbdcnd
-        integer (ip), intent (in)     :: idimf
-        integer (ip), intent (out)    :: ierror
-        real (wp),    intent (in)     :: ts
-        real (wp),    intent (in)     :: tf
-        real (wp),    intent (in)     :: ps
-        real (wp),    intent (in)     :: pf
-        real (wp),    intent (in)     :: elmbda
-        real (wp),    intent (out)    :: pertrb
-        real (wp),    intent (in)     :: bdts(:)
-        real (wp),    intent (in)     :: bdtf(:)
-        real (wp),    intent (in)     :: bdps(:)
-        real (wp),    intent (in)     :: bdpf(:)
-        real (wp),    intent (in out) :: f(:,:)
-        real (wp),    intent (in out) :: w(*)
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: mbdcnd
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: nbdcnd
+        integer(ip), intent(in)     :: idimf
+        integer(ip), intent(out)    :: ierror
+        real(wp),    intent(in)     :: ts
+        real(wp),    intent(in)     :: tf
+        real(wp),    intent(in)     :: ps
+        real(wp),    intent(in)     :: pf
+        real(wp),    intent(in)     :: elmbda
+        real(wp),    intent(out)    :: pertrb
+        real(wp),    intent(in)     :: bdts(:)
+        real(wp),    intent(in)     :: bdtf(:)
+        real(wp),    intent(in)     :: bdps(:)
+        real(wp),    intent(in)     :: bdpf(:)
+        real(wp),    intent(inout) :: f(:,:)
+        real(wp),    intent(inout) :: w(*)
         !-----------------------------------------------
 
         call hwsss1(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
@@ -566,39 +566,39 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: mbdcnd
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: nbdcnd
-        integer (ip), intent (in)     :: idimf
-        real (wp),    intent (in)     :: ts
-        real (wp),    intent (in)     :: tf
-        real (wp),    intent (in)     :: ps
-        real (wp),    intent (in)     :: pf
-        real (wp),    intent (in)     :: elmbda
-        real (wp),    intent (out)    :: pertrb
-        real (wp),    intent (in)     :: bdts(:)
-        real (wp),    intent (in)     :: bdtf(:)
-        real (wp),    intent (in)     :: bdps(:)
-        real (wp),    intent (in)     :: bdpf(:)
-        real (wp),    intent (in out) :: f(idimf,*)
-        real (wp),    intent (out)    :: am(*)
-        real (wp),    intent (out)    :: bm(*)
-        real (wp),    intent (out)    :: cm(*)
-        real (wp),    intent (out)    :: sn(*)
-        real (wp),    intent (out)    :: ss(*)
-        real (wp),    intent (out)    :: sint(*)
-        real (wp),    intent (out)    :: d(*)
-        integer (ip), intent (out)    :: error_flag
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: mbdcnd
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: nbdcnd
+        integer(ip), intent(in)     :: idimf
+        real(wp),    intent(in)     :: ts
+        real(wp),    intent(in)     :: tf
+        real(wp),    intent(in)     :: ps
+        real(wp),    intent(in)     :: pf
+        real(wp),    intent(in)     :: elmbda
+        real(wp),    intent(out)    :: pertrb
+        real(wp),    intent(in)     :: bdts(:)
+        real(wp),    intent(in)     :: bdtf(:)
+        real(wp),    intent(in)     :: bdps(:)
+        real(wp),    intent(in)     :: bdpf(:)
+        real(wp),    intent(inout) :: f(idimf,*)
+        real(wp),    intent(out)    :: am(*)
+        real(wp),    intent(out)    :: bm(*)
+        real(wp),    intent(out)    :: cm(*)
+        real(wp),    intent(out)    :: sn(*)
+        real(wp),    intent(out)    :: ss(*)
+        real(wp),    intent(out)    :: sint(*)
+        real(wp),    intent(out)    :: d(*)
+        integer(ip), intent(out)    :: error_flag
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: mp1, np1, i, inp, isp, mbr, its, itf, itsp, itfm, munk
-        integer (ip) :: iid, ii, nbr, jps, jpf, jpsp, jpfm, nunk, ising
-        real (wp)    :: fn, fm, dth, half_dth, two_dth, dphi, two_dphi
-        real (wp)    :: dphi2, edp2, dth2, cp, wpp, fim1, theta, t1, at, ct, wts, wtf
-        real (wp)    :: wps, wpf, fjj, cf, summation, sum1, hne, yhld, sum2, dfn, dnn, dsn
-        real (wp)    :: cnp, hld, dfs, dss, dns, csp, rtn, rts, den
+        integer(ip) :: mp1, np1, i, inp, isp, mbr, its, itf, itsp, itfm, munk
+        integer(ip) :: iid, ii, nbr, jps, jpf, jpsp, jpfm, nunk, ising
+        real(wp)    :: fn, fm, dth, half_dth, two_dth, dphi, two_dphi
+        real(wp)    :: dphi2, edp2, dth2, cp, wpp, fim1, theta, t1, at, ct, wts, wtf
+        real(wp)    :: wps, wpf, fjj, cf, summation, sum1, hne, yhld, sum2, dfn, dnn, dsn
+        real(wp)    :: cnp, hld, dfs, dss, dns, csp, rtn, rts, den
         !-----------------------------------------------
 
         mp1 = m + 1

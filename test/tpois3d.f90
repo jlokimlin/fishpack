@@ -35,7 +35,7 @@
 !
 program tpois3d
 
-    use, intrinsic :: iso_fortran_env, only: &
+    use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
@@ -49,13 +49,13 @@ program tpois3d
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
-    type (FishpackSolver)     :: solver
-    integer (ip) :: ldimf, mdimf, lperod, l, mperod, m, nperod, n, i, j, k, ierror
-    real (wp), dimension(32, 33, 10) :: f
-    real (wp), dimension(10) :: a, b, c
-    real (wp), dimension(30) :: x, y
-    real (wp), dimension(10) :: z
-    real (wp) :: pi, dx, c1, dy, c2, dz, dzsq, t, discretization_error
+    type(FishpackSolver)     :: solver
+    integer(ip) :: ldimf, mdimf, lperod, l, mperod, m, nperod, n, i, j, k, ierror
+    real(wp), dimension(32, 33, 10) :: f
+    real(wp), dimension(10) :: a, b, c
+    real(wp), dimension(30) :: x, y
+    real(wp), dimension(10) :: z
+    real(wp) :: pi, dx, c1, dy, c2, dz, dzsq, t, discretization_error
     !-----------------------------------------------
     !
     !     from the dimension statement we get that ldimf = 32, mdimf = 33,

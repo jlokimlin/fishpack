@@ -4,7 +4,7 @@ module type_RectangularDomain
         wp, & ! Working precision
         ip ! Integer precision
 
-    use, intrinsic :: iso_fortran_env, only: &
+    use, intrinsic :: ISO_Fortran_env, only: &
         stderr => ERROR_UNIT
 
     ! Explicit typing only
@@ -20,10 +20,10 @@ module type_RectangularDomain
         ! Type components
         !-------------------------------------------------------------------------------
         logical,   public  :: initialized = .false.
-        real (wp), public  :: A = 0.0_wp  !! A <= x <= B
-        real (wp), public  :: B = 0.0_wp  !! A <= x <= B
-        real (wp), public  :: C = 0.0_wp  !! C <= y <= D
-        real (wp), public  :: D = 0.0_wp  !! C <= y <= D
+        real(wp), public  :: A = 0.0_wp  !! A <= x <= B
+        real(wp), public  :: B = 0.0_wp  !! A <= x <= B
+        real(wp), public  :: C = 0.0_wp  !! C <= y <= D
+        real(wp), public  :: D = 0.0_wp  !! C <= y <= D
         !-------------------------------------------------------------------------------
     contains
         !-------------------------------------------------------------------------------
@@ -45,9 +45,9 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (RectangularDomain), intent (in out)  :: this
-        real (wp),                 intent (in)      :: x_interval(:) !! A <= x <= B
-        real (wp),                 intent (in)      :: y_interval(:) !! C <= y <= D
+        class(RectangularDomain), intent(inout)  :: this
+        real(wp),                 intent(in)      :: x_interval(:) !! A <= x <= B
+        real(wp),                 intent(in)      :: y_interval(:) !! C <= y <= D
         !--------------------------------------------------------------
 
         ! Ensure that object is usable
@@ -73,7 +73,7 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (RectangularDomain), intent (in out)   :: this
+        class(RectangularDomain), intent(inout)   :: this
         !--------------------------------------------------------------
         
         ! Check if object is already usable
@@ -95,8 +95,8 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (RectangularDomain), intent (out) :: this
-        class (RectangularDomain), intent (in)  :: rectangle_to_be_copied
+        class(RectangularDomain), intent(out) :: this
+        class(RectangularDomain), intent(in)  :: rectangle_to_be_copied
         !--------------------------------------------------------------
 
         this%A = rectangle_to_be_copied%A
@@ -114,7 +114,7 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        type (RectangularDomain), intent (in out) :: this
+        type(RectangularDomain), intent(inout) :: this
         !--------------------------------------------------------------
 
         call this%destroy()

@@ -430,11 +430,11 @@ module module_hw3crt
 
 
     !---------------------------------------------------------------
-    ! Dictionary: Variables confined to the module
+    ! Variables confined to the module
     !---------------------------------------------------------------
-    real (wp), private :: ZERO = 0.0_wp
-    real (wp), private :: ONE = 1.0_wp
-    real (wp), private :: TWO = 2.0_wp
+    real(wp), private :: ZERO = 0.0_wp
+    real(wp), private :: ONE = 1.0_wp
+    real(wp), private :: TWO = 2.0_wp
     !---------------------------------------------------------------
 
 
@@ -447,34 +447,34 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)      :: l
-        integer (ip), intent (in)      :: lbdcnd
-        integer (ip), intent (in)      :: m
-        integer (ip), intent (in)      :: mbdcnd
-        integer (ip), intent (in)      :: n
-        integer (ip), intent (in)      :: nbdcnd
-        integer (ip), intent (in)      :: ldimf
-        integer (ip), intent (in)      :: mdimf
-        integer (ip), intent (out)     :: ierror
-        real (wp),    intent (in)      :: xs
-        real (wp),    intent (in)      :: xf
-        real (wp),    intent (in)      :: ys
-        real (wp),    intent (in)      :: yf
-        real (wp),    intent (in)      :: zs
-        real (wp),    intent (in)      :: zf
-        real (wp),    intent (in)      :: elmbda
-        real (wp),    intent (out)     :: pertrb
-        real (wp),    intent (in)      :: bdxs(:,:)
-        real (wp),    intent (in)      :: bdxf(:,:)
-        real (wp),    intent (in)      :: bdys(:,:)
-        real (wp),    intent (in)      :: bdyf(:,:)
-        real (wp),    intent (in)      :: bdzs(:,:)
-        real (wp),    intent (in)      :: bdzf(:,:)
-        real (wp),    intent (in out)  :: f(:,:,:)
+        integer(ip), intent(in)      :: l
+        integer(ip), intent(in)      :: lbdcnd
+        integer(ip), intent(in)      :: m
+        integer(ip), intent(in)      :: mbdcnd
+        integer(ip), intent(in)      :: n
+        integer(ip), intent(in)      :: nbdcnd
+        integer(ip), intent(in)      :: ldimf
+        integer(ip), intent(in)      :: mdimf
+        integer(ip), intent(out)     :: ierror
+        real(wp),    intent(in)      :: xs
+        real(wp),    intent(in)      :: xf
+        real(wp),    intent(in)      :: ys
+        real(wp),    intent(in)      :: yf
+        real(wp),    intent(in)      :: zs
+        real(wp),    intent(in)      :: zf
+        real(wp),    intent(in)      :: elmbda
+        real(wp),    intent(out)     :: pertrb
+        real(wp),    intent(in)      :: bdxs(:,:)
+        real(wp),    intent(in)      :: bdxf(:,:)
+        real(wp),    intent(in)      :: bdys(:,:)
+        real(wp),    intent(in)      :: bdyf(:,:)
+        real(wp),    intent(in)      :: bdzs(:,:)
+        real(wp),    intent(in)      :: bdzf(:,:)
+        real(wp),    intent(inout)  :: f(:,:,:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        type (Fish) :: workspace
+        type(Fish) :: workspace
         !-----------------------------------------------
 
         !
@@ -515,40 +515,40 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: l
-        integer (ip), intent (in)     :: lbdcnd
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: mbdcnd
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: nbdcnd
-        integer (ip), intent (in)     :: ldimf
-        integer (ip), intent (in)     :: mdimf
-        integer (ip), intent (out)    :: ierror
-        real (wp),    intent (in)     :: xs
-        real (wp),    intent (in)     :: xf
-        real (wp),    intent (in)     :: ys
-        real (wp),    intent (in)     :: yf
-        real (wp),    intent (in)     :: zs
-        real (wp),    intent (in)     :: zf
-        real (wp),    intent (in)     :: elmbda
-        real (wp),    intent (out)    :: pertrb
-        real (wp),    intent (in)     :: bdxs(:,:)
-        real (wp),    intent (in)     :: bdxf(:,:)
-        real (wp),    intent (in)     :: bdys(:,:)
-        real (wp),    intent (in)     :: bdyf(:,:)
-        real (wp),    intent (in)     :: bdzs(:,:)
-        real (wp),    intent (in)     :: bdzf(:,:)
-        real (wp),    intent (in out) :: f(ldimf, mdimf, *)
-        real (wp),    intent (out), contiguous :: w(:)
+        integer(ip), intent(in)     :: l
+        integer(ip), intent(in)     :: lbdcnd
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: mbdcnd
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: nbdcnd
+        integer(ip), intent(in)     :: ldimf
+        integer(ip), intent(in)     :: mdimf
+        integer(ip), intent(out)    :: ierror
+        real(wp),    intent(in)     :: xs
+        real(wp),    intent(in)     :: xf
+        real(wp),    intent(in)     :: ys
+        real(wp),    intent(in)     :: yf
+        real(wp),    intent(in)     :: zs
+        real(wp),    intent(in)     :: zf
+        real(wp),    intent(in)     :: elmbda
+        real(wp),    intent(out)    :: pertrb
+        real(wp),    intent(in)     :: bdxs(:,:)
+        real(wp),    intent(in)     :: bdxf(:,:)
+        real(wp),    intent(in)     :: bdys(:,:)
+        real(wp),    intent(in)     :: bdyf(:,:)
+        real(wp),    intent(in)     :: bdzs(:,:)
+        real(wp),    intent(in)     :: bdzf(:,:)
+        real(wp),    intent(inout) :: f(ldimf, mdimf, *)
+        real(wp),    intent(out), contiguous :: w(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: mstart, mstop, mp1, mp, munk, np, np1
-        integer (ip) :: nstart, nstop, nunk, lp1, lp, lstart
-        integer (ip) :: lstop, j, k, lunk, iwb, iwc, iww
-        integer (ip) :: mstpm1, lstpm1, nstpm1, nperod
-        real (wp)    :: dy, twbydy, c2, dz, twbydz, c3, dx
-        real (wp)    :: c1, twbydx, xlp, ylp, zlp, s1, s2, s
+        integer(ip) :: mstart, mstop, mp1, mp, munk, np, np1
+        integer(ip) :: nstart, nstop, nunk, lp1, lp, lstart
+        integer(ip) :: lstop, j, k, lunk, iwb, iwc, iww
+        integer(ip) :: mstpm1, lstpm1, nstpm1, nperod
+        real(wp)    :: dy, twbydy, c2, dz, twbydz, c3, dx
+        real(wp)    :: c1, twbydx, xlp, ylp, zlp, s1, s2, s
         !-----------------------------------------------
 
         dy = (yf - ys)/m
@@ -821,21 +821,21 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)      :: l
-        integer (ip), intent (in)      :: lbdcnd
-        integer (ip), intent (in)      :: m
-        integer (ip), intent (in)      :: mbdcnd
-        integer (ip), intent (in)      :: n
-        integer (ip), intent (in)      :: nbdcnd
-        integer (ip), intent (in)      :: ldimf
-        integer (ip), intent (in)      :: mdimf
-        real (wp),    intent (in)      :: xs
-        real (wp),    intent (in)      :: xf
-        real (wp),    intent (in)      :: ys
-        real (wp),    intent (in)      :: yf
-        real (wp),    intent (in)      :: zs
-        real (wp),    intent (in)      :: zf
-        integer (ip), intent (out)     :: ierror
+        integer(ip), intent(in)      :: l
+        integer(ip), intent(in)      :: lbdcnd
+        integer(ip), intent(in)      :: m
+        integer(ip), intent(in)      :: mbdcnd
+        integer(ip), intent(in)      :: n
+        integer(ip), intent(in)      :: nbdcnd
+        integer(ip), intent(in)      :: ldimf
+        integer(ip), intent(in)      :: mdimf
+        real(wp),    intent(in)      :: xs
+        real(wp),    intent(in)      :: xf
+        real(wp),    intent(in)      :: ys
+        real(wp),    intent(in)      :: yf
+        real(wp),    intent(in)      :: zs
+        real(wp),    intent(in)      :: zf
+        integer(ip), intent(out)     :: ierror
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
@@ -881,16 +881,16 @@ contains
 
 
 
-    pure function get_workspace(n, m, l) result (return_value)
+    function get_workspace(n, m, l) result (return_value)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)  :: n, m, l
-        type (Fish)                :: return_value
+        integer(ip), intent(in)  :: n, m, l
+        type(Fish)                :: return_value
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip)  :: irwk, icwk
+        integer(ip)  :: irwk, icwk
         !-----------------------------------------------
 
         ! Adjust workspace for hw3crt

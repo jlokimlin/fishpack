@@ -4,7 +4,7 @@ module type_TridiagonalSolver
         wp, & ! Working precision
         ip ! Integer precision
 
-    use, intrinsic :: iso_fortran_env, only: &
+    use, intrinsic :: ISO_Fortran_env, only: &
         stderr => ERROR_UNIT, &
         stdout => OUTPUT_UNIT
 
@@ -34,7 +34,7 @@ module type_TridiagonalSolver
     public :: TridiagonalSolver
 
     ! Declare derived data type
-    type, extends( TridiagonalData ), public :: TridiagonalSolver
+    type, extends (TridiagonalData), public :: TridiagonalSolver
        !---------------------------------------------------------------
        ! Type components
        !---------------------------------------------------------------
@@ -56,7 +56,7 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        type (TridiagonalSolver), intent (in out) :: this
+        type(TridiagonalSolver), intent(inout) :: this
         !--------------------------------------------------------------
 
         call this%destroy()
@@ -69,14 +69,14 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (TridiagonalSolver), intent (in out) :: this
-        real (wp), contiguous,     intent (in out) :: source(:,:)
-        real (wp), contiguous,     intent (out)    :: solution(:,:)
-        integer (ip), optional,    intent (out)    :: error_flag
+        class(TridiagonalSolver), intent(inout) :: this
+        real(wp), contiguous,     intent(inout) :: source(:,:)
+        real(wp), contiguous,     intent(out)    :: solution(:,:)
+        integer(ip), optional,    intent(out)    :: error_flag
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        integer (ip)   :: local_error_flag
+        integer(ip)   :: local_error_flag
         !--------------------------------------------------------------
 
         ! Invoke procedural solver
@@ -158,14 +158,14 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (TridiagonalSolver), intent (in out) :: this
-        real (wp), contiguous,     intent (in out) :: source(:,:)
-        real (wp), contiguous,     intent (out)    :: solution(:,:)
-        integer (ip), optional,    intent (out)    :: error_flag
+        class(TridiagonalSolver), intent(inout) :: this
+        real(wp), contiguous,     intent(inout) :: source(:,:)
+        real(wp), contiguous,     intent(out)    :: solution(:,:)
+        integer(ip), optional,    intent(out)    :: error_flag
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        integer (ip)   :: local_error_flag
+        integer(ip)   :: local_error_flag
         !--------------------------------------------------------------
 
         ! Invoke procedural solver
@@ -228,17 +228,14 @@ contains
         ! set solution
         associate( &
             nx => size(solution, dim=1), &
-            ny => size(solution, dim=2 ) &
+            ny => size(solution, dim=2) &
             )
-            solution = source( 1:nx, 1:ny )
+            solution = source(1:nx, 1:ny)
         end associate
 
         ! Address optional arguments
-        if ( present (error_flag) ) then
-            error_flag = local_error_flag
-        end if
+        if (present(error_flag)) error_flag = local_error_flag
 
     end subroutine solve_2d_real_linear_system_centered
-
 
 end module type_TridiagonalSolver

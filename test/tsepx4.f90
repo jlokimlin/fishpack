@@ -35,7 +35,7 @@
 !
 program tsepx4
 
-    use, intrinsic :: iso_fortran_env, only: &
+    use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
@@ -49,14 +49,14 @@ program tsepx4
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
-    type (FishpackSolver)   :: solver
-    integer (ip), parameter :: m = 32
-    integer (ip), parameter :: n = 32
-    integer (ip)            :: nx, ny, i, j, mbdcnd, nbdcnd, idmn, iorder, ierror
-    real (wp), dimension(33, 33) :: usol, grhs
-    real (wp), dimension(33) :: bda, bdb
-    real (wp) :: a, b, c, d, dlx, dly, x, af, bf, cf, y
-    real (wp) :: alpha, beta, dum(1), pertrb, err, err2, err4
+    type(FishpackSolver)   :: solver
+    integer(ip), parameter :: m = 32
+    integer(ip), parameter :: n = 32
+    integer(ip)            :: nx, ny, i, j, mbdcnd, nbdcnd, idmn, iorder, ierror
+    real(wp), dimension(33, 33) :: usol, grhs
+    real(wp), dimension(33) :: bda, bdb
+    real(wp) :: a, b, c, d, dlx, dly, x, af, bf, cf, y
+    real(wp) :: alpha, beta, dum(1), pertrb, err, err2, err4
     !--------------------------------------------------------------------------
 
     !
@@ -180,9 +180,9 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        real (wp), intent (in) :: s
-        real (wp), intent (in) :: t
-        real (wp)          :: return_value
+        real(wp), intent(in) :: s
+        real(wp), intent(in) :: t
+        real(wp)          :: return_value
         !--------------------------------------------------------------
 
         return_value =(s*t)**3 + 1.0_wp
@@ -194,9 +194,9 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        real (wp), intent (in) :: s
-        real (wp), intent (in) :: t
-        real (wp)          :: return_value
+        real(wp), intent(in) :: s
+        real(wp), intent(in) :: t
+        real(wp)          :: return_value
         !--------------------------------------------------------------
 
         return_value = 3.0_wp *(s**2)*(t**3)
@@ -208,9 +208,9 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        real (wp), intent (in) :: s
-        real (wp), intent (in) :: t
-        real (wp)          :: return_value
+        real(wp), intent(in) :: s
+        real(wp), intent(in) :: t
+        real(wp)          :: return_value
         !--------------------------------------------------------------
 
         return_value = 6.0_wp * s *(t**3)
@@ -222,9 +222,9 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        real (wp), intent (in) :: s
-        real (wp), intent (in) :: t
-        real (wp)              :: return_value
+        real(wp), intent(in) :: s
+        real(wp), intent(in) :: t
+        real(wp)              :: return_value
         !--------------------------------------------------------------
 
         return_value = 6.0_wp *(s**3) * t
@@ -236,10 +236,10 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        real (wp), intent (in)  :: x
-        real (wp), intent (out) :: af
-        real (wp), intent (out) :: bf
-        real (wp), intent (out) :: cf
+        real(wp), intent(in)  :: x
+        real(wp), intent(out) :: af
+        real(wp), intent(out) :: bf
+        real(wp), intent(out) :: cf
         !--------------------------------------------------------------
 
         !     set coefficients in the x-direction.

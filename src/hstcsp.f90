@@ -316,13 +316,13 @@
 !                          idimf must be at least m.
 !
 !                        w
-!                          A derived type (FishpackWorkspace) variable
+!                          A derived type(FishpackWorkspace) variable
 !                          that must be declared by the user.  the first
 !                          two declarative statements in the user program
 !                          calling hstcsp must be:
 !
 !                               use type_fishpackworkspace
-!                               type (FishpackWorkspace) :: w
+!                               type(FishpackWorkspace) :: w
 !
 !                          the first statement makes the fishpack module
 !                          defined in the file "type_fishpackworkspace.f90" available to the
@@ -428,7 +428,7 @@
 !                             if n, m are too large for the platform used)
 !
 !                        w
-!                             The derived type (FishpackWorkspace) variable w
+!                             The derived type(FishpackWorkspace) variable w
 !                             contains real and complex values that must not
 !                             be destroyed if hstcsp is called again with
 !                             iflg=1.
@@ -505,12 +505,12 @@ module module_hstcsp
     public :: hstcsp
 
     !---------------------------------------------------------------
-    ! Dictionary: Variables confined to the module
+    ! Variables confined to the module
     !---------------------------------------------------------------
-    real (wp), private :: ZERO = 0.0_wp
-    real (wp), private :: HALF = 0.5_wp
-    real (wp), private :: ONE = 1.0_wp
-    real (wp), private :: TWO = 2.0_wp
+    real(wp), private :: ZERO = 0.0_wp
+    real(wp), private :: HALF = 0.5_wp
+    real(wp), private :: ONE = 1.0_wp
+    real(wp), private :: TWO = 2.0_wp
     !---------------------------------------------------------------
 
 contains
@@ -521,25 +521,25 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in out) :: intl
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: mbdcnd
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: nbdcnd
-        integer (ip), intent (in)     :: idimf
-        integer (ip), intent (out)    :: ierror
-        real (wp),    intent (in)     :: a
-        real (wp),    intent (in)     :: b
-        real (wp),    intent (in)     :: c
-        real (wp),    intent (in)     :: d
-        real (wp),    intent (in)     :: elmbda
-        real (wp),    intent (out)    :: pertrb
-        real (wp),    intent (in)     :: bda(:)
-        real (wp),    intent (in)     :: bdb(:)
-        real (wp),    intent (in)     :: bdc(:)
-        real (wp),    intent (in)     :: bdd(:)
-        real (wp),    intent (in out) :: f(:,:)
-        class (Fish), intent (in out) :: w
+        integer(ip), intent(inout) :: intl
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: mbdcnd
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: nbdcnd
+        integer(ip), intent(in)     :: idimf
+        integer(ip), intent(out)    :: ierror
+        real(wp),    intent(in)     :: a
+        real(wp),    intent(in)     :: b
+        real(wp),    intent(in)     :: c
+        real(wp),    intent(in)     :: d
+        real(wp),    intent(in)     :: elmbda
+        real(wp),    intent(out)    :: pertrb
+        real(wp),    intent(in)     :: bda(:)
+        real(wp),    intent(in)     :: bdb(:)
+        real(wp),    intent(in)     :: bdc(:)
+        real(wp),    intent(in)     :: bdd(:)
+        real(wp),    intent(inout) :: f(:,:)
+        class(Fish), intent(inout) :: w
         !-----------------------------------------------
 
         !
@@ -573,27 +573,22 @@ contains
                 elmbda, f, idimf, pertrb, ierror, rew(iw1:), rew(iwbm:), rew(iwcm:), &
                 rew(iwan:), rew(iwbn:), rew(iwcn:), rew(iwsnth:), rew(iwrsq:), &
                 rew, cxw)
-
         end associate
-
-
 
     end subroutine hstcsp
 
-
-
-    pure subroutine setup_workspace(n, m, workspace)
+    subroutine setup_workspace(n, m, workspace)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: m
-        class (Fish), intent (in out) :: workspace
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: m
+        class(Fish), intent(inout) :: workspace
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip), parameter :: NUMBER_OF_INDICES = 8
-        integer (ip)            :: irwk, icwk
+        integer(ip), parameter :: NUMBER_OF_INDICES = 8
+        integer(ip)            :: irwk, icwk
         !-----------------------------------------------
 
         ! Ensure that object is usable
@@ -637,28 +632,25 @@ contains
             icwk = icwk + 3 * (m + 1)
             allocate( workspace%real_workspace(irwk) )
             allocate( workspace%complex_workspace(icwk) )
-
         end associate
 
     end subroutine setup_workspace
-
-
 
     pure subroutine check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, elmbda, idimf, ierror)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: mbdcnd
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: nbdcnd
-        integer (ip), intent (in)     :: idimf
-        integer (ip), intent (out)    :: ierror
-        real (wp),    intent (in)     :: a
-        real (wp),    intent (in)     :: b
-        real (wp),    intent (in)     :: c
-        real (wp),    intent (in)     :: d
-        real (wp),    intent (in)     :: elmbda
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: mbdcnd
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: nbdcnd
+        integer(ip), intent(in)     :: idimf
+        integer(ip), intent(out)    :: ierror
+        real(wp),    intent(in)     :: a
+        real(wp),    intent(in)     :: b
+        real(wp),    intent(in)     :: c
+        real(wp),    intent(in)     :: d
+        real(wp),    intent(in)     :: elmbda
         !-----------------------------------------------
 
         if (a < ZERO .or. b > PI) then
@@ -721,48 +713,46 @@ contains
 
     end subroutine check_input_arguments
 
-
-
     subroutine hstcs1(intl, a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, &
         bdc, bdd, elmbda, f, idimf, pertrb, ierror, am, bm, cm, an, bn, &
         cn, snth, rsq, w, wc)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: intl
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: mbdcnd
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: nbdcnd
-        integer (ip), intent (in)     :: idimf
-        integer (ip), intent (out)    :: ierror
-        real (wp),    intent (in)     :: a
-        real (wp),    intent (in)     :: b
-        real (wp),    intent (in)     :: c
-        real (wp),    intent (in)     :: d
-        real (wp),    intent (in)     :: elmbda
-        real (wp),    intent (out)    :: pertrb
-        real (wp),    intent (in)     :: bda(:)
-        real (wp),    intent (in)     :: bdb(:)
-        real (wp),    intent (in)     :: bdc(:)
-        real (wp),    intent (in)     :: bdd(:)
-        real (wp),    intent (in out) :: f(idimf,n)
-        real (wp),    intent (out), contiguous :: am(:)
-        real (wp),    intent (out), contiguous :: bm(:)
-        real (wp),    intent (out), contiguous :: cm(:)
-        real (wp),    intent (out), contiguous :: an(:)
-        real (wp),    intent (out), contiguous :: bn(:)
-        real (wp),    intent (out), contiguous :: cn(:)
-        real (wp),    intent (out), contiguous :: snth(:)
-        real (wp),    intent (out), contiguous :: rsq(:)
-        real (wp),    intent (out), contiguous :: w(:)
-        complex (wp), intent (out), contiguous :: wc(:)
+        integer(ip), intent(in)     :: intl
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: mbdcnd
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: nbdcnd
+        integer(ip), intent(in)     :: idimf
+        integer(ip), intent(out)    :: ierror
+        real(wp),    intent(in)     :: a
+        real(wp),    intent(in)     :: b
+        real(wp),    intent(in)     :: c
+        real(wp),    intent(in)     :: d
+        real(wp),    intent(in)     :: elmbda
+        real(wp),    intent(out)    :: pertrb
+        real(wp),    intent(in)     :: bda(:)
+        real(wp),    intent(in)     :: bdb(:)
+        real(wp),    intent(in)     :: bdc(:)
+        real(wp),    intent(in)     :: bdd(:)
+        real(wp),    intent(inout) :: f(idimf,n)
+        real(wp),    intent(out), contiguous :: am(:)
+        real(wp),    intent(out), contiguous :: bm(:)
+        real(wp),    intent(out), contiguous :: cm(:)
+        real(wp),    intent(out), contiguous :: an(:)
+        real(wp),    intent(out), contiguous :: bn(:)
+        real(wp),    intent(out), contiguous :: cn(:)
+        real(wp),    intent(out), contiguous :: snth(:)
+        real(wp),    intent(out), contiguous :: rsq(:)
+        real(wp),    intent(out), contiguous :: w(:)
+        complex(wp), intent(out), contiguous :: wc(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip)     :: i, j, isw, nb
-        real (wp)        :: dth, dthsq, dr, x, y, a2, a1, a3
-        type (BlktriAux) :: aux
+        integer(ip)     :: i, j, isw, nb
+        real(wp)        :: dth, dthsq, dr, x, y, a2, a1, a3
+        type(BlktriAux) :: aux
         !-----------------------------------------------
 
         dth = (b - a)/m

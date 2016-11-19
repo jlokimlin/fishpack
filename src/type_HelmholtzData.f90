@@ -29,7 +29,7 @@ module type_HelmholtzData
         wp, & ! Working precision
         ip ! Integer precision
 
-    use, intrinsic :: iso_fortran_env, only: &
+    use, intrinsic :: ISO_Fortran_env, only: &
         stderr => ERROR_UNIT
 
     use type_RectangularDomain, only: &
@@ -46,11 +46,11 @@ module type_HelmholtzData
     public :: HelmholtzData
 
     !--------------------------------------------------------------
-    ! Dictionary: variables confined to the module
+    ! variables confined to the module
     !---------------------------------------------------------------
-    character (len=250) :: error_message !! Probably long enough
-    integer (ip)        :: allocate_status  !! To check allocation status
-    integer (ip)        :: deallocate_status !! To check deallocation status
+    character(len=250) :: error_message !! Probably long enough
+    integer(ip)        :: allocate_status  !! To check allocation status
+    integer(ip)        :: deallocate_status !! To check deallocation status
     !---------------------------------------------------------------
 
     ! Declare derived data type
@@ -59,13 +59,13 @@ module type_HelmholtzData
         ! Type components
         !---------------------------------------------------------------
         logical,                             public :: initialized = .false.
-        integer (ip),                        public :: Y_BOUNDARY_CONDITION_TYPE = -1 !! Boundary conditions in the vertical direction
-        integer (ip),                        public :: X_BOUNDARY_CONDITION_TYPE = -1 !! Boundary conditions in the horizontal direction
-        real (wp), allocatable,              public :: west(:)
-        real (wp), allocatable,              public :: east(:)
-        real (wp), allocatable,              public :: south(:)
-        real (wp), allocatable,              public :: north(:)
-        type (RectangularDomain),            public :: domain
+        integer(ip),                        public :: Y_BOUNDARY_CONDITION_TYPE = -1 !! Boundary conditions in the vertical direction
+        integer(ip),                        public :: X_BOUNDARY_CONDITION_TYPE = -1 !! Boundary conditions in the horizontal direction
+        real(wp), allocatable,              public :: west(:)
+        real(wp), allocatable,              public :: east(:)
+        real(wp), allocatable,              public :: south(:)
+        real(wp), allocatable,              public :: north(:)
+        type(RectangularDomain),            public :: domain
         procedure (proc_interface), pointer, public :: assign_boundary_data => null()
         !---------------------------------------------------------------
     contains
@@ -88,8 +88,8 @@ module type_HelmholtzData
             !--------------------------------------------------------------
             ! Dummy arguments
             !--------------------------------------------------------------
-            class (HelmholtzData), intent (in out) :: this
-            class (Grid),          intent (in out) :: grid_type
+            class(HelmholtzData), intent(inout) :: this
+            class(Grid),          intent(inout) :: grid_type
             !--------------------------------------------------------------
         end subroutine proc_interface
     end interface
@@ -102,12 +102,12 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (HelmholtzData),     intent (in out)            :: this
-        integer (ip),              intent (in)                :: nx
-        integer (ip),              intent (in)                :: ny
-        integer (ip),              intent (in),     optional  :: x_type
-        integer (ip),              intent (in),     optional  :: y_type
-        class (RectangularDomain), intent (in out), optional  :: rectangular_domain
+        class(HelmholtzData),     intent(inout)            :: this
+        integer(ip),              intent(in)                :: nx
+        integer(ip),              intent(in)                :: ny
+        integer(ip),              intent(in),     optional  :: x_type
+        integer(ip),              intent(in),     optional  :: y_type
+        class(RectangularDomain), intent(inout), optional  :: rectangular_domain
         procedure (proc_interface),                 optional  :: func
         !--------------------------------------------------------------
 
@@ -126,7 +126,7 @@ contains
 
         ! Check allocation status
         if ( allocate_status /= 0 ) then
-            error stop 'Object of class (HelmholtzData): '&
+            error stop 'Object of class(HelmholtzData): '&
                 //'Allocation failed in create_helmholtz_data'
         end if
 
@@ -179,7 +179,7 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (HelmholtzData), intent (in out)   :: this
+        class(HelmholtzData), intent(inout)   :: this
         !--------------------------------------------------------------
 
         ! Check flag
@@ -197,7 +197,7 @@ contains
 
             ! Check deallocation status
             if ( deallocate_status /= 0 ) then
-                write( stderr, '(a)' ) 'Object of class (HelmholtzData)'
+                write( stderr, '(a)' ) 'Object of class(HelmholtzData)'
                 write( stderr, '(a)' ) 'Deallocating WEST failed in DESTROY_HELMHOLTZ_DATA'
                 write( stderr, '(a)' ) trim( error_message )
             end if
@@ -213,7 +213,7 @@ contains
 
             ! Check deallocation status
             if ( deallocate_status /= 0 ) then
-                write( stderr, '(a)' ) 'Object of class (HelmholtzData)'
+                write( stderr, '(a)' ) 'Object of class(HelmholtzData)'
                 write( stderr, '(a)' ) 'Deallocating east failed in destroy_helmholtz_data'
                 write( stderr, '(a)' ) trim( error_message )
             end if
@@ -229,7 +229,7 @@ contains
 
             ! Check deallocation status
             if ( deallocate_status /=0 ) then
-                write( stderr, '(a)' ) 'Object of class (HelmholtzData)'
+                write( stderr, '(a)' ) 'Object of class(HelmholtzData)'
                 write( stderr, '(a)' ) 'Deallocating south failed in destroy_helmholtz_data'
                 write( stderr, '(a)' ) trim( error_message )
             end if
@@ -245,7 +245,7 @@ contains
 
             ! Check deallocation status
             if ( deallocate_status /=0 ) then
-                write( stderr, '(a)' ) 'Object of class (HelmholtzData)'
+                write( stderr, '(a)' ) 'Object of class(HelmholtzData)'
                 write( stderr, '(a)' ) 'Deallocating north failed in destroy_helmholtz_data'
                 write( stderr, '(a)' ) trim( error_message )
             end if
@@ -277,8 +277,8 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        integer (ip), intent (in)   :: type
-        integer (ip), intent (out)  :: return_value
+        integer(ip), intent(in)   :: type
+        integer(ip), intent(out)  :: return_value
         !--------------------------------------------------------------
 
         select case (type)
@@ -286,7 +286,7 @@ contains
                 return_value = type
             case default
                 ! handle invalid boundary type
-                write( stderr, '(a)' ) 'Object of class (HelmholtzData)'
+                write( stderr, '(a)' ) 'Object of class(HelmholtzData)'
                 write( stderr, '(A,I4)' ) 'invalid calling argument type = ', type
                 write( stderr, '(a)' ) 'must be either 0, 1, ..., 4'
         end select
@@ -298,7 +298,7 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        type (HelmholtzData), intent (in out) :: this
+        type(HelmholtzData), intent(inout) :: this
         !--------------------------------------------------------------
 
         call this%destroy()

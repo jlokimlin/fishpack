@@ -4,7 +4,7 @@ module type_StaggeredGrid
         wp, & ! Working precision
         ip ! Integer precision
 
-    use, intrinsic :: iso_fortran_env, only: &
+    use, intrinsic :: ISO_Fortran_env, only: &
         stderr => ERROR_UNIT
 
     use type_Grid, only: &
@@ -18,10 +18,10 @@ module type_StaggeredGrid
     public :: StaggeredGrid
 
     !---------------------------------------------------------------
-    ! Dictionary: global variables confined to the module
+    ! global variables confined to the module
     !---------------------------------------------------------------
-    character (len=250) :: error_message !! Probably long enough
-    integer (ip)        :: deallocate_status !! To check deallocation status
+    character(len=250) :: error_message !! Probably long enough
+    integer(ip)        :: deallocate_status !! To check deallocation status
     !---------------------------------------------------------------
 
     ! Declare derived data type
@@ -29,8 +29,8 @@ module type_StaggeredGrid
         !---------------------------------------------------------------
         ! Type components
         !---------------------------------------------------------------
-        real (wp), allocatable, public :: x(:)
-        real (wp), allocatable, public :: y(:)
+        real(wp), allocatable, public :: x(:)
+        real(wp), allocatable, public :: y(:)
         !---------------------------------------------------------------
     contains
         !---------------------------------------------------------------
@@ -58,11 +58,11 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        real (wp), contiguous, intent (in) :: x_interval(:) !! Interval: A <= x <= B
-        real (wp), contiguous, intent (in) :: y_interval(:) !! Interval: C <= y <= D
-        integer (ip),          intent (in) :: nx  !! Number of horizontally staggered grid points in x
-        integer (ip),          intent (in) :: ny  !! Number of vertically staggered grid points in y
-        type (StaggeredGrid)               :: return_value
+        real(wp), contiguous, intent(in) :: x_interval(:) !! Interval: A <= x <= B
+        real(wp), contiguous, intent(in) :: y_interval(:) !! Interval: C <= y <= D
+        integer(ip),          intent(in) :: nx  !! Number of horizontally staggered grid points in x
+        integer(ip),          intent(in) :: ny  !! Number of vertically staggered grid points in y
+        type(StaggeredGrid)               :: return_value
         !--------------------------------------------------------------
 
         call return_value%create(x_interval, y_interval, nx, ny)
@@ -74,11 +74,11 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (StaggeredGrid), intent (in out) :: this
-        real (wp), contiguous, intent (in)     :: x_interval(:) !! Interval: A <= x <= B
-        real (wp), contiguous, intent (in)     :: y_interval(:) !! Interval: C <= y <= D
-        integer (ip),          intent (in)     :: nx !! Number of horizontally staggered grid points in x
-        integer (ip),          intent (in)     :: ny !! Number of vertically staggered grid points in y
+        class(StaggeredGrid), intent(inout) :: this
+        real(wp), contiguous, intent(in)     :: x_interval(:) !! Interval: A <= x <= B
+        real(wp), contiguous, intent(in)     :: y_interval(:) !! Interval: C <= y <= D
+        integer(ip),          intent(in)     :: nx !! Number of horizontally staggered grid points in x
+        integer(ip),          intent(in)     :: ny !! Number of vertically staggered grid points in y
         !--------------------------------------------------------------
 
         ! Ensure that object is usable
@@ -108,7 +108,7 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (StaggeredGrid), intent (in out) :: this
+        class(StaggeredGrid), intent(inout) :: this
         !--------------------------------------------------------------
 
         ! Deallocate horizontally staggered grid in x
@@ -122,7 +122,7 @@ contains
 
             ! Check deallocation status
             if ( deallocate_status /= 0 ) then
-                write( stderr, '(a)' ) 'TYPE (StaggeredGrid)'
+                write( stderr, '(a)' ) 'type(StaggeredGrid)'
                 write( stderr, '(a)' ) 'Deallocating X failed in DESTROY_STAGGERED_GRID'
                 write( stderr, '(a)' ) trim( error_message )
             end if
@@ -139,7 +139,7 @@ contains
 
             ! Check deallocation status
             if ( deallocate_status /= 0 ) then
-                write( stderr, '(a)' ) 'TYPE (StaggeredGrid)'
+                write( stderr, '(a)' ) 'type(StaggeredGrid)'
                 write( stderr, '(a)' ) 'Deallocating Y failed in DESTROY_STAGGERED_GRID'
                 write( stderr, '(a)' ) trim( error_message )
             end if
@@ -161,7 +161,7 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        type (StaggeredGrid), intent (in out) :: this
+        type(StaggeredGrid), intent(inout) :: this
         !--------------------------------------------------------------
 
         call this%destroy()

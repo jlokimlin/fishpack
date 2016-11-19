@@ -108,7 +108,7 @@ module type_MacGrid
         wp, & ! Working precision
         ip ! Integer precision
 
-    use, intrinsic :: iso_fortran_env, only: &
+    use, intrinsic :: ISO_Fortran_env, only: &
         stderr => ERROR_UNIT
 
     use type_Grid, only: &
@@ -122,10 +122,10 @@ module type_MacGrid
     public :: MacGrid
 
     !---------------------------------------------------------------
-    ! Dictionary: global variables confined to the module
+    ! global variables confined to the module
     !---------------------------------------------------------------
-    character (len=250) :: error_message      !! Probably long enough
-    integer (ip)        :: deallocate_status  !! To check deallocation status
+    character(len=250) :: error_message      !! Probably long enough
+    integer(ip)        :: deallocate_status  !! To check deallocation status
     !---------------------------------------------------------------
 
     ! Declare derived data type
@@ -133,10 +133,10 @@ module type_MacGrid
         !---------------------------------------------------------------
         ! Type components
         !---------------------------------------------------------------
-        real (wp), allocatable, public :: x_centered(:)
-        real (wp), allocatable, public :: y_centered(:)
-        real (wp), allocatable, public :: x_staggered(:)
-        real (wp), allocatable, public :: y_staggered(:)
+        real(wp), allocatable, public :: x_centered(:)
+        real(wp), allocatable, public :: y_centered(:)
+        real(wp), allocatable, public :: x_staggered(:)
+        real(wp), allocatable, public :: y_staggered(:)
         !---------------------------------------------------------------
     contains
         !---------------------------------------------------------------
@@ -165,11 +165,11 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        real (wp), contiguous, intent (in) :: x_interval(:) !! Interval: A <= x <= B
-        real (wp), contiguous, intent (in) :: y_interval(:) !! Interval: C <= y <= D
-        integer (ip),          intent (in) :: nx  !! Number of horizontally staggered grid points in x
-        integer (ip),          intent (in) :: ny  !! Number of vertically staggered grid points in y
-        type (MacGrid)                     :: return_value
+        real(wp), contiguous, intent(in) :: x_interval(:) !! Interval: A <= x <= B
+        real(wp), contiguous, intent(in) :: y_interval(:) !! Interval: C <= y <= D
+        integer(ip),          intent(in) :: nx  !! Number of horizontally staggered grid points in x
+        integer(ip),          intent(in) :: ny  !! Number of vertically staggered grid points in y
+        type(MacGrid)                     :: return_value
         !--------------------------------------------------------------
 
         call return_value%create(x_interval, y_interval, nx, ny)
@@ -182,11 +182,11 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (MacGrid),       intent (in out) :: this
-        real (wp), contiguous, intent (in)     :: x_interval(:) !! Interval: A <= x <= B
-        real (wp), contiguous, intent (in)     :: y_interval(:) !! Interval: C <= y <= D
-        integer (ip),          intent (in)     :: nx  !! Number of horizontally staggered grid points in x
-        integer (ip),          intent (in)     :: ny  !! Number of vertically staggered grid points in y
+        class(MacGrid),       intent(inout) :: this
+        real(wp), contiguous, intent(in)     :: x_interval(:) !! Interval: A <= x <= B
+        real(wp), contiguous, intent(in)     :: y_interval(:) !! Interval: C <= y <= D
+        integer(ip),          intent(in)     :: nx  !! Number of horizontally staggered grid points in x
+        integer(ip),          intent(in)     :: ny  !! Number of vertically staggered grid points in y
         !--------------------------------------------------------------
 
         ! Ensure that object is usable
@@ -218,7 +218,7 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (MacGrid), intent (in out) :: this
+        class(MacGrid), intent(inout) :: this
         !--------------------------------------------------------------
 
         ! Deallocate horizontally centered grid in x
@@ -232,7 +232,7 @@ contains
 
             ! Check deallocation status
             if ( deallocate_status /= 0 ) then
-                write( stderr, '(a)' ) 'TYPE (MacGrid)'
+                write( stderr, '(a)' ) 'type(MacGrid)'
                 write( stderr, '(a)' ) 'Deallocating X_CENTERED failed in DESTROY_MAC_GRID'
                 write( stderr, '(a)' ) trim( error_message )
             end if
@@ -249,7 +249,7 @@ contains
 
             ! Check deallocation status
             if ( deallocate_status /= 0 ) then
-                write( stderr, '(a)' ) 'TYPE (MacGrid)'
+                write( stderr, '(a)' ) 'type(MacGrid)'
                 write( stderr, '(a)' ) 'Deallocating X_STAGGERED failed in DESTROY_MAC_GRID'
                 write( stderr, '(a)' ) trim( error_message )
             end if
@@ -266,7 +266,7 @@ contains
 
             ! Check deallocation status
             if ( deallocate_status /= 0 ) then
-                write( stderr, '(a)' ) 'TYPE (MacGrid)'
+                write( stderr, '(a)' ) 'type(MacGrid)'
                 write( stderr, '(a)' ) 'Deallocating Y_CENTERED failed in DESTROY_MAC_GRID'
                 write( stderr, '(a)' ) trim( error_message )
             end if
@@ -283,7 +283,7 @@ contains
 
             ! Check deallocation status
             if ( deallocate_status /= 0 ) then
-                write( stderr, '(a)' ) 'TYPE (MacGrid)'
+                write( stderr, '(a)' ) 'type(MacGrid)'
                 write( stderr, '(a)' ) 'Deallocating Y_STAGGERED failed in DESTROY_MAC_GRID'
                 write( stderr, '(a)' ) trim( error_message )
             end if
@@ -302,13 +302,13 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (MacGrid),   intent (in out) :: this
-        character (len=*), intent (in)     :: header
+        class(MacGrid),   intent(inout) :: this
+        character(len=*), intent(in)     :: header
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        integer (ip)  :: file_unit
-        integer (ip)  :: record_length
+        integer(ip)  :: file_unit
+        integer(ip)  :: record_length
         !--------------------------------------------------------------
 
         associate( &
@@ -360,7 +360,7 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        type (MacGrid), intent (in out) :: this
+        type(MacGrid), intent(inout) :: this
         !--------------------------------------------------------------
 
         call this%destroy()

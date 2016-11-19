@@ -318,47 +318,42 @@ module module_hstcrt
     private
     public :: hstcrt
 
-
     !---------------------------------------------------------------
-    ! Dictionary: Variables confined to the module
+    ! Variables confined to the module
     !---------------------------------------------------------------
-    real (wp), private :: ZERO = 0.0_wp
-    real (wp), private :: ONE = 1.0_wp
-    real (wp), private :: TWO = 2.0_wp
+    real(wp), private :: ZERO = 0.0_wp
+    real(wp), private :: ONE = 1.0_wp
+    real(wp), private :: TWO = 2.0_wp
     !---------------------------------------------------------------
-
-
 
 contains
-
-
 
     subroutine hstcrt(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: mbdcnd
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: nbdcnd
-        integer (ip), intent (in)     :: idimf
-        integer (ip), intent (out)    :: ierror
-        real (wp),    intent (in)     :: a
-        real (wp),    intent (in)     :: b
-        real (wp),    intent (in)     :: c
-        real (wp),    intent (in)     :: d
-        real (wp),    intent (in)     :: elmbda
-        real (wp),    intent (out)    :: pertrb
-        real (wp),    intent (in)     :: bda(:)
-        real (wp),    intent (in)     :: bdb(:)
-        real (wp),    intent (in)     :: bdc(:)
-        real (wp),    intent (in)     :: bdd(:)
-        real (wp),    intent (in out) :: f(:,:)
+        integer(ip), intent(in)    :: m
+        integer(ip), intent(in)    :: mbdcnd
+        integer(ip), intent(in)    :: n
+        integer(ip), intent(in)    :: nbdcnd
+        integer(ip), intent(in)    :: idimf
+        integer(ip), intent(out)   :: ierror
+        real(wp),    intent(in)    :: a
+        real(wp),    intent(in)    :: b
+        real(wp),    intent(in)    :: c
+        real(wp),    intent(in)    :: d
+        real(wp),    intent(in)    :: elmbda
+        real(wp),    intent(out)   :: pertrb
+        real(wp),    intent(in)    :: bda(:)
+        real(wp),    intent(in)    :: bdb(:)
+        real(wp),    intent(in)    :: bdc(:)
+        real(wp),    intent(in)    :: bdd(:)
+        real(wp),    intent(inout) :: f(:,:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        type (Fish) :: workspace
+        type(Fish) :: workspace
         !-----------------------------------------------
 
         !
@@ -390,22 +385,20 @@ contains
 
     end subroutine hstcrt
 
-
-
     pure subroutine check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, idimf, ierror)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: mbdcnd
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: nbdcnd
-        integer (ip), intent (in)     :: idimf
-        integer (ip), intent (out)    :: ierror
-        real (wp),    intent (in)     :: a
-        real (wp),    intent (in)     :: b
-        real (wp),    intent (in)     :: c
-        real (wp),    intent (in)     :: d
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: mbdcnd
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: nbdcnd
+        integer(ip), intent(in)     :: idimf
+        integer(ip), intent(out)    :: ierror
+        real(wp),    intent(in)     :: a
+        real(wp),    intent(in)     :: b
+        real(wp),    intent(in)     :: c
+        real(wp),    intent(in)     :: d
         !-----------------------------------------------
 
         if ((a-b) >= ZERO) then
@@ -435,18 +428,16 @@ contains
 
     end subroutine check_input_arguments
 
-
-
-    pure function get_workspace(n, m) result (return_value)
+    function get_workspace(n, m) result (return_value)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)  :: n, m
-        type (Fish)                :: return_value
+        integer(ip), intent(in)  :: n, m
+        type(Fish)                :: return_value
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip)  :: irwk, icwk
+        integer(ip)  :: irwk, icwk
         !-----------------------------------------------
 
         ! Get workspace dimensions for genbun
@@ -461,38 +452,36 @@ contains
 
     end function get_workspace
 
-
-
     subroutine hstcrtt(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror, w)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: mbdcnd
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: nbdcnd
-        integer (ip), intent (in)     :: idimf
-        integer (ip), intent (out)    :: ierror
-        real (wp),    intent (in)     :: a
-        real (wp),    intent (in)     :: b
-        real (wp),    intent (in)     :: c
-        real (wp),    intent (in)     :: d
-        real (wp),    intent (in)     :: elmbda
-        real (wp),    intent (out)    :: pertrb
-        real (wp),    intent (in)     :: bda(:)
-        real (wp),    intent (in)     :: bdb(:)
-        real (wp),    intent (in)     :: bdc(:)
-        real (wp),    intent (in)     :: bdd(:)
-        real (wp),    intent (in out) :: f(:,:)
-        real (wp),    intent (in out), contiguous :: w(:)
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: mbdcnd
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: nbdcnd
+        integer(ip), intent(in)     :: idimf
+        integer(ip), intent(out)    :: ierror
+        real(wp),    intent(in)     :: a
+        real(wp),    intent(in)     :: b
+        real(wp),    intent(in)     :: c
+        real(wp),    intent(in)     :: d
+        real(wp),    intent(in)     :: elmbda
+        real(wp),    intent(out)    :: pertrb
+        real(wp),    intent(in)     :: bda(:)
+        real(wp),    intent(in)     :: bdb(:)
+        real(wp),    intent(in)     :: bdc(:)
+        real(wp),    intent(in)     :: bdd(:)
+        real(wp),    intent(inout) :: f(:,:)
+        real(wp),    intent(inout), contiguous :: w(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: nperod, mperod, np, mp
-        integer (ip) :: id2, id3, id4, local_error_flag
-        real (wp)    :: dx, twdelx, delxsq, dy
-        real (wp)    :: twdely, dy2, twdysq, s, two_s
+        integer(ip) :: nperod, mperod, np, mp
+        integer(ip) :: id2, id3, id4, local_error_flag
+        real(wp)    :: dx, twdelx, delxsq, dy
+        real(wp)    :: twdely, dy2, twdysq, s, two_s
         !-----------------------------------------------
 
         nperod = nbdcnd
@@ -594,7 +583,6 @@ contains
             end if
         end if
 
-
         associate( &
             iw1 => 1, &
             iw2 => id2 + 1, &
@@ -631,7 +619,6 @@ contains
         end associate
 
     end subroutine hstcrtt
-
 
 end module module_hstcrt
 !

@@ -139,7 +139,7 @@
 !
 program tcmgnbn
 
-    use, intrinsic :: iso_fortran_env, only: &
+    use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
@@ -155,16 +155,16 @@ program tcmgnbn
     !------------------------------------------------------------------
     ! Dictionary
     !------------------------------------------------------------------
-    type (FishpackSolver)     :: solver
-    type (FishpackGrid)       :: grid
-    integer (ip), parameter   :: M = 20
-    integer (ip), parameter   :: N = 40
-    integer (ip), parameter   :: IDIMF = M + 2
-    integer (ip)              :: mp1, mperod, nperod, k, j, ierror
-    real (wp), allocatable    :: x(:), y(:)
-    real (wp)                 :: discretization_error
-    complex (wp)              :: f(IDIMF, N)
-    complex (wp), allocatable :: a(:), b(:), c(:)
+    type(FishpackSolver)     :: solver
+    type(FishpackGrid)       :: grid
+    integer(ip), parameter   :: M = 20
+    integer(ip), parameter   :: N = 40
+    integer(ip), parameter   :: IDIMF = M + 2
+    integer(ip)              :: mp1, mperod, nperod, k, j, ierror
+    real(wp), allocatable    :: x(:), y(:)
+    real(wp)                 :: discretization_error
+    complex(wp)              :: f(IDIMF, N)
+    complex(wp), allocatable :: a(:), b(:), c(:)
     !------------------------------------------------------------------
 
     mp1 = M + 1
@@ -231,17 +231,17 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        real (wp),                 intent (in)  :: x(:)
-        real (wp),                 intent (in)  :: y(:)
-        complex (wp), allocatable, intent (out) :: a(:)
-        complex (wp), allocatable, intent (out) :: b(:)
-        complex (wp), allocatable, intent (out) :: c(:)
+        real(wp),                 intent(in)  :: x(:)
+        real(wp),                 intent(in)  :: y(:)
+        complex(wp), allocatable, intent(out) :: a(:)
+        complex(wp), allocatable, intent(out) :: b(:)
+        complex(wp), allocatable, intent(out) :: c(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip)            :: m, k
-        real (wp)               :: dx, dy, s, t, t2
-        complex (wp), parameter :: I = (0.0_wp, 1.0_wp)
+        integer(ip)            :: m, k
+        real(wp)               :: dx, dy, s, t, t2
+        complex(wp), parameter :: I = (0.0_wp, 1.0_wp)
         !-----------------------------------------------
 
         m = size(x) - 1
@@ -275,14 +275,14 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        real (wp),    intent (in)  :: x(:)
-        real (wp),    intent (in)  :: y(:)
-        complex (wp), intent (out) :: f(:,:)
+        real(wp),    intent(in)  :: x(:)
+        real(wp),    intent(in)  :: y(:)
+        complex(wp), intent(out) :: f(:,:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: n, m, k, j
-        real (wp)    :: dx, dy, s, t, t2, t4
+        integer(ip) :: n, m, k, j
+        real(wp)    :: dx, dy, s, t, t2, t4
         !-----------------------------------------------
 
         m = size(x) - 1

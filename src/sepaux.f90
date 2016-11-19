@@ -82,9 +82,9 @@ module module_sepaux
         !---------------------------------------------------------------
         ! Type components
         !---------------------------------------------------------------
-        integer (ip), public :: kswx, kswy, k, l, mit, nit, is, ms, js, ns
-        real (wp),    public :: ait, bit, cit, dit
-        real (wp),    public :: dlx, dly, tdlx3, tdly3, dlx4, dly4
+        integer(ip), public :: kswx, kswy, k, l, mit, nit, is, ms, js, ns
+        real(wp),    public :: ait, bit, cit, dit
+        real(wp),    public :: dlx, dly, tdlx3, tdly3, dlx4, dly4
         !---------------------------------------------------------------
     contains
         !---------------------------------------------------------------
@@ -106,10 +106,10 @@ module module_sepaux
             !-----------------------------------------------
             ! Dummy arguments
             !-----------------------------------------------
-            real (wp), intent (in)  :: x
-            real (wp), intent (out) :: a
-            real (wp), intent (out) :: b
-            real (wp), intent (out) :: c
+            real(wp), intent(in)  :: x
+            real(wp), intent(out) :: a
+            real(wp), intent(out) :: b
+            real(wp), intent(out) :: c
             !-----------------------------------------------
         end subroutine get_coefficients
     end interface
@@ -128,16 +128,16 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (SepAux), intent (in out) :: this
-        real (wp),      intent (in out) :: usol(:,:)
-        real (wp),      intent (in)     :: zn(:)
-        real (wp),      intent (in)     :: zm(:)
-        real (wp),      intent (out)    :: pertrb
+        class(SepAux), intent(inout) :: this
+        real(wp),      intent(inout) :: usol(:,:)
+        real(wp),      intent(in)     :: zn(:)
+        real(wp),      intent(in)     :: zm(:)
+        real(wp),      intent(out)    :: pertrb
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        integer (ip) :: istr, ifnl, jstr, jfnl, i, ii
-        real (wp)    :: ute, ete
+        integer(ip) :: istr, ifnl, jstr, jfnl, i, ii
+        real(wp)    :: ute, ete
         !--------------------------------------------------------------
 
         ! Associate various quantities
@@ -209,16 +209,16 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (SepAux), intent (in out) :: this
-        real (wp),      intent (in out) :: usol(:,:)
-        real (wp),      intent (in)     :: zn(:)
-        real (wp),      intent (in)     :: zm(:)
-        real (wp),      intent (out)    :: pertrb
+        class(SepAux), intent(inout) :: this
+        real(wp),      intent(inout) :: usol(:,:)
+        real(wp),      intent(in)     :: zn(:)
+        real(wp),      intent(in)     :: zm(:)
+        real(wp),      intent(out)    :: pertrb
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        integer (ip) :: istr, ifnl, jstr, jfnl, i, ii
-        real (wp)    :: ute, ete
+        integer(ip) :: istr, ifnl, jstr, jfnl, i, ii
+        real(wp)    :: ute, ete
         !-----------------------------------------------
 
         ! Associate various quantities
@@ -281,19 +281,19 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (SepAux), intent (in out) :: this
-        integer (ip),   intent (in)     :: n
-        real (wp),      intent (in)     :: a(n)
-        real (wp),      intent (in)     :: b(n)
-        real (wp),      intent (in)     :: c(n)
-        real (wp),      intent (in out) :: d(n)
-        real (wp),      intent (in out) :: u(n)
-        real (wp),      intent (in out) :: z(n)
+        class(SepAux), intent(inout) :: this
+        integer(ip),   intent(in)     :: n
+        real(wp),      intent(in)     :: a(n)
+        real(wp),      intent(in)     :: b(n)
+        real(wp),      intent(in)     :: c(n)
+        real(wp),      intent(inout) :: d(n)
+        real(wp),      intent(inout) :: u(n)
+        real(wp),      intent(inout) :: z(n)
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        integer (ip) :: nm2, j, nm1
-        real (wp)    :: bn, v, den, an
+        integer(ip) :: nm2, j, nm1
+        real(wp)    :: bn, v, den, an
         !--------------------------------------------------------------
 
         ! Associate various quantities
@@ -366,12 +366,12 @@ contains
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        class (SepAux), intent (in out) :: this
-        integer (ip),   intent (in)     :: i
-        integer (ip),   intent (in)     :: j
-        real (wp),      intent (out)    :: uxxx
-        real (wp),      intent (out)    :: uxxxx
-        real (wp),      intent (in)     :: u(:,:)
+        class(SepAux), intent(inout) :: this
+        integer(ip),   intent(in)     :: i
+        integer(ip),   intent(in)     :: j
+        real(wp),      intent(out)    :: uxxx
+        real(wp),      intent(out)    :: uxxxx
+        real(wp),      intent(in)     :: u(:,:)
         !--------------------------------------------------------------
 
         ! Associate various quantities
@@ -490,13 +490,13 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (SepAux), intent (in out) :: this
-        integer (ip),   intent (in)     :: idmn
-        integer (ip),   intent (in)     :: i
-        integer (ip),   intent (in)     :: j
-        real (wp),      intent (out)    :: uyyy
-        real (wp),      intent (out)    :: uyyyy
-        real (wp),      intent (in)     :: u(idmn, 6)
+        class(SepAux), intent(inout) :: this
+        integer(ip),   intent(in)     :: idmn
+        integer(ip),   intent(in)     :: i
+        integer(ip),   intent(in)     :: j
+        real(wp),      intent(out)    :: uyyy
+        real(wp),      intent(out)    :: uyyyy
+        real(wp),      intent(in)     :: u(idmn, 6)
         !--------------------------------------------------------------
 
         ! Associate various quantities

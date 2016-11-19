@@ -4,7 +4,7 @@ module type_Grid
         wp, & ! Working precision
         ip ! Integer precision
 
-    use, intrinsic :: iso_fortran_env, only: &
+    use, intrinsic :: ISO_Fortran_env, only: &
         stderr => ERROR_UNIT
 
     use type_RectangularDomain, only: &
@@ -18,11 +18,11 @@ module type_Grid
     public :: Grid
 
     !---------------------------------------------------------------
-    ! Dictionary: global variables confined to the module
+    ! global variables confined to the module
     !---------------------------------------------------------------
-    character (len=250) :: error_message !! Probably long enough
-    integer (ip)        :: allocate_status !! To check allocation status
-    integer (ip)        :: deallocate_status !! To check deallocation status
+    character(len=250) :: error_message !! Probably long enough
+    integer(ip)        :: allocate_status !! To check allocation status
+    integer(ip)        :: deallocate_status !! To check deallocation status
     !---------------------------------------------------------------
 
     ! Declare derived data type
@@ -30,44 +30,42 @@ module type_Grid
         !---------------------------------------------------------------
         ! Type components
         !---------------------------------------------------------------
-        logical,                  public :: initialized = .false.
-        integer (ip),             public :: NX = 0 !! Number of horizontally staggered grid points
-        integer (ip),             public :: NY = 0 !! Number of vertically staggered grid points
-        real (wp),                public :: DX = 0.0_wp !! Horizontal mesh
-        real (wp),                public :: DY = 0.0_wp !! Vertical mesh
-        real (wp),                public :: DX_SQUARED = 0.0_wp
-        real (wp),                public :: DY_SQUARED = 0.0_wp
-        type (RectangularDomain), public :: domain  !! A <= x <= B, C <= y <= D
+        logical,                 public :: initialized = .false.
+        integer(ip),             public :: NX = 0 !! Number of horizontally staggered grid points
+        integer(ip),             public :: NY = 0 !! Number of vertically staggered grid points
+        real(wp),                public :: DX = 0.0_wp !! Horizontal mesh
+        real(wp),                public :: DY = 0.0_wp !! Vertical mesh
+        real(wp),                public :: DX_SQUARED = 0.0_wp
+        real(wp),                public :: DY_SQUARED = 0.0_wp
+        type(RectangularDomain), public :: domain  !! A <= x <= B, C <= y <= D
         !---------------------------------------------------------------
     contains
         !---------------------------------------------------------------
         ! Type-bound procedures
         !---------------------------------------------------------------
-        procedure,         public  :: create => create_grid
-        procedure,         public  :: destroy => destroy_grid
-        procedure,         public  :: create_grid
-        procedure,         public  :: destroy_grid
-        procedure, nopass, public  :: compute_one_dimensional_grid
-        procedure,         public  :: get_discretization_mesh
-        procedure,         public  :: get_centered_grids
-        procedure,         public  :: get_staggered_grids
-        !final                      :: finalize_grid
+        procedure,         public :: create => create_grid
+        procedure,         public :: destroy => destroy_grid
+        procedure,         public :: create_grid
+        procedure,         public :: destroy_grid
+        procedure, nopass, public :: compute_one_dimensional_grid
+        procedure,         public :: get_discretization_mesh
+        procedure,         public :: get_centered_grids
+        procedure,         public :: get_staggered_grids
+        !final                     :: finalize_grid
         !---------------------------------------------------------------
     end type Grid
 
-
 contains
 
-
-    subroutine create_grid(this, x_interval, y_interval, nx, ny )
+    subroutine create_grid(this, x_interval, y_interval, nx, ny)
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (Grid),          intent (in out) :: this
-        real (wp), contiguous, intent (in)     :: x_interval(:) !! Interval: A <= x <= B
-        real (wp), contiguous, intent (in)     :: y_interval(:) !! Interval: C <= y <= D
-        integer (ip),          intent (in)     :: nx  !! Number of horizontally staggered grid points in x
-        integer (ip),          intent (in)     :: ny  !! Number of vertically staggered grid points in y
+        class(Grid),          intent(inout) :: this
+        real(wp), contiguous, intent(in)    :: x_interval(:) !! Interval: A <= x <= B
+        real(wp), contiguous, intent(in)    :: y_interval(:) !! Interval: C <= y <= D
+        integer(ip),          intent(in)    :: nx  !! Number of horizontally staggered grid points in x
+        integer(ip),          intent(in)    :: ny  !! Number of vertically staggered grid points in y
         !--------------------------------------------------------------
 
         ! Ensure object is usable
@@ -84,9 +82,9 @@ contains
             D => y_interval(2) &
             )
 
-            call this%domain%create( x_interval, y_interval )
+            call this%domain%create(x_interval, y_interval)
 
-            call this%get_discretization_mesh( A, B, C, D, nx, ny )
+            call this%get_discretization_mesh(A, B, C, D, nx, ny)
 
         end associate
 
@@ -97,17 +95,14 @@ contains
 
 
     subroutine destroy_grid(this)
-        !
-        ! Purpose:
-        !
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (Grid), intent (in out) :: this
+        class(Grid), intent(inout) :: this
         !--------------------------------------------------------------
 
         ! Check if object is already usable
-        if (this%initialized .eqv. .false.) return
+        if (.not.this%initialized) return
         
         ! Reset constants
         this%NX = 0
@@ -130,13 +125,13 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (Grid), intent (in out) :: this
-        real (wp),    intent (in)     :: A  ! Interval: A <= x <= B
-        real (wp),    intent (in)     :: B  ! Interval: A <= x <= B
-        real (wp),    intent (in)     :: C  ! Interval: C <= y <= D
-        real (wp),    intent (in)     :: D  ! Interval: C <= y <= D
-        integer (ip), intent (in)     :: nx ! Number of horizontally staggered grid points
-        integer (ip), intent (in)     :: ny ! Number of vertically staggered grid points
+        class(Grid), intent(inout) :: this
+        real(wp),    intent(in)     :: A  ! Interval: A <= x <= B
+        real(wp),    intent(in)     :: B  ! Interval: A <= x <= B
+        real(wp),    intent(in)     :: C  ! Interval: C <= y <= D
+        real(wp),    intent(in)     :: D  ! Interval: C <= y <= D
+        integer(ip), intent(in)     :: nx ! Number of horizontally staggered grid points
+        integer(ip), intent(in)     :: ny ! Number of vertically staggered grid points
         !--------------------------------------------------------------
 
         associate( &
@@ -146,11 +141,11 @@ contains
 
             ! Set horizontal mesh
             this%DX = dx
-            this%DX_SQUARED = ( dx ** 2)
+            this%DX_SQUARED = (dx ** 2)
 
             ! Set vertical mesh
             this%DY = dy
-            this%DY_SQUARED = ( dy ** 2)
+            this%DY_SQUARED = (dy ** 2)
 
         end associate
 
@@ -162,16 +157,16 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        integer (ip),           intent (in)  :: lower_bound
-        integer (ip),           intent (in)  :: upper_bound
-        real (wp),              intent (in)  :: left_interval_endpoint
-        real (wp),              intent (in)  :: uniform_mesh
-        real (wp), allocatable, intent (out) :: grid(:)
-        logical, optional,      intent (in)  :: staggered
+        integer(ip),           intent(in)  :: lower_bound
+        integer(ip),           intent(in)  :: upper_bound
+        real(wp),              intent(in)  :: left_interval_endpoint
+        real(wp),              intent(in)  :: uniform_mesh
+        real(wp), allocatable, intent(out) :: grid(:)
+        logical, optional,      intent(in)  :: staggered
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        integer (ip):: n !! Counter
+        integer(ip):: n !! Counter
         !--------------------------------------------------------------
 
         ! Handle the case where array is already allocated
@@ -185,7 +180,7 @@ contains
 
             ! Check deallocation status
             if ( deallocate_status /= 0 ) then
-                write( stderr, '(a)' ) 'TYPE (Grid)'
+                write( stderr, '(a)' ) 'type(Grid)'
                 write( stderr, '(a)' ) 'Deallocation failed in COMPUTE_ONE_DIMENSIONAL_GRID'
                 write( stderr, '(a)' ) trim( error_message )
             end if
@@ -199,7 +194,7 @@ contains
 
         ! Check allocation status
         if ( allocate_status /= 0 ) then
-            write( stderr, '(a)' ) 'TYPE (Grid)'
+            write( stderr, '(a)' ) 'type(Grid)'
             write( stderr, '(a)' ) 'Allocation failed in COMPUTE_ONE_DIMENSIONAL_GRID'
             write( stderr, '(a)' ) trim( error_message )
         end if
@@ -233,13 +228,13 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (Grid),           intent (in out) :: this
-        real (wp),              intent (in)     :: A  ! A <= x
-        real (wp),              intent (in)     :: C  ! C <= y
-        integer (ip),           intent (in)     :: nx ! Number of horizontal grid points in x
-        integer (ip),           intent (in)     :: ny ! Number of vertical grid points in y
-        real (wp), allocatable, intent (out)    :: x(:)
-        real (wp), allocatable, intent (out)    :: y(:)
+        class(Grid),           intent(inout) :: this
+        real(wp),              intent(in)     :: A  ! A <= x
+        real(wp),              intent(in)     :: C  ! C <= y
+        integer(ip),           intent(in)     :: nx ! Number of horizontal grid points in x
+        integer(ip),           intent(in)     :: ny ! Number of vertical grid points in y
+        real(wp), allocatable, intent(out)    :: x(:)
+        real(wp), allocatable, intent(out)    :: y(:)
         !--------------------------------------------------------------
 
         associate ( &
@@ -265,13 +260,13 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (Grid),           intent (in out) :: this
-        real (wp),              intent (in)     :: A  ! A <= x
-        real (wp),              intent (in)     :: C  ! C <= y
-        integer (ip),           intent (in)     :: nx ! Number of horizontal grid points in x
-        integer (ip),           intent (in)     :: ny ! Number of vertical grid points in y
-        real (wp), allocatable, intent (out)    :: x(:)
-        real (wp), allocatable, intent (out)    :: y(:)
+        class(Grid),           intent(inout) :: this
+        real(wp),              intent(in)     :: A  ! A <= x
+        real(wp),              intent(in)     :: C  ! C <= y
+        integer(ip),           intent(in)     :: nx ! Number of horizontal grid points in x
+        integer(ip),           intent(in)     :: ny ! Number of vertical grid points in y
+        real(wp), allocatable, intent(out)    :: x(:)
+        real(wp), allocatable, intent(out)    :: y(:)
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
@@ -282,28 +277,24 @@ contains
             dx => this%DX, &
             dy => this%DY &
             )
-
              ! Set horizontally staggered ghost grid
             call compute_one_dimensional_grid( -1, nx + 2, A, dx, x, staggered )
 
             ! Set vertically staggered ghost grid
             call compute_one_dimensional_grid( -1, ny + 2, C, dy, y, staggered )
-
         end associate
 
     end subroutine get_staggered_grids
-
 
     subroutine finalize_grid(this)
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        type (Grid), intent (in out) :: this
+        type(Grid), intent(inout) :: this
         !--------------------------------------------------------------
 
         call this%destroy()
 
     end subroutine finalize_grid
-
 
 end module type_Grid

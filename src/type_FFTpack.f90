@@ -18,7 +18,7 @@ module type_FFTpack
         !-------------------------------------------------------
         ! Type components
         !-------------------------------------------------------
-        real (wp), allocatable :: workspace(:)
+        real(wp), allocatable :: workspace(:)
         !-------------------------------------------------------
     contains
         !-------------------------------------------------------
@@ -930,17 +930,17 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)  :: n
-        real (wp),    intent (out) :: azero
-        real (wp),    intent (in)  :: r(*)
-        real (wp),    intent (out) :: a(*)
-        real (wp),    intent (out) :: b(*)
-        real (wp)                  :: wsave(*)
+        integer(ip), intent(in)  :: n
+        real(wp),    intent(out) :: azero
+        real(wp),    intent(in)  :: r(*)
+        real(wp),    intent(out) :: a(*)
+        real(wp),    intent(out) :: b(*)
+        real(wp)                  :: wsave(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: ns2, ns2m
-        real (wp) :: cf, cfm
+        integer(ip) :: ns2, ns2m
+        real(wp) :: cf, cfm
         !-----------------------------------------------
         !
         if (3 > n) then
@@ -977,16 +977,16 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: n
-        real (wp), intent (in)    :: azero
-        real (wp)                 :: r(*)
-        real (wp), intent (in)    :: a(*)
-        real (wp), intent (in)    :: b(*)
-        real (wp)                 :: wsave(*)
+        integer(ip), intent(in) :: n
+        real(wp), intent(in)    :: azero
+        real(wp)                 :: r(*)
+        real(wp), intent(in)    :: a(*)
+        real(wp), intent(in)    :: b(*)
+        real(wp)                 :: wsave(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: ns2
+        integer(ip) :: ns2
         !-----------------------------------------------
 
         if (3 > n) then
@@ -1015,8 +1015,8 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip) :: n
-        real (wp) :: wsave(*)
+        integer(ip) :: n
+        real(wp) :: wsave(*)
         !-----------------------------------------------
 
         if (n /= 1) call ezfft1(n, wsave(2*n+1), wsave(3*n+1))
@@ -1029,17 +1029,17 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip),  intent (in)     :: n
-        real (wp),     intent (in out) :: ifac(*)
-        real (wp),     intent (in out) :: wa(*)
+        integer(ip),  intent(in)     :: n
+        real(wp),     intent(inout) :: ifac(*)
+        real(wp),     intent(inout) :: wa(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip), parameter :: ntryh(*) =[ 4, 2, 3, 5 ]
-        integer (ip) :: nl, nf, j, ntry, nq, nr, i, is, nfm1
-        integer (ip) :: l1, k1, iip, l2, ido, iipm, ii
-        real (wp), parameter :: TWO_PI = 2.0_wp * PI
-        real (wp) :: argh, arg1, ch1, sh1, dch1, dsh1, temp
+        integer(ip), parameter :: ntryh(*) =[ 4, 2, 3, 5 ]
+        integer(ip) :: nl, nf, j, ntry, nq, nr, i, is, nfm1
+        integer(ip) :: l1, k1, iip, l2, ido, iipm, ii
+        real(wp), parameter :: TWO_PI = 2.0_wp * PI
+        real(wp) :: argh, arg1, ch1, sh1, dch1, dsh1, temp
         !-----------------------------------------------
 
         ntry = 0
@@ -1127,13 +1127,13 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: n
-        real (wp)                 :: wsave(*)
+        integer(ip), intent(in) :: n
+        real(wp)                 :: wsave(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip)  :: nm1, np1, ns2, k, kc
-        real (wp)     :: dt, fk
+        integer(ip)  :: nm1, np1, ns2, k, kc
+        real(wp)     :: dt, fk
         !-----------------------------------------------
 
         if (n > 3) then
@@ -1160,14 +1160,14 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: n
-        real (wp) :: x(*)
-        real (wp) :: wsave(*)
+        integer(ip), intent(in) :: n
+        real(wp) :: x(*)
+        real(wp) :: wsave(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: nm1, np1, ns2, k, kc, modn, i
-        real (wp) :: x1h, x1p3, tx2, c1, t1, t2, xim2, xi
+        integer(ip) :: nm1, np1, ns2, k, kc, modn, i
+        real(wp) :: x1h, x1p3, tx2, c1, t1, t2, xim2, xi
         !-----------------------------------------------
         !
         nm1 = n - 1
@@ -1228,13 +1228,13 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: n
-        real (wp)                 :: wsave(*)
+        integer(ip), intent(in) :: n
+        real(wp)                 :: wsave(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: ns2, np1, k
-        real (wp)    :: dt
+        integer(ip) :: ns2, np1, k
+        real(wp)    :: dt
         !-----------------------------------------------
 
         if (n > 1) then
@@ -1256,13 +1256,13 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip) :: n
-        real (wp) :: x(*)
-        real (wp) :: wsave(*)
+        integer(ip) :: n
+        real(wp) :: x(*)
+        real(wp) :: wsave(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: np1, iw1, iw2, iw3
+        integer(ip) :: np1, iw1, iw2, iw3
         !-----------------------------------------------
 
         np1 = n + 1
@@ -1280,18 +1280,18 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)  :: n
-        real (wp)              :: ifac(*)
-        real (wp)              :: war(*)
-        real (wp), intent (in) :: was(*)
-        real (wp)              :: xh(*)
-        real (wp)              :: x(*)
+        integer(ip), intent(in)  :: n
+        real(wp)              :: ifac(*)
+        real(wp)              :: war(*)
+        real(wp), intent(in) :: was(*)
+        real(wp)              :: xh(*)
+        real(wp)              :: x(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip)         :: i, np1, ns2, k, kc, modn
-        real (wp), parameter :: SQRT3 = sqrt(3.0_wp) ! 1.73205080756888
-        real (wp)            :: temp, t1, t2
+        integer(ip)         :: i, np1, ns2, k, kc, modn
+        real(wp), parameter :: SQRT3 = sqrt(3.0_wp) ! 1.73205080756888
+        real(wp)            :: temp, t1, t2
         !-----------------------------------------------
 
         xh(:n) = war(:n)
@@ -1350,14 +1350,14 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip) :: n
-        real (wp) :: wsave(*)
+        integer(ip) :: n
+        real(wp) :: wsave(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip)         :: k !! Counter
-        real (wp), parameter :: half_pi = PI/2
-        real (wp)            :: fk, dt
+        integer(ip)         :: k !! Counter
+        real(wp), parameter :: half_pi = PI/2
+        real(wp)            :: fk, dt
         !-----------------------------------------------
 
         dt = half_pi/n
@@ -1377,14 +1377,14 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip) :: n
-        real (wp) :: x(*)
-        real (wp) :: wsave(*)
+        integer(ip) :: n
+        real(wp) :: x(*)
+        real(wp) :: wsave(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        real (wp), parameter :: SQRT2 = sqrt(2.0_wp) ! 1.4142135623731
-        real (wp)            :: tsqx
+        real(wp), parameter :: SQRT2 = sqrt(2.0_wp) ! 1.4142135623731
+        real(wp)            :: tsqx
         !-----------------------------------------------
 
 
@@ -1403,15 +1403,15 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip) :: n
-        real (wp) :: x(*)
-        real (wp), intent (in) :: w(*)
-        real (wp) :: xh(*)
+        integer(ip) :: n
+        real(wp) :: x(*)
+        real(wp), intent(in) :: w(*)
+        real(wp) :: xh(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: ns2, np2, k, kc, modn, i
-        real (wp) :: xim1
+        integer(ip) :: ns2, np2, k, kc, modn, i
+        real(wp) :: xim1
         !-----------------------------------------------
 
         ns2 =(n + 1)/2
@@ -1452,14 +1452,14 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip) :: n
-        real (wp) :: x(*)
-        real (wp) :: wsave(*)
+        integer(ip) :: n
+        real(wp) :: x(*)
+        real(wp) :: wsave(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        real (wp), parameter :: TWO_SQRT2 = 2.0_wp * sqrt(2.0_wp) ! 2.82842712474619
-        real (wp)            :: x1
+        real(wp), parameter :: TWO_SQRT2 = 2.0_wp * sqrt(2.0_wp) ! 2.82842712474619
+        real(wp)            :: x1
         !-----------------------------------------------
 
         if (3 > n) then
@@ -1481,15 +1481,15 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip)               :: n
-        real (wp)              :: x(*)
-        real (wp), intent (in) :: w(*)
-        real (wp)              :: xh(*)
+        integer(ip)               :: n
+        real(wp)              :: x(*)
+        real(wp), intent(in) :: w(*)
+        real(wp)              :: xh(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: ns2, np2, i, modn, k, kc
-        real (wp) :: xim1
+        integer(ip) :: ns2, np2, i, modn, k, kc
+        real(wp) :: xim1
         !-----------------------------------------------
 
         ns2 =(n + 1)/2
@@ -1535,8 +1535,8 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip) :: n
-        real (wp) :: wsave(*)
+        integer(ip) :: n
+        real(wp) :: wsave(*)
         !-----------------------------------------------
 
         call cosqi(n, wsave)
@@ -1548,14 +1548,14 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip) :: n
-        real (wp) :: x(*)
-        real (wp) :: wsave(*)
+        integer(ip) :: n
+        real(wp) :: x(*)
+        real(wp) :: wsave(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: ns2, k, kc
-        real (wp) :: xhold
+        integer(ip) :: ns2, k, kc
+        real(wp) :: xhold
         !-----------------------------------------------
 
         if (n /= 1) then
@@ -1582,14 +1582,14 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip) :: n
-        real (wp) :: x(*)
-        real (wp) :: wsave(*)
+        integer(ip) :: n
+        real(wp) :: x(*)
+        real(wp) :: wsave(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: ns2, k, kc
-        real (wp) :: xhold
+        integer(ip) :: ns2, k, kc
+        real(wp) :: xhold
         !-----------------------------------------------
 
         if (n <= 1) then
@@ -1615,12 +1615,12 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip) :: n
-        real (wp) :: wsave(*)
+        integer(ip) :: n
+        real(wp) :: wsave(*)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip) :: iw1, iw2
+        integer(ip) :: iw1, iw2
         !-----------------------------------------------
 
         if (n /= 1) then
@@ -1636,18 +1636,18 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)      :: n
-        real (wp), intent (in out) :: ifac(*)
-        real (wp), intent (in out) :: wa(*)
+        integer(ip), intent(in)      :: n
+        real(wp), intent(inout) :: ifac(*)
+        real(wp), intent(inout) :: wa(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip), parameter  :: ntryh(*) = [3, 4, 2, 5]
-        integer (ip)             :: nl, nf, j, ntry, nq, nr
-        integer (ip)             :: i, l1, k1, iip, ld, l2, ido
-        integer (ip)             :: idot, iipm, i1, ii
-        real (wp), parameter :: TWO_PI = 2.0_wp * PI
-        real (wp)            :: argh, fi, argld, arg
+        integer(ip), parameter  :: ntryh(*) = [3, 4, 2, 5]
+        integer(ip)             :: nl, nf, j, ntry, nq, nr
+        integer(ip)             :: i, l1, k1, iip, ld, l2, ido
+        integer(ip)             :: idot, iipm, i1, ii
+        real(wp), parameter :: TWO_PI = 2.0_wp * PI
+        real(wp)            :: argh, fi, argld, arg
         !-----------------------------------------------
 
         ntry = 0
@@ -1733,13 +1733,13 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip) :: n
-        real (wp) :: c(*)
-        real (wp) :: wsave(*)
+        integer(ip) :: n
+        real(wp) :: c(*)
+        real(wp) :: wsave(*)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip) :: iw1, iw2
+        integer(ip) :: iw1, iw2
         !-----------------------------------------------
 
         if (n /= 1) then
@@ -1755,16 +1755,16 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: n
-        real (wp), intent (in) :: ifac(*)
-        real (wp) :: c(*)
-        real (wp) :: ch(*)
-        real (wp) :: wa(*)
+        integer(ip), intent(in) :: n
+        real(wp), intent(in) :: ifac(*)
+        real(wp) :: c(*)
+        real(wp) :: ch(*)
+        real(wp) :: wa(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: nf, na, l1, iw, k1, iip, l2, ido
-        integer (ip) :: idot, idl1, ix2, ix3, ix4, nac, n2
+        integer(ip) :: nf, na, l1, iw, k1, iip, l2, ido
+        integer(ip) :: idot, idl1, ix2, ix3, ix4, nac, n2
         !-----------------------------------------------
 
         nf = int(ifac(2), kind=ip)
@@ -1843,16 +1843,16 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: ido
-        integer (ip), intent (in) :: l1
-        real (wp), intent (in) :: cc(ido, 2, l1)
-        real (wp), intent (out) :: ch(ido, l1, 2)
-        real (wp), intent (in) :: wa1(1)
+        integer(ip), intent(in) :: ido
+        integer(ip), intent(in) :: l1
+        real(wp), intent(in) :: cc(ido, 2, l1)
+        real(wp), intent(out) :: ch(ido, l1, 2)
+        real(wp), intent(in) :: wa1(1)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: k, i
-        real (wp) :: tr2, ti2
+        integer(ip) :: k, i
+        real(wp) :: tr2, ti2
         !-----------------------------------------------
 
         if(ido <= 2) then
@@ -1880,19 +1880,19 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: ido
-        integer (ip), intent (in) :: l1
-        real (wp), intent (in) :: cc(ido, 3, l1)
-        real (wp), intent (out) :: ch(ido, l1, 3)
-        real (wp), intent (in) :: wa1(*)
-        real (wp), intent (in) :: wa2(*)
+        integer(ip), intent(in) :: ido
+        integer(ip), intent(in) :: l1
+        real(wp), intent(in) :: cc(ido, 3, l1)
+        real(wp), intent(out) :: ch(ido, l1, 3)
+        real(wp), intent(in) :: wa1(*)
+        real(wp), intent(in) :: wa2(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip)             :: k, i
-        real (wp), parameter :: taur = -0.5_wp
-        real (wp), parameter :: taui = sqrt(3.0_wp)/2 ! 0.866025403784439
-        real (wp)            :: tr2, cr2, ti2, ci2, cr3, ci3, dr2, dr3, di2, di3
+        integer(ip)             :: k, i
+        real(wp), parameter :: taur = -0.5_wp
+        real(wp), parameter :: taui = sqrt(3.0_wp)/2 ! 0.866025403784439
+        real(wp)            :: tr2, cr2, ti2, ci2, cr3, ci3, dr2, dr3, di2, di3
         !-----------------------------------------------
 
         select case(ido)
@@ -1941,19 +1941,19 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: ido
-        integer (ip), intent (in) :: l1
-        real (wp), intent (in) :: cc(ido, 4, l1)
-        real (wp), intent (out) :: ch(ido, l1, 4)
-        real (wp), intent (in) :: wa1(*)
-        real (wp), intent (in) :: wa2(*)
-        real (wp), intent (in) :: wa3(*)
+        integer(ip), intent(in) :: ido
+        integer(ip), intent(in) :: l1
+        real(wp), intent(in) :: cc(ido, 4, l1)
+        real(wp), intent(out) :: ch(ido, l1, 4)
+        real(wp), intent(in) :: wa1(*)
+        real(wp), intent(in) :: wa2(*)
+        real(wp), intent(in) :: wa3(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: k, i
-        real (wp) :: ti1, ti2, tr4, ti3, tr1, tr2, ti4
-        real (wp) :: tr3, cr3, ci3, cr2, cr4, ci2, ci4
+        integer(ip) :: k, i
+        real(wp) :: ti1, ti2, tr4, ti3, tr1, tr2, ti4
+        real(wp) :: tr3, cr3, ci3, cr2, cr4, ci2, ci4
         !-----------------------------------------------
 
         select case(ido)
@@ -2012,26 +2012,26 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: ido
-        integer (ip), intent (in) :: l1
-        real (wp), intent (in) :: cc(ido, 5, l1)
-        real (wp), intent (out) :: ch(ido, l1, 5)
-        real (wp), intent (in) :: wa1(*)
-        real (wp), intent (in) :: wa2(*)
-        real (wp), intent (in) :: wa3(*)
-        real (wp), intent (in) :: wa4(*)
+        integer(ip), intent(in) :: ido
+        integer(ip), intent(in) :: l1
+        real(wp), intent(in) :: cc(ido, 5, l1)
+        real(wp), intent(out) :: ch(ido, l1, 5)
+        real(wp), intent(in) :: wa1(*)
+        real(wp), intent(in) :: wa2(*)
+        real(wp), intent(in) :: wa3(*)
+        real(wp), intent(in) :: wa4(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: k, i
-        real (wp), parameter :: sqrt_5 = sqrt( 5.0_wp)
-        real (wp), parameter :: tr11 = (sqrt_5 - 1.0_wp)/4 ! 0.309016994374947
-        real (wp), parameter :: ti11 = (sqrt(1.0_wp/(5.0_wp + sqrt_5)))/2 ! 0.951056516295154
-        real (wp), parameter :: tr12 = (-1.0_wp - sqrt_5)/4 ! -.809016994374947
-        real (wp), parameter :: ti12 = sqrt( 5.0_wp/(2.0_wp*(5.0_wp + sqrt_5 ))) ! 0.587785252292473
-        real (wp) ::  ti5, ti2, ti4, ti3, tr5, tr2, tr4
-        real (wp) :: tr3, cr2, ci2, cr3, ci3, cr5, ci5, cr4, ci4, dr3, dr4, di3
-        real (wp) :: di4, dr5, dr2, di5, di2
+        integer(ip) :: k, i
+        real(wp), parameter :: sqrt_5 = sqrt( 5.0_wp)
+        real(wp), parameter :: tr11 = (sqrt_5 - 1.0_wp)/4 ! 0.309016994374947
+        real(wp), parameter :: ti11 = (sqrt(1.0_wp/(5.0_wp + sqrt_5)))/2 ! 0.951056516295154
+        real(wp), parameter :: tr12 = (-1.0_wp - sqrt_5)/4 ! -.809016994374947
+        real(wp), parameter :: ti12 = sqrt( 5.0_wp/(2.0_wp*(5.0_wp + sqrt_5 ))) ! 0.587785252292473
+        real(wp) ::  ti5, ti2, ti4, ti3, tr5, tr2, tr4
+        real(wp) :: tr3, cr2, ci2, cr3, ci3, cr5, ci5, cr4, ci4, dr3, dr4, di3
+        real(wp) :: di4, dr5, dr2, di5, di2
         !-----------------------------------------------
 
         select case(ido)
@@ -2112,23 +2112,23 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (out) :: nac
-        integer (ip), intent (in) :: ido
-        integer (ip), intent (in) :: iip
-        integer (ip), intent (in) :: l1
-        integer (ip), intent (in) :: idl1
-        real (wp), intent (in) :: cc(ido, iip, l1)
-        real (wp), intent (out) :: c1(ido, l1, iip)
-        real (wp), intent (in out) :: c2(idl1, iip)
-        real (wp), intent (in out) :: ch(ido, l1, iip)
-        real (wp), intent (in out) :: ch2(idl1, iip)
-        real (wp), intent (in) :: wa(*)
+        integer(ip), intent(out) :: nac
+        integer(ip), intent(in) :: ido
+        integer(ip), intent(in) :: iip
+        integer(ip), intent(in) :: l1
+        integer(ip), intent(in) :: idl1
+        real(wp), intent(in) :: cc(ido, iip, l1)
+        real(wp), intent(out) :: c1(ido, l1, iip)
+        real(wp), intent(inout) :: c2(idl1, iip)
+        real(wp), intent(inout) :: ch(ido, l1, iip)
+        real(wp), intent(inout) :: ch2(idl1, iip)
+        real(wp), intent(in) :: wa(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: idot, nt, iipp2, iipph, idp, j, jc, k
-        integer (ip) :: i, idl, inc, l, lc, idlj, idij, idj
-        real (wp) :: war, wai
+        integer(ip) :: idot, nt, iipp2, iipph, idp, j, jc, k
+        integer(ip) :: i, idl, inc, l, lc, idlj, idij, idj
+        real(wp) :: war, wai
         !-----------------------------------------------
 
         idot = ido/2
@@ -2227,13 +2227,13 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)      :: n
-        real (wp),    intent (in out)  :: c(*)
-        real (wp),    intent (in out)  :: wsave(*)
+        integer(ip), intent(in)      :: n
+        real(wp),    intent(inout)  :: c(*)
+        real(wp),    intent(inout)  :: wsave(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: iw1, iw2
+        integer(ip) :: iw1, iw2
         !-----------------------------------------------
 
         if (n /= 1) then
@@ -2250,16 +2250,16 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: n
-        real (wp),    intent (in out) :: c(*)
-        real (wp),    intent (in out) :: ch(*)
-        real (wp),    intent (in)     :: wa(*)
-        real (wp),    intent (in)     :: ifac(*)
+        integer(ip), intent(in)     :: n
+        real(wp),    intent(inout) :: c(*)
+        real(wp),    intent(inout) :: ch(*)
+        real(wp),    intent(in)     :: wa(*)
+        real(wp),    intent(in)     :: ifac(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: nf, na, l1, iw, k1, iip, l2, ido
-        integer (ip) :: idot, idl1, ix2, ix3, ix4, nac, n2
+        integer(ip) :: nf, na, l1, iw, k1, iip, l2, ido
+        integer(ip) :: idot, idl1, ix2, ix3, ix4, nac, n2
         !-----------------------------------------------
 
         nf = int(ifac(2), kind=ip)
@@ -2332,16 +2332,16 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: ido
-        integer (ip), intent (in) :: l1
-        real (wp), intent (in) :: cc(ido, 2, l1)
-        real (wp), intent (out) :: ch(ido, l1, 2)
-        real (wp), intent (in) :: wa1(*)
+        integer(ip), intent(in) :: ido
+        integer(ip), intent(in) :: l1
+        real(wp), intent(in) :: cc(ido, 2, l1)
+        real(wp), intent(out) :: ch(ido, l1, 2)
+        real(wp), intent(in) :: wa1(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: k, i
-        real (wp) :: tr2, ti2
+        integer(ip) :: k, i
+        real(wp) :: tr2, ti2
         !-----------------------------------------------
 
         if(ido <= 2) then
@@ -2369,19 +2369,19 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: ido
-        integer (ip), intent (in) :: l1
-        real (wp), intent (in) :: cc(ido, 3, l1)
-        real (wp), intent (out) :: ch(ido, l1, 3)
-        real (wp), intent (in) :: wa1(*)
-        real (wp), intent (in) :: wa2(*)
+        integer(ip), intent(in) :: ido
+        integer(ip), intent(in) :: l1
+        real(wp), intent(in) :: cc(ido, 3, l1)
+        real(wp), intent(out) :: ch(ido, l1, 3)
+        real(wp), intent(in) :: wa1(*)
+        real(wp), intent(in) :: wa2(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: k, i
-        real (wp), parameter :: taur = -0.5_wp
-        real (wp), parameter :: taui = -sqrt(3.0_wp)/2 !  - 0.866025403784439
-        real (wp) :: tr2, cr2, ti2, ci2, cr3, ci3, dr2, dr3, di2, di3
+        integer(ip) :: k, i
+        real(wp), parameter :: taur = -0.5_wp
+        real(wp), parameter :: taui = -sqrt(3.0_wp)/2 !  - 0.866025403784439
+        real(wp) :: tr2, cr2, ti2, ci2, cr3, ci3, dr2, dr3, di2, di3
         !-----------------------------------------------
 
         select case(ido)
@@ -2430,19 +2430,19 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: ido
-        integer (ip), intent (in) :: l1
-        real (wp), intent (in) :: cc(ido, 4, l1)
-        real (wp), intent (out) :: ch(ido, l1, 4)
-        real (wp), intent (in) :: wa1(*)
-        real (wp), intent (in) :: wa2(*)
-        real (wp), intent (in) :: wa3(*)
+        integer(ip), intent(in) :: ido
+        integer(ip), intent(in) :: l1
+        real(wp), intent(in) :: cc(ido, 4, l1)
+        real(wp), intent(out) :: ch(ido, l1, 4)
+        real(wp), intent(in) :: wa1(*)
+        real(wp), intent(in) :: wa2(*)
+        real(wp), intent(in) :: wa3(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: k, i
-        real (wp) :: ti1, ti2, tr4, ti3, tr1, tr2, ti4
-        real (wp) :: tr3, cr3, ci3, cr2, cr4, ci2, ci4
+        integer(ip) :: k, i
+        real(wp) :: ti1, ti2, tr4, ti3, tr1, tr2, ti4
+        real(wp) :: tr3, cr3, ci3, cr2, cr4, ci2, ci4
         !-----------------------------------------------
 
         select case(ido)
@@ -2501,26 +2501,26 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: ido
-        integer (ip), intent (in) :: l1
-        real (wp), intent (in) :: cc(ido, 5, l1)
-        real (wp), intent (out) :: ch(ido, l1, 5)
-        real (wp), intent (in) :: wa1(*)
-        real (wp), intent (in) :: wa2(*)
-        real (wp), intent (in) :: wa3(*)
-        real (wp), intent (in) :: wa4(*)
+        integer(ip), intent(in) :: ido
+        integer(ip), intent(in) :: l1
+        real(wp), intent(in) :: cc(ido, 5, l1)
+        real(wp), intent(out) :: ch(ido, l1, 5)
+        real(wp), intent(in) :: wa1(*)
+        real(wp), intent(in) :: wa2(*)
+        real(wp), intent(in) :: wa3(*)
+        real(wp), intent(in) :: wa4(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: k, i
-        real (wp) :: ti5, ti2, ti4, ti3, tr5, tr2, tr4
-        real (wp) :: tr3, cr2, ci2, cr3, ci3, cr5, ci5, cr4, ci4, dr3, dr4, di3
-        real (wp) :: di4, dr5, dr2, di5, di2
-        real (wp), parameter :: sqrt_5 = sqrt(5.0_wp)
-        real (wp), parameter :: tr11 = (sqrt_5 - 1.0_wp)/4 ! 0.309016994374947
-        real (wp), parameter :: ti11 = -sqrt((5.0_wp + sqrt_5)/2)/2 ! -.951056516295154
-        real (wp), parameter :: tr12 = (-1.0_wp - sqrt_5)/4 ! -.809016994374947
-        real (wp), parameter :: ti12 = -sqrt(5.0_wp/(2.0_wp * (5.0_wp + sqrt_5)) ) ! -0.587785252292473
+        integer(ip) :: k, i
+        real(wp) :: ti5, ti2, ti4, ti3, tr5, tr2, tr4
+        real(wp) :: tr3, cr2, ci2, cr3, ci3, cr5, ci5, cr4, ci4, dr3, dr4, di3
+        real(wp) :: di4, dr5, dr2, di5, di2
+        real(wp), parameter :: sqrt_5 = sqrt(5.0_wp)
+        real(wp), parameter :: tr11 = (sqrt_5 - 1.0_wp)/4 ! 0.309016994374947
+        real(wp), parameter :: ti11 = -sqrt((5.0_wp + sqrt_5)/2)/2 ! -.951056516295154
+        real(wp), parameter :: tr12 = (-1.0_wp - sqrt_5)/4 ! -.809016994374947
+        real(wp), parameter :: ti12 = -sqrt(5.0_wp/(2.0_wp * (5.0_wp + sqrt_5)) ) ! -0.587785252292473
         !-----------------------------------------------
 
         select case(ido)
@@ -2601,24 +2601,24 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (out)    :: nac
-        integer (ip), intent (in)     :: ido
-        integer (ip), intent (in)     :: iip
-        integer (ip), intent (in)     :: l1
-        integer (ip), intent (in)     :: idl1
-        real (wp),    intent (in out) :: cc(ido, iip, l1)
-        real (wp),    intent (in out) :: c1(ido, l1, iip)
-        real (wp),    intent (in out) :: c2(idl1, iip)
-        real (wp),    intent (in out) :: ch(ido, l1, iip)
-        real (wp),    intent (in out) :: ch2(idl1, iip)
-        real (wp),    intent (in)     :: wa(*)
+        integer(ip), intent(out)    :: nac
+        integer(ip), intent(in)     :: ido
+        integer(ip), intent(in)     :: iip
+        integer(ip), intent(in)     :: l1
+        integer(ip), intent(in)     :: idl1
+        real(wp),    intent(inout) :: cc(ido, iip, l1)
+        real(wp),    intent(inout) :: c1(ido, l1, iip)
+        real(wp),    intent(inout) :: c2(idl1, iip)
+        real(wp),    intent(inout) :: ch(ido, l1, iip)
+        real(wp),    intent(inout) :: ch2(idl1, iip)
+        real(wp),    intent(in)     :: wa(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: idot, nt, iipp2, iipph, idp, j, jc
-        integer (ip) :: k, i, idl, inc, l, lc
-        integer (ip) :: idlj, idij, idj
-        real (wp)    :: war, wai
+        integer(ip) :: idot, nt, iipp2, iipph, idp, j, jc
+        integer(ip) :: k, i, idl, inc, l, lc
+        integer(ip) :: idlj, idij, idj
+        real(wp)    :: war, wai
         !-----------------------------------------------
 
         idot = ido/2
@@ -2721,8 +2721,8 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip) :: n
-        real (wp) :: wsave(*)
+        integer(ip) :: n
+        real(wp) :: wsave(*)
         !-----------------------------------------------
 
         if (n /= 1) then
@@ -2737,17 +2737,17 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip),  intent (in)     :: n
-        real (wp), intent (in out) :: ifac(*)
-        real (wp), intent (out)    :: wa(*)
+        integer(ip),  intent(in)     :: n
+        real(wp), intent(inout) :: ifac(*)
+        real(wp), intent(out)    :: wa(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
         integer, parameter :: ntryh(*) = [4, 2, 3, 5]
-        integer (ip) :: nl, nf, j, ntry, nq, nr, i, is, nfm1, l1, k1, iip
-        integer (ip) :: ld, l2, ido, iipm, ii
-        real (wp), parameter :: TWO_PI = 2.0_wp * PI
-        real (wp) :: argh, argld, fi, arg
+        integer(ip) :: nl, nf, j, ntry, nq, nr, i, is, nfm1, l1, k1, iip
+        integer(ip) :: ld, l2, ido, iipm, ii
+        real(wp), parameter :: TWO_PI = 2.0_wp * PI
+        real(wp) :: argh, argld, fi, arg
         !-----------------------------------------------
 
         ntry = 0
@@ -2831,9 +2831,9 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip) :: n
-        real (wp) :: r(*)
-        real (wp) :: wsave(*)
+        integer(ip) :: n
+        real(wp) :: r(*)
+        real(wp) :: wsave(*)
         !-----------------------------------------------
 
         if (n /= 1) then
@@ -2848,16 +2848,16 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip),  intent (in) :: n
-        real (wp), intent (in) :: ifac(*)
-        real (wp)              :: c(*)
-        real (wp)              :: ch(*)
-        real (wp)              :: wa(*)
+        integer(ip),  intent(in) :: n
+        real(wp), intent(in) :: ifac(*)
+        real(wp)              :: c(*)
+        real(wp)              :: ch(*)
+        real(wp)              :: wa(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: nf, na, l1, iw, k1, iip
-        integer (ip) :: l2, ido, idl1, ix2, ix3, ix4
+        integer(ip) :: nf, na, l1, iw, k1, iip
+        integer(ip) :: l2, ido, idl1, ix2, ix3, ix4
         !-----------------------------------------------
 
         nf = int(ifac(2), kind=ip)
@@ -2931,16 +2931,16 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: ido
-        integer (ip), intent (in) :: l1
-        real (wp), intent (in) :: cc(ido, 2, l1)
-        real (wp), intent (out) :: ch(ido, l1, 2)
-        real (wp), intent (in) :: wa1(*)
+        integer(ip), intent(in) :: ido
+        integer(ip), intent(in) :: l1
+        real(wp), intent(in) :: cc(ido, 2, l1)
+        real(wp), intent(out) :: ch(ido, l1, 2)
+        real(wp), intent(in) :: wa1(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: k, idp2, i, ic
-        real (wp) :: tr2, ti2
+        integer(ip) :: k, idp2, i, ic
+        real(wp) :: tr2, ti2
         !-----------------------------------------------
 
         ch(1,:, 1) = cc(1, 1,:) + cc(ido, 2,:)
@@ -2975,19 +2975,19 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: ido
-        integer (ip), intent (in) :: l1
-        real (wp), intent (in) :: cc(ido, 3, l1)
-        real (wp), intent (out) :: ch(ido, l1, 3)
-        real (wp), intent (in) :: wa1(*)
-        real (wp), intent (in) :: wa2(*)
+        integer(ip), intent(in) :: ido
+        integer(ip), intent(in) :: l1
+        real(wp), intent(in) :: cc(ido, 3, l1)
+        real(wp), intent(out) :: ch(ido, l1, 3)
+        real(wp), intent(in) :: wa1(*)
+        real(wp), intent(in) :: wa2(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: k, idp2, i, ic
-        real (wp), parameter :: taur = -0.5_wp
-        real (wp), parameter :: taui = sqrt(3.0_wp)/2.0_wp ! 0.866025403784439
-        real (wp)            :: tr2, cr2, ci3, ti2, ci2, cr3, dr2, dr3, di2, di3
+        integer(ip) :: k, idp2, i, ic
+        real(wp), parameter :: taur = -0.5_wp
+        real(wp), parameter :: taui = sqrt(3.0_wp)/2.0_wp ! 0.866025403784439
+        real(wp)            :: tr2, cr2, ci3, ti2, ci2, cr3, dr2, dr3, di2, di3
         !-----------------------------------------------
 
         do k = 1, l1
@@ -3031,20 +3031,20 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: ido
-        integer (ip), intent (in) :: l1
-        real (wp), intent (in) :: cc(ido, 4, l1)
-        real (wp), intent (out) :: ch(ido, l1, 4)
-        real (wp), intent (in) :: wa1(*)
-        real (wp), intent (in) :: wa2(*)
-        real (wp), intent (in) :: wa3(*)
+        integer(ip), intent(in) :: ido
+        integer(ip), intent(in) :: l1
+        real(wp), intent(in) :: cc(ido, 4, l1)
+        real(wp), intent(out) :: ch(ido, l1, 4)
+        real(wp), intent(in) :: wa1(*)
+        real(wp), intent(in) :: wa2(*)
+        real(wp), intent(in) :: wa3(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip)             :: k, idp2, i, ic
-        real (wp), parameter :: sqrt2 = sqrt(2.0_wp) ! 1.414213562373095
-        real (wp)            :: tr1, tr2, tr3, tr4, ti1, ti2, ti3, ti4, cr3, ci3
-        real (wp)            :: cr2, cr4, ci2, ci4
+        integer(ip)             :: k, idp2, i, ic
+        real(wp), parameter :: sqrt2 = sqrt(2.0_wp) ! 1.414213562373095
+        real(wp)            :: tr1, tr2, tr3, tr4, ti1, ti2, ti3, ti4, cr3, ci3
+        real(wp)            :: cr2, cr4, ci2, ci4
         !-----------------------------------------------
 
         do k = 1, l1
@@ -3111,26 +3111,26 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: ido
-        integer (ip), intent (in) :: l1
-        real (wp), intent (in) :: cc(ido, 5, l1)
-        real (wp), intent (out) :: ch(ido, l1, 5)
-        real (wp), intent (in) :: wa1(*)
-        real (wp), intent (in) :: wa2(*)
-        real (wp), intent (in) :: wa3(*)
-        real (wp), intent (in) :: wa4(*)
+        integer(ip), intent(in) :: ido
+        integer(ip), intent(in) :: l1
+        real(wp), intent(in) :: cc(ido, 5, l1)
+        real(wp), intent(out) :: ch(ido, l1, 5)
+        real(wp), intent(in) :: wa1(*)
+        real(wp), intent(in) :: wa2(*)
+        real(wp), intent(in) :: wa3(*)
+        real(wp), intent(in) :: wa4(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: k, idp2, i, ic
-        real (wp) :: ti5, ti4, tr2, tr3, cr2, cr3, ci5
-        real (wp) :: ci4, ti2, ti3, tr5, tr4, ci2, ci3, cr5, cr4, dr3, dr4, di3
-        real (wp) :: di4, dr5, dr2, di5, di2
-        real (wp), parameter :: sqrt_5 = sqrt(5.0_wp)
-        real (wp), parameter :: tr11 = (sqrt_5 - 1.0_wp)/4 ! 0.309016994374947
-        real (wp), parameter :: ti11 = sqrt((5.0_wp + sqrt_5)/2)/2 ! 0.951056516295154
-        real (wp), parameter :: tr12 = (-1.0_wp - sqrt_5)/4 ! -.809016994374947
-        real (wp), parameter :: ti12 = sqrt(5.0_wp/(2.0_wp * (5.0_wp + sqrt_5)) ) ! 0.587785252292473
+        integer(ip) :: k, idp2, i, ic
+        real(wp) :: ti5, ti4, tr2, tr3, cr2, cr3, ci5
+        real(wp) :: ci4, ti2, ti3, tr5, tr4, ci2, ci3, cr5, cr4, dr3, dr4, di3
+        real(wp) :: di4, dr5, dr2, di5, di2
+        real(wp), parameter :: sqrt_5 = sqrt(5.0_wp)
+        real(wp), parameter :: tr11 = (sqrt_5 - 1.0_wp)/4 ! 0.309016994374947
+        real(wp), parameter :: ti11 = sqrt((5.0_wp + sqrt_5)/2)/2 ! 0.951056516295154
+        real(wp), parameter :: tr12 = (-1.0_wp - sqrt_5)/4 ! -.809016994374947
+        real(wp), parameter :: ti12 = sqrt(5.0_wp/(2.0_wp * (5.0_wp + sqrt_5)) ) ! 0.587785252292473
         !-----------------------------------------------
 
 
@@ -3200,22 +3200,22 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: ido
-        integer (ip), intent (in) :: iip
-        integer (ip), intent (in) :: l1
-        integer (ip), intent (in) :: idl1
-        real (wp), intent (in) :: cc(ido, iip, l1)
-        real (wp), intent (in out) :: c1(ido, l1, iip)
-        real (wp), intent (in out) :: c2(idl1, iip)
-        real (wp), intent (in out) :: ch(ido, l1, iip)
-        real (wp), intent (in out) :: ch2(idl1, iip)
-        real (wp), intent (in) :: wa(*)
+        integer(ip), intent(in) :: ido
+        integer(ip), intent(in) :: iip
+        integer(ip), intent(in) :: l1
+        integer(ip), intent(in) :: idl1
+        real(wp), intent(in) :: cc(ido, iip, l1)
+        real(wp), intent(inout) :: c1(ido, l1, iip)
+        real(wp), intent(inout) :: c2(idl1, iip)
+        real(wp), intent(inout) :: ch(ido, l1, iip)
+        real(wp), intent(inout) :: ch2(idl1, iip)
+        real(wp), intent(in) :: wa(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
         integer:: idp2, nbd, iipp2, iipph, k, i, j, jc, j2, l, lc, is, idij
-        real (wp), parameter :: TWO_PI = 2.0_wp * PI
-        real (wp) :: arg, dcp, dsp, ar1, ai1, ar1h, dc2, ds2, ar2, ai2, ar2h
+        real(wp), parameter :: TWO_PI = 2.0_wp * PI
+        real(wp) :: arg, dcp, dsp, ar1, ai1, ar1h, dc2, ds2, ar2, ai2, ar2h
         !-----------------------------------------------
 
         arg = TWO_PI/iip
@@ -3353,9 +3353,9 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip) :: n
-        real (wp) :: r(*)
-        real (wp) :: wsave(*)
+        integer(ip) :: n
+        real(wp) :: r(*)
+        real(wp) :: wsave(*)
         !-----------------------------------------------
 
         if (n /= 1) then
@@ -3369,16 +3369,16 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip),  intent (in) :: n
-        real (wp), intent (in) :: ifac(*)
-        real (wp)              :: c(*)
-        real (wp)              :: ch(*)
-        real (wp)              :: wa(*)
+        integer(ip),  intent(in) :: n
+        real(wp), intent(in) :: ifac(*)
+        real(wp)              :: c(*)
+        real(wp)              :: ch(*)
+        real(wp)              :: wa(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: nf, na, l2, iw, k1, kh
-        integer (ip) :: iip, l1, ido, idl1, ix2, ix3, ix4
+        integer(ip) :: nf, na, l2, iw, k1, kh
+        integer(ip) :: iip, l1, ido, idl1, ix2, ix3, ix4
         !-----------------------------------------------
 
         nf = int(ifac(2), kind=ip)
@@ -3451,16 +3451,16 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: ido
-        integer (ip), intent (in) :: l1
-        real (wp), intent (in) :: cc(ido, l1, 2)
-        real (wp), intent (out) :: ch(ido, 2, l1)
-        real (wp), intent (in) :: wa1(*)
+        integer(ip), intent(in) :: ido
+        integer(ip), intent(in) :: l1
+        real(wp), intent(in) :: cc(ido, l1, 2)
+        real(wp), intent(out) :: ch(ido, 2, l1)
+        real(wp), intent(in) :: wa1(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: k, idp2, i, ic
-        real (wp) :: tr2, ti2
+        integer(ip) :: k, idp2, i, ic
+        real(wp) :: tr2, ti2
         !-----------------------------------------------
 
         ch(1, 1,:) = cc(1,:, 1) + cc(1,:, 2)
@@ -3495,19 +3495,19 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: ido
-        integer (ip), intent (in) :: l1
-        real (wp), intent (in) :: cc(ido, l1, 3)
-        real (wp), intent (out) :: ch(ido, 3, l1)
-        real (wp), intent (in) :: wa1(*)
-        real (wp), intent (in) :: wa2(*)
+        integer(ip), intent(in) :: ido
+        integer(ip), intent(in) :: l1
+        real(wp), intent(in) :: cc(ido, l1, 3)
+        real(wp), intent(out) :: ch(ido, 3, l1)
+        real(wp), intent(in) :: wa1(*)
+        real(wp), intent(in) :: wa2(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip)         :: k, idp2, i, ic
-        real (wp), parameter :: taur = -0.5_wp
-        real (wp), parameter :: taui = sqrt(3.0_wp)/2.0_wp ! 0.866025403784439
-        real (wp)            :: cr2, dr2, di2, dr3, di3, ci2, tr2, ti2, tr3, ti3
+        integer(ip)         :: k, idp2, i, ic
+        real(wp), parameter :: taur = -0.5_wp
+        real(wp), parameter :: taui = sqrt(3.0_wp)/2.0_wp ! 0.866025403784439
+        real(wp)            :: cr2, dr2, di2, dr3, di3, ci2, tr2, ti2, tr3, ti3
         !-----------------------------------------------
 
         do k = 1, l1
@@ -3549,21 +3549,21 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip),  intent (in)  :: ido
-        integer (ip),  intent (in)  :: l1
-        real (wp), intent (in)  :: cc(ido, l1, 4)
-        real (wp), intent (out) :: ch(ido, 4, l1)
-        real (wp), intent (in)  :: wa1(*)
-        real (wp), intent (in)  :: wa2(*)
-        real (wp), intent (in)  :: wa3(*)
+        integer(ip),  intent(in)  :: ido
+        integer(ip),  intent(in)  :: l1
+        real(wp), intent(in)  :: cc(ido, l1, 4)
+        real(wp), intent(out) :: ch(ido, 4, l1)
+        real(wp), intent(in)  :: wa1(*)
+        real(wp), intent(in)  :: wa2(*)
+        real(wp), intent(in)  :: wa3(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: k, idp2, i, ic
-        real (wp) :: tr1, tr2, cr2, ci2, cr3, ci3
-        real (wp) :: cr4, ci4, tr4, ti1
-        real (wp) :: ti4, ti2, ti3, tr3
-        real (wp), parameter :: one_over_sqrt2 = 1.0_wp/sqrt(2.0_wp) ! 0.7071067811865475
+        integer(ip) :: k, idp2, i, ic
+        real(wp) :: tr1, tr2, cr2, ci2, cr3, ci3
+        real(wp) :: cr4, ci4, tr4, ti1
+        real(wp) :: ti4, ti2, ti3, tr3
+        real(wp), parameter :: one_over_sqrt2 = 1.0_wp/sqrt(2.0_wp) ! 0.7071067811865475
         !-----------------------------------------------
 
         do k = 1, l1
@@ -3626,26 +3626,26 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip),  intent (in)  :: ido
-        integer (ip),  intent (in)  :: l1
-        real (wp), intent (in)  :: cc(ido, l1, 5)
-        real (wp), intent (out) :: ch(ido, 5, l1)
-        real (wp), intent (in)  :: wa1(*)
-        real (wp), intent (in)  :: wa2(*)
-        real (wp), intent (in)  :: wa3(*)
-        real (wp), intent (in)  :: wa4(*)
+        integer(ip),  intent(in)  :: ido
+        integer(ip),  intent(in)  :: l1
+        real(wp), intent(in)  :: cc(ido, l1, 5)
+        real(wp), intent(out) :: ch(ido, 5, l1)
+        real(wp), intent(in)  :: wa1(*)
+        real(wp), intent(in)  :: wa2(*)
+        real(wp), intent(in)  :: wa3(*)
+        real(wp), intent(in)  :: wa4(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: k, idp2, i, ic
-        real (wp) :: cr2, ci5, cr3, ci4, dr2, di2, dr3
-        real (wp) :: di3, dr4, di4, dr5, di5, cr5, ci2, cr4, ci3, tr2, ti2, tr3
-        real (wp) :: ti3, tr5, ti5, tr4, ti4
-        real (wp), parameter :: sqrt_5 = sqrt(5.0_wp)
-        real (wp), parameter :: tr11 = (sqrt_5 - 1.0_wp)/4 ! 0.309016994374947
-        real (wp), parameter :: ti11 = sqrt((5.0_wp + sqrt_5)/2)/2 ! 0.951056516295154
-        real (wp), parameter :: tr12 = (-1.0_wp - sqrt_5)/4 ! -.809016994374947
-        real (wp), parameter :: ti12 = sqrt(5.0_wp/(2.0_wp * (5.0_wp + sqrt_5)) ) ! 0.587785252292473
+        integer(ip) :: k, idp2, i, ic
+        real(wp) :: cr2, ci5, cr3, ci4, dr2, di2, dr3
+        real(wp) :: di3, dr4, di4, dr5, di5, cr5, ci2, cr4, ci3, tr2, ti2, tr3
+        real(wp) :: ti3, tr5, ti5, tr4, ti4
+        real(wp), parameter :: sqrt_5 = sqrt(5.0_wp)
+        real(wp), parameter :: tr11 = (sqrt_5 - 1.0_wp)/4 ! 0.309016994374947
+        real(wp), parameter :: ti11 = sqrt((5.0_wp + sqrt_5)/2)/2 ! 0.951056516295154
+        real(wp), parameter :: tr12 = (-1.0_wp - sqrt_5)/4 ! -.809016994374947
+        real(wp), parameter :: ti12 = sqrt(5.0_wp/(2.0_wp * (5.0_wp + sqrt_5)) ) ! 0.587785252292473
         !-----------------------------------------------
 
         do k = 1, l1
@@ -3711,24 +3711,24 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)      :: ido
-        integer (ip), intent (in)      :: iip
-        integer (ip), intent (in)      :: l1
-        integer (ip), intent (in)      :: idl1
-        real (wp), intent (out)    :: cc(ido, iip, l1)
-        real (wp), intent (in out) :: c1(ido, l1, iip)
-        real (wp), intent (in out) :: c2(idl1, iip)
-        real (wp), intent (in out) :: ch(ido, l1, iip)
-        real (wp), intent (in out) :: ch2(idl1, iip)
-        real (wp), intent (in)     :: wa(*)
+        integer(ip), intent(in)      :: ido
+        integer(ip), intent(in)      :: iip
+        integer(ip), intent(in)      :: l1
+        integer(ip), intent(in)      :: idl1
+        real(wp), intent(out)    :: cc(ido, iip, l1)
+        real(wp), intent(inout) :: c1(ido, l1, iip)
+        real(wp), intent(inout) :: c2(idl1, iip)
+        real(wp), intent(inout) :: ch(ido, l1, iip)
+        real(wp), intent(inout) :: ch2(idl1, iip)
+        real(wp), intent(in)     :: wa(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip)         :: iipph, iipp2, idp2, nbd, j
-        integer (ip)         :: k, is, idij, i, jc, l, lc
-        real (wp), parameter :: TWO_PI = 2.0_wp * PI
-        real (wp)            :: arg, dcp, dsp, ar1, ai1
-        real (wp)            :: ar1h, dc2, ds2, ar2, ai2, ar2h
+        integer(ip)         :: iipph, iipp2, idp2, nbd, j
+        integer(ip)         :: k, is, idij, i, jc, l, lc
+        real(wp), parameter :: TWO_PI = 2.0_wp * PI
+        real(wp)            :: arg, dcp, dsp, ar1, ai1
+        real(wp)            :: ar1h, dc2, ds2, ar2, ai2, ar2h
         !-----------------------------------------------
 
         arg = TWO_PI/iip

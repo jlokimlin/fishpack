@@ -84,7 +84,7 @@
 !
 program tblktri
 
-    use, intrinsic :: iso_fortran_env, only: &
+    use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
@@ -99,17 +99,17 @@ program tblktri
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
-    type (FishpackSolver)            :: solver
-    type (FishpackWorkspace)         :: workspace
-    integer (ip), parameter          :: IDIMY = 75
-    integer (ip)                     :: iflg, np, n, mp, m, i, j, ierror
-    real (wp), dimension(IDIMY, 105) :: y
-    real (wp), dimension(IDIMY)      :: am, bm, cm
-    real (wp), dimension(105)        :: an, bn, cn
-    real (wp), dimension(IDIMY)      :: s
-    real (wp), dimension(105)        :: t
-    real (wp)                        :: ds, dt
-    real (wp)                        :: discretization_error, local_error
+    type(FishpackSolver)            :: solver
+    type(FishpackWorkspace)         :: workspace
+    integer(ip), parameter          :: IDIMY = 75
+    integer(ip)                     :: iflg, np, n, mp, m, i, j, ierror
+    real(wp), dimension(IDIMY, 105) :: y
+    real(wp), dimension(IDIMY)      :: am, bm, cm
+    real(wp), dimension(105)        :: an, bn, cn
+    real(wp), dimension(IDIMY)      :: s
+    real(wp), dimension(105)        :: t
+    real(wp)                        :: ds, dt
+    real(wp)                        :: discretization_error, local_error
     !-----------------------------------------------
 
     iflg = 0

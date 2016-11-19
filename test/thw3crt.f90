@@ -35,7 +35,7 @@
 !
 program thw3crt
 
-    use, intrinsic :: iso_fortran_env, only: &
+    use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
@@ -49,17 +49,17 @@ program thw3crt
     !-----------------------------------------------
     ! Local variables
     !-----------------------------------------------
-    type (FishpackSolver)    :: solver
-    integer (ip) :: lbdcnd, mbdcnd, nbdcnd, l, m, n
-    integer (ip) :: ldimf, mdimf, lp1, i
-    integer (ip) :: mp1, j, np1, k, ierror
-    real (wp), dimension(11, 41, 16) :: f
-    real (wp), dimension(11, 41) :: bdzf, bdxs, bdxf, bdys, bdyf, bdzs
-    real (wp), dimension(11) :: x
-    real (wp), dimension(41) :: y
-    real (wp), dimension(16) :: z
-    real (wp) :: elmbda, xs, xf, ys, pi, yf, zs, zf, dx, dy, dz
-    real (wp) :: pertrb, discretization_error, t
+    type(FishpackSolver)    :: solver
+    integer(ip) :: lbdcnd, mbdcnd, nbdcnd, l, m, n
+    integer(ip) :: ldimf, mdimf, lp1, i
+    integer(ip) :: mp1, j, np1, k, ierror
+    real(wp), dimension(11, 41, 16) :: f
+    real(wp), dimension(11, 41) :: bdzf, bdxs, bdxf, bdys, bdyf, bdzs
+    real(wp), dimension(11) :: x
+    real(wp), dimension(41) :: y
+    real(wp), dimension(16) :: z
+    real(wp) :: elmbda, xs, xf, ys, pi, yf, zs, zf, dx, dy, dz
+    real(wp) :: pertrb, discretization_error, t
     !-----------------------------------------------
 
     !

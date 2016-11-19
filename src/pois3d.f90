@@ -257,46 +257,43 @@ module module_pois3d
     public :: pois3d
     public :: pois3dd
 
-
     !---------------------------------------------------------------
-    ! Dictionary: Variables confined to the module
+    ! Variables confined to the module
     !---------------------------------------------------------------
-    real (wp), private :: ZERO = 0.0_wp
-    real (wp), private :: HALF = 0.5_wp
-    real (wp), private :: ONE = 1.0_wp
-    real (wp), private :: TWO = 2.0_wp
-    real (wp), private :: FOUR = 4.0_wp
+    real(wp), private :: ZERO = 0.0_wp
+    real(wp), private :: HALF = 0.5_wp
+    real(wp), private :: ONE = 1.0_wp
+    real(wp), private :: TWO = 2.0_wp
+    real(wp), private :: FOUR = 4.0_wp
     !---------------------------------------------------------------
-
 
 contains
-
 
     subroutine pois3d( lperod, l, c1, mperod, m, c2, nperod, n, a, b, c, &
         ldimf, mdimf, f, ierror)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: lperod
-        integer (ip), intent (in)     :: l
-        integer (ip), intent (in)     :: mperod
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: nperod
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: ldimf
-        integer (ip), intent (in)     :: mdimf
-        integer (ip), intent (out)    :: ierror
-        real (wp),    intent (in)     :: c1
-        real (wp),    intent (in)     :: c2
-        real (wp),    intent (inout ) :: a(:)
-        real (wp),    intent (in out) :: b(:)
-        real (wp),    intent (in out) :: c(:)
-        real (wp),    intent (in out) :: f(:,:,:)
+        integer(ip), intent(in)     :: lperod
+        integer(ip), intent(in)     :: l
+        integer(ip), intent(in)     :: mperod
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: nperod
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: ldimf
+        integer(ip), intent(in)     :: mdimf
+        integer(ip), intent(out)    :: ierror
+        real(wp),    intent(in)     :: c1
+        real(wp),    intent(in)     :: c2
+        real(wp),    intent(inout) :: a(:)
+        real(wp),    intent(inout) :: b(:)
+        real(wp),    intent(inout) :: c(:)
+        real(wp),    intent(inout) :: f(:,:,:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip)  :: irwk, icwk
-        type (Fish)   :: workspace
+        integer(ip)  :: irwk, icwk
+        type(Fish)   :: workspace
         !-----------------------------------------------
 
         !
@@ -327,34 +324,33 @@ contains
 
     end subroutine pois3d
 
-
     subroutine pois3dd(lperod, l, c1, mperod, m, c2, nperod, n, a, b, &
         c, ldimf, mdimf, f, ierror, w)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: lperod
-        integer (ip), intent (in)     :: l
-        integer (ip), intent (in)     :: mperod
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: nperod
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: ldimf
-        integer (ip), intent (in)     :: mdimf
-        integer (ip), intent (out)    :: ierror
-        real (wp),    intent (in)     :: c1
-        real (wp),    intent (in)     :: c2
-        real (wp),    intent (in out) :: a(n)
-        real (wp),    intent (in out) :: b(n)
-        real (wp),    intent (in out) :: c(n)
-        real (wp),    intent (in out) :: f(ldimf, mdimf, *)
-        real (wp), contiguous, intent (in out) :: w(:)
+        integer(ip), intent(in)     :: lperod
+        integer(ip), intent(in)     :: l
+        integer(ip), intent(in)     :: mperod
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: nperod
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: ldimf
+        integer(ip), intent(in)     :: mdimf
+        integer(ip), intent(out)    :: ierror
+        real(wp),    intent(in)     :: c1
+        real(wp),    intent(in)     :: c2
+        real(wp),    intent(inout) :: a(n)
+        real(wp),    intent(inout) :: b(n)
+        real(wp),    intent(inout) :: c(n)
+        real(wp),    intent(inout) :: f(ldimf, mdimf, *)
+        real(wp), contiguous, intent(inout) :: w(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: nh, nhm1, nodd, i, j, k
-        integer (ip) :: workspace_indices(6)
-        real (wp)    :: temp_save(6)
+        integer(ip) :: nh, nhm1, nodd, i, j, k
+        integer(ip) :: workspace_indices(6)
+        real(wp)    :: temp_save(6)
         !-----------------------------------------------
 
         !
@@ -469,27 +465,25 @@ contains
 
         end associate
 
-
     end subroutine pois3dd
-
 
     pure subroutine check_input_arguments(lperod, l, mperod, m, nperod, n, &
         a, b, c, ldimf, mdimf, ierror)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)   :: lperod
-        integer (ip), intent (in)   :: l
-        integer (ip), intent (in)   :: mperod
-        integer (ip), intent (in)   :: m
-        integer (ip), intent (in)   :: nperod
-        integer (ip), intent (in)   :: n
-        integer (ip), intent (in)   :: ldimf
-        integer (ip), intent (in)   :: mdimf
-        integer (ip), intent (out)  :: ierror
-        real (wp),    intent (in)   :: a(n)
-        real (wp),    intent (in)   :: b(n)
-        real (wp),    intent (in)   :: c(n)
+        integer(ip), intent(in)   :: lperod
+        integer(ip), intent(in)   :: l
+        integer(ip), intent(in)   :: mperod
+        integer(ip), intent(in)   :: m
+        integer(ip), intent(in)   :: nperod
+        integer(ip), intent(in)   :: n
+        integer(ip), intent(in)   :: ldimf
+        integer(ip), intent(in)   :: mdimf
+        integer(ip), intent(out)  :: ierror
+        real(wp),    intent(in)   :: a(n)
+        real(wp),    intent(in)   :: b(n)
+        real(wp),    intent(in)   :: c(n)
         !-----------------------------------------------
 
         associate( &
@@ -537,16 +531,14 @@ contains
 
     end subroutine check_input_arguments
 
-
-
     pure function get_pois3dd_workspace_indices(l, m, n) result (return_value)
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        integer (ip), intent (in)     :: l
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: n
-        integer (ip)                  :: return_value(6)
+        integer(ip), intent(in)     :: l
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: n
+        integer(ip)                  :: return_value(6)
         !--------------------------------------------------------------
 
         associate( i => return_value )
@@ -562,39 +554,37 @@ contains
 
     end function get_pois3dd_workspace_indices
 
-
-
     subroutine pos3d1(lp, l, mp, m, n, a, b, c, ldimf, mdimf, f, xrt, &
         yrt, t, d, wx, wy, c1, c2, bb)
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        integer (ip), intent (in)     :: lp
-        integer (ip), intent (in)     :: l
-        integer (ip), intent (in)     :: mp
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: ldimf
-        integer (ip), intent (in)     :: mdimf
-        real (wp),    intent (in)     :: c1
-        real (wp),    intent (in)     :: c2
-        real (wp),    intent (in out) :: a(n)
-        real (wp),    intent (in)     :: b(n)
-        real (wp),    intent (in out) :: c(n)
-        real (wp),    intent (in out) :: f(ldimf, mdimf,*)
-        real (wp),    intent (in out) :: xrt(*)
-        real (wp),    intent (in out) :: yrt(*)
-        real (wp),    intent (in out) :: t(*)
-        real (wp),    intent (in out) :: d(*)
-        real (wp),    intent (in out) :: wx(*)
-        real (wp),    intent (in out) :: wy(*)
-        real (wp),    intent (in out) :: bb(*)
+        integer(ip), intent(in)     :: lp
+        integer(ip), intent(in)     :: l
+        integer(ip), intent(in)     :: mp
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: ldimf
+        integer(ip), intent(in)     :: mdimf
+        real(wp),    intent(in)     :: c1
+        real(wp),    intent(in)     :: c2
+        real(wp),    intent(inout) :: a(n)
+        real(wp),    intent(in)     :: b(n)
+        real(wp),    intent(inout) :: c(n)
+        real(wp),    intent(inout) :: f(ldimf, mdimf,*)
+        real(wp),    intent(inout) :: xrt(*)
+        real(wp),    intent(inout) :: yrt(*)
+        real(wp),    intent(inout) :: t(*)
+        real(wp),    intent(inout) :: d(*)
+        real(wp),    intent(inout) :: wx(*)
+        real(wp),    intent(inout) :: wy(*)
+        real(wp),    intent(inout) :: bb(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip)         :: lr, mr, nr, lrdel, i, mrdel, j, ifwrd, is, k
-        real (wp)            :: scalx, dx, di, scaly, dy, dj
-        type (FFTpack)       :: fft
+        integer(ip)         :: lr, mr, nr, lrdel, i, mrdel, j, ifwrd, is, k
+        real(wp)            :: scalx, dx, di, scaly, dy, dj
+        type(FFTpack)       :: fft
         !-----------------------------------------------
 
         lr = l
@@ -842,22 +832,21 @@ contains
 
     end subroutine pos3d1
 
-
     subroutine trid(mr, a, b, c, y, d)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: mr
-        real (wp),    intent (in)     :: a(mr)
-        real (wp),    intent (in)     :: b(mr)
-        real (wp),    intent (in)     :: c(mr)
-        real (wp),    intent (in out) :: y(mr)
-        real (wp),    intent (in out) :: d(mr)
+        integer(ip), intent(in)     :: mr
+        real(wp),    intent(in)     :: a(mr)
+        real(wp),    intent(in)     :: b(mr)
+        real(wp),    intent(in)     :: c(mr)
+        real(wp),    intent(inout) :: y(mr)
+        real(wp),    intent(inout) :: d(mr)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: m, mm1, i, iip
-        real (wp)    :: z
+        integer(ip) :: m, mm1, i, iip
+        real(wp)    :: z
         !-----------------------------------------------
 
         m = mr
@@ -886,9 +875,6 @@ contains
         end do
 
     end subroutine trid
-
-
-
 
 end module module_pois3d
 !

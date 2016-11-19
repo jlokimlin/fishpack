@@ -35,16 +35,16 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        real (wp),              intent (in) :: start
-        real (wp),              intent (in) :: stop
-        integer (ip), optional, intent (in) :: num
-        logical,      optional, intent (in) :: endpoint
-        real (wp), allocatable              :: return_value(:)
+        real(wp),              intent(in) :: start
+        real(wp),              intent(in) :: stop
+        integer(ip), optional, intent(in) :: num
+        logical,      optional, intent(in) :: endpoint
+        real(wp), allocatable              :: return_value(:)
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        integer (ip)     :: num_op, div, i
-        real (wp)        :: delta, step
+        integer(ip)     :: num_op, div, i
+        real(wp)        :: delta, step
         !--------------------------------------------------------------
         
         ! Number of samples to generate. Default is 50. Must be non-negative
@@ -80,15 +80,15 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        real (wp),    intent (in) :: start
-        real (wp),    intent (in) :: stop
-        integer (ip), intent (in) :: num
-        real (wp), allocatable    :: return_value(:)
+        real(wp),    intent(in) :: start
+        real(wp),    intent(in) :: stop
+        integer(ip), intent(in) :: num
+        real(wp), allocatable    :: return_value(:)
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        integer (ip) :: i
-        real (wp)    :: delta, step
+        integer(ip) :: i
+        real(wp)    :: delta, step
         !--------------------------------------------------------------
 
         if (num < 0) error stop "get_centered_grid: num < 0"
@@ -112,15 +112,15 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        real (wp),    intent (in) :: start
-        real (wp),    intent (in) :: stop
-        integer (ip), intent (in) :: num
-        real (wp), allocatable    :: return_value(:)
+        real(wp),    intent(in) :: start
+        real(wp),    intent(in) :: stop
+        integer(ip), intent(in) :: num
+        real(wp), allocatable    :: return_value(:)
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        integer (ip) :: i
-        real (wp)    :: step
+        integer(ip) :: i
+        real(wp)    :: step
         !--------------------------------------------------------------
 
         if (num < 0) error stop "get_staggered_grid: num < 0"

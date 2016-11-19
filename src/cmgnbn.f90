@@ -236,12 +236,12 @@ module module_cmgnbn
 
 
     !---------------------------------------------------------------
-    ! Dictionary: Variables confined to the module
+    ! Variables confined to the module
     !---------------------------------------------------------------
-    real (wp), private :: ZERO = 0.0_wp
-    real (wp), private :: HALF = 0.5_wp
-    real (wp), private :: ONE = 1.0_wp
-    real (wp), private :: TWO = 2.0_wp
+    real(wp), private :: ZERO = 0.0_wp
+    real(wp), private :: HALF = 0.5_wp
+    real(wp), private :: ONE = 1.0_wp
+    real(wp), private :: TWO = 2.0_wp
     !---------------------------------------------------------------
 
 
@@ -252,20 +252,20 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: nperod
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: mperod
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: idimy
-        integer (ip), intent (out)    :: ierror
-        complex (wp), intent (in)     :: a(:)
-        complex (wp), intent (in)     :: b(:)
-        complex (wp), intent (in)     :: c(:)
-        complex (wp), intent (in out) :: y(:,:)
+        integer(ip), intent(in)     :: nperod
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: mperod
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: idimy
+        integer(ip), intent(out)    :: ierror
+        complex(wp), intent(in)     :: a(:)
+        complex(wp), intent(in)     :: b(:)
+        complex(wp), intent(in)     :: c(:)
+        complex(wp), intent(inout) :: y(:,:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        type (Fish)  :: workspace
+        type(Fish) :: workspace
         !-----------------------------------------------
 
         !
@@ -304,15 +304,15 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: nperod
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: mperod
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: idimy
-        integer (ip), intent (out)    :: ierror
-        complex (wp), intent (in)     :: a(:)
-        complex (wp), intent (in)     :: b(:)
-        complex (wp), intent (in)     :: c(:)
+        integer(ip), intent(in)     :: nperod
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: mperod
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: idimy
+        integer(ip), intent(out)    :: ierror
+        complex(wp), intent(in)     :: a(:)
+        complex(wp), intent(in)     :: b(:)
+        complex(wp), intent(in)     :: c(:)
         !-----------------------------------------------
 
         !
@@ -351,18 +351,18 @@ contains
 
 
 
-    pure function get_workspace(n, m) result (return_value)
+    function get_workspace(n, m) result (return_value)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in) :: n
-        integer (ip), intent (in) :: m
-        type (Fish)               :: return_value
+        integer(ip), intent(in) :: n
+        integer(ip), intent(in) :: m
+        type(Fish)               :: return_value
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip)            :: irwk, icwk, j
-        integer (ip), parameter :: NUMBER_OF_INDICES = 11
+        integer(ip)            :: irwk, icwk, j
+        integer(ip), parameter :: NUMBER_OF_INDICES = 11
         !-----------------------------------------------
 
         !
@@ -402,23 +402,23 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: nperod
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: mperod
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: idimy
-        complex (wp), intent (in)     :: a(:)
-        complex (wp), intent (in)     :: b(:)
-        complex (wp), intent (in)     :: c(:)
-        complex (wp), intent (in out) :: y(:,:)
-        complex (wp), intent (out), contiguous :: w(:)
-        integer (ip), intent (in),  contiguous :: workspace_indices(:)
+        integer(ip), intent(in)     :: nperod
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: mperod
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: idimy
+        complex(wp), intent(in)     :: a(:)
+        complex(wp), intent(in)     :: b(:)
+        complex(wp), intent(in)     :: c(:)
+        complex(wp), intent(inout) :: y(:,:)
+        complex(wp), intent(out), contiguous :: w(:)
+        integer(ip), intent(in),  contiguous :: workspace_indices(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip) :: i, k, j, mp, np, ipstor
-        integer (ip) :: irev, mh, mhm1, modd, nby2, mskip
-        complex (wp) :: temp_save
+        integer(ip) :: i, k, j, mp, np, ipstor
+        integer(ip) :: irev, mh, mhm1, modd, nby2, mskip
+        complex(wp) :: temp_save
         !-----------------------------------------------
 
         associate( &
@@ -602,27 +602,27 @@ subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
     !-----------------------------------------------
     ! Dummy arguments
     !-----------------------------------------------
-    integer (ip), intent (in)     :: mr
-    integer (ip), intent (in)     :: nr
-    integer (ip), intent (in)     :: istag
-    integer (ip), intent (in)     :: idimq
-    complex (wp), intent (in)     :: ba(mr)
-    complex (wp), intent (in)     :: bb(mr)
-    complex (wp), intent (in)     :: bc(mr)
-    complex (wp), intent (in out) :: q(idimq,nr)
-    complex (wp), intent (in out) :: b(mr)
-    complex (wp), intent (in out) :: w(mr)
-    complex (wp), intent (in out) :: d(mr)
-    complex (wp), intent (in out) :: tcos(mr)
-    complex (wp), intent (in out) :: p(nr*4)
+    integer(ip), intent(in)     :: mr
+    integer(ip), intent(in)     :: nr
+    integer(ip), intent(in)     :: istag
+    integer(ip), intent(in)     :: idimq
+    complex(wp), intent(in)     :: ba(mr)
+    complex(wp), intent(in)     :: bb(mr)
+    complex(wp), intent(in)     :: bc(mr)
+    complex(wp), intent(inout) :: q(idimq,nr)
+    complex(wp), intent(inout) :: b(mr)
+    complex(wp), intent(inout) :: w(mr)
+    complex(wp), intent(inout) :: d(mr)
+    complex(wp), intent(inout) :: tcos(mr)
+    complex(wp), intent(inout) :: p(nr*4)
     !-----------------------------------------------
     ! Local variables
     !-----------------------------------------------
-    integer (ip) :: m, n, iip, ipstor, jsh, kr, irreg, jstsav, i, lr, nun
-    integer (ip) :: jst, jsp, l, nodd, j, jm1, jp1, jm2, jp2, jm3, jp3, noddpr
-    integer (ip) :: krpi, ideg, jdeg
-    real (wp)    :: fi
-    complex (wp) :: t
+    integer(ip) :: m, n, iip, ipstor, jsh, kr, irreg, jstsav, i, lr, nun
+    integer(ip) :: jst, jsp, l, nodd, j, jm1, jp1, jm2, jp2, jm3, jp3, noddpr
+    integer(ip) :: krpi, ideg, jdeg
+    real(wp)    :: fi
+    complex(wp) :: t
     !-----------------------------------------------
 
     m = mr
@@ -934,34 +934,34 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
     !-----------------------------------------------
     ! Dummy arguments
     !-----------------------------------------------
-    integer (ip), intent (in) :: m
-    integer (ip), intent (in) :: n
-    integer (ip), intent (in) :: istag
-    integer (ip), intent (in) :: mixbnd
-    integer (ip), intent (in) :: idimq
-    complex (wp) :: a(m)
-    complex (wp) :: bb(m)
-    complex (wp) :: c(m)
-    complex (wp), intent (in out) :: q(idimq,n)
-    complex (wp) :: b(m)
-    complex (wp) :: b2(m)
-    complex (wp) :: b3(m)
-    complex (wp) :: w(m)
-    complex (wp) :: w2(m)
-    complex (wp) :: w3(m)
-    complex (wp) :: d(m)
-    complex (wp) :: tcos(m)
-    complex (wp), intent (in out) :: p(n*4)
+    integer(ip), intent(in) :: m
+    integer(ip), intent(in) :: n
+    integer(ip), intent(in) :: istag
+    integer(ip), intent(in) :: mixbnd
+    integer(ip), intent(in) :: idimq
+    complex(wp) :: a(m)
+    complex(wp) :: bb(m)
+    complex(wp) :: c(m)
+    complex(wp), intent(inout) :: q(idimq,n)
+    complex(wp) :: b(m)
+    complex(wp) :: b2(m)
+    complex(wp) :: b3(m)
+    complex(wp) :: w(m)
+    complex(wp) :: w2(m)
+    complex(wp) :: w3(m)
+    complex(wp) :: d(m)
+    complex(wp) :: tcos(m)
+    complex(wp), intent(inout) :: p(n*4)
     !-----------------------------------------------
     ! Local variables
     !-----------------------------------------------
-    integer (ip) :: k(4)
-    integer (ip) :: mr, iip
-    integer (ip) :: ipstor, i2r, jr, nr, nlast, kr
-    integer (ip) :: lr, i, nrod, jstart, jstop, i2rby2, j, jp1, jp2, jp3, jm1
-    integer (ip) :: jm2, jm3, nrodpr, ii, i1, i2, jr2, nlastp, jstep
-    real (wp)    :: fistag, fnum, fden
-    complex (wp) :: fi, t
+    integer(ip) :: k(4)
+    integer(ip) :: mr, iip
+    integer(ip) :: ipstor, i2r, jr, nr, nlast, kr
+    integer(ip) :: lr, i, nrod, jstart, jstop, i2rby2, j, jp1, jp2, jp3, jm1
+    integer(ip) :: jm2, jm3, nrodpr, ii, i1, i2, jr2, nlastp, jstep
+    real(wp)    :: fistag, fnum, fden
+    complex(wp) :: fi, t
     !-----------------------------------------------
 
     associate( &
@@ -1408,28 +1408,28 @@ subroutine cmposp(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
     !-----------------------------------------------
     ! Dummy arguments
     !-----------------------------------------------
-    integer (ip), intent (in) :: m
-    integer (ip), intent (in) :: n
-    integer (ip), intent (in) :: idimq
-    complex (wp) :: a(*)
-    complex (wp) :: bb(*)
-    complex (wp) :: c(*)
-    complex (wp) :: q(idimq,n)
-    complex (wp) :: b(*)
-    complex (wp) :: b2(*)
-    complex (wp) :: b3(*)
-    complex (wp) :: w(*)
-    complex (wp) :: w2(*)
-    complex (wp) :: w3(*)
-    complex (wp) :: d(*)
-    complex (wp) :: tcos(*)
-    complex (wp) :: p(n*4)
+    integer(ip), intent(in) :: m
+    integer(ip), intent(in) :: n
+    integer(ip), intent(in) :: idimq
+    complex(wp) :: a(*)
+    complex(wp) :: bb(*)
+    complex(wp) :: c(*)
+    complex(wp) :: q(idimq,n)
+    complex(wp) :: b(*)
+    complex(wp) :: b2(*)
+    complex(wp) :: b3(*)
+    complex(wp) :: w(*)
+    complex(wp) :: w2(*)
+    complex(wp) :: w3(*)
+    complex(wp) :: d(*)
+    complex(wp) :: tcos(*)
+    complex(wp) :: p(n*4)
     !-----------------------------------------------
     ! Local variables
     !-----------------------------------------------
-    integer (ip) :: mr, nr, nrm1, j, nrmj, nrpj, i, lh
-    real (wp)    :: ipstor
-    complex (wp) :: s, t
+    integer(ip) :: mr, nr, nrm1, j, nrmj, nrpj, i, lh
+    real(wp)    :: ipstor
+    complex(wp) :: s, t
     !-----------------------------------------------
 
     mr = m
@@ -1564,16 +1564,16 @@ pure subroutine cmpcsg(n, ijump, fnum, fden, a)
     !-----------------------------------------------
     ! Dummy arguments
     !-----------------------------------------------
-    integer (ip), intent (in)  :: n
-    integer (ip), intent (in)  :: ijump
-    real (wp),    intent (in)  :: fnum
-    real (wp),    intent (in)  :: fden
-    complex (wp), intent (out) :: a(*)
+    integer(ip), intent(in)  :: n
+    integer(ip), intent(in)  :: ijump
+    real(wp),    intent(in)  :: fnum
+    real(wp),    intent(in)  :: fden
+    complex(wp), intent(out) :: a(*)
     !-----------------------------------------------
     ! Local variables
     !-----------------------------------------------
-    integer (ip)         :: k3, k4, k, k1, k5, i, k2, np1
-    real (wp)            :: pibyn, x, y
+    integer(ip)         :: k3, k4, k, k1, k5, i, k2, np1
+    real(wp)            :: pibyn, x, y
     !-----------------------------------------------
 
     if (n /= 0) then
@@ -1616,17 +1616,17 @@ subroutine cmpmrg(tcos, i1, m1, i2, m2, i3)
     !-----------------------------------------------
     ! Dummy arguments
     !-----------------------------------------------
-    integer (ip), intent (in)     :: i1
-    integer (ip), intent (in)     :: m1
-    integer (ip), intent (in)     :: i2
-    integer (ip), intent (in)     :: m2
-    integer (ip), intent (in)     :: i3
-    complex (wp), intent (in out) :: tcos(*)
+    integer(ip), intent(in)     :: i1
+    integer(ip), intent(in)     :: m1
+    integer(ip), intent(in)     :: i2
+    integer(ip), intent(in)     :: m2
+    integer(ip), intent(in)     :: i3
+    complex(wp), intent(inout) :: tcos(*)
     !-----------------------------------------------
     ! Local variables
     !-----------------------------------------------
-    integer (ip) :: j11, j3, j1, j2, j, l, k, m
-    complex (wp) :: x, y
+    integer(ip) :: j11, j3, j1, j2, j, l, k, m
+    complex(wp) :: x, y
     !-----------------------------------------------
 
     j1 = 1
@@ -1687,21 +1687,21 @@ subroutine cmptrx(idegbr, idegcr, m, a, b, c, y, tcos, d, w)
     !-----------------------------------------------
     ! Dummy arguments
     !-----------------------------------------------
-    integer (ip), intent (in)     :: idegbr
-    integer (ip), intent (in)     :: idegcr
-    integer (ip), intent (in)     :: m
-    complex (wp), intent (in)     :: a(m)
-    complex (wp), intent (in)     :: b(m)
-    complex (wp), intent (in)     :: c(m)
-    complex (wp), intent (in out) :: y(m)
-    complex (wp), intent (in)     :: tcos(*)
-    complex (wp), intent (out)    :: d(m)
-    complex (wp), intent (out)    :: w(m)
+    integer(ip), intent(in)     :: idegbr
+    integer(ip), intent(in)     :: idegcr
+    integer(ip), intent(in)     :: m
+    complex(wp), intent(in)     :: a(m)
+    complex(wp), intent(in)     :: b(m)
+    complex(wp), intent(in)     :: c(m)
+    complex(wp), intent(inout) :: y(m)
+    complex(wp), intent(in)     :: tcos(*)
+    complex(wp), intent(out)    :: d(m)
+    complex(wp), intent(out)    :: w(m)
     !-----------------------------------------------
     ! Local variables
     !-----------------------------------------------
-    integer (ip) :: mm1, ifb, ifc, l, lint, k, i, iip
-    complex (wp) :: x, xx, z
+    integer(ip) :: mm1, ifb, ifc, l, lint, k, i, iip
+    complex(wp) :: x, xx, z
     !-----------------------------------------------
 
     mm1 = m - 1
@@ -1757,27 +1757,27 @@ subroutine cmptr3(m, a, b, c, k, y1, y2, y3, tcos, d, w1, w2, w3)
     !-----------------------------------------------
     ! Dummy arguments
     !-----------------------------------------------
-    integer (ip), intent (in)     :: m
-    integer (ip), intent (in)     :: k(4)
-    complex (wp), intent (in)     :: a(m)
-    complex (wp), intent (in)     :: b(m)
-    complex (wp), intent (in)     :: c(m)
-    complex (wp), intent (in out) :: y1(m)
-    complex (wp), intent (in out) :: y2(m)
-    complex (wp), intent (in out) :: y3(m)
-    complex (wp), intent (in)     :: tcos(*)
-    complex (wp), intent (out)    :: d(m)
-    complex (wp), intent (out)    :: w1(m)
-    complex (wp), intent (out)    :: w2(m)
-    complex (wp), intent (out)    :: w3(m)
+    integer(ip), intent(in)     :: m
+    integer(ip), intent(in)     :: k(4)
+    complex(wp), intent(in)     :: a(m)
+    complex(wp), intent(in)     :: b(m)
+    complex(wp), intent(in)     :: c(m)
+    complex(wp), intent(inout) :: y1(m)
+    complex(wp), intent(inout) :: y2(m)
+    complex(wp), intent(inout) :: y3(m)
+    complex(wp), intent(in)     :: tcos(*)
+    complex(wp), intent(out)    :: d(m)
+    complex(wp), intent(out)    :: w1(m)
+    complex(wp), intent(out)    :: w2(m)
+    complex(wp), intent(out)    :: w3(m)
     !-----------------------------------------------
     ! Local variables
     !-----------------------------------------------
-    integer (ip) :: mm1, k1, k2, k3, k4
-    integer (ip) :: if1, if2, if3, if4, k2k3k4, l1, l2
-    integer (ip) :: l3, lint1, lint2, lint3
-    integer (ip) :: kint1, kint2, kint3, n, i, iip
-    complex (wp) :: x, xx, z
+    integer(ip) :: mm1, k1, k2, k3, k4
+    integer(ip) :: if1, if2, if3, if4, k2k3k4, l1, l2
+    integer(ip) :: l3, lint1, lint2, lint3
+    integer(ip) :: kint1, kint2, kint3, n, i, iip
+    complex(wp) :: x, xx, z
     !-----------------------------------------------
     !
     !     subroutine to solve tridiagonal systems

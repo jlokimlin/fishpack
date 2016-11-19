@@ -52,15 +52,14 @@ module type_FishpackWorkspace
     private
     public :: FishpackWorkspace
 
-
     ! Declare derived data type
     type, public :: FishpackWorkspace
         !---------------------------------------------------------------
         ! Type components
         !---------------------------------------------------------------
-        real (wp),    allocatable :: real_workspace(:)
-        complex (wp), allocatable :: complex_workspace(:)
-        integer (ip), allocatable :: workspace_indices(:)
+        real(wp),     allocatable :: real_workspace(:)
+        complex(wp), allocatable :: complex_workspace(:)
+        integer(ip),  allocatable :: workspace_indices(:)
         !---------------------------------------------------------------
     contains
         !---------------------------------------------------------------
@@ -74,13 +73,9 @@ module type_FishpackWorkspace
         !---------------------------------------------------------------
     end type FishpackWorkspace
 
-
-
 contains
 
-
-
-    pure subroutine create_fishpack_workspace(this, irwk, icwk, ierror)
+    subroutine create_fishpack_workspace(this, irwk, icwk, ierror)
         !
         ! Remark:
         !
@@ -90,19 +85,18 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (FishpackWorkspace), intent (in out) :: this
-        integer (ip),              intent (in)     :: irwk ! required real work space length
-        integer (ip),              intent (in)     :: icwk ! required integer work space length
-        integer (ip), optional,    intent (out)    :: ierror
+        class(FishpackWorkspace), intent(inout) :: this
+        integer(ip),              intent(in)     :: irwk ! required real work space length
+        integer(ip),              intent(in)     :: icwk ! required integer work space length
+        integer(ip), optional,    intent(out)    :: ierror
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        integer (ip) :: allocation_status
+        integer(ip) :: allocation_status
         !--------------------------------------------------------------
 
         ! Ensure that object is usable
         call this%destroy()
-
 
         if (irwk > 0) then
             !
@@ -112,7 +106,7 @@ contains
 
             ! Check if real allocation was successful
             if (allocation_status /= 0 ) then
-                error stop 'Object of class (FishpackWorkspace): '&
+                error stop 'Object of class(FishpackWorkspace): '&
                     //'failed to allocate real_workspace array '&
                     //'in create_fishpack_workspace'
             end if
@@ -126,7 +120,7 @@ contains
 
             ! Check if complex allocation was successful
             if (allocation_status /= 0 ) then
-                error stop 'Object of class (FishpackWorkspace): '&
+                error stop 'Object of class(FishpackWorkspace): '&
                     //'failed to allocate complex_workspace array '&
                     //'in create_fishpack_workspace'
             end if
@@ -143,8 +137,6 @@ contains
 
     end subroutine create_fishpack_workspace
 
-
-
     pure subroutine compute_blktri_workspace_lengths(this, n, m, irwk, icwk)
         !
         ! Purpose:
@@ -155,15 +147,15 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (FishpackWorkspace), intent (in out) :: this
-        integer (ip),              intent (in)     :: n
-        integer (ip),              intent (in)     :: m
-        integer (ip),              intent (out)    :: irwk
-        integer (ip),              intent (out)    :: icwk
+        class(FishpackWorkspace), intent(inout) :: this
+        integer(ip),              intent(in)     :: n
+        integer(ip),              intent(in)     :: m
+        integer(ip),              intent(out)    :: irwk
+        integer(ip),              intent(out)    :: icwk
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        integer (ip) :: log2n
+        integer(ip) :: log2n
         !--------------------------------------------------------------
 
         !
@@ -178,15 +170,11 @@ contains
         end do
 
         associate( l => 2**(log2n+1) )
-
             irwk = (log2n-2)*l+5+max(2*n,6*m)+log2n+2*n
             icwk = ((log2n-2)*l+5+log2n)/2+3*m+n
-
         end associate
 
     end subroutine compute_blktri_workspace_lengths
-
-
 
     pure subroutine compute_genbun_workspace_lengths(this, n, m, irwk)
         !
@@ -198,14 +186,14 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (FishpackWorkspace), intent (in out) :: this
-        integer (ip),              intent (in)     :: n
-        integer (ip),              intent (in)     :: m
-        integer (ip),              intent (out)    :: irwk
+        class(FishpackWorkspace), intent(inout) :: this
+        integer(ip),              intent(in)     :: n
+        integer(ip),              intent(in)     :: m
+        integer(ip),              intent(out)    :: irwk
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        integer (ip) :: log2n
+        integer(ip) :: log2n
         !--------------------------------------------------------------
 
         !
@@ -223,51 +211,35 @@ contains
 
     end subroutine compute_genbun_workspace_lengths
 
-
-
-    pure subroutine destroy_fishpack_workspace(this)
+    subroutine destroy_fishpack_workspace(this)
         !
         ! Purpose:
         !
         ! This subroutine releases dynamically allocated work space.
         ! It should be called after a fishpack solver has finished
         !
+        ! Remark:
+        !
+        ! When intent(out) is used with a derived type, any component
+        ! not assigned in a procedure will automatically deallocate on exit.
+        !
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (FishpackWorkspace), intent (in out) :: this
+        class(FishpackWorkspace), intent(out) :: this
         !--------------------------------------------------------------
-
-        !
-        !==> Release memory
-        !
-        if (allocated(this%real_workspace)) then
-            deallocate( this%real_workspace )
-        end if
-
-        if (allocated(this%complex_workspace)) then
-            deallocate( this%complex_workspace )
-        end if
-
-        if (allocated(this%workspace_indices)) then
-            deallocate( this%workspace_indices )
-        end if
 
     end subroutine destroy_fishpack_workspace
 
-
-
-    elemental subroutine finalize_fishpack_workspace(this)
+    subroutine finalize_fishpack_workspace(this)
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        type (FishpackWorkspace), intent (in out) :: this
+        type(FishpackWorkspace), intent(inout) :: this
         !--------------------------------------------------------------
 
         call this%destroy()
 
     end subroutine finalize_fishpack_workspace
-
-
 
 end module type_FishpackWorkspace

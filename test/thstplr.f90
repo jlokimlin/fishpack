@@ -34,7 +34,7 @@
 !
 program thstplr
 
-    use, intrinsic :: iso_fortran_env, only: &
+    use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
@@ -48,13 +48,13 @@ program thstplr
     !-----------------------------------------------
     ! Local variables
     !-----------------------------------------------
-    type (FishpackSolver)    :: solver
-    integer (ip)             :: idimf, m, mbdcnd, n, nbdcnd, i, j, ierror
-    real (wp), dimension(51, 50) :: f
-    real (wp), dimension(48) :: bda, bdb
-    real (wp), dimension(50) :: bdc, bdd, r
-    real (wp), dimension(48) :: theta
-    real (wp) :: a, b, c, pi, d, elmbda, pertrb, discretization_error, z
+    type(FishpackSolver)    :: solver
+    integer(ip)             :: idimf, m, mbdcnd, n, nbdcnd, i, j, ierror
+    real(wp), dimension(51, 50) :: f
+    real(wp), dimension(48) :: bda, bdb
+    real(wp), dimension(50) :: bdc, bdd, r
+    real(wp), dimension(48) :: theta
+    real(wp) :: a, b, c, pi, d, elmbda, pertrb, discretization_error, z
     !-----------------------------------------------
     !
     !     from dimension statement we get value of idimf.

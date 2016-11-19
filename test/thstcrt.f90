@@ -34,7 +34,7 @@
 !
 program thstcrt
 
-    use, intrinsic :: iso_fortran_env, only: &
+    use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
@@ -49,19 +49,19 @@ program thstcrt
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
-    type (FishpackSolver)   :: solver
-    type (FishpackGrid)     :: grid
-    integer (ip), parameter :: m = 48
-    integer (ip), parameter :: n = 53
-    integer (ip), parameter :: idimf = m + 2
-    integer (ip)            :: mbdcnd, nbdcnd, i, j, ierror
-    real (wp)               :: f(idimf, n)
-    real (wp), allocatable  :: bda(:), bdb(:), bdc(:), bdd(:)
-    real (wp), allocatable  :: x(:), y(:)
-    real (wp)               :: a, b, c, d
-    real (wp)               :: elmbda, local_error, pertrb, discretization_error
-    real (wp), parameter    :: PI = acos(-1.0_wp)
-    real (wp), parameter    :: PI2 = PI**2
+    type(FishpackSolver)   :: solver
+    type(FishpackGrid)     :: grid
+    integer(ip), parameter :: m = 48
+    integer(ip), parameter :: n = 53
+    integer(ip), parameter :: idimf = m + 2
+    integer(ip)            :: mbdcnd, nbdcnd, i, j, ierror
+    real(wp)               :: f(idimf, n)
+    real(wp), allocatable  :: bda(:), bdb(:), bdc(:), bdd(:)
+    real(wp), allocatable  :: x(:), y(:)
+    real(wp)               :: a, b, c, d
+    real(wp)               :: elmbda, local_error, pertrb, discretization_error
+    real(wp), parameter    :: PI = acos(-1.0_wp)
+    real(wp), parameter    :: PI2 = PI**2
     !-----------------------------------------------
 
     ! Set conditions in x

@@ -160,7 +160,7 @@
 !
 program tpoistg
 
-    use, intrinsic :: iso_fortran_env, only: &
+    use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
@@ -177,17 +177,17 @@ program tpoistg
     !--------------------------------------------------------------
     ! Dictionary
     !--------------------------------------------------------------
-    type (TridiagonalSolver) :: solver
-    type (StaggeredGrid)     :: staggered_grid
-    integer (ip), parameter  :: NX = 40 !! number of horizontally staggered grid points
-    integer (ip), parameter  :: NY = 20 !! number of vertically staggered grid points
-    integer (ip)             :: i, j  !! counters
-    integer (ip)             :: error_flag
-    real (wp),    parameter  :: PI = acos(-1.0_wp)
-    real (wp)                :: approximate_solution( NX, NY )
-    real (wp)                :: source( NX, NY )
-    real (wp)                :: discretization_error
-    real (wp)                :: exact_solution
+    type(TridiagonalSolver) :: solver
+    type(StaggeredGrid)     :: staggered_grid
+    integer(ip), parameter  :: NX = 40 !! number of horizontally staggered grid points
+    integer(ip), parameter  :: NY = 20 !! number of vertically staggered grid points
+    integer(ip)             :: i, j  !! counters
+    integer(ip)             :: error_flag
+    real(wp),    parameter  :: PI = acos(-1.0_wp)
+    real(wp)                :: approximate_solution( NX, NY )
+    real(wp)                :: source( NX, NY )
+    real(wp)                :: discretization_error
+    real(wp)                :: exact_solution
     !------------------------------------------------------------------------------
 
 
@@ -292,15 +292,15 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (TridiagonalData), intent (in out)  :: solver
-        class (Grid),            intent (in out)  :: staggered_grid
+        class(TridiagonalData), intent(inout)  :: solver
+        class(Grid),            intent(inout)  :: staggered_grid
         !--------------------------------------------------------------
-        integer (ip) :: i ! counter
+        integer(ip) :: i ! counter
         !--------------------------------------------------------------
 
-        select type (solver)
+        select type(solver)
             class is (TridiagonalSolver)
-            select type (staggered_grid)
+            select type(staggered_grid)
                 class is (StaggeredGrid)
                 associate( &
                     nx => staggered_grid%NX, &

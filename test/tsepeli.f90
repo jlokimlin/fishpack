@@ -35,7 +35,7 @@
 !
 program tsepeli
 
-    use, intrinsic :: iso_fortran_env, only: &
+    use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
@@ -50,19 +50,19 @@ program tsepeli
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
-    type (FishpackSolver)    :: solver
-    type (FishpackWorkspace) :: workspace
-    integer (ip), parameter  :: m = 32
-    integer (ip), parameter  :: n = 32
-    integer (ip), parameter  :: idmn = m + 1
-    integer (ip)             :: nx, ny, i, j, mbdcnd, nbdcnd, intl, iorder, ierror
-    real (wp), allocatable   :: usol(:,:), grhs(:,:), bda(:), bdb(:)
-    real (wp)                :: a, b, c, d, dlx, dly
-    real (wp)                :: x, af, bf, cf, y, df, ef, ff, alpha
-    real (wp)                :: beta, dummy_variable(1), pertrb
-    real (wp)                :: local_error, order2_error, order4_error
-    real (wp), parameter     :: ZERO = 0.0_wp
-    real (wp), parameter     :: ONE = 1.0_wp, TWO = 2.0_wp
+    type(FishpackSolver)    :: solver
+    type(FishpackWorkspace) :: workspace
+    integer(ip), parameter  :: m = 32
+    integer(ip), parameter  :: n = 32
+    integer(ip), parameter  :: idmn = m + 1
+    integer(ip)             :: nx, ny, i, j, mbdcnd, nbdcnd, intl, iorder, ierror
+    real(wp), allocatable   :: usol(:,:), grhs(:,:), bda(:), bdb(:)
+    real(wp)                :: a, b, c, d, dlx, dly
+    real(wp)                :: x, af, bf, cf, y, df, ef, ff, alpha
+    real(wp)                :: beta, dummy_variable(1), pertrb
+    real(wp)                :: local_error, order2_error, order4_error
+    real(wp), parameter     :: ZERO = 0.0_wp
+    real(wp), parameter     :: ONE = 1.0_wp, TWO = 2.0_wp
     !------------------------------------------------------------------
 
     !
@@ -197,9 +197,9 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        real (wp), intent (in) :: s
-        real (wp), intent (in) :: t
-        real (wp)              :: return_value
+        real(wp), intent(in) :: s
+        real(wp), intent(in) :: t
+        real(wp)              :: return_value
         !--------------------------------------------------------------
 
         return_value = (s * t)**3 + ONE
@@ -211,9 +211,9 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        real (wp), intent (in) :: s
-        real (wp), intent (in) :: t
-        real (wp)              :: return_value
+        real(wp), intent(in) :: s
+        real(wp), intent(in) :: t
+        real(wp)              :: return_value
         !--------------------------------------------------------------
 
         return_value = 3.0_wp * (s**2) * (t**3)
@@ -225,9 +225,9 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        real (wp), intent (in) :: s
-        real (wp), intent (in) :: t
-        real (wp)              :: return_value
+        real(wp), intent(in) :: s
+        real(wp), intent(in) :: t
+        real(wp)              :: return_value
         !--------------------------------------------------------------
 
         return_value = 6.0_wp * s * (t**3)
@@ -239,9 +239,9 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        real (wp), intent (in) :: s
-        real (wp), intent (in) :: t
-        real (wp)              :: return_value
+        real(wp), intent(in) :: s
+        real(wp), intent(in) :: t
+        real(wp)              :: return_value
 
         return_value = 3.0_wp * (s**3) * (t**2)
 
@@ -252,9 +252,9 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        real (wp), intent (in) :: s
-        real (wp), intent (in) :: t
-        real (wp)              :: return_value
+        real(wp), intent(in) :: s
+        real(wp), intent(in) :: t
+        real(wp)              :: return_value
 
         return_value = 6.0_wp * (s**3) * t
 
@@ -265,10 +265,10 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        real (wp), intent (in)  :: x
-        real (wp), intent (out) :: af
-        real (wp), intent (out) :: bf
-        real (wp), intent (out) :: cf
+        real(wp), intent(in)  :: x
+        real(wp), intent(out) :: af
+        real(wp), intent(out) :: bf
+        real(wp), intent(out) :: cf
         !-----------------------------------------------
         !
         !     set coefficients in the x-direction.
@@ -284,10 +284,10 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        real (wp), intent (in)  :: y
-        real (wp), intent (out) :: df
-        real (wp), intent (out) :: ef
-        real (wp), intent (out) :: ff
+        real(wp), intent(in)  :: y
+        real(wp), intent(out) :: df
+        real(wp), intent(out) :: ef
+        real(wp), intent(out) :: ff
         !-----------------------------------------------
         !
         !     set coefficients in y direction

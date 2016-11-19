@@ -35,7 +35,7 @@
 !
 program tcblktri
 
-    use, intrinsic :: iso_fortran_env, only: &
+    use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
@@ -50,17 +50,17 @@ program tcblktri
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
-    type (FishpackSolver)               :: solver
-    type (FishpackWorkspace)            :: workspace
-    integer (ip), parameter             :: IDIMY = 75
-    integer (ip)                        :: iflg, np, n, mp, m, i, j, ierror
-    real (wp), dimension(105)           :: an, bn, cn
-    real (wp), dimension(IDIMY)         :: s
-    real (wp), dimension(105)           :: t
-    real (wp)                           :: ds, dt, half_ds, two_ds
-    real (wp)                           :: temp1, temp2, temp3, half_dt, two_dt, discretization_error, z
-    complex (wp), dimension(IDIMY, 105) :: y
-    complex (wp), dimension(IDIMY)      :: am, bm, cm
+    type(FishpackSolver)               :: solver
+    type(FishpackWorkspace)            :: workspace
+    integer(ip), parameter             :: IDIMY = 75
+    integer(ip)                        :: iflg, np, n, mp, m, i, j, ierror
+    real(wp), dimension(105)           :: an, bn, cn
+    real(wp), dimension(IDIMY)         :: s
+    real(wp), dimension(105)           :: t
+    real(wp)                           :: ds, dt, half_ds, two_ds
+    real(wp)                           :: temp1, temp2, temp3, half_dt, two_dt, discretization_error, z
+    complex(wp), dimension(IDIMY, 105) :: y
+    complex(wp), dimension(IDIMY)      :: am, bm, cm
     !-----------------------------------------------
     !
     iflg = 0

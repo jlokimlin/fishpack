@@ -4,7 +4,7 @@ module type_TridiagonalData
         wp, & ! Working precision
         ip ! Integer precision
 
-    use, intrinsic :: iso_fortran_env, only: &
+    use, intrinsic :: ISO_Fortran_env, only: &
         stderr => ERROR_UNIT
 
     use type_Grid, only: &
@@ -18,11 +18,11 @@ module type_TridiagonalData
     public :: TridiagonalData
 
     !---------------------------------------------------------------
-    ! Dictionary: global variables confined to the module
+    ! global variables confined to the module
     !---------------------------------------------------------------
-    character (len=250) :: error_message !! Probably long enough
-    integer (ip)        :: allocate_status  !! To check allocation status
-    integer (ip)        :: deallocate_status !! To check deallocation status
+    character(len=250) :: error_message !! Probably long enough
+    integer(ip)        :: allocate_status  !! To check allocation status
+    integer(ip)        :: deallocate_status !! To check deallocation status
     !---------------------------------------------------------------
 
     ! Declare derived data type
@@ -31,11 +31,11 @@ module type_TridiagonalData
         ! Type components
         !---------------------------------------------------------------
         logical,                             public :: initialized = .false.
-        integer (ip),                        public :: X_BOUNDARY_CONDITION = -1
-        integer (ip),                        public :: Y_BOUNDARY_CONDITION = -1
-        real (wp), allocatable,              public :: subdiagonal(:)
-        real (wp), allocatable,              public :: diagonal(:)
-        real (wp), allocatable,              public :: superdiagonal(:)
+        integer(ip),                        public :: X_BOUNDARY_CONDITION = -1
+        integer(ip),                        public :: Y_BOUNDARY_CONDITION = -1
+        real(wp), allocatable,              public :: subdiagonal(:)
+        real(wp), allocatable,              public :: diagonal(:)
+        real(wp), allocatable,              public :: superdiagonal(:)
         procedure (proc_interface), pointer, public :: assign_coefficients => null()
         !---------------------------------------------------------------
     contains
@@ -59,8 +59,8 @@ module type_TridiagonalData
             !--------------------------------------------------------------
             ! Dummy arguments
             !--------------------------------------------------------------
-            class (TridiagonalData), intent (in out) :: this
-            class (Grid),            intent (in out) :: grid_type
+            class(TridiagonalData), intent(inout) :: this
+            class(Grid),            intent(inout) :: grid_type
             !--------------------------------------------------------------
         end subroutine proc_interface
     end interface
@@ -73,10 +73,10 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (TridiagonalData), intent (in out)  :: this
-        integer (ip),            intent (in)      :: nx
-        integer (ip),            intent (in)      :: x_type
-        integer (ip),            intent (in)      :: y_type
+        class(TridiagonalData), intent(inout)  :: this
+        integer(ip),            intent(in)      :: nx
+        integer(ip),            intent(in)      :: x_type
+        integer(ip),            intent(in)      :: y_type
         procedure (proc_interface), optional      :: proc
         !--------------------------------------------------------------
 
@@ -93,7 +93,7 @@ contains
 
         ! Check allocation status
         if ( allocate_status /= 0 ) then
-            write( stderr, '(a)' ) 'TYPE (TridiagonalData)'
+            write( stderr, '(a)' ) 'type(TridiagonalData)'
             write( stderr, '(a)' ) 'Allocation failed in CREATE_TRIDIAGONAL_DATA'
             write( stderr, '(a)' ) trim( error_message )
         end if
@@ -122,7 +122,7 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (TridiagonalData), intent (in out)   :: this
+        class(TridiagonalData), intent(inout)   :: this
         !--------------------------------------------------------------
 
         if (.not.this%initialized) return
@@ -138,7 +138,7 @@ contains
 
             ! Check deallocation status
             if ( deallocate_status /= 0 ) then
-                write( stderr, '(a)' ) 'TYPE (TridiagonalData)'
+                write( stderr, '(a)' ) 'type(TridiagonalData)'
                 write( stderr, '(a)' ) 'Deallocating SUBDIAGONAL failed in DESTROY_TRIDIAGONAL_DATA'
                 write( stderr, '(a)' ) trim( error_message )
             end if
@@ -155,7 +155,7 @@ contains
 
             ! Check deallocation status
             if ( deallocate_status /= 0 ) then
-                write( stderr, '(a)' ) 'TYPE (TridiagonalData)'
+                write( stderr, '(a)' ) 'type(TridiagonalData)'
                 write( stderr, '(a)' ) 'Deallocating DIAGONAL failed in DESTROY_TRIDIAGONAL_DATA'
                 write( stderr, '(a)' ) trim( error_message )
             end if
@@ -172,7 +172,7 @@ contains
 
             ! Check deallocation status
             if ( deallocate_status /= 0 ) then
-                write( stderr, '(a)' ) 'TYPE (TridiagonalData)'
+                write( stderr, '(a)' ) 'type(TridiagonalData)'
                 write( stderr, '(a)' ) 'Deallocating SUPERDIAGONAL failed in DESTROY_TRIDIAGONAL_DATA'
                 write( stderr, '(a)' ) trim( error_message )
             end if
@@ -208,8 +208,8 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        integer (ip), intent (in)   :: type
-        integer (ip), intent (out)  :: return_value
+        integer(ip), intent(in)   :: type
+        integer(ip), intent(out)  :: return_value
         !--------------------------------------------------------------
 
         ! Initialize return value
@@ -228,7 +228,7 @@ contains
                 return_value = type
             case default
                 ! Handle invalid boundary type
-                write( stderr, '(a)' ) 'TYPE (TridiagonalData)'
+                write( stderr, '(a)' ) 'type(TridiagonalData)'
                 write( stderr, '(a)' ) 'Invalid boundary type'
                 write( stderr, '(A,I11)' ) 'The y boundary condition argument type = ', type
                 write( stderr, '(a)' ) 'must be either 0, 1, ..., 4'
@@ -247,8 +247,8 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        integer (ip), intent (in)   :: type
-        integer (ip), intent (out)  :: return_value
+        integer(ip), intent(in)   :: type
+        integer(ip), intent(out)  :: return_value
         !--------------------------------------------------------------
 
         ! Initialize return value
@@ -261,7 +261,7 @@ contains
                 return_value = type
             case default
                 ! Handle invalid boundary type
-                write( stderr, '(a)' ) 'TYPE (TridiagonalData)'
+                write( stderr, '(a)' ) 'type(TridiagonalData)'
                 write( stderr, '(a)' ) 'Invalid boundary type'
                 write( stderr, '(A,I11)' ) 'The x boundary condition argument type = ', type
                 write( stderr, '(a)' ) 'must be either 0, or 1'
@@ -278,7 +278,7 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        type (TridiagonalData), intent (in out) :: this
+        type(TridiagonalData), intent(inout) :: this
         !--------------------------------------------------------------
 
         call this%destroy()

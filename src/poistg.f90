@@ -233,12 +233,12 @@ module module_poistg
 
 
     !---------------------------------------------------------------
-    ! Dictionary: Variables confined to the module
+    ! Variables confined to the module
     !---------------------------------------------------------------
-    real (wp), private :: ZERO = 0.0_wp
-    real (wp), private :: HALF = 0.5_wp
-    real (wp), private :: ONE = 1.0_wp
-    real (wp), private :: TWO = 2.0_wp
+    real(wp), private :: ZERO = 0.0_wp
+    real(wp), private :: HALF = 0.5_wp
+    real(wp), private :: ONE = 1.0_wp
+    real(wp), private :: TWO = 2.0_wp
     !---------------------------------------------------------------
 
 
@@ -251,21 +251,21 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        integer (ip), intent (in)     :: nperod
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: mperod
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: idimy
-        integer (ip), intent (out)    :: ierror
-        real (wp),    intent (in)     :: a(:)
-        real (wp),    intent (in)     :: b(:)
-        real (wp),    intent (in)     :: c(:)
-        real (wp),    intent (in out) :: y(:,:)
+        integer(ip), intent(in)     :: nperod
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: mperod
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: idimy
+        integer(ip), intent(out)    :: ierror
+        real(wp),    intent(in)     :: a(:)
+        real(wp),    intent(in)     :: b(:)
+        real(wp),    intent(in)     :: c(:)
+        real(wp),    intent(inout) :: y(:,:)
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        integer (ip) :: irwk, icwk
-        type (Fish)  :: workspace
+        integer(ip) :: irwk, icwk
+        type(Fish)  :: workspace
         !--------------------------------------------------------------
 
         !
@@ -301,24 +301,24 @@ contains
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        integer (ip), intent (in)     :: nperod
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: mperod
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: idimy
-        integer (ip), intent (out)    :: ierror
-        real (wp),    intent (in)     :: a(m)
-        real (wp),    intent (in)     :: b(m)
-        real (wp),    intent (in)     :: c(m)
-        real (wp),    intent (in out) :: y(idimy,n)
-        real (wp),    intent (in out) :: w(*)
+        integer(ip), intent(in)     :: nperod
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: mperod
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: idimy
+        integer(ip), intent(out)    :: ierror
+        real(wp),    intent(in)     :: a(m)
+        real(wp),    intent(in)     :: b(m)
+        real(wp),    intent(in)     :: c(m)
+        real(wp),    intent(inout) :: y(idimy,n)
+        real(wp),    intent(inout) :: w(*)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip)     :: workspace_indices(11)
-        integer (ip)     :: i, k, j, np, mp
-        integer (ip)     :: nby2, mskip, ipstor, irev, mh, mhm1, modd
-        real (wp)        :: temp
+        integer(ip)     :: workspace_indices(11)
+        integer(ip)     :: i, k, j, np, mp
+        integer(ip)     :: nby2, mskip, ipstor, irev, mh, mhm1, modd
+        real(wp)        :: temp
         !-----------------------------------------------
 
         !
@@ -479,15 +479,15 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        integer (ip), intent (in)  :: nperod
-        integer (ip), intent (in)  :: n
-        integer (ip), intent (in)  :: mperod
-        integer (ip), intent (in)  :: m
-        integer (ip), intent (in)  :: idimy
-        integer (ip), intent (out) :: ierror
-        real (wp),    intent (in)  :: a(m)
-        real (wp),    intent (in)  :: b(m)
-        real (wp),    intent (in)  :: c(m)
+        integer(ip), intent(in)  :: nperod
+        integer(ip), intent(in)  :: n
+        integer(ip), intent(in)  :: mperod
+        integer(ip), intent(in)  :: m
+        integer(ip), intent(in)  :: idimy
+        integer(ip), intent(out) :: ierror
+        real(wp),    intent(in)  :: a(m)
+        real(wp),    intent(in)  :: b(m)
+        real(wp),    intent(in)  :: c(m)
         !--------------------------------------------------------------
 
         if (3 > m) then
@@ -521,15 +521,15 @@ contains
 
 
 
-    pure function get_workspace_indices(n, m) result (return_value)
+    function get_workspace_indices(n, m) result (return_value)
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        integer (ip), intent (in) :: n
-        integer (ip), intent (in) :: m
-        integer (ip)              :: return_value(11)
+        integer(ip), intent(in) :: n
+        integer(ip), intent(in) :: m
+        integer(ip)              :: return_value(11)
         !--------------------------------------------------------------
-        integer (ip) :: j !! Counter
+        integer(ip) :: j !! Counter
         !--------------------------------------------------------------
 
         associate( i => return_value)
@@ -557,33 +557,33 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: nperod
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: idimq
-        real (wp),    intent (in)     :: a(m)
-        real (wp),    intent (in)     :: bb(m)
-        real (wp),    intent (in)     :: c(m)
-        real (wp),    intent (in out) :: q(idimq, n)
-        real (wp),    intent (in out) :: b(m)
-        real (wp),    intent (in out) :: b2(m)
-        real (wp),    intent (in out) :: b3(m)
-        real (wp),    intent (in out) :: w(m)
-        real (wp),    intent (in out) :: w2(m)
-        real (wp),    intent (in out) :: w3(m)
-        real (wp),    intent (in out) :: d(m)
-        real (wp),    intent (in out) :: tcos(m)
-        real (wp),    intent (in out) :: p(4*n)
+        integer(ip), intent(in)     :: nperod
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: idimq
+        real(wp),    intent(in)     :: a(m)
+        real(wp),    intent(in)     :: bb(m)
+        real(wp),    intent(in)     :: c(m)
+        real(wp),    intent(inout) :: q(idimq, n)
+        real(wp),    intent(inout) :: b(m)
+        real(wp),    intent(inout) :: b2(m)
+        real(wp),    intent(inout) :: b3(m)
+        real(wp),    intent(inout) :: w(m)
+        real(wp),    intent(inout) :: w2(m)
+        real(wp),    intent(inout) :: w3(m)
+        real(wp),    intent(inout) :: d(m)
+        real(wp),    intent(inout) :: tcos(m)
+        real(wp),    intent(inout) :: p(4*n)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip)     :: k(4)
-        integer (ip)     :: np, mr, ipp, ipstor, i2r, jr, nr, nlast
-        integer (ip)     :: kr, lr, nrod, jstart, jstop, i2rby2
-        integer (ip)     :: j, ijump, jp1, jp2, jp3
-        integer (ip)     :: jm1, jm2, jm3, i, nrodpr, ii, nlastp, jstep
-        real (wp)        :: fnum, fnum2, fi, t
-        type (GenbunAux) :: genbun_aux
+        integer(ip)     :: k(4)
+        integer(ip)     :: np, mr, ipp, ipstor, i2r, jr, nr, nlast
+        integer(ip)     :: kr, lr, nrod, jstart, jstop, i2rby2
+        integer(ip)     :: j, ijump, jp1, jp2, jp3
+        integer(ip)     :: jm1, jm2, jm3, i, nrodpr, ii, nlastp, jstep
+        real(wp)        :: fnum, fnum2, fi, t
+        type(GenbunAux) :: genbun_aux
         !-----------------------------------------------
 
         associate( &

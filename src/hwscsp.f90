@@ -307,13 +307,13 @@
 !                          be at least m+1  .
 !
 !                        w
-!                          a fortran 90 derived type (fishpackworkspace) variable
+!                          a fortran 90 derived type(fishpackworkspace) variable
 !                          that must be declared by the user.  the first
 !                          two declarative statements in the user program
 !                          calling sepeli must be:
 !
 !                               use type_fishpackworkspace
-!                               type (fishpackworkspace) :: w
+!                               type(fishpackworkspace) :: w
 !
 !                          The first statement makes the fishpack module
 !                          defined in the file "type_FishpackWorkspace.f90" available to the
@@ -396,7 +396,7 @@
 !                          user should test ierror after a call.
 !
 !                        w
-!                          the derived type (fishpackworkspace) variable w
+!                          the derived type(fishpackworkspace) variable w
 !                          contains real and complex values that must not
 !                          be destroyed if hwscsp is called again with
 !                          intl=1.
@@ -452,10 +452,10 @@ module module_hwscsp
 
 
     !---------------------------------------------------------------
-    ! Dictionary: Variables confined to the module
+    ! Variables confined to the module
     !---------------------------------------------------------------
-    real (wp), private :: ZERO = 0.0_wp
-    real (wp), private :: ONE = 1.0_wp
+    real(wp), private :: ZERO = 0.0_wp
+    real(wp), private :: ONE = 1.0_wp
     !---------------------------------------------------------------
 
 
@@ -467,25 +467,25 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: intl
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: mbdcnd
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: nbdcnd
-        integer (ip), intent (in)     :: idimf
-        integer (ip), intent (out)    :: ierror
-        real (wp),    intent (in)     :: ts
-        real (wp),    intent (in)     :: tf
-        real (wp),    intent (in)     :: rs
-        real (wp),    intent (in)     :: rf
-        real (wp),    intent (in)     :: elmbda
-        real (wp),    intent (out)    :: pertrb
-        real (wp),    intent (in)     :: bdts(:)
-        real (wp),    intent (in)     :: bdtf(:)
-        real (wp),    intent (in)     :: bdrs(:)
-        real (wp),    intent (in)     :: bdrf(:)
-        real (wp),    intent (in out) :: f(:,:)
-        class (Fish), intent (in out) :: w
+        integer(ip), intent(in)     :: intl
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: mbdcnd
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: nbdcnd
+        integer(ip), intent(in)     :: idimf
+        integer(ip), intent(out)    :: ierror
+        real(wp),    intent(in)     :: ts
+        real(wp),    intent(in)     :: tf
+        real(wp),    intent(in)     :: rs
+        real(wp),    intent(in)     :: rf
+        real(wp),    intent(in)     :: elmbda
+        real(wp),    intent(out)    :: pertrb
+        real(wp),    intent(in)     :: bdts(:)
+        real(wp),    intent(in)     :: bdtf(:)
+        real(wp),    intent(in)     :: bdrs(:)
+        real(wp),    intent(in)     :: bdrf(:)
+        real(wp),    intent(inout) :: f(:,:)
+        class(Fish), intent(inout) :: w
         !-----------------------------------------------
 
         !
@@ -519,20 +519,18 @@ contains
 
     end subroutine hwscsp
 
-
-
-    pure subroutine setup_workspace(nbdcnd, n, m, workspace)
+    subroutine setup_workspace(nbdcnd, n, m, workspace)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: nbdcnd
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: m
-        class (Fish), intent (in out) :: workspace
+        integer(ip), intent(in)     :: nbdcnd
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: m
+        class(Fish), intent(inout) :: workspace
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip)  :: nck, l, k, irwk, icwk
+        integer(ip)  :: nck, l, k, irwk, icwk
         !-----------------------------------------------
 
         ! Ensure that object is usable
@@ -580,19 +578,17 @@ contains
 
     end subroutine setup_workspace
 
-
-
-    pure function get_workspace_indices(n, m, l, k) result (return_value)
+    function get_workspace_indices(n, m, l, k) result (return_value)
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        integer (ip), intent (in) :: n
-        integer (ip), intent (in) :: m
-        integer (ip), intent (in) :: l
-        integer (ip), intent (in) :: k
-        integer (ip)              :: return_value(10)
+        integer(ip), intent(in) :: n
+        integer(ip), intent(in) :: m
+        integer(ip), intent(in) :: l
+        integer(ip), intent(in) :: k
+        integer(ip)              :: return_value(10)
         !--------------------------------------------------------------
-        integer (ip) :: j !! Counter
+        integer(ip) :: j !! Counter
         !--------------------------------------------------------------
 
         associate( indx => return_value)
@@ -611,24 +607,22 @@ contains
 
     end function get_workspace_indices
 
-
-
     subroutine check_input_arguments(ts, tf, m, mbdcnd, rs, rf, &
         n, nbdcnd, elmbda, idimf, ierror)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)  :: m
-        integer (ip), intent (in)  :: mbdcnd
-        integer (ip), intent (in)  :: n
-        integer (ip), intent (in)  :: nbdcnd
-        integer (ip), intent (in)  :: idimf
-        integer (ip), intent (out) :: ierror
-        real (wp),    intent (in)  :: ts
-        real (wp),    intent (in)  :: tf
-        real (wp),    intent (in)  :: rs
-        real (wp),    intent (in)  :: rf
-        real (wp),    intent (in)  :: elmbda
+        integer(ip), intent(in)  :: m
+        integer(ip), intent(in)  :: mbdcnd
+        integer(ip), intent(in)  :: n
+        integer(ip), intent(in)  :: nbdcnd
+        integer(ip), intent(in)  :: idimf
+        integer(ip), intent(out) :: ierror
+        real(wp),    intent(in)  :: ts
+        real(wp),    intent(in)  :: tf
+        real(wp),    intent(in)  :: rs
+        real(wp),    intent(in)  :: rf
+        real(wp),    intent(in)  :: elmbda
         !-----------------------------------------------
 
         ! Initialize error flag
@@ -707,59 +701,57 @@ contains
 
     end subroutine check_input_arguments
 
-
-
     subroutine hwscs1(intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, &
         nbdcnd, bdrs, bdrf, elmbda, f, idimf, pertrb, w, wc, s, an, bn &
         , cn, r, am, bm, cm, sint, bmh, ierror)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer (ip), intent (in)     :: intl
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: mbdcnd
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: nbdcnd
-        integer (ip), intent (in)     :: idimf
-        integer (ip), intent (out)    :: ierror
-        real (wp),    intent (in)     :: ts
-        real (wp),    intent (in)     :: tf
-        real (wp),    intent (in)     :: rs
-        real (wp),    intent (in)     :: rf
-        real (wp),    intent (in)     :: elmbda
-        real (wp),    intent (out)    :: pertrb
-        real (wp),    intent (in)     :: bdts(:)
-        real (wp),    intent (in)     :: bdtf(:)
-        real (wp),    intent (in)     :: bdrs(:)
-        real (wp),    intent (in)     :: bdrf(:)
-        real (wp),    intent (in out) :: f(idimf,n + 1)
-        real (wp),    intent (out), contiguous :: w(:)
-        real (wp),    intent (out), contiguous :: s(:)
-        real (wp),    intent (out), contiguous :: an(:)
-        real (wp),    intent (out), contiguous :: bn(:)
-        real (wp),    intent (out), contiguous :: cn(:)
-        real (wp),    intent (out), contiguous :: r(:)
-        real (wp),    intent (out), contiguous :: am(:)
-        real (wp),    intent (out), contiguous :: bm(:)
-        real (wp),    intent (out), contiguous :: cm(:)
-        real (wp),    intent (out), contiguous :: sint(:)
-        real (wp),    intent (out), contiguous :: bmh(:)
-        complex (wp), intent (out), contiguous :: wc(:)
+        integer(ip), intent(in)     :: intl
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: mbdcnd
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: nbdcnd
+        integer(ip), intent(in)     :: idimf
+        integer(ip), intent(out)    :: ierror
+        real(wp),    intent(in)     :: ts
+        real(wp),    intent(in)     :: tf
+        real(wp),    intent(in)     :: rs
+        real(wp),    intent(in)     :: rf
+        real(wp),    intent(in)     :: elmbda
+        real(wp),    intent(out)    :: pertrb
+        real(wp),    intent(in)     :: bdts(:)
+        real(wp),    intent(in)     :: bdtf(:)
+        real(wp),    intent(in)     :: bdrs(:)
+        real(wp),    intent(in)     :: bdrf(:)
+        real(wp),    intent(inout) :: f(idimf,n + 1)
+        real(wp),    intent(out), contiguous :: w(:)
+        real(wp),    intent(out), contiguous :: s(:)
+        real(wp),    intent(out), contiguous :: an(:)
+        real(wp),    intent(out), contiguous :: bn(:)
+        real(wp),    intent(out), contiguous :: cn(:)
+        real(wp),    intent(out), contiguous :: r(:)
+        real(wp),    intent(out), contiguous :: am(:)
+        real(wp),    intent(out), contiguous :: bm(:)
+        real(wp),    intent(out), contiguous :: cm(:)
+        real(wp),    intent(out), contiguous :: sint(:)
+        real(wp),    intent(out), contiguous :: bmh(:)
+        complex(wp), intent(out), contiguous :: wc(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer (ip)           :: mp1, i, np1, j, mp, np
-        integer (ip)           :: its, itf, itsp, itfm, ictr, jrs
-        integer (ip)           :: l, jrf, jrsp, jrfm, munk, nunk, ising, iflg
-        real (wp)              :: dth, tdt, hdth, sdts
-        real (wp)              :: theta, t1, dr, hdr
-        real (wp)              :: tdr, dr2, czr, at, ct, wts, wtf
-        real (wp)              :: ar, wtnm, yps, cr, wrs, wrf
-        real (wp)              :: wrz, summation, r2, hne, yhld
-        real (wp)              :: rs2, rf2, rsq, xp, yph, xps
-        real (wp), parameter   :: FOUR = 4.0_wp
-        real (wp), parameter   :: SIX = 6.0_wp
-        type (BlktriAux)       :: blktri_aux
+        integer(ip)           :: mp1, i, np1, j, mp, np
+        integer(ip)           :: its, itf, itsp, itfm, ictr, jrs
+        integer(ip)           :: l, jrf, jrsp, jrfm, munk, nunk, ising, iflg
+        real(wp)              :: dth, tdt, hdth, sdts
+        real(wp)              :: theta, t1, dr, hdr
+        real(wp)              :: tdr, dr2, czr, at, ct, wts, wtf
+        real(wp)              :: ar, wtnm, yps, cr, wrs, wrf
+        real(wp)              :: wrz, summation, r2, hne, yhld
+        real(wp)              :: rs2, rf2, rsq, xp, yph, xps
+        real(wp), parameter   :: FOUR = 4.0_wp
+        real(wp), parameter   :: SIX = 6.0_wp
+        type(BlktriAux)       :: blktri_aux
         !-----------------------------------------------
 
         mp1 = m + 1

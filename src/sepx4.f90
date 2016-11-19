@@ -460,34 +460,34 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        integer (ip), intent (in)     :: iorder
-        integer (ip), intent (in)     :: m
-        integer (ip), intent (in)     :: mbdcnd
-        integer (ip), intent (in)     :: n
-        integer (ip), intent (in)     :: nbdcnd
-        integer (ip), intent (in)     :: idmn
-        integer (ip), intent (out)    :: ierror
-        real (wp),    intent (in)     :: a
-        real (wp),    intent (in)     :: b
-        real (wp),    intent (in)     :: alpha
-        real (wp),    intent (in)     :: beta
-        real (wp),    intent (in)     :: c
-        real (wp),    intent (in)     :: d
-        real (wp),    intent (out)    :: pertrb
-        real (wp),    intent (in)     :: bda(:)
-        real (wp),    intent (in)     :: bdb(:)
-        real (wp),    intent (in)     :: bdc(:)
-        real (wp),    intent (in)     :: bdd(:)
-        real (wp),    intent (in out) :: grhs(:,:)
-        real (wp),    intent (out)    :: usol(:,:)
+        integer(ip), intent(in)     :: iorder
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: mbdcnd
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: nbdcnd
+        integer(ip), intent(in)     :: idmn
+        integer(ip), intent(out)    :: ierror
+        real(wp),    intent(in)     :: a
+        real(wp),    intent(in)     :: b
+        real(wp),    intent(in)     :: alpha
+        real(wp),    intent(in)     :: beta
+        real(wp),    intent(in)     :: c
+        real(wp),    intent(in)     :: d
+        real(wp),    intent(out)    :: pertrb
+        real(wp),    intent(in)     :: bda(:)
+        real(wp),    intent(in)     :: bdb(:)
+        real(wp),    intent(in)     :: bdc(:)
+        real(wp),    intent(in)     :: bdd(:)
+        real(wp),    intent(inout) :: grhs(:,:)
+        real(wp),    intent(out)    :: usol(:,:)
         procedure (get_coefficients)  :: cofx
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        integer (ip)  :: l, k, length, irwk, icwk
-        integer (ip)  :: workspace_indices(13)
-        type (Fish)   :: workspace
-        type (SepAux) :: sep_aux
+        integer(ip)  :: l, k, length, irwk, icwk
+        integer(ip)  :: workspace_indices(13)
+        type(Fish)   :: workspace
+        type(SepAux) :: sep_aux
         !-----------------------------------------------
 
         !
@@ -553,14 +553,14 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        integer (ip), intent (in)  :: n
-        integer (ip), intent (in)  :: l
-        integer (ip), intent (in)  :: k
-        integer (ip), intent (out) :: length
-        integer (ip), intent (out) :: irwk
-        integer (ip), intent (out) :: icwk
+        integer(ip), intent(in)  :: n
+        integer(ip), intent(in)  :: l
+        integer(ip), intent(in)  :: k
+        integer(ip), intent(out) :: length
+        integer(ip), intent(out) :: irwk
+        integer(ip), intent(out) :: icwk
         !--------------------------------------------------------------
-        integer (ip) :: log2n
+        integer(ip) :: log2n
         !--------------------------------------------------------------
 
         log2n = int(log(real(n + 1, kind=wp))/log(2.0_wp) + 0.5_wp, kind=ip)
@@ -574,16 +574,16 @@ contains
 
 
 
-    pure function get_workspace_indices(length, l, k) result (return_value)
+    function get_workspace_indices(length, l, k) result (return_value)
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        integer (ip), intent (in) :: length
-        integer (ip), intent (in) :: l
-        integer (ip), intent (in) :: k
-        integer (ip)              :: return_value(13)
+        integer(ip), intent(in) :: length
+        integer(ip), intent(in) :: l
+        integer(ip), intent(in) :: k
+        integer(ip)              :: return_value(13)
         !--------------------------------------------------------------
-        integer (ip) :: j !! Counter
+        integer(ip) :: j !! Counter
         !--------------------------------------------------------------
 
         associate( i => return_value)
@@ -618,47 +618,47 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (SepAux), intent (in out) :: sep_aux
-        integer (ip),   intent (in)     :: iorder
-        integer (ip),   intent (in)     :: m
-        integer (ip),   intent (in)     :: mbdcnd
-        integer (ip),   intent (in)     :: n
-        integer (ip),   intent (in)     :: nbdcnd
-        integer (ip),   intent (in)     :: idmn
-        integer (ip),   intent (in out) :: ierror
-        real (wp),      intent (in)     :: a
-        real (wp),      intent (in)     :: b
-        real (wp),      intent (in)     :: alpha
-        real (wp),      intent (in)     :: beta
-        real (wp),      intent (in)     :: c
-        real (wp),      intent (in)     :: d
-        real (wp),      intent (out)    :: pertrb
-        real (wp),      intent (in)     :: bda(:)
-        real (wp),      intent (in)     :: bdb(:)
-        real (wp),      intent (in)     :: bdc(:)
-        real (wp),      intent (in)     :: bdd(:)
-        real (wp),      intent (in out) :: an(:)
-        real (wp),      intent (in out) :: bn(:)
-        real (wp),      intent (in out) :: cn(:)
-        real (wp),      intent (in out) :: dn(:)
-        real (wp),      intent (in out) :: un(:)
-        real (wp),      intent (in out) :: zn(:)
-        real (wp),      intent (in out) :: am(:)
-        real (wp),      intent (in out) :: bm(:)
-        real (wp),      intent (in out) :: cm(:)
-        real (wp),      intent (in out) :: dm(:)
-        real (wp),      intent (in out) :: um(:)
-        real (wp),      intent (in out) :: zm(:)
-        real (wp),      intent (in out) :: grhs(:,:)
-        real (wp),      intent (in out) :: usol(:,:)
+        class(SepAux), intent(inout) :: sep_aux
+        integer(ip),   intent(in)     :: iorder
+        integer(ip),   intent(in)     :: m
+        integer(ip),   intent(in)     :: mbdcnd
+        integer(ip),   intent(in)     :: n
+        integer(ip),   intent(in)     :: nbdcnd
+        integer(ip),   intent(in)     :: idmn
+        integer(ip),   intent(inout) :: ierror
+        real(wp),      intent(in)     :: a
+        real(wp),      intent(in)     :: b
+        real(wp),      intent(in)     :: alpha
+        real(wp),      intent(in)     :: beta
+        real(wp),      intent(in)     :: c
+        real(wp),      intent(in)     :: d
+        real(wp),      intent(out)    :: pertrb
+        real(wp),      intent(in)     :: bda(:)
+        real(wp),      intent(in)     :: bdb(:)
+        real(wp),      intent(in)     :: bdc(:)
+        real(wp),      intent(in)     :: bdd(:)
+        real(wp),      intent(inout) :: an(:)
+        real(wp),      intent(inout) :: bn(:)
+        real(wp),      intent(inout) :: cn(:)
+        real(wp),      intent(inout) :: dn(:)
+        real(wp),      intent(inout) :: un(:)
+        real(wp),      intent(inout) :: zn(:)
+        real(wp),      intent(inout) :: am(:)
+        real(wp),      intent(inout) :: bm(:)
+        real(wp),      intent(inout) :: cm(:)
+        real(wp),      intent(inout) :: dm(:)
+        real(wp),      intent(inout) :: um(:)
+        real(wp),      intent(inout) :: zm(:)
+        real(wp),      intent(inout) :: grhs(:,:)
+        real(wp),      intent(inout) :: usol(:,:)
         procedure (get_coefficients)    :: cofx
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        integer (ip) :: i, i1, mp, np, local_error_flag
-        real (wp)    :: xi, ai, bi, ci, axi, bxi, cxi
-        real (wp)    :: dyj, eyj, fyj, ax1, cxm
-        real (wp)    :: dy1, fyn, gama, xnu, prtrb
+        integer(ip) :: i, i1, mp, np, local_error_flag
+        real(wp)    :: xi, ai, bi, ci, axi, bxi, cxi
+        real(wp)    :: dyj, eyj, fyj, ax1, cxm
+        real(wp)    :: dy1, fyn, gama, xnu, prtrb
         logical      :: singular
         !-----------------------------------------------
 
@@ -1058,24 +1058,24 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        integer (ip), intent (in)    :: iorder
-        integer (ip), intent (in)    :: m
-        integer (ip), intent (in)    :: mbdcnd
-        integer (ip), intent (in)    :: n
-        integer (ip), intent (in)    :: nbdcnd
-        integer (ip), intent (in)    :: idmn
-        integer (ip), intent (out)   :: ierror
-        real (wp),    intent (in)    :: a
-        real (wp),    intent (in)    :: b
-        real (wp),    intent (in)    :: c
-        real (wp),    intent (in)    :: d
+        integer(ip), intent(in)    :: iorder
+        integer(ip), intent(in)    :: m
+        integer(ip), intent(in)    :: mbdcnd
+        integer(ip), intent(in)    :: n
+        integer(ip), intent(in)    :: nbdcnd
+        integer(ip), intent(in)    :: idmn
+        integer(ip), intent(out)   :: ierror
+        real(wp),    intent(in)    :: a
+        real(wp),    intent(in)    :: b
+        real(wp),    intent(in)    :: c
+        real(wp),    intent(in)    :: d
         procedure (get_coefficients) :: cofx
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        integer (ip) :: i
-        real (wp)    :: xi, ai, bi, ci
-        real (wp)    :: dlx
+        integer(ip) :: i
+        real(wp)    :: xi, ai, bi, ci
+        real(wp)    :: dlx
         !--------------------------------------------------------------
 
         if (a >= b .or. c >= d) then ! check definition of solution region
@@ -1132,18 +1132,18 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (SepAux), intent (in out) :: sep_aux
-        integer (ip),   intent (in)     :: mbdcnd
-        integer (ip),   intent (in)     :: nbdcnd
-        real (wp),      intent (in)     :: alpha
-        real (wp),      intent (in)     :: beta
-        logical ,       intent (out)    :: singlr
+        class(SepAux), intent(inout) :: sep_aux
+        integer(ip),   intent(in)     :: mbdcnd
+        integer(ip),   intent(in)     :: nbdcnd
+        real(wp),      intent(in)     :: alpha
+        real(wp),      intent(in)     :: beta
+        logical ,       intent(out)    :: singlr
         procedure (get_coefficients)    :: cofx
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        integer (ip) :: i
-        real (wp)    :: xi, ai, bi, ci
+        integer(ip) :: i
+        real(wp)    :: xi, ai, bi, ci
         !--------------------------------------------------------------
 
         ! Associate various quantities
@@ -1223,17 +1223,17 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (SepAux), intent (in out) :: sep_aux
-        integer (ip),   intent (in)     :: idmn
-        real (wp),      intent (in out) :: usol(:,:)
-        real (wp),      intent (in out) :: grhs(:,:)
+        class(SepAux), intent(inout) :: sep_aux
+        integer(ip),   intent(in)     :: idmn
+        real(wp),      intent(inout) :: usol(:,:)
+        real(wp),      intent(inout) :: grhs(:,:)
         procedure (get_coefficients)    :: cofx
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        integer (ip) :: i, j
-        real (wp)    :: xi, ai, bi, ci
-        real (wp)    :: uxxx, uxxxx, uyyy, uyyyy, tx, ty
+        integer(ip) :: i, j
+        real(wp)    :: xi, ai, bi, ci
+        real(wp)    :: uxxx, uxxxx, uyyy, uyyyy, tx, ty
         !--------------------------------------------------------------
 
         ! Associate various quantities

@@ -35,7 +35,7 @@
 !
 program thstcsp
 
-    use, intrinsic :: iso_fortran_env, only: &
+    use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
@@ -51,19 +51,19 @@ program thstcsp
     !-----------------------------------------------
     ! Local variables
     !-----------------------------------------------
-    type (FishpackSolver)    :: solver
-    type (FishpackGrid)      :: grid
-    type (FishpackWorkspace) :: workspace
-    integer (ip), parameter  :: m = 45
-    integer (ip), parameter  :: n = 15
-    integer (ip), parameter  :: idimf = m + 2
-    integer (ip)             :: mbdcnd, i, nbdcnd, j, intl, ierror
-    real (wp)                :: f(idimf, n + 1)
-    real (wp), allocatable   :: theta(:), cost(:), r(:)
-    real (wp), allocatable   :: bda(:), bdb(:), bdc(:), bdd(:)
-    real (wp), parameter     :: PI = acos(-1.0_wp)
-    real (wp)                :: a, b, c, d, elmbda
-    real (wp)                :: pertrb, discretization_error, local_error
+    type(FishpackSolver)    :: solver
+    type(FishpackGrid)      :: grid
+    type(FishpackWorkspace) :: workspace
+    integer(ip), parameter  :: m = 45
+    integer(ip), parameter  :: n = 15
+    integer(ip), parameter  :: idimf = m + 2
+    integer(ip)             :: mbdcnd, i, nbdcnd, j, intl, ierror
+    real(wp)                :: f(idimf, n + 1)
+    real(wp), allocatable   :: theta(:), cost(:), r(:)
+    real(wp), allocatable   :: bda(:), bdb(:), bdc(:), bdd(:)
+    real(wp), parameter     :: PI = acos(-1.0_wp)
+    real(wp)                :: a, b, c, d, elmbda
+    real(wp)                :: pertrb, discretization_error, local_error
     !-----------------------------------------------
 
     ! Set conditions in theta

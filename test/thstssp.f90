@@ -35,7 +35,7 @@
 !
 program thstssp
 
-    use, intrinsic :: iso_fortran_env, only: &
+    use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
@@ -52,17 +52,17 @@ program thstssp
     !-----------------------------------------------
     ! Local variables
     !-----------------------------------------------
-    type (FishpackSolver)   :: solver
-    type (FishpackGrid)     :: grid
-    integer (ip), parameter :: m = 18
-    integer (ip), parameter :: n = 72
-    integer (ip), parameter :: idimf = 18
-    integer (ip)            :: mbdcnd, nbdcnd, i, j, ierror
-    real (wp)               :: f(m,n)
-    real (wp), allocatable  :: bda(:), bdb(:), bdc(:), bdd(:)
-    real (wp), allocatable  :: sint(:), sinp(:)
-    real (wp)               :: a, b, c, d, elmbda
-    real (wp)               :: pertrb, discretization_error, local_error
+    type(FishpackSolver)   :: solver
+    type(FishpackGrid)     :: grid
+    integer(ip), parameter :: m = 18
+    integer(ip), parameter :: n = 72
+    integer(ip), parameter :: idimf = 18
+    integer(ip)            :: mbdcnd, nbdcnd, i, j, ierror
+    real(wp)               :: f(m,n)
+    real(wp), allocatable  :: bda(:), bdb(:), bdc(:), bdd(:)
+    real(wp), allocatable  :: sint(:), sinp(:)
+    real(wp)               :: a, b, c, d, elmbda
+    real(wp)               :: pertrb, discretization_error, local_error
     !-----------------------------------------------
 
     a = 0.0_wp

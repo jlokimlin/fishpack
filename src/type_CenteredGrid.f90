@@ -4,7 +4,7 @@ module type_CenteredGrid
         wp, & ! Working precision
         ip ! Integer precision
 
-    use, intrinsic :: iso_fortran_env, only: &
+    use, intrinsic :: ISO_Fortran_env, only: &
         stderr => ERROR_UNIT
 
     use type_Grid, only: &
@@ -18,9 +18,9 @@ module type_CenteredGrid
     public :: CenteredGrid
 
     !---------------------------------------------------------------
-    ! Dictionary: global variables confined to the module
+    ! global variables confined to the module
     !---------------------------------------------------------------
-    integer (ip) :: deallocate_status  !! To check deallocation status
+    integer(ip) :: deallocate_status  !! To check deallocation status
     !---------------------------------------------------------------
 
     ! Declare derived data type
@@ -28,8 +28,8 @@ module type_CenteredGrid
         !---------------------------------------------------------------
         ! Type components
         !---------------------------------------------------------------
-        real (wp), allocatable, public :: x(:)
-        real (wp), allocatable, public :: y(:)
+        real(wp), allocatable, public :: x(:)
+        real(wp), allocatable, public :: y(:)
         !---------------------------------------------------------------
     contains
         !---------------------------------------------------------------
@@ -57,11 +57,11 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        real (wp), contiguous, intent (in) :: x_interval(:) !! Interval: A <= x <= B
-        real (wp), contiguous, intent (in) :: y_interval(:) !! Interval: C <= y <= D
-        integer (ip),          intent (in) :: nx  !! Number of horizontally staggered grid points in x
-        integer (ip),          intent (in) :: ny  !! Number of vertically staggered grid points in y
-        type (CenteredGrid)                :: return_value
+        real(wp), contiguous, intent(in) :: x_interval(:) !! Interval: A <= x <= B
+        real(wp), contiguous, intent(in) :: y_interval(:) !! Interval: C <= y <= D
+        integer(ip),          intent(in) :: nx  !! Number of horizontally staggered grid points in x
+        integer(ip),          intent(in) :: ny  !! Number of vertically staggered grid points in y
+        type(CenteredGrid)                :: return_value
         !--------------------------------------------------------------
 
         call return_value%create(x_interval, y_interval, nx, ny)
@@ -73,11 +73,11 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (CenteredGrid),  intent (in out) :: this
-        real (wp), contiguous, intent (in)     :: x_interval(:) !! Interval: A <= x <= B
-        real (wp), contiguous, intent (in)     :: y_interval(:) !! Interval: C <= y <= D
-        integer (ip),          intent (in)     :: nx !! Number of horizontally staggered grid points in x
-        integer (ip),          intent (in)     :: ny !! Number of vertically staggered grid points in y
+        class(CenteredGrid),  intent(inout) :: this
+        real(wp), contiguous, intent(in)     :: x_interval(:) !! Interval: A <= x <= B
+        real(wp), contiguous, intent(in)     :: y_interval(:) !! Interval: C <= y <= D
+        integer(ip),          intent(in)     :: nx !! Number of horizontally staggered grid points in x
+        integer(ip),          intent(in)     :: ny !! Number of vertically staggered grid points in y
         !--------------------------------------------------------------
 
         ! Ensure that object is usable
@@ -107,7 +107,7 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (CenteredGrid), intent (in out) :: this
+        class(CenteredGrid), intent(inout) :: this
         !--------------------------------------------------------------
 
         ! Check initialization flag
@@ -119,7 +119,7 @@ contains
             deallocate ( this%x, stat=deallocate_status )
             ! Check deallocation status
             if ( deallocate_status /= 0 ) then
-                error stop 'Object of class (CenteredGrid): '&
+                error stop 'Object of class(CenteredGrid): '&
                     //'Deallocating X failed in DESTROY_CENTERED_GRID'
             end if
         end if
@@ -130,7 +130,7 @@ contains
             deallocate ( this%y, stat=deallocate_status )
             ! Check deallocation status
             if ( deallocate_status /= 0 ) then
-                error stop 'Object of class (CenteredGrid): '&
+                error stop 'Object of class(CenteredGrid): '&
                     //'Deallocating Y failed in DESTROY_CENTERED_GRID'
             end if
         end if
@@ -151,7 +151,7 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        type (CenteredGrid), intent (in out) :: this
+        type(CenteredGrid), intent(inout) :: this
         !--------------------------------------------------------------
 
         call this%destroy()

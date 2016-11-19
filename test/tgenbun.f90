@@ -35,7 +35,7 @@
 !
 !  Purpose:
 !
-!     To illustrate the usage of TYPE (TridiagonalSolver) type-bound procedure
+!     To illustrate the usage of type(TridiagonalSolver) type-bound procedure
 !
 !     SOLVE_2D_REAL_LINEAR_SYSTEM_CENTERED
 !
@@ -139,7 +139,7 @@
 !
 program tgenbun
 
-    use, intrinsic :: iso_fortran_env, only: &
+    use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
@@ -156,17 +156,17 @@ program tgenbun
     !--------------------------------------------------------------
     ! Dictionary
     !--------------------------------------------------------------
-    type (TridiagonalSolver) :: solver
-    type (CenteredGrid)      :: centered_grid
-    integer (ip), parameter  :: NX = 20 !! number of horizontally staggered grid points
-    integer (ip), parameter  :: NY = 40 !! number of vertically staggered grid points
-    integer (ip)             :: i, j !! counter
-    integer (ip)             :: error_flag
-    real (wp),    parameter  :: PI = acos(-1.0_wp)
-    real (wp)                :: approximate_solution(NX, NY)
-    real (wp)                :: source(NX + 2, NY)
-    real (wp)                :: discretization_error
-    real (wp)                :: exact_solution
+    type(TridiagonalSolver) :: solver
+    type(CenteredGrid)      :: centered_grid
+    integer(ip), parameter  :: NX = 20 !! number of horizontally staggered grid points
+    integer(ip), parameter  :: NY = 40 !! number of vertically staggered grid points
+    integer(ip)             :: i, j !! counter
+    integer(ip)             :: error_flag
+    real(wp),    parameter  :: PI = acos(-1.0_wp)
+    real(wp)                :: approximate_solution(NX, NY)
+    real(wp)                :: source(NX + 2, NY)
+    real(wp)                :: discretization_error
+    real(wp)                :: exact_solution
     !------------------------------------------------------------------------------
 
 
@@ -284,15 +284,15 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class (TridiagonalData), intent (in out)  :: solver
-        class (Grid),            intent (in out)  :: centered_grid
+        class(TridiagonalData), intent(inout)  :: solver
+        class(Grid),            intent(inout)  :: centered_grid
         !--------------------------------------------------------------
-        integer (ip) :: i !! Counter
+        integer(ip) :: i !! Counter
         !--------------------------------------------------------------
 
-        select type (solver)
+        select type(solver)
             class is (TridiagonalSolver)
-            select type (centered_grid)
+            select type(centered_grid)
                 class is (CenteredGrid)
                 associate( &
                     nx => centered_grid%NX, &

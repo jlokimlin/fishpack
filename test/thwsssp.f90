@@ -37,7 +37,7 @@
 !
 program thwsssp
 
-    use, intrinsic :: iso_fortran_env, only: &
+    use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
@@ -51,17 +51,17 @@ program thwsssp
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
-    type (FishpackSolver)       :: solver
-    integer (ip), parameter     :: m = 18
-    integer (ip), parameter     :: n = 72
-    integer (ip), parameter     :: idimf = m + 1
-    integer (ip)                :: mbdcnd, nbdcnd, mp1, i, np1, j, ierror
-    real (wp)                   :: f(idimf, n + 1)
-    real (wp), dimension(n + 1) :: bdtf, bdts, bdps, bdpf
-    real (wp), dimension(idimf) :: sint
-    real (wp), dimension(n + 1) :: sinp
-    real (wp)                   :: pi, ts, tf, ps, pf, elmbda
-    real (wp)                   :: dtheta, dphi, pertrb, discretization_error, z
+    type(FishpackSolver)       :: solver
+    integer(ip), parameter     :: m = 18
+    integer(ip), parameter     :: n = 72
+    integer(ip), parameter     :: idimf = m + 1
+    integer(ip)                :: mbdcnd, nbdcnd, mp1, i, np1, j, ierror
+    real(wp)                   :: f(idimf, n + 1)
+    real(wp), dimension(n + 1) :: bdtf, bdts, bdps, bdpf
+    real(wp), dimension(idimf) :: sint
+    real(wp), dimension(n + 1) :: sinp
+    real(wp)                   :: pi, ts, tf, ps, pf, elmbda
+    real(wp)                   :: dtheta, dphi, pertrb, discretization_error, z
     !-----------------------------------------------
 
     pi = acos(-1.0_wp)
