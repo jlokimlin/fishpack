@@ -842,8 +842,6 @@ contains
 
     end function bsrh
 
-
-
     subroutine compb(n, ierror, an, bn, cn, b, bc, ah, bh)
         !
         ! Purpose:
@@ -856,15 +854,15 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer(ip), intent(in)     :: n
-        integer(ip), intent(out)    :: ierror
-        real(wp),    intent(in)     :: an(*)
-        real(wp),    intent(in)     :: bn(*)
-        real(wp),    intent(in)     :: cn(*)
-        real(wp),    intent(inout) :: b(*)
-        real(wp),    intent(inout) :: ah(*)
-        real(wp),    intent(inout) :: bh(*)
-        complex(wp), intent(inout) :: bc(*)
+        integer(ip), intent(in)    :: n
+        integer(ip), intent(out)   :: ierror
+        real(wp),    intent(in)    :: an(:)
+        real(wp),    intent(in)    :: bn(:)
+        real(wp),    intent(in)    :: cn(:)
+        real(wp),    intent(inout) :: b(:)
+        real(wp),    intent(inout) :: ah(:)
+        real(wp),    intent(inout) :: bh(:)
+        complex(wp), intent(inout) :: bc(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -978,7 +976,10 @@ contains
 
             j2 = j1 + nmp + nmp
 
-            call ppadd(nm + 1, ierror, an, cn, bc(j1), b(j1), b(j2))
+            associate( order => nm + 1 )
+                call ppadd(ierror, an(1:order), cn(1:order), bc(j1:order), b(j1:order), b(j2:order))
+            end associate
+
         end if
 
     end subroutine compb
@@ -1374,7 +1375,7 @@ contains
 
     end subroutine indxc
 
-    subroutine ppadd(n, ierror, a, c, cbp, bp, bh)
+    subroutine ppadd(ierror, a, c, cbp, bp, bh)
         !
         ! Purpose
         !
@@ -1390,13 +1391,12 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer(ip), intent(in)     :: n
-        integer(ip), intent(out)    :: ierror
-        real(wp),    intent(in)     :: a(n)
-        real(wp),    intent(in)     :: c(n)
-        real(wp),    intent(inout) :: bp(n)
-        real(wp),    intent(inout) :: bh(n)
-        complex(wp), intent(inout) :: cbp(n)
+        integer(ip), intent(out)   :: ierror
+        real(wp),    intent(in)    :: a(:)
+        real(wp),    intent(in)    :: c(:)
+        real(wp),    intent(inout) :: bp(:)
+        real(wp),    intent(inout) :: bh(:)
+        complex(wp), intent(inout) :: cbp(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -1408,229 +1408,231 @@ contains
         type(ComfAux) :: comf_aux
         !-----------------------------------------------
 
-        scnv = sqrt(cnv)
-        iz = n
-        izm = iz - 1
-        izm2 = iz - 2
+        associate( n => size(a) )
 
-        if (bp(n) <= bp(1)) then
-            if (bp(n) == bp(1)) then
-                ierror = 4
-                return
+            scnv = sqrt(cnv)
+            iz = n
+            izm = iz - 1
+            izm2 = iz - 2
+
+            if (bp(n) <= bp(1)) then
+                if (bp(n) == bp(1)) then
+                    ierror = 4
+                    return
+                else
+                    bh(:n) = bp(n:1:(-1))
+                end if
             else
-                bh(:n) = bp(n:1:(-1))
+                bh(:n) = bp(:n)
             end if
-        else
-            bh(:n) = bp(:n)
-        end if
 
-        ncmplx = 0
-        modiz = mod(iz, 2)
-        is = 1
+            ncmplx = 0
+            modiz = mod(iz, 2)
+            is = 1
 
-        if (modiz /= 0) then
-            if (a(1) >= ZERO) then
+            if (modiz /= 0) then
+                if (a(1) >= ZERO) then
+                    if (a(1) == ZERO) then
+                        ierror = 4
+                        return
+                    end if
+                end if
+
+                xl = bh(1)
+                db = bh(3) - bh(1)
+                xl = xl - db
+                r4 = comf_aux%psgf(xl, iz, c, a, bh)
+
+                do while (r4 <= ZERO)
+                    xl = xl - db
+                    r4 = comf_aux%psgf(xl, iz, c, a, bh)
+                end do
+
+                sgn = -ONE
+
+                temp = bsrh(xl, bh(1), iz, c, a, bh, psgf, sgn)
+
+                cbp(1) = cmplx(temp, ZERO, kind=wp)
+
+                bp(1) = real(cbp(1), kind=wp)
+
+                is = 2
+
+            end if
+
+            iif = iz - 1
+
+            if (modiz /= 0) then
+
                 if (a(1) == ZERO) then
                     ierror = 4
                     return
                 end if
-            end if
 
-            xl = bh(1)
-            db = bh(3) - bh(1)
-            xl = xl - db
-            r4 = comf_aux%psgf(xl, iz, c, a, bh)
-
-            do while (r4 <= ZERO)
-                xl = xl - db
-                r4 = comf_aux%psgf(xl, iz, c, a, bh)
-            end do
-
-            sgn = -ONE
-
-            temp = bsrh(xl, bh(1), iz, c, a, bh, psgf, sgn)
-
-            cbp(1) = cmplx(temp, ZERO, kind=wp)
-
-            bp(1) = real(cbp(1), kind=wp)
-
-            is = 2
-
-        end if
-
-        iif = iz - 1
-
-        if (modiz /= 0) then
-
-            if (a(1) == ZERO) then
-                ierror = 4
-                return
-            end if
-
-            xr = bh(iz)
-            db = bh(iz) - bh(iz-2)
-            xr = xr + db
-            r5 = comf_aux%psgf(xr, iz, c, a, bh)
-
-            do while (r5 < ZERO)
+                xr = bh(iz)
+                db = bh(iz) - bh(iz-2)
                 xr = xr + db
                 r5 = comf_aux%psgf(xr, iz, c, a, bh)
-            end do
 
-            sgn = ONE
-            temp = bsrh(bh(iz), xr, iz, c, a, bh, psgf, sgn)
-
-            cbp(iz) = cmplx(temp, ZERO, kind=wp)
-            iif = iz - 2
-
-        end if
-
-        main_loop: do ig = is, iif, 2
-
-            xl = bh(ig)
-            xr = bh(ig+1)
-            sgn = -ONE
-            xm = bsrh(xl, xr, iz, c, a, bh, ppspf, sgn)
-            psg = comf_aux%psgf(xm, iz, c, a, bh)
-
-            block_construct: block
-
-                if (abs(psg) > EPS) then
-
-                    r6 = psg*comf_aux%psgf(xm, iz, c, a, bh)
-
-                    if (r6 > ZERO) exit block_construct
-
-                    if (r6 /= ZERO) then
-
-                        sgn = ONE
-                        temp = bsrh(bh(ig), xm, iz, c, a, bh, psgf, sgn)
-                        cbp(ig) = cmplx(temp, ZERO, kind=wp)
-                        sgn = -ONE
-                        temp = bsrh(xm, bh(ig+1), iz, c, a, bh, psgf, sgn)
-                        cbp(ig+1) = cmplx(temp, ZERO, kind=wp)
-
-                        cycle main_loop
-                    !
-                    !==> Case of a multiple zero
-                    !
-                    end if
-                end if
-
-                cbp(ig) = cmplx(xm, ZERO, kind=wp)
-                cbp(ig+1) = cmplx(xm, ZERO, kind=wp)
-
-                cycle main_loop
-            !
-            !==> case of a complex zero
-            !
-            end block block_construct
-
-            it = 0
-            icv = 0
-            cx = cmplx(xm, ZERO, kind=wp)
-
-            loop_120: do
-
-                fsg = cmplx(ONE, ZERO, kind=wp)
-                hsg = cmplx(ONE, ZERO, kind=wp)
-                fp = ZERO
-                fpp = ZERO
-
-                do j = 1, iz
-                    dd = ONE/(cx - bh(j))
-                    fsg = fsg*a(j)*dd
-                    hsg = hsg*c(j)*dd
-                    fp = fp + dd
-                    fpp = fpp - dd**2
+                do while (r5 < ZERO)
+                    xr = xr + db
+                    r5 = comf_aux%psgf(xr, iz, c, a, bh)
                 end do
 
-                select case (modiz)
-                    case (0)
-                        f = cmplx(ONE, ZERO, kind=wp) - fsg - hsg
-                    case default
-                        f = cmplx(ONE, ZERO, kind=wp) + fsg + hsg
-                end select
+                sgn = ONE
+                temp = bsrh(bh(iz), xr, iz, c, a, bh, psgf, sgn)
 
-                i3 = 0
+                cbp(iz) = cmplx(temp, ZERO, kind=wp)
+                iif = iz - 2
 
-                if (abs(fp) > ZERO) then
-                    i3 = 1
-                    r3 = -f/fp
-                end if
+            end if
 
-                i2 = 0
+            main_loop: do ig = is, iif, 2
 
-                if (abs(fpp) > ZERO) then
+                xl = bh(ig)
+                xr = bh(ig+1)
+                sgn = -ONE
+                xm = bsrh(xl, xr, iz, c, a, bh, ppspf, sgn)
+                psg = comf_aux%psgf(xm, iz, c, a, bh)
 
-                    i2 = 1
-                    cdis = sqrt((fp**2) - TWO * f * fpp)
-                    r1 = cdis - fp
-                    r2 = (-fp) - cdis
+                block_construct: block
 
-                    if (abs(r1) - abs(r2) > ZERO) then
-                        r1 = r1/fpp
-                    else
-                        r1 = r2/fpp
+                    if (abs(psg) > EPS) then
+
+                        r6 = psg*comf_aux%psgf(xm, iz, c, a, bh)
+
+                        if (r6 > ZERO) exit block_construct
+
+                        if (r6 /= ZERO) then
+
+                            sgn = ONE
+                            temp = bsrh(bh(ig), xm, iz, c, a, bh, psgf, sgn)
+                            cbp(ig) = cmplx(temp, ZERO, kind=wp)
+                            sgn = -ONE
+                            temp = bsrh(xm, bh(ig+1), iz, c, a, bh, psgf, sgn)
+                            cbp(ig+1) = cmplx(temp, ZERO, kind=wp)
+
+                            cycle main_loop
+                        !
+                        !==> Case of a multiple zero
+                        !
+                        end if
                     end if
 
-                    r2 = ((TWO*f)/fpp)/r1
+                    cbp(ig) = cmplx(xm, ZERO, kind=wp)
+                    cbp(ig+1) = cmplx(xm, ZERO, kind=wp)
 
-                    if (abs(r2) < abs(r1)) r1 = r2
+                    cycle main_loop
+                !
+                !==> case of a complex zero
+                !
+                end block block_construct
 
-                    if (i3 > 0 .and. abs(r3) < abs(r1)) r1 = r3
+                it = 0
+                icv = 0
+                cx = cmplx(xm, ZERO, kind=wp)
 
-                else
-                    r1 = r3
-                end if
+                loop_120: do
 
-                cx = cx + r1
-                it = it + 1
+                    fsg = cmplx(ONE, ZERO, kind=wp)
+                    hsg = cmplx(ONE, ZERO, kind=wp)
+                    fp = ZERO
+                    fpp = ZERO
 
-                if (it > 50) then
+                    do j = 1, iz
+                        dd = ONE/(cx - bh(j))
+                        fsg = fsg*a(j)*dd
+                        hsg = hsg*c(j)*dd
+                        fp = fp + dd
+                        fpp = fpp - dd**2
+                    end do
+
+                    select case (modiz)
+                        case (0)
+                            f = cmplx(ONE, ZERO, kind=wp) - fsg - hsg
+                        case default
+                            f = cmplx(ONE, ZERO, kind=wp) + fsg + hsg
+                    end select
+
+                    i3 = 0
+
+                    if (abs(fp) > ZERO) then
+                        i3 = 1
+                        r3 = -f/fp
+                    end if
+
+                    i2 = 0
+
+                    if (abs(fpp) > ZERO) then
+
+                        i2 = 1
+                        cdis = sqrt((fp**2) - TWO * f * fpp)
+                        r1 = cdis - fp
+                        r2 = (-fp) - cdis
+
+                        if (abs(r1) - abs(r2) > ZERO) then
+                            r1 = r1/fpp
+                        else
+                            r1 = r2/fpp
+                        end if
+
+                        r2 = ((TWO*f)/fpp)/r1
+
+                        if (abs(r2) < abs(r1)) r1 = r2
+
+                        if (i3 > 0 .and. abs(r3) < abs(r1)) r1 = r3
+
+                    else
+                        r1 = r3
+                    end if
+
+                    cx = cx + r1
+                    it = it + 1
+
+                    if (it > 50) then
+                        ierror = 4
+                        return
+                    end if
+
+                    if (abs(r1) > scnv) cycle loop_120
+
+                    if (icv <= 0) then
+                        icv = 1
+                        cycle loop_120
+                    end if
+
+                    exit loop_120
+                end do loop_120
+
+                cbp(ig) = cx
+                cbp(ig+1) = conjg(cx)
+
+            end do main_loop
+
+            if (abs(cbp(n)) - abs(cbp(1)) <= ZERO) then
+                if (abs(cbp(n)) - abs(cbp(1)) == ZERO) then
                     ierror = 4
                     return
                 end if
 
-                if (abs(r1) > scnv) cycle loop_120
-
-                if (icv <= 0) then
-                    icv = 1
-                    cycle loop_120
-                end if
-
-                exit loop_120
-            end do loop_120
-
-            cbp(ig) = cx
-            cbp(ig+1) = conjg(cx)
-
-        end do main_loop
-
-        if (abs(cbp(n)) - abs(cbp(1)) <= ZERO) then
-            if (abs(cbp(n)) - abs(cbp(1)) == ZERO) then
-                ierror = 4
-                return
+                nhalf = n/2
+                do j = 1, nhalf
+                    nt = n - j
+                    cx = cbp(j)
+                    cbp(j) = cbp(nt+1)
+                    cbp(nt+1) = cx
+                end do
             end if
 
-            nhalf = n/2
-            do j = 1, nhalf
-                nt = n - j
-                cx = cbp(j)
-                cbp(j) = cbp(nt+1)
-                cbp(nt+1) = cx
-            end do
-        end if
+            ncmplx = 1
 
-        ncmplx = 1
+            if (any(aimag(cbp(2:iz)) /= ZERO)) return
 
-        if (any(aimag(cbp(2:iz)) /= ZERO)) return
+            ncmplx = 0
+            bp(1) = real(cbp(1), kind=wp)
+            bp(2:iz) = real(cbp(2:iz))
 
-        ncmplx = 0
-        bp(1) = real(cbp(1), kind=wp)
-
-        bp(2:iz) = real(cbp(2:iz))
-
+        end associate
 
     end subroutine ppadd
 
