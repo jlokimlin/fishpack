@@ -906,7 +906,9 @@ contains
                 bh(:jf-js+1) = bn(js:jf)
                 ah(:jf-js+1) = b(js:jf)
 
-                call tevls(nb, bh, ah, ierror)
+                associate( order => nb )
+                    call tevls(bh(1:order), ah(1:order), ierror)
+                end associate
 
                 if (ierror /= 0) then
                     ierror = 4
@@ -940,7 +942,9 @@ contains
                 ah(j) = -bn(l1)
             end do
 
-            call tevls(nb, ah, bh, ierror)
+            associate( order => nb )
+                call tevls(ah(1:order), bh(1:order), ierror)
+            end associate
 
             if (ierror /= 0) then
                 ierror = 4
@@ -1941,9 +1945,7 @@ contains
 
     end subroutine prodp
 
-
-
-    subroutine tevls(n, d, e2, ierr)
+    subroutine tevls(diagonal, subdiagonal, error_flag)
         !
         ! Purpose:
         !
@@ -1955,23 +1957,21 @@ contains
         !
         !     on input-
         !
-        !        n is the order of the matrix,
-        !
         !        d contains the diagonal elements of the input matrix,
         !
-        !        e2 contains the                subdiagonal elements of the
+        !        e2 contains the subdiagonal elements of the
         !          input matrix in its last n-1 positions.  e2(1) is arbitrary.
         !
         !      on output-
         !
         !        d contains the eigenvalues in ascending order.  if an
         !          error exit is made, the eigenvalues are correct and
-        !          ordered for indices 1, 2, ...ierr-1, but may not be
+        !          ordered for indices 1, 2, ...error_flag-1, but may not be
         !          the smallest eigenvalues,
         !
         !        e2 has been destroyed,
         !
-        !        ierr is set to
+        !        error_flag is set to
         !          zero       for normal return,
         !          j          if the j-th eigenvalue has not been
         !                     determined after 30 iterations.
@@ -1986,10 +1986,9 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer(ip), intent(in)     :: n
-        integer(ip), intent(out)    :: ierr
-        real(wp),    intent(inout) :: d(n)
-        real(wp),    intent(inout) :: e2(n)
+        integer(ip), intent(out)   :: error_flag
+        real(wp),    intent(inout) :: diagonal(:)
+        real(wp),    intent(inout) :: subdiagonal(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -1997,141 +1996,149 @@ contains
         real(wp)     :: b, c, f, g, h, p, r, s, dhold
         !-----------------------------------------------
 
-        ierr = 0
+        error_flag = 0
 
-        if (n == 1) return
+        associate( &
+            n => size(diagonal), &
+            d => diagonal, &
+            e2 => subdiagonal &
+            )
 
-        e2(:n-1) = e2(2:n)**2
-        f = ZERO
-        b = ZERO
-        e2(n) = ZERO
+            if (n == 1) return
 
-        main_loop: do l = 1, n
-            j = 0
-            h = EPS*(abs(d(l))+sqrt(e2(l)))
+            e2(:n-1) = e2(2:n)**2
+            f = ZERO
+            b = ZERO
+            e2(n) = ZERO
 
-            if (b <= h) then
-                b = h
-                c = b**2
-            end if
-            !
-            !==>  look for small squared sub-diagonal element
-            !
-            do m = l, n
-                if (e2(m) > c) then
-                    cycle
+            main_loop: do l = 1, n
+                j = 0
+                h = EPS*(abs(d(l))+sqrt(e2(l)))
+
+                if (b <= h) then
+                    b = h
+                    c = b**2
                 end if
-                exit
-            !
-            !==> e2(n) is always zero, so there is no exit
-            !    through the bottom of the loop
-            !
-            end do
-
-            if_construct: if (m /= l) then
-
-                loop_105: do
-
-                    if (j == 30) then
-                        !
-                        !==> set error: no convergence to an
-                        !    eigenvalue after 30 iterations
-                        !
-                        ierr = l
-                        return
+                !
+                !==>  look for small squared sub-diagonal element
+                !
+                do m = l, n
+                    if (e2(m) > c) then
+                        cycle
                     end if
+                    exit
+                !
+                !==> e2(n) is always zero, so there is no exit
+                !    through the bottom of the loop
+                !
+                end do
 
-                    j = j + 1
-                    !
-                    !==> form shift
-                    !
-                    l1 = l + 1
-                    s = sqrt(e2(l))
-                    g = d(l)
-                    p = (d(l1)-g)/(2.0*s)
-                    r = sqrt(p**2 + ONE)
-                    d(l) = s/(p + sign(r, p))
-                    h = g - d(l)
-                    d(l1:n) = d(l1:n) - h
-                    f = f + h
-                    !
-                    !==> rational ql transformation
-                    !
-                    if (g == ZERO) then
-                        g = b
-                    else
-                        g = d(m)
-                    end if
+                if_construct: if (m /= l) then
 
-                    h = g
-                    s = ZERO
-                    mml = m - l
-                    !
-                    !==> for i = m-1 step -1 until l do
-                    !
-                    do ii = 1, mml
-                        i = m - ii
-                        p = g*h
-                        r = p + e2(i)
-                        e2(i+1) = s*r
-                        s = e2(i)/r
-                        d(i+1) = h + s*(h + d(i))
-                        g = d(i) - e2(i)/g
+                    loop_105: do
 
-                        if (g == ZERO) g = b
+                        if (j == 30) then
+                            !
+                            !==> set error: no convergence to an
+                            !    eigenvalue after 30 iterations
+                            !
+                            error_flag = l
+                            return
+                        end if
 
-                        h = g*p/r
+                        j = j + 1
+                        !
+                        !==> form shift
+                        !
+                        l1 = l + 1
+                        s = sqrt(e2(l))
+                        g = d(l)
+                        p = (d(l1)-g)/(2.0*s)
+                        r = sqrt(p**2 + ONE)
+                        d(l) = s/(p + sign(r, p))
+                        h = g - d(l)
+                        d(l1:n) = d(l1:n) - h
+                        f = f + h
+                        !
+                        !==> rational ql transformation
+                        !
+                        if (g == ZERO) then
+                            g = b
+                        else
+                            g = d(m)
+                        end if
+
+                        h = g
+                        s = ZERO
+                        mml = m - l
+                        !
+                        !==> for i = m-1 step -1 until l do
+                        !
+                        do ii = 1, mml
+                            i = m - ii
+                            p = g*h
+                            r = p + e2(i)
+                            e2(i+1) = s*r
+                            s = e2(i)/r
+                            d(i+1) = h + s*(h + d(i))
+                            g = d(i) - e2(i)/g
+
+                            if (g == ZERO) g = b
+
+                            h = g*p/r
+                        end do
+                        !
+                        e2(l) = s*g
+                        d(l) = h
+                        !
+                        !==> guard against underflowed h
+                        !
+                        if (h == ZERO) exit if_construct
+
+                        if (abs(e2(l)) <= abs(c/h)) exit if_construct
+
+                        e2(l) = h*e2(l)
+
+                        if (e2(l) == ZERO) exit loop_105
+
+                    end do loop_105
+                end if if_construct
+
+                p = d(l) + f
+                !
+                !==> order eigenvalues
+                !
+                if (l /= 1) then
+                    !
+                    !==> for i=l step -1 until 2 do
+                    !
+                    do ii = 2, l
+                        i = l + 2 - ii
+                        if (p >= d(i-1)) then
+                            d(i) = p
+                            cycle main_loop
+                        else
+                            d(i) = d(i-1)
+                        end if
                     end do
-                    !
-                    e2(l) = s*g
-                    d(l) = h
-                    !
-                    !==> guard against underflowed h
-                    !
-                    if (h == ZERO) exit if_construct
+                end if
 
-                    if (abs(e2(l)) <= abs(c/h)) exit if_construct
+                i = 1
+                d(i) = p
 
-                    e2(l) = h*e2(l)
+            end do main_loop
 
-                    if (e2(l) == ZERO) exit loop_105
-
-                end do loop_105
-            end if if_construct
-
-            p = d(l) + f
-            !
-            !==> order eigenvalues
-            !
-            if (l /= 1) then
-                !
-                !==> for i=l step -1 until 2 do
-                !
-                do ii = 2, l
-                    i = l + 2 - ii
-                    if (p >= d(i-1)) then
-                        d(i) = p
-                        cycle main_loop
-                    else
-                        d(i) = d(i-1)
-                    end if
+            if (abs(d(n)) < abs(d(1))) then
+                nhalf = n/2
+                do i = 1, nhalf
+                    ntop = n - i
+                    dhold = d(i)
+                    d(i) = d(ntop+1)
+                    d(ntop+1) = dhold
                 end do
             end if
 
-            i = 1
-            d(i) = p
-
-        end do main_loop
-
-        if (abs(d(n)) < abs(d(1))) then
-            nhalf = n/2
-            do i = 1, nhalf
-                ntop = n - i
-                dhold = d(i)
-                d(i) = d(ntop+1)
-                d(ntop+1) = dhold
-            end do
-        end if
+        end associate
     !
     !==> last card of tqlrat
     !
