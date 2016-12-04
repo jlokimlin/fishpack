@@ -381,7 +381,7 @@ contains
         ! Local variables
         !-----------------------------------------------
         type(Fish)  :: workspace
-        integer(ip) :: irwk, icwk
+        integer(ip) :: real_workspace_size, complex_workspace_size
         !-----------------------------------------------
 
         !
@@ -427,13 +427,13 @@ contains
         !
         !==> Compute workspace arrays sizes
         !
-        irwk = 4*(n+1)+(m+1)*(13+int(log(real(n+1, kind=wp))/log(2.0_wp)))
-        icwk = 0
+        real_workspace_size = 4*(n+1)+(m+1)*(13+int(log(real(n+1, kind=wp))/log(2.0_wp)))
+        complex_workspace_size = 0
 
         !
         !==> Allocate memory
         !
-        call workspace%create(irwk, icwk, ierror)
+        call workspace%create(real_workspace_size, complex_workspace_size, ierror)
 
         associate( rew => workspace%real_workspace )
             !

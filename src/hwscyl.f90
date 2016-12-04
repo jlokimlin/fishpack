@@ -373,7 +373,7 @@ contains
         ! Local variables
         !-----------------------------------------------
         type(Fish)  :: workspace
-        integer(ip) :: irwk, icwk
+        integer(ip) :: real_workspace_size, complex_workspace_size
         !-----------------------------------------------
 
         !
@@ -419,11 +419,11 @@ contains
         !
         !==> Allocate memory
         !
-        call workspace%compute_genbun_workspace_lengths(n, m, irwk)
-        irwk = irwk + 3*m
-        icwk = 0
+        call workspace%compute_genbun_workspace_lengths(n, m, real_workspace_size)
+        real_workspace_size = real_workspace_size + 3*m
+        complex_workspace_size = 0
 
-        call workspace%create(irwk, icwk, ierror)
+        call workspace%create(real_workspace_size, complex_workspace_size, ierror)
 
         ! Check if allocation was succcessful
         if (ierror == 20) return

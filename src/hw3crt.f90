@@ -890,15 +890,15 @@ contains
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer(ip)  :: irwk, icwk
+        integer(ip)  :: real_workspace_size, complex_workspace_size
         !-----------------------------------------------
 
         ! Adjust workspace for hw3crt
-        irwk = 30 + l + m + 5*n + max(n, m, l) + 7*((l+1)/2 + (m+1)/2)
-        icwk = 0
+        real_workspace_size = 30 + l + m + 5*n + max(n, m, l) + 7*((l+1)/2 + (m+1)/2)
+        complex_workspace_size = 0
 
         ! Allocate memory
-        call return_value%create(irwk, icwk)
+        call return_value%create(real_workspace_size, complex_workspace_size)
 
     end function get_workspace
 

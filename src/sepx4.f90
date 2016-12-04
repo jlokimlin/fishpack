@@ -484,7 +484,7 @@ contains
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        integer(ip)  :: l, k, length, irwk, icwk
+        integer(ip)  :: l, k, length, real_workspace_size, complex_workspace_size
         integer(ip)  :: workspace_indices(13)
         type(Fish)   :: workspace
         type(SepAux) :: sep_aux
@@ -512,11 +512,11 @@ contains
         !
         !==> set real and complex workspace sizes
         !
-        call compute_workspace_dimensions(n, l, k, length, irwk, icwk)
+        call compute_workspace_dimensions(n, l, k, length, real_workspace_size, complex_workspace_size)
         !
         !==> Allocate memory
         !
-        call workspace%create(irwk, icwk, ierror)
+        call workspace%create(real_workspace_size, complex_workspace_size, ierror)
 
         !
         !==> set sepx4 workspace indices
@@ -549,7 +549,7 @@ contains
 
 
 
-    pure subroutine compute_workspace_dimensions(n, l, k, length, irwk, icwk)
+    pure subroutine compute_workspace_dimensions(n, l, k, length, real_workspace_size, complex_workspace_size)
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
@@ -557,8 +557,8 @@ contains
         integer(ip), intent(in)  :: l
         integer(ip), intent(in)  :: k
         integer(ip), intent(out) :: length
-        integer(ip), intent(out) :: irwk
-        integer(ip), intent(out) :: icwk
+        integer(ip), intent(out) :: real_workspace_size
+        integer(ip), intent(out) :: complex_workspace_size
         !--------------------------------------------------------------
         integer(ip) :: log2n
         !--------------------------------------------------------------
@@ -567,8 +567,8 @@ contains
         length = 4*(n + 1) +(10 + log2n) * k
 
         ! set real and complex workspace sizes
-        irwk = length + 6 * (k + l) + 1
-        icwk = 0
+        real_workspace_size = length + 6 * (k + l) + 1
+        complex_workspace_size = 0
 
     end subroutine compute_workspace_dimensions
 

@@ -596,17 +596,17 @@ contains
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer(ip)  :: irwk, icwk
+        integer(ip)  :: real_workspace_size, complex_workspace_size
         !-----------------------------------------------
 
         ! Get workspace dimensions for genbun
-        call return_value%compute_genbun_workspace_lengths(n, m, irwk)
+        call return_value%compute_genbun_workspace_lengths(n, m, real_workspace_size)
 
         ! No need to allocate complex arrays
-        icwk = 0
+        complex_workspace_size = 0
 
         ! Allocate memory
-        call return_value%create(irwk, icwk)
+        call return_value%create(real_workspace_size, complex_workspace_size)
 
     end function get_workspace
 

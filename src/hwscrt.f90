@@ -370,7 +370,7 @@ contains
         ! Local variables
         !-----------------------------------------------
         type(Fish)  :: workspace
-        integer(ip) :: irwk, icwk
+        integer(ip) :: real_workspace_size, complex_workspace_size
         !-----------------------------------------------
 
         !
@@ -406,15 +406,15 @@ contains
         !
         associate( int_arg => real(n + 1, kind=wp)/log(TWO) )
 
-            irwk = 4*(n+1)+(13+int(int_arg, kind=ip))*(m + 1)
-            icwk = 0
+            real_workspace_size = 4*(n+1)+(13+int(int_arg, kind=ip))*(m + 1)
+            complex_workspace_size = 0
 
         end associate
 
         !
         !==> Allocate memory
         !
-        call workspace%create(irwk, icwk, ierror)
+        call workspace%create(real_workspace_size, complex_workspace_size, ierror)
 
         ! Check if allocation was successful
         if (ierror == 20) return

@@ -288,9 +288,10 @@ module module_blktri
         !-------------------------------------------------
         integer(ip) :: npp
         integer(ip) :: k
-        integer(ip) :: nm
+        integer(ip) :: nm, nl
         integer(ip) :: ncmplx
         integer(ip) :: ik
+        integer(ip) :: indices(6)
         real(wp)    :: cnv
         !-------------------------------------------------
     contains
@@ -304,11 +305,11 @@ module module_blktri
     !---------------------------------------------------------------------------------
     ! Variables confined to the module
     !---------------------------------------------------------------------------------
-    integer(ip), private :: npp, k, nm, ncmplx, ik
-    real(wp),    private :: ZERO = 0.0_wp
-    real(wp),    private :: ONE = 1.0_wp
-    real(wp),    private :: TWO = 2.0_wp
-    real(wp),    private :: cnv
+    integer(ip), private   :: npp, k, nm, ncmplx, ik
+    real(wp),    private   :: cnv
+    real(wp),    parameter :: ZERO = 0.0_wp
+    real(wp),    parameter :: ONE = 1.0_wp
+    real(wp),    parameter :: TWO = 2.0_wp
     !---------------------------------------------------------------------------------
 
 contains
@@ -336,7 +337,7 @@ contains
         !--------------------------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------------------------
-        integer(ip)  :: irwk, icwk
+        integer(ip)  :: real_workspace_size, complex_workspace_size
         !--------------------------------------------------------------------------------
 
         !
@@ -359,10 +360,10 @@ contains
         if (iflg == 0) then
 
             ! compute and allocate real and complex required work space
-            call workspace%compute_blktri_workspace_lengths(n, m, irwk, icwk)
+            call workspace%compute_blktri_workspace_lengths(n, m, real_workspace_size, complex_workspace_size)
 
             ! Allocate memory for workspace
-            call workspace%create(irwk, icwk, ierror)
+            call workspace%create(real_workspace_size, complex_workspace_size, ierror)
 
         end if
 
@@ -403,8 +404,8 @@ contains
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer(ip)       ::  nh, iwah, iwbh
-        integer(ip), save :: iw1, iw2, iw3, iww, iwu, iwd, nl
+        integer(ip)           :: nh, iwah, iwbh
+        type(BlktriAux), save :: aux
         !----------------------------------------------
 
         ! test m and n for the proper form
@@ -426,61 +427,75 @@ contains
             ierror = 0
         end if
 
-        select case (iflg)
-            case (0)
-                nh = n
-                npp = np
 
-                if (npp /= 0)  nh = nh + 1
+        associate( &
+            iw1 => aux%indices(1), &
+            iw2 => aux%indices(2), &
+            iw3 => aux%indices(3), &
+            iww => aux%indices(4), &
+            iwu => aux%indices(5), &
+            iwd => aux%indices(6), &
+            nl => aux%nl &
+            )
 
-                ik = 4
-                k = 2
+            select case (iflg)
+                case (0)
+                    nh = n
+                    npp = np
 
-                do while (nh > ik)
+                    if (npp /= 0)  nh = nh + 1
+
+                    ik = 4
+                    k = 2
+
+                    do
+                        if (nh <= ik) exit
+                        ik = 2*ik
+                        k = k + 1
+                    end do
+
+                    nl = ik
                     ik = 2*ik
-                    k = k + 1
-                end do
+                    nl = nl - 1
+                    iwah = (k - 2)*ik + k + 5
 
-                nl = ik
-                ik = 2*ik
-                nl = nl - 1
-                iwah = (k - 2)*ik + k + 5
+                    if (npp == 0) then
+                        iwbh = iwah + 2*nm
+                        iw1 = iwbh
+                        nm = n - 1
+                    else
+                        iw1 = iwah
+                        iwbh = iw1 + nm
+                    end if
+                    !
+                    !==> Set workspace indices
+                    !
+                    iw2 = iw1 + m
+                    iw3 = iw2 + m
+                    iwd = iw3 + m
+                    iww = iwd + m
+                    iwu = iww + m
 
-                if (npp == 0) then
-                    iwbh = iwah + 2*nm
-                    iw1 = iwbh
-                    nm = n - 1
-                else
-                    iw1 = iwah
-                    iwbh = iw1 + nm
-                end if
-                !
-                !==> Set workspace indices
-                !
-                iw2 = iw1 + m
-                iw3 = iw2 + m
-                iwd = iw3 + m
-                iww = iwd + m
-                iwu = iww + m
+                    call compb(nl, ierror, an, bn, cn, w, wc, w(iwah:), w(iwbh:))
 
-                call compb(nl, ierror, an, bn, cn, w, wc, w(iwah:), w(iwbh:))
+                case default
 
-            case default
+                    ! *** Important to reset nm for np = 0
+                    if (npp == 0) nm = n - 1
 
-                ! *** Important to reset nm for np = 0
-                if (npp == 0) nm = n - 1
+                    select case (mp)
+                        case (0)
+                            call blktr1(nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, &
+                                w(iw1:), w(iw2:), w(iw3:), w(iwd:), w(iww:), w(iwu:), wc(iw1:), &
+                                wc(iw2:), wc(iw3:), prodp, cprodp)
+                        case default
+                            call blktr1(nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, &
+                                w(iw1:), w(iw2:), w(iw3:), w(iwd:), w(iww:), w(iwu:), wc(iw1:), &
+                                wc(iw2:), wc(iw3:), prod, cprod)
+                    end select
+            end select
 
-                select case (mp)
-                    case (0)
-                        call blktr1(nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, &
-                            w(iw1:), w(iw2:), w(iw3:), w(iwd:), w(iww:), w(iwu:), wc(iw1:), &
-                            wc(iw2:), wc(iw3:), prodp, cprodp)
-                    case default
-                        call blktr1(nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, &
-                            w(iw1:), w(iw2:), w(iw3:), w(iwd:), w(iww:), w(iwu:), wc(iw1:), &
-                            wc(iw2:), wc(iw3:), prod, cprod)
-                end select
-        end select
+        end associate
 
     end subroutine blktrii
 
@@ -611,7 +626,7 @@ contains
                 i1 = i2/2
                 i = i2
 
-                call indxc (i, ir, idxc, nc)
+                call indxc(i, ir, idxc, nc)
                 call indxb(i, ir, iz, nz)
                 call indxb(i - i1, ir - 1, im1, nm1)
                 call indxb(i + i1, ir - 1, ip1, np1)
@@ -783,7 +798,6 @@ contains
     end subroutine blktr1
 
 
-
     function bsrh(xll, xrr, iz, c, a, bh, f, sgn) result (return_value)
         !-----------------------------------------------
         ! Dummy arguments
@@ -821,7 +835,9 @@ contains
 
         dx = dx/2
 
-        do while (dx - cnv > ZERO)
+        do
+
+            if (dx - cnv > ZERO) exit
 
             x = (xl + xr)/2
             r1 = sgn * f(x, iz, c, a, bh)
@@ -958,13 +974,14 @@ contains
             lh = j2
             n2m2 = j2 + 2*nm - 2
 
-            do while (j2 > n2m2)
+            do
+                if (j2 <= n2m2) exit
 
                 d1 = abs(b(j1)-b(j2-1))
                 d2 = abs(b(j1)-b(j2))
                 d3 = abs(b(j1)-b(j2+1))
 
-                if (d2 >= d1 .or. d2 >= d3) then
+                if (d1 <= d2 .or. d3 <= d2) then
                     b(lh) = b(j2)
                     j2 = j2 + 1
                     lh = lh + 1
@@ -1447,7 +1464,8 @@ contains
                 xl = xl - db
                 r4 = comf_aux%psgf(xl, iz, c, a, bh)
 
-                do while (r4 <= ZERO)
+                do
+                    if (ZERO < r4) exit
                     xl = xl - db
                     r4 = comf_aux%psgf(xl, iz, c, a, bh)
                 end do
@@ -1478,7 +1496,8 @@ contains
                 xr = xr + db
                 r5 = comf_aux%psgf(xr, iz, c, a, bh)
 
-                do while (r5 < ZERO)
+                do
+                    if (ZERO <= r5) exit
                     xr = xr + db
                     r5 = comf_aux%psgf(xr, iz, c, a, bh)
                 end do

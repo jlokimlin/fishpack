@@ -324,7 +324,7 @@ contains
         ! Local variables
         !-----------------------------------------------
         integer(ip) :: m2, nh, nl, iwah, iw1, iwbh
-        integer(ip) :: iw2, iw3, iwd, iww, iwu, irwk, icwk
+        integer(ip) :: iw2, iw3, iwd, iww, iwu, real_workspace_size, complex_workspace_size
         !-----------------------------------------------
         !
         ! test m and n for the proper form
@@ -359,7 +359,8 @@ contains
         ik = 4
         k = 3
 
-        do while (nh > ik)
+        do
+            if (nh <= ik) exit
             ik = 2*ik
             k = k + 1
         end do
@@ -388,12 +389,12 @@ contains
             case (0) !==> Initialize solver
 
                 ! Set required workspace sizes
-                irwk = iw1 + 2*n
-                icwk = iw1 + 6*m
+                real_workspace_size = iw1 + 2*n
+                complex_workspace_size = iw1 + 6*m
                 !
                 !==> Allocate memory
                 !
-                call w%create(irwk, icwk, ierror)
+                call w%create(real_workspace_size, complex_workspace_size, ierror)
 
                 ! Check if allocation was successful
                 if (ierror == 20) return
@@ -735,7 +736,9 @@ contains
 
         dx = HALF * dx
 
-        do while (dx > cnv)
+        do
+
+            if (dx <= cnv) exit
 
             x = HALF*(xl + xr)
             r1 = sgn*f(x, iz, c, a, bh)

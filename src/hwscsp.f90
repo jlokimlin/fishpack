@@ -530,7 +530,7 @@ contains
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer(ip)  :: nck, l, k, irwk, icwk
+        integer(ip)  :: nck, l, k, real_workspace_size, complex_workspace_size
         !-----------------------------------------------
 
         ! Ensure that object is usable
@@ -557,7 +557,7 @@ contains
         l = 2*l
 
         ! Compute required blktri workspace lengths
-        call workspace%compute_blktri_workspace_lengths(n, m, irwk, icwk)
+        call workspace%compute_blktri_workspace_lengths(n, m, real_workspace_size, complex_workspace_size)
 
         ! Set workspace indices
         allocate( workspace%workspace_indices(10) )
@@ -567,14 +567,14 @@ contains
             indx = get_workspace_indices(n, m, l, k)
 
             ! Adjust workspace requirements for sepeli
-            irwk = indx(10) + m + 1
-            icwk = icwk + 3 * m
+            real_workspace_size = indx(10) + m + 1
+            complex_workspace_size = complex_workspace_size + 3 * m
 
         end associate
 
         ! Allocate memory for real and complex workspace arrays
-        allocate( workspace%real_workspace(irwk) )
-        allocate( workspace%complex_workspace(icwk) )
+        allocate( workspace%real_workspace(real_workspace_size) )
+        allocate( workspace%complex_workspace(complex_workspace_size) )
 
     end subroutine setup_workspace
 

@@ -361,16 +361,16 @@ contains
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer(ip)            :: irwk, icwk, j
+        integer(ip)            :: real_workspace_size, complex_workspace_size, j
         integer(ip), parameter :: NUMBER_OF_INDICES = 11
         !-----------------------------------------------
 
         !
         !==> Allocate memory
         !
-        irwk = 0
-        icwk = (10 + int(log(real(n, kind=wp))/log(TWO), kind=ip))*m + 4*n
-        call return_value%create(irwk, icwk)
+        real_workspace_size = 0
+        complex_workspace_size = (10 + int(log(real(n, kind=wp))/log(TWO), kind=ip))*m + 4*n
+        call return_value%create(real_workspace_size, complex_workspace_size)
 
         !
         !==> Allocate memory for workspace indices

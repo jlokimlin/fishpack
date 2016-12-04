@@ -588,7 +588,7 @@ contains
         ! Local variables
         !-----------------------------------------------
         integer(ip), parameter :: NUMBER_OF_INDICES = 8
-        integer(ip)            :: irwk, icwk
+        integer(ip)            :: real_workspace_size, complex_workspace_size
         !-----------------------------------------------
 
         ! Ensure that object is usable
@@ -611,12 +611,12 @@ contains
             )
 
             !
-            ! Compute blktri requirements in irwk, icwk
-            call workspace%compute_blktri_workspace_lengths(n, m, irwk, icwk)
+            ! Compute blktri requirements in real_workspace_size, complex_workspace_size
+            call workspace%compute_blktri_workspace_lengths(n, m, real_workspace_size, complex_workspace_size)
             !
             !==> Set work space indices
             !
-            iw1 = irwk + 1
+            iw1 = real_workspace_size + 1
             iwbm = iw1 + m
             iwcm = iwbm + m
             iwan = iwcm + m
@@ -628,10 +628,10 @@ contains
             !
             !==>  Allocate memory for real and complex workspace arrays
             !
-            irwk = iwrsq + n
-            icwk = icwk + 3 * (m + 1)
-            allocate( workspace%real_workspace(irwk) )
-            allocate( workspace%complex_workspace(icwk) )
+            real_workspace_size = iwrsq + n
+            complex_workspace_size = complex_workspace_size + 3 * (m + 1)
+            allocate( workspace%real_workspace(real_workspace_size) )
+            allocate( workspace%complex_workspace(complex_workspace_size) )
         end associate
 
     end subroutine setup_workspace
@@ -917,9 +917,6 @@ contains
         end if
 
     end subroutine hstcs1
-
-
-
 
 end module module_hstcsp
 !

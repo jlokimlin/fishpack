@@ -622,41 +622,41 @@ contains
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer(ip) :: irwk, icwk
+        integer(ip) :: real_workspace_size, complex_workspace_size
         !-----------------------------------------------
 
         ! Ensure that object is usable
         call workspace%destroy()
 
         ! Compute required blktri workspace lengths
-        call workspace%compute_blktri_workspace_lengths(n, m, irwk, icwk)
+        call workspace%compute_blktri_workspace_lengths(n, m, real_workspace_size, complex_workspace_size)
 
         ! Set workspace indices
         allocate( workspace%workspace_indices(12) )
 
         associate( indx => workspace%workspace_indices )
 
-            indx = get_workspace_indices(irwk, n, m)
+            indx = get_workspace_indices(real_workspace_size, n, m)
 
             ! Adjust workspace requirements for sepeli
-            irwk = indx(12) + m + 1
-            icwk = icwk + 3 * (m + 1)
+            real_workspace_size = indx(12) + m + 1
+            complex_workspace_size = complex_workspace_size + 3 * (m + 1)
 
         end associate
 
         ! Allocate memory for real and complex workspace arrays
-        allocate( workspace%real_workspace(irwk) )
-        allocate( workspace%complex_workspace(icwk) )
+        allocate( workspace%real_workspace(real_workspace_size) )
+        allocate( workspace%complex_workspace(complex_workspace_size) )
 
     end subroutine setup_workspace
 
 
 
-    function get_workspace_indices(irwk, n, m) result (return_value)
+    function get_workspace_indices(real_workspace_size, n, m) result (return_value)
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        integer(ip), intent(in) :: irwk
+        integer(ip), intent(in) :: real_workspace_size
         integer(ip), intent(in) :: n
         integer(ip), intent(in) :: m
         integer(ip)              :: return_value(12)
@@ -666,7 +666,7 @@ contains
 
         associate( indx => return_value)
 
-            indx(1) = irwk + 1
+            indx(1) = real_workspace_size + 1
 
             do j = 1, 6
                 indx(j+1) = indx(j) + n + 1

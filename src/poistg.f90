@@ -264,20 +264,20 @@ contains
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        integer(ip) :: irwk, icwk
+        integer(ip) :: real_workspace_size, complex_workspace_size
         type(Fish)  :: workspace
         !--------------------------------------------------------------
 
         !
         !==> Compute workspace dimensions
         !
-        irwk = m * (9 + int(log(real(n, kind=wp))/log(TWO),kind=ip)) + 4 * n
-        icwk = 0
+        real_workspace_size = m * (9 + int(log(real(n, kind=wp))/log(TWO),kind=ip)) + 4 * n
+        complex_workspace_size = 0
 
         !
         !==> Allocate memory
         !
-        call workspace%create(irwk, icwk)
+        call workspace%create(real_workspace_size, complex_workspace_size)
 
 
         associate( rew => workspace%real_workspace )

@@ -57,9 +57,9 @@ module type_FishpackWorkspace
         !---------------------------------------------------------------
         ! Type components
         !---------------------------------------------------------------
-        real(wp),     allocatable :: real_workspace(:)
+        real(wp),    allocatable :: real_workspace(:)
         complex(wp), allocatable :: complex_workspace(:)
-        integer(ip),  allocatable :: workspace_indices(:)
+        integer(ip), allocatable :: workspace_indices(:)
         !---------------------------------------------------------------
     contains
         !---------------------------------------------------------------
@@ -75,7 +75,7 @@ module type_FishpackWorkspace
 
 contains
 
-    subroutine create_fishpack_workspace(this, irwk, icwk, ierror)
+    subroutine create_fishpack_workspace(this, real_workspace_size, complex_workspace_size, ierror)
         !
         ! Remark:
         !
@@ -86,9 +86,9 @@ contains
         ! Dummy arguments
         !--------------------------------------------------------------
         class(FishpackWorkspace), intent(inout) :: this
-        integer(ip),              intent(in)     :: irwk ! required real work space length
-        integer(ip),              intent(in)     :: icwk ! required integer work space length
-        integer(ip), optional,    intent(out)    :: ierror
+        integer(ip),              intent(in)    :: real_workspace_size ! required real work space length
+        integer(ip),              intent(in)    :: complex_workspace_size ! required integer work space length
+        integer(ip), optional,    intent(out)   :: ierror
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
@@ -98,11 +98,11 @@ contains
         ! Ensure that object is usable
         call this%destroy()
 
-        if (irwk > 0) then
+        if (real_workspace_size > 0) then
             !
-            !==> allocate irwk words of real workspace
+            !==> allocate real_workspace_size words of real workspace
             !
-            allocate( this%real_workspace(irwk), stat=allocation_status )
+            allocate( this%real_workspace(real_workspace_size), stat=allocation_status )
 
             ! Check if real allocation was successful
             if (allocation_status /= 0 ) then
@@ -112,11 +112,11 @@ contains
             end if
         end if
 
-        if (icwk > 0) then
+        if (complex_workspace_size > 0) then
             !
-            !==> allocate icwk words of complex workspace
+            !==> allocate complex_workspace_size words of complex workspace
             !
-            allocate( this%complex_workspace(icwk), stat=allocation_status )
+            allocate( this%complex_workspace(complex_workspace_size), stat=allocation_status )
 
             ! Check if complex allocation was successful
             if (allocation_status /= 0 ) then
@@ -137,7 +137,7 @@ contains
 
     end subroutine create_fishpack_workspace
 
-    pure subroutine compute_blktri_workspace_lengths(this, n, m, irwk, icwk)
+    pure subroutine compute_blktri_workspace_lengths(this, n, m, real_workspace_size, complex_workspace_size)
         !
         ! Purpose:
         !
@@ -150,8 +150,8 @@ contains
         class(FishpackWorkspace), intent(inout) :: this
         integer(ip),              intent(in)     :: n
         integer(ip),              intent(in)     :: m
-        integer(ip),              intent(out)    :: irwk
-        integer(ip),              intent(out)    :: icwk
+        integer(ip),              intent(out)    :: real_workspace_size
+        integer(ip),              intent(out)    :: complex_workspace_size
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
@@ -170,13 +170,13 @@ contains
         end do
 
         associate( l => 2**(log2n+1) )
-            irwk = (log2n-2)*l+5+max(2*n,6*m)+log2n+2*n
-            icwk = ((log2n-2)*l+5+log2n)/2+3*m+n
+            real_workspace_size = (log2n-2)*l+5+max(2*n,6*m)+log2n+2*n
+            complex_workspace_size = ((log2n-2)*l+5+log2n)/2+3*m+n
         end associate
 
     end subroutine compute_blktri_workspace_lengths
 
-    pure subroutine compute_genbun_workspace_lengths(this, n, m, irwk)
+    pure subroutine compute_genbun_workspace_lengths(this, n, m, real_workspace_size)
         !
         ! Purpose:
         !
@@ -189,7 +189,7 @@ contains
         class(FishpackWorkspace), intent(inout) :: this
         integer(ip),              intent(in)     :: n
         integer(ip),              intent(in)     :: m
-        integer(ip),              intent(out)    :: irwk
+        integer(ip),              intent(out)    :: real_workspace_size
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
@@ -207,7 +207,7 @@ contains
             log2n = log2n+1
         end do
 
-        irwk = 4*n + (10 + log2n)*m
+        real_workspace_size = 4*n + (10 + log2n)*m
 
     end subroutine compute_genbun_workspace_lengths
 

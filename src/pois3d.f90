@@ -292,20 +292,20 @@ contains
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer(ip)  :: irwk, icwk
+        integer(ip)  :: real_workspace_size, complex_workspace_size
         type(Fish)   :: workspace
         !-----------------------------------------------
 
         !
         !==> Compute required workspace dimensions
         !
-        irwk = 30+l+m+2*n + max(l, m, n) + 7 * ( (l+1)/2+(m+1)/2)
-        icwk = 0
+        real_workspace_size = 30+l+m+2*n + max(l, m, n) + 7 * ( (l+1)/2+(m+1)/2)
+        complex_workspace_size = 0
 
         !
         !==> Allocate memory
         !
-        call workspace%create(irwk, icwk)
+        call workspace%create(real_workspace_size, complex_workspace_size)
 
         !
         !==> Solve system

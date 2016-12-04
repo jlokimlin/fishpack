@@ -321,9 +321,9 @@ module module_hstcrt
     !---------------------------------------------------------------
     ! Variables confined to the module
     !---------------------------------------------------------------
-    real(wp), private :: ZERO = 0.0_wp
-    real(wp), private :: ONE = 1.0_wp
-    real(wp), private :: TWO = 2.0_wp
+    real(wp), parameter :: ZERO = 0.0_wp
+    real(wp), parameter :: ONE = 1.0_wp
+    real(wp), parameter :: TWO = 2.0_wp
     !---------------------------------------------------------------
 
 contains
@@ -433,22 +433,22 @@ contains
         ! Dummy arguments
         !-----------------------------------------------
         integer(ip), intent(in)  :: n, m
-        type(Fish)                :: return_value
+        type(Fish)               :: return_value
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer(ip)  :: irwk, icwk
+        integer(ip)  :: real_workspace_size, complex_workspace_size
         !-----------------------------------------------
 
         ! Get workspace dimensions for genbun
-        call return_value%compute_genbun_workspace_lengths(n, m, irwk)
+        call return_value%compute_genbun_workspace_lengths(n, m, real_workspace_size)
 
         ! Adjust workspace for hstcrt
-        irwk = irwk + 3 * m
-        icwk = 0
+        real_workspace_size = real_workspace_size + 3 * m
+        complex_workspace_size = 0
 
         ! Allocate memory
-        call return_value%create(irwk, icwk)
+        call return_value%create(real_workspace_size, complex_workspace_size)
 
     end function get_workspace
 
