@@ -99,7 +99,7 @@ module module_comf
             real(wp),    intent(in) :: c(*)
             real(wp),    intent(in) :: a(*)
             real(wp),    intent(in) :: bh(*)
-            real(wp)                 :: return_value
+            real(wp)                :: return_value
             !-----------------------------------------------
         end function comf_interface
     end interface
@@ -117,7 +117,7 @@ contains
         real(wp),    intent(in) :: c(*)
         real(wp),    intent(in) :: a(*)
         real(wp),    intent(in) :: bh(*)
-        real(wp)                 :: return_value
+        real(wp)                :: return_value
         !-----------------------------------------------
 
         return_value = sum(1.0_wp/(x - bh(1:iz))**2)
