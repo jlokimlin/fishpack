@@ -623,11 +623,19 @@ contains
         !==> To solve the system of equations.
         !
         local_error_flag = 0
-        if (lp /= 0) then
-            call poistgg(lp, n, 1, m, w, w(iwb+1), w(iwc+1), idimf, f, local_error_flag, w(iwr+1))
-        else
-            call genbunn(lp, n, 1, m, w, w(iwb+1), w(iwc+1), idimf, f, local_error_flag, w(iwr+1))
-        end if
+
+        set_arguments: associate( &
+            a_arg => w(1:m), &
+            b_arg => w(iwb+1:iwb+1+m), &
+            c_arg => w(iwc+1:iwc+1+m), &
+            w_arg => w(iwr+1:iwr+1+m) &
+            )
+            if (lp /= 0) then
+                call poistgg(lp, n, 1, m, a_arg, b_arg, c_arg, idimf, f, local_error_flag, w_arg)
+            else
+                call genbunn(lp, n, 1, m, a_arg, b_arg, w_arg, idimf, f, local_error_flag, w_arg)
+            end if
+        end associate set_arguments
 
         if (.not.(a /= 0.0_wp .or. mbdcnd /= 2 .or. isw /= 2)) then
             a1 = sum(f(1,:n))

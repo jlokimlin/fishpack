@@ -79,8 +79,6 @@ module module_gnbnaux
     private
     public :: GenbunAux
 
-
-
     ! Declare derived data type
     type, public :: GenbunAux
     contains
@@ -91,22 +89,29 @@ module module_gnbnaux
         procedure, nopass, public :: merger
         procedure, nopass, public :: trix
         procedure, nopass, public :: tri3
+        procedure, nopass, private :: swap_real
+        procedure, nopass, private :: swap_complex
+        procedure, nopass, private :: swap_integer
+        procedure, nopass, private :: swap_character
+        !--------------------------------------------------
+        ! Generic type-bound procedures
+        !--------------------------------------------------
+        generic, public :: swap => swap_real, &
+            swap_complex, &
+            swap_integer, &
+            swap_character
         !--------------------------------------------------
     end type GenbunAux
-
 
     !---------------------------------------------------------------
     ! Variables confined to the module
     !---------------------------------------------------------------
-    real(wp), private :: ZERO = 0.0_wp
-    real(wp), private :: ONE = 1.0_wp
-    real(wp), private :: TWO = 2.0_wp
+    real(wp), parameter :: ZERO = 0.0_wp
+    real(wp), parameter :: ONE = 1.0_wp
+    real(wp), parameter :: TWO = 2.0_wp
     !---------------------------------------------------------------
 
-
-
 contains
-
 
     pure subroutine cosgen(n, ijump, fnum, fden, a)
         !
@@ -180,10 +185,7 @@ contains
                 end do
         end select
 
-
     end subroutine cosgen
-
-
 
     subroutine trix(idegbr, idegcr, m, a, b, c, y, tcos, d, w)
         !
@@ -202,10 +204,10 @@ contains
         real(wp),    intent(in)     :: a(m)
         real(wp),    intent(in)     :: b(m)
         real(wp),    intent(in)     :: c(m)
-        real(wp),    intent(inout) :: y(m)
+        real(wp),    intent(inout)  :: y(m)
         real(wp),    intent(in)     :: tcos(*)
-        real(wp),    intent(inout) :: d(m)
-        real(wp),    intent(inout) :: w(m)
+        real(wp),    intent(inout)  :: d(m)
+        real(wp),    intent(inout)  :: w(m)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -262,8 +264,6 @@ contains
 
     end subroutine trix
 
-
-
     subroutine tri3(m, a, b, c, k, y1, y2, y3, tcos, d, w1, w2, w3)
         !
         ! Purpose:
@@ -284,7 +284,7 @@ contains
         real(wp),    intent(inout) :: y1(m)
         real(wp),    intent(inout) :: y2(m)
         real(wp),    intent(inout) :: y3(m)
-        real(wp),    intent(in)     :: tcos(*)
+        real(wp),    intent(in)    :: tcos(*)
         real(wp),    intent(inout) :: d(m)
         real(wp),    intent(inout) :: w1(m)
         real(wp),    intent(inout) :: w2(m)
@@ -380,7 +380,6 @@ contains
 
     end subroutine tri3
 
-
     subroutine merger(tcos, i1, m1, i2, m2, i3)
         !
         ! Purpose:
@@ -420,6 +419,7 @@ contains
                     j3 = max(m1, j11)
 
                     block_construct: block
+
                         do j1 = j11, j3
                             j = j + 1
                             l = j1 + i1
@@ -431,6 +431,7 @@ contains
                         end do
 
                         if (j2 > m2) return
+
                         exit if_construct
 
                     end block block_construct
@@ -441,7 +442,9 @@ contains
                     if (j2 > m2) exit outer_loop
 
                 end do outer_loop
+
                 if (j1 > m1) return
+
             end if
 
             k = j - j1 + 1
@@ -451,7 +454,9 @@ contains
                 l = j + i1
                 tcos(m) = tcos(l)
             end do
+
             return
+
         end if if_construct
 
         k = j - j2 + 1
@@ -462,10 +467,67 @@ contains
             tcos(m) = tcos(l)
         end do
 
-
     end subroutine merger
 
+    pure subroutine swap_real(a, b)
+        !-----------------------------------------------
+        ! Dummy arguments
+        !-----------------------------------------------
+        real(wp), intent(inout) :: a, b
+        !-----------------------------------------------
+        ! Local variables
+        !-----------------------------------------------
+        real(wp) temp
+        !-----------------------------------------------
 
+        temp = a ; a = b ; b = temp
+
+    end subroutine swap_real
+
+    pure subroutine swap_complex(a, b)
+        !-----------------------------------------------
+        ! Dummy arguments
+        !-----------------------------------------------
+        complex(wp), intent(inout) :: a, b
+        !-----------------------------------------------
+        ! Local variables
+        !-----------------------------------------------
+        complex(wp) temp
+        !-----------------------------------------------
+
+        temp = a ; a = b ; b = temp
+
+    end subroutine swap_complex
+
+    pure subroutine swap_integer(a, b)
+        !-----------------------------------------------
+        ! Dummy arguments
+        !-----------------------------------------------
+        integer(ip), intent(inout) :: a, b
+        !-----------------------------------------------
+        ! Local variables
+        !-----------------------------------------------
+        integer(ip) temp
+        !-----------------------------------------------
+
+        temp = a ; a = b ; b = temp
+
+    end subroutine swap_integer
+
+    pure subroutine swap_character(a, b)
+        !-----------------------------------------------
+        ! Dummy arguments
+        !-----------------------------------------------
+        character, intent(inout) :: a, b
+        !-----------------------------------------------
+        ! Local variables
+        !-----------------------------------------------
+        character temp
+        !-----------------------------------------------
+
+        temp = a ; a = b ; b = temp
+
+    end subroutine swap_character
 end module module_gnbnaux
 !
 ! REVISION HISTORY

@@ -260,11 +260,11 @@ module module_pois3d
     !---------------------------------------------------------------
     ! Variables confined to the module
     !---------------------------------------------------------------
-    real(wp), private :: ZERO = 0.0_wp
-    real(wp), private :: HALF = 0.5_wp
-    real(wp), private :: ONE = 1.0_wp
-    real(wp), private :: TWO = 2.0_wp
-    real(wp), private :: FOUR = 4.0_wp
+    real(wp), parameter :: ZERO = 0.0_wp
+    real(wp), parameter :: HALF = 0.5_wp
+    real(wp), parameter :: ONE = 1.0_wp
+    real(wp), parameter :: TWO = 2.0_wp
+    real(wp), parameter :: FOUR = 4.0_wp
     !---------------------------------------------------------------
 
 contains

@@ -230,22 +230,16 @@ module module_poistg
     public :: poistg
     public :: poistgg
 
-
-
     !---------------------------------------------------------------
     ! Variables confined to the module
     !---------------------------------------------------------------
-    real(wp), private :: ZERO = 0.0_wp
-    real(wp), private :: HALF = 0.5_wp
-    real(wp), private :: ONE = 1.0_wp
-    real(wp), private :: TWO = 2.0_wp
+    real(wp), parameter :: ZERO = 0.0_wp
+    real(wp), parameter :: HALF = 0.5_wp
+    real(wp), parameter :: ONE = 1.0_wp
+    real(wp), parameter :: TWO = 2.0_wp
     !---------------------------------------------------------------
 
-
-
 contains
-
-
 
     subroutine poistg(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
         !--------------------------------------------------------------
@@ -260,7 +254,7 @@ contains
         real(wp),    intent(in)     :: a(:)
         real(wp),    intent(in)     :: b(:)
         real(wp),    intent(in)     :: c(:)
-        real(wp),    intent(inout) :: y(:,:)
+        real(wp),    intent(inout)  :: y(:,:)
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
@@ -279,13 +273,11 @@ contains
         !
         call workspace%create(real_workspace_size, complex_workspace_size)
 
-
         associate( rew => workspace%real_workspace )
             !
             !==> Solve system
             !
             call poistgg(nperod, n, mperod, m, a, b, c, idimy, y, ierror, rew)
-
         end associate
 
         !
@@ -294,8 +286,6 @@ contains
         call workspace%destroy()
 
     end subroutine poistg
-
-
 
     subroutine poistgg(nperod, n, mperod, m, a, b, c, idimy, y, ierror, w)
         !--------------------------------------------------------------
@@ -311,13 +301,13 @@ contains
         real(wp),    intent(in)     :: b(m)
         real(wp),    intent(in)     :: c(m)
         real(wp),    intent(inout) :: y(idimy,n)
-        real(wp),    intent(inout) :: w(*)
+        real(wp),    intent(inout) :: w(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
         integer(ip)     :: workspace_indices(11)
         integer(ip)     :: i, k, j, np, mp
-        integer(ip)     :: nby2, mskip, ipstor, irev, mh, mhm1, modd
+        integer(ip)     :: nby2, mskip, ipstor, irev, mh, mhm1, m_odd
         real(wp)        :: temp
         !-----------------------------------------------
 
@@ -366,9 +356,9 @@ contains
                 mhm1 = mh - 1
 
                 if (mh*2 == m) then
-                    modd = 2
+                    m_odd = 2
                 else
-                    modd = 1
+                    m_odd = 1
                 end if
 
                 do j = 1, n
@@ -377,7 +367,7 @@ contains
                         w(i+mh) = y(mh-i, j) + y(i+mh, j)
                     end do
                     w(mh) = TWO * y(mh, j)
-                    select case (modd)
+                    select case (m_odd)
                         case (1)
                             y(:m, j) = w(:m)
                         case (2)
@@ -392,7 +382,7 @@ contains
                 w(i) = ZERO
                 w(k+1) = TWO * w(k+1)
 
-                select case (modd)
+                select case (m_odd)
                     case (2)
                         w(iwbb-1) = w(k+1)
                     case default
@@ -406,9 +396,9 @@ contains
                 loop_108: do
                     if (nperod /= 4) then
 
-                        call postg2(np, n, m, w(iwba), w(iwbb), w(iwbc), idimy, y, &
-                            w, w(iwb2), w(iwb3), w(iww1), w(iww2), w(iww3), &
-                            w(iwd), w(iwtcos), w(iwp))
+                        call postg2(np, n, m, w(iwba:), w(iwbb:), w(iwbc:), idimy, y, &
+                            w, w(iwb2:), w(iwb3:), w(iww1:), w(iww2:), w(iww3:), &
+                            w(iwd:), w(iwtcos:), w(iwp:))
 
                         ipstor = int(w(iww1), kind=ip)
                         irev = 2
@@ -458,7 +448,7 @@ contains
                 w(mh-1:mh-mhm1:(-1)) = HALF * (y(mh+1:mhm1+mh, j)+y(:mhm1, j))
                 w(mh+1:mhm1+mh) = HALF * (y(mh+1:mhm1+mh, j)-y(:mhm1, j))
                 w(mh) = HALF * y(mh, j)
-                select case (modd)
+                select case (m_odd)
                     case (1)
                         y(:m, j) = w(:m)
                     case (2)
@@ -471,9 +461,7 @@ contains
 
         end associate
 
-
     end subroutine poistgg
-
 
     pure subroutine check_input_arguments(nperod, n, mperod, m, idimy, ierror, a, b, c)
         !--------------------------------------------------------------
@@ -519,15 +507,13 @@ contains
 
     end subroutine check_input_arguments
 
-
-
     function get_workspace_indices(n, m) result (return_value)
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
         integer(ip), intent(in) :: n
         integer(ip), intent(in) :: m
-        integer(ip)              :: return_value(11)
+        integer(ip)             :: return_value(11)
         !--------------------------------------------------------------
         integer(ip) :: j !! Counter
         !--------------------------------------------------------------
@@ -544,8 +530,6 @@ contains
         end associate
 
     end function get_workspace_indices
-
-
 
     subroutine postg2(nperod, n, m, a, bb, c, idimq, q, b, b2, b3, w, &
         w2, w3, d, tcos, p)
@@ -1022,7 +1006,6 @@ contains
                 select case (np)
                     case (1, 3)
                         tcos(k2) = TWO*real(np - 2, kind=wp)
-
                         call genbun_aux%cosgen(kr, 1, ZERO, ONE, tcos(k2+1))
                     case (2)
                         call genbun_aux%cosgen(kr + 1, 1, HALF, ZERO, tcos(k2))
@@ -1146,8 +1129,6 @@ contains
         end associate
 
     end subroutine postg2
-
-
 
 end module module_poistg
 !
