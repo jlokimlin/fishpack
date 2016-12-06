@@ -343,9 +343,16 @@ module module_hwscyl
     private
     public :: hwscyl
 
+    !---------------------------------------------------------------
+    ! Variables confined to the module
+    !---------------------------------------------------------------
+    real(wp), parameter :: ZERO = 0.0_wp
+    real(wp), parameter :: HALF = 0.5_wp
+    real(wp), parameter :: ONE = 1.0_wp
+    real(wp), parameter :: TWO = 2.0_wp
+    !---------------------------------------------------------------
 
 contains
-
 
     subroutine hwscyl(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror)
@@ -379,7 +386,7 @@ contains
         !
         !==> Check validity of input arguments
         !
-        if (a < 0.0_wp) then
+        if (a < ZERO) then
             ierror = 1
             return
         else if (a >= b) then
@@ -397,13 +404,13 @@ contains
         else if (nbdcnd <= (-1) .or. nbdcnd >= 5) then
             ierror = 6
             return
-        else if (a == 0.0_wp .and. (mbdcnd == 3 .or. mbdcnd == 4)) then
+        else if (a == ZERO .and. (mbdcnd == 3 .or. mbdcnd == 4)) then
             ierror = 7
             return
-        else if (a > 0.0_wp .and. mbdcnd >= 5) then
+        else if (a > ZERO .and. mbdcnd >= 5) then
             ierror = 8
             return
-        else if (a == 0.0_wp .and. elmbda /= 0.0_wp .and. mbdcnd >= 5) then
+        else if (a == ZERO .and. elmbda /= ZERO .and. mbdcnd >= 5) then
             ierror = 9
             return
         else if (idimf < m + 1) then
@@ -422,17 +429,13 @@ contains
         call workspace%compute_genbun_workspace_lengths(n, m, real_workspace_size)
         real_workspace_size = real_workspace_size + 3*m
         complex_workspace_size = 0
-
         call workspace%create(real_workspace_size, complex_workspace_size, ierror)
-
-        ! Check if allocation was succcessful
-        if (ierror == 20) return
 
         associate( rew => workspace%real_workspace )
             !
             !==> Solve system
             !
-            call hwscyll(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
+            call hwscyl_lower_routine(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
                 elmbda, f, idimf, pertrb, ierror, rew)
 
         end associate
@@ -444,9 +447,7 @@ contains
 
     end subroutine hwscyl
 
-
-
-    subroutine hwscyll(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
+    subroutine hwscyl_lower_routine(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror, w)
         !-----------------------------------------------
         ! Dummy arguments
@@ -467,8 +468,8 @@ contains
         real(wp),    intent(in)     :: bdb(:)
         real(wp),    intent(in)     :: bdc(:)
         real(wp),    intent(in)     :: bdd(:)
-        real(wp),    intent(inout) :: f(idimf,*)
-        real(wp),    intent(inout) :: w(*)
+        real(wp),    intent(inout) :: f(:,:)
+        real(wp),    intent(inout) :: w(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -526,15 +527,15 @@ contains
         id5 = id4 + munk
         id6 = id5 + munk
         istart = 1
-        a1 = 2.0_wp/dr2
+        a1 = TWO/dr2
         ij = 0
 
         if (mbdcnd==3 .or. mbdcnd==4) ij = 1
 
         if (mbdcnd > 4) then
             w(1) = 0.
-            w(id2+1) = -2.0_wp*a1
-            w(id3+1) = 2.0_wp*a1
+            w(id2+1) = -TWO*a1
+            w(id3+1) = TWO*a1
             istart = 2
             ij = 1
         end if
@@ -544,7 +545,7 @@ contains
             j = id5 + i
             w(j) = r
             j = id6 + i
-            w(j) = 1.0_wp/r**2
+            w(j) = ONE/r**2
             w(i) = (r - half_dr)/(r*dr2)
             j = id3 + i
             w(j) = (r + half_dr)/(r*dr2)
@@ -568,7 +569,7 @@ contains
                 a1 = w(1)
                 f(2, nstart:nstop) = f(2, nstart:nstop) - a1*f(1, nstart:nstop)
             case (3:4)
-                a1 = 2.0_wp*dr*w(1)
+                a1 = TWO*dr*w(1)
                 f(1, nstart:nstop) = f(1, nstart:nstop) + a1*bda(nstart:nstop)
         end select
 
@@ -577,7 +578,7 @@ contains
                 a1 = w(id4)
                 f(m, nstart:nstop) = f(m, nstart:nstop) - a1*f(mp1, nstart:nstop)
             case (2:3, 6)
-                a1 = 2.0_wp*dr*w(id4)
+                a1 = TWO*dr*w(id4)
                 f(mp1, nstart:nstop) = f(mp1, nstart:nstop) - a1*bdb(nstart:nstop)
         end select
 
@@ -585,7 +586,7 @@ contains
         !
         !==> Enter boundary data for z-boundaries.
         !
-        a1 = 1.0_wp/dth2
+        a1 = ONE/dth2
         l = id5 - mstart + 1
 
         if (np /= 1) then
@@ -597,7 +598,7 @@ contains
                     f(mstart:mstop, 1) = f(mstart:mstop, 1) + a1*bdc(mstart:mstop)
             end select
 
-            a1 = 1.0_wp/dth2
+            a1 = ONE/dth2
             select case (np)
                 case (2, 5)
                     f(mstart:mstop, n) = f(mstart:mstop, n) - a1*f(mstart:mstop, np1)
@@ -608,36 +609,36 @@ contains
         end if
 
         if_block: block
-            pertrb = 0.0_wp
-            if (elmbda >= 0.0_wp) then
-                if (elmbda /= 0.0_wp) then
+            pertrb = ZERO
+            if (elmbda >= ZERO) then
+                if (elmbda /= ZERO) then
                     ierror = 11
                     return
                 else
-                    w(id5+1) = 0.5_wp*(w(id5+2)-half_dr)
+                    w(id5+1) = HALF*(w(id5+2)-half_dr)
 
                     select case (mbdcnd)
                         case (1:2, 4:5)
                             exit if_block
                         case (6)
-                            w(id5+1) = 0.5_wp*w(id5+1)
+                            w(id5+1) = HALF*w(id5+1)
                     end select
 
                     select case (np)
                         case (1)
-                            a2 = 1.0_wp
+                            a2 = ONE
                         case (2:3, 5)
                             exit if_block
                         case (4)
-                            a2 = 2.0_wp
+                            a2 = TWO
                     end select
 
                     k = id5 + munk
-                    w(k) = 0.5_wp*(w(k-1)+half_dr)
-                    s = 0.0_wp
+                    w(k) = HALF*(w(k-1)+half_dr)
+                    s = ZERO
 
                     do i = mstart, mstop
-                        s1 = 0.0_wp
+                        s1 = ZERO
                         nsp1 = nstart + 1
                         nstm1 = nstop - 1
                         s1 = sum(f(i, nsp1:nstm1))
@@ -649,7 +650,7 @@ contains
 
                     if (mbdcnd == 3) s2 = s2 + 0.25_wp*half_dr
 
-                    s1 = (2.0_wp + a2*real(nunk - 2, kind=wp))*s2
+                    s1 = (TWO + a2*real(nunk-2, kind=wp))*s2
 
                     pertrb = s/s1
                     f(mstart:mstop, nstart:nstop) = &
@@ -662,23 +663,23 @@ contains
         w(id2+1:mstop-mstart+1+id2) = w(id2+1:mstop-mstart+1+id2)*dth2
         w(id3+1:mstop-mstart+1+id3) = w(id3+1:mstop-mstart+1+id3)*dth2
         f(mstart:mstop, nstart:nstop) = f(mstart:mstop, nstart:nstop)*dth2
-        w(1) = 0.0_wp
-        w(id4) = 0.0_wp
+        w(1) = ZERO
+        w(id4) = ZERO
         !
         !==> Solve the system of equations.
         !
         local_error_flag = 0
         i1 = 1
-        call genbunn(nbdcnd, nunk, i1, munk, w(1), w(id2+1), w(id3+1), &
-            idimf, f(mstart, nstart), local_error_flag, w(id4+1))
+        call genbunn(nbdcnd, nunk, i1, munk, w(1:), w(id2+1:), w(id3+1:), &
+            idimf, f(mstart:, nstart:), local_error_flag, w(id4+1:))
 
         if (local_error_flag /= 0) then
-            error stop 'fishpack library: genbunn call failed in hwscyll'
+            error stop 'fishpack library: genbunn call failed in hwscyl_lower_routine'
         end if
 
         if (nbdcnd == 0) f(mstart:mstop, np1) = f(mstart:mstop, 1)
 
-    end subroutine hwscyll
+    end subroutine hwscyl_lower_routine
 
 end module module_hwscyl
 !
