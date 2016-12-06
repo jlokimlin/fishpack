@@ -1126,125 +1126,132 @@ contains
 
                 call genbun_aux%trix(ideg, jdeg, m, ba, bb, bc, b, tcos, d, w)
 
-                if (jst <= 1) then
+                if_construct: if (jst <= 1) then
                     q(:m, j) = b(:m)
                 else
-                    if (jp2 > n) goto 177
+                    if (jp2 > n) then
+                        select case (irreg)
+                            case (2)
+                                if (j + jsh <= n) then
+                                    q(:m, j) = b(:m) + p(ipp+1:m+ipp)
+                                    ipp = ipp - m
+                                else
+                                    q(:m, j) = b(:m) + q(:m, j) - q(:m, jm1)
+                                end if
+                                exit if_construct
+                        end select
+                    end if
 
                     loop_175: do
-
                         q(:m, j) = HALF *(q(:m, j)-q(:m, jm1)-q(:m, jp1)) + b(:m)
                         cycle inner_loop
+                        select case (irreg)
+                            case (1)
+                                cycle loop_175
+                            case (2)
+                                if (j + jsh <= n) then
+                                    q(:m, j) = b(:m) + p(ipp+1:m+ipp)
+                                    ipp = ipp - m
+                                else
+                                    q(:m, j) = b(:m) + q(:m, j) - q(:m, jm1)
+                                end if
+                                exit loop_175
+                        end select
+                    end do loop_175
+                end if if_construct
+            end do inner_loop
 
-177                 continue
+            l = l/2
 
-                    select case (irreg)
-                        case (1)
-                            cycle loop_175
-                        case (2)
-                            if (j + jsh <= n) then
-                                q(:m, j) = b(:m) + p(ipp+1:m+ipp)
-                                ipp = ipp - m
-                            else
-                                q(:m, j) = b(:m) + q(:m, j) - q(:m, jm1)
-                            end if
-                            exit loop_175
-                    end select
-                end do loop_175
-            end if
-        end do inner_loop
+        end do loop_164
 
-        l = l/2
+        w(1) = ipstor
 
-    end do loop_164
+    end subroutine solve_poisson_dirichlet
 
-    w(1) = ipstor
+    subroutine solve_poisson_neumann(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
+        b3, w, w2, w3, d, tcos, p)
+        !
+        ! Purpose
+        !
+        !     To solve poisson's equation with neumann boundary
+        !     conditions.
+        !
+        !     istag = 1 if the last diagonal block is a.
+        !     istag = 2 if the last diagonal block is a-i.
+        !     mixbnd = 1 if have neumann boundary conditions at both boundaries.
+        !     mixbnd = 2 if have neumann boundary conditions at bottom and
+        !     dirichlet condition at top.  (for this case, must have istag = 1.)
+        !
+        !-----------------------------------------------
+        ! Dummy arguments
+        !-----------------------------------------------
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: istag
+        integer(ip), intent(in)     :: mixbnd
+        integer(ip), intent(in)     :: idimq
+        real(wp),    intent(in)     :: a(m)
+        real(wp),    intent(in)     :: bb(m)
+        real(wp),    intent(in)     :: c(m)
+        real(wp),    intent(inout) :: q(idimq,m)
+        real(wp),    intent(inout) :: b(m)
+        real(wp),    intent(inout) :: b2(m)
+        real(wp),    intent(inout) :: b3(m)
+        real(wp),    intent(inout) :: w(m)
+        real(wp),    intent(inout) :: w2(m)
+        real(wp),    intent(inout) :: w3(m)
+        real(wp),    intent(inout) :: d(m)
+        real(wp),    intent(inout) :: tcos(m)
+        real(wp),    intent(inout) :: p(4*n)
+        !-----------------------------------------------
+        ! Local variables
+        !-----------------------------------------------
+        integer(ip)     :: k(4)
+        integer(ip)     :: mr, ipp, ipstor, i2r, jr, nr, nlast, kr
+        integer(ip)     :: lr, i, nrod, jstart, jstop, i2rby2, j, jp1, jp2, jp3, jm1
+        integer(ip)     :: jm2, jm3, nrodpr, ii, i1, i2, jr2, nlastp, jstep
+        real(wp)        :: fistag, fnum, fden, fi, t
+        type(GenbunAux) :: genbun_aux
+        !-----------------------------------------------
 
-end subroutine solve_poisson_dirichlet
+        associate( &
+            k1 => k(1), &
+            k2 => k(2), &
+            k3 => k(3), &
+            k4 => k(4) &
+            )
 
-subroutine solve_poisson_neumann(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
-    b3, w, w2, w3, d, tcos, p)
-    !
-    ! Purpose
-    !
-    !     To solve poisson's equation with neumann boundary
-    !     conditions.
-    !
-    !     istag = 1 if the last diagonal block is a.
-    !     istag = 2 if the last diagonal block is a-i.
-    !     mixbnd = 1 if have neumann boundary conditions at both boundaries.
-    !     mixbnd = 2 if have neumann boundary conditions at bottom and
-    !     dirichlet condition at top.  (for this case, must have istag = 1.)
-    !
-    !-----------------------------------------------
-    ! Dummy arguments
-    !-----------------------------------------------
-    integer(ip), intent(in)     :: m
-    integer(ip), intent(in)     :: n
-    integer(ip), intent(in)     :: istag
-    integer(ip), intent(in)     :: mixbnd
-    integer(ip), intent(in)     :: idimq
-    real(wp),    intent(in)     :: a(m)
-    real(wp),    intent(in)     :: bb(m)
-    real(wp),    intent(in)     :: c(m)
-    real(wp),    intent(inout) :: q(idimq,m)
-    real(wp),    intent(inout) :: b(m)
-    real(wp),    intent(inout) :: b2(m)
-    real(wp),    intent(inout) :: b3(m)
-    real(wp),    intent(inout) :: w(m)
-    real(wp),    intent(inout) :: w2(m)
-    real(wp),    intent(inout) :: w3(m)
-    real(wp),    intent(inout) :: d(m)
-    real(wp),    intent(inout) :: tcos(m)
-    real(wp),    intent(inout) :: p(4*n)
-    !-----------------------------------------------
-    ! Local variables
-    !-----------------------------------------------
-    integer(ip)     :: k(4)
-    integer(ip)     :: mr, ipp, ipstor, i2r, jr, nr, nlast, kr
-    integer(ip)     :: lr, i, nrod, jstart, jstop, i2rby2, j, jp1, jp2, jp3, jm1
-    integer(ip)     :: jm2, jm3, nrodpr, ii, i1, i2, jr2, nlastp, jstep
-    real(wp)        :: fistag, fnum, fden, fi, t
-    type(GenbunAux) :: genbun_aux
-    !-----------------------------------------------
+            fistag = 3 - istag
+            fnum = ONE/istag
+            fden = HALF * real(istag - 1, kind=wp)
+            mr = m
+            ipp = -mr
+            ipstor = 0
+            i2r = 1
+            jr = 2
+            nr = n
+            nlast = n
+            kr = 1
+            lr = 0
 
-    associate( &
-        k1 => k(1), &
-        k2 => k(2), &
-        k3 => k(3), &
-        k4 => k(4) &
-        )
+            select case (istag)
+                case (1)
+                    goto 101
+                case (2)
+                    goto 103
+            end select
 
-        fistag = 3 - istag
-        fnum = ONE/istag
-        fden = HALF * real(istag - 1, kind=wp)
-        mr = m
-        ipp = -mr
-        ipstor = 0
-        i2r = 1
-        jr = 2
-        nr = n
-        nlast = n
-        kr = 1
-        lr = 0
+101     continue
 
-        select case (istag)
+        q(:mr, n) = HALF * q(:mr, n)
+
+        select case (mixbnd)
             case (1)
-                goto 101
-            case (2)
                 goto 103
+            case (2)
+                goto 104
         end select
-
-101 continue
-
-    q(:mr, n) = HALF * q(:mr, n)
-
-    select case (mixbnd)
-        case (1)
-            goto 103
-        case (2)
-            goto 104
-    end select
 
 103 continue
 
