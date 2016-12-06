@@ -943,63 +943,56 @@ contains
                 q(:m, j) = HALF *(q(:m, j)-q(:m, jm1)-q(:m, jp1)) + b(:m)
         end select
 
-164 continue
+        loop_164: do
 
-    jst = jst/2
-    jsh = jst/2
-    nun = 2*nun
+            jst = jst/2
+            jsh = jst/2
+            nun = 2*nun
 
-    if (nun > n) then
-        w(1) = ipstor
-        return
-    end if
-
-    do j = jst, n, l
-        jm1 = j - jsh
-        jp1 = j + jsh
-        jm2 = j - jst
-        jp2 = j + jst
-
-        if (j <= jst) then
-            b(:m) = q(:m, j) + q(:m, jp2)
-        else
-            if (jp2 <= n) then
-                goto 168
-            end if
-            b(:m) = q(:m, j) + q(:m, jm2)
-
-            if (jst < jstsav) then
-                irreg = 1
+            if (nun > n) then
+                w(1) = ipstor
+                return
             end if
 
-            select case (irreg)
-                case (1)
-                    goto 170
-                case (2)
-                    goto 171
-            end select
-168     continue
-        b(:m) = q(:m, j) + q(:m, jm2) + q(:m, jp2)
-    end if
+            inner_loop: do j = jst, n, l
+                jm1 = j - jsh
+                jp1 = j + jsh
+                jm2 = j - jst
+                jp2 = j + jst
 
-170 continue
+                if (j <= jst) then
+                    b(:m) = q(:m, j) + q(:m, jp2)
+                else
+                    if (jp2 > n) then
+                        b(:m) = q(:m, j) + q(:m, jm2)
+                        if (jst < jstsav) irreg = 1
 
-    call genbun_aux%cosgen(jst, 1, HALF, ZERO, tcos)
-    ideg = jst
-    jdeg = 0
-    goto 172
+                        select case (irreg)
+                            case (1)
+                                goto 170
+                            case (2)
+                                goto 171
+                        end select
+                    else
+                        b(:m) = q(:m, j) + q(:m, jm2) + q(:m, jp2)
+                    end if
+                end if
 
-171 continue
+170         continue
 
-    if (j + l > n) then
-        lr = lr - jst
-    end if
+            call genbun_aux%cosgen(jst, 1, HALF, ZERO, tcos)
+            ideg = jst
+            jdeg = 0
+            goto 172
 
-    kr = jst + lr
-    call genbun_aux%cosgen(kr, jstsav, ZERO, fi, tcos)
-    call genbun_aux%cosgen(lr, jstsav, ZERO, fi, tcos(kr+1:))
-    ideg = kr
-    jdeg = lr
+171     continue
+
+        if (j + l > n) lr = lr - jst
+        kr = jst + lr
+        call genbun_aux%cosgen(kr, jstsav, ZERO, fi, tcos)
+        call genbun_aux%cosgen(lr, jstsav, ZERO, fi, tcos(kr+1:))
+        ideg = kr
+        jdeg = lr
 
 172 continue
 
@@ -1015,7 +1008,7 @@ contains
 175 continue
 
     q(:m, j) = HALF *(q(:m, j)-q(:m, jm1)-q(:m, jp1)) + b(:m)
-    cycle
+    cycle inner_loop
 
 177 continue
 
@@ -1032,11 +1025,11 @@ contains
     end select
 
 end if
-end do
+end do inner_loop
 
 l = l/2
 
-goto 164
+end do loop_164
 
 w(1) = ipstor
 
