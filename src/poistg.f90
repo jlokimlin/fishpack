@@ -688,7 +688,7 @@ contains
                                         q(:mr, j) = q(:mr, j) - q(:mr, jm1) + q(:mr, jm2)
                                 end select
 
-                                if (lr /= 0) call genbun_aux%cosgen(lr, 1, fnum2, HALF, tcos(kr+1))
+                                if (lr /= 0) call genbun_aux%cosgen(lr, 1, fnum2, HALF, tcos(kr+1:))
 
                         end select
 
@@ -739,7 +739,7 @@ contains
                                 b(:mr) = p(ipp+1:mr+ipp) + q(:mr, jp2)
 
                                 if (lr /= 0) then
-                                    call genbun_aux%cosgen(lr, 1, fnum2, HALF, tcos(i2r+1))
+                                    call genbun_aux%cosgen(lr, 1, fnum2, HALF, tcos(i2r+1:))
                                     call genbun_aux%merger(tcos, 0, i2r, i2r, lr, kr)
                                 else
                                     do i = 1, i2r
@@ -854,11 +854,11 @@ contains
                                 k1 = nlast - 1
                                 k2 = nlast + jr - 1
 
-                                call genbun_aux%cosgen(jr - 1, 1, ZERO, ONE, tcos(nlast))
+                                call genbun_aux%cosgen(jr - 1, 1, ZERO, ONE, tcos(nlast:))
 
                                 tcos(k2) = TWO*real(np - 2, kind=wp)
 
-                                call genbun_aux%cosgen(jr, 1, HALF - fnum, HALF, tcos(k2+1))
+                                call genbun_aux%cosgen(jr, 1, HALF - fnum, HALF, tcos(k2+1:))
 
                                 k3 = (3 - np)/2
 
@@ -866,7 +866,7 @@ contains
 
                                 k1 = k1 - 1 + k3
 
-                                call genbun_aux%cosgen(jr, 1, fnum, HALF, tcos(k1+1))
+                                call genbun_aux%cosgen(jr, 1, fnum, HALF, tcos(k1+1:))
 
                                 k2 = jr
                                 k3 = 0
@@ -881,15 +881,15 @@ contains
                                 k1 = nlast + jr - 1
                                 k2 = k1 + jr - 1
 
-                                call genbun_aux%cosgen(jr - 1, 1, ZERO, ONE, tcos(k1+1))
-                                call genbun_aux%cosgen(nlast, 1, HALF, ZERO, tcos(k2+1))
+                                call genbun_aux%cosgen(jr - 1, 1, ZERO, ONE, tcos(k1+1:))
+                                call genbun_aux%cosgen(nlast, 1, HALF, ZERO, tcos(k2+1:))
                                 call genbun_aux%merger(tcos, k1, jr - 1, k2, nlast, 0)
 
                                 k3 = k1 + nlast - 1
                                 k4 = k3 + jr
 
-                                call genbun_aux%cosgen(jr, 1, HALF, HALF, tcos(k3+1))
-                                call genbun_aux%cosgen(jr, 1, ZERO, HALF, tcos(k4+1))
+                                call genbun_aux%cosgen(jr, 1, HALF, HALF, tcos(k3+1:))
+                                call genbun_aux%cosgen(jr, 1, ZERO, HALF, tcos(k4+1:))
                                 call genbun_aux%merger(tcos, k3, jr, k4, jr, k1)
 
                                 k2 = nlast - 1
@@ -935,14 +935,21 @@ contains
 
                     k1 = kr + 2*jr
 
-                    call genbun_aux%cosgen(jr - 1, 1, ZERO, ONE, tcos(k1+1))
+                    call genbun_aux%cosgen(jr - 1, 1, ZERO, ONE, tcos(k1+1:))
 
                     k2 = k1 + jr
                     tcos(k2) = TWO*real(np - 2, kind=wp)
                     k4 = (np - 1)*(3 - np)
                     k3 = k2 + 1 - k4
 
-                    call genbun_aux%cosgen(kr+jr+k4, 1, real(k4, kind=wp)/2, ONE-real(k4, kind=wp), tcos(k3))
+                    !cosgen(n, ijump, fnum, fden, a)
+                    associate( &
+                        n_arg => kr+jr+k4, &
+                        fnum_arg => real(k4, kind=wp)/2, &
+                        fden_arg => ONE-real(k4, kind=wp) &
+                        )
+                        call genbun_aux%cosgen(n_arg, 1, fnum_arg , fden_arg, tcos(k3:))
+                    end associate
 
                     k4 = 1 - np/3
 
@@ -953,18 +960,18 @@ contains
                     k2 = kr + jr
                     k4 = k1 + k2
 
-                    call genbun_aux%cosgen(kr, 1, fnum2, HALF, tcos(k4+1))
+                    call genbun_aux%cosgen(kr, 1, fnum2, HALF, tcos(k4+1:))
 
                     k3 = k4 + kr
 
-                    call genbun_aux%cosgen(jr, 1, fnum, HALF, tcos(k3+1))
+                    call genbun_aux%cosgen(jr, 1, fnum, HALF, tcos(k3+1:))
                     call genbun_aux%merger(tcos, k4, kr, k3, jr, k1)
 
                     k4 = k3 + jr
 
-                    call genbun_aux%cosgen(lr, 1, fnum2, HALF, tcos(k4+1))
+                    call genbun_aux%cosgen(lr, 1, fnum2, HALF, tcos(k4+1:))
                     call genbun_aux%merger(tcos, k3, jr, k4, lr, k1 + k2)
-                    call genbun_aux%cosgen(kr, 1, fnum2, HALF, tcos(k3+1))
+                    call genbun_aux%cosgen(kr, 1, fnum2, HALF, tcos(k3+1:))
 
                     k3 = kr
                     k4 = kr
@@ -1001,14 +1008,14 @@ contains
                 k1 = kr + jr
                 k2 = k1 + jr
 
-                call genbun_aux%cosgen(jr - 1, 1, ZERO, ONE, tcos(k1+1))
+                call genbun_aux%cosgen(jr - 1, 1, ZERO, ONE, tcos(k1+1:))
 
                 select case (np)
                     case (1, 3)
                         tcos(k2) = TWO*real(np - 2, kind=wp)
-                        call genbun_aux%cosgen(kr, 1, ZERO, ONE, tcos(k2+1))
+                        call genbun_aux%cosgen(kr, 1, ZERO, ONE, tcos(k2+1:))
                     case (2)
-                        call genbun_aux%cosgen(kr + 1, 1, HALF, ZERO, tcos(k2))
+                        call genbun_aux%cosgen(kr + 1, 1, HALF, ZERO, tcos(k2:))
                 end select
 
                 k4 = 1 - np/3
@@ -1019,11 +1026,11 @@ contains
 
                 k2 = kr
 
-                call genbun_aux%cosgen(kr, 1, fnum2, HALF, tcos(k1+1))
+                call genbun_aux%cosgen(kr, 1, fnum2, HALF, tcos(k1+1:))
 
                 k4 = k1 + kr
 
-                call genbun_aux%cosgen(lr, 1, fnum2, HALF, tcos(k4+1))
+                call genbun_aux%cosgen(lr, 1, fnum2, HALF, tcos(k4+1:))
 
                 k3 = lr
                 k4 = 0
@@ -1060,7 +1067,7 @@ contains
                 end if
 
                 call genbun_aux%cosgen(kr, 1, fnum2, HALF, tcos)
-                call genbun_aux%cosgen(lr, 1, fnum2, HALF, tcos(kr+1))
+                call genbun_aux%cosgen(lr, 1, fnum2, HALF, tcos(kr+1:))
                 call genbun_aux%trix(kr, lr, mr, a, bb, c, b, tcos, d, w)
 
                 q(:mr, nlast) = q(:mr, nlast) + b(:mr)

@@ -776,7 +776,7 @@ contains
                         select case (irreg)
                             case (2)
                                 call genbun_aux%cosgen(kr, jstsav, ZERO, fi, tcos)
-                                call genbun_aux%cosgen(lr, jstsav, ZERO, fi, tcos(kr+1))
+                                call genbun_aux%cosgen(lr, jstsav, ZERO, fi, tcos(kr+1:))
                                 ideg = kr
                                 kr = kr + jst
                             case default
@@ -866,7 +866,7 @@ contains
                                 tcos(krpi) = tcos(i)
                             end do
                         else
-                            call genbun_aux%cosgen(lr, jstsav, ZERO, fi, tcos(jst+1))
+                            call genbun_aux%cosgen(lr, jstsav, ZERO, fi, tcos(jst+1:))
                             call genbun_aux%merger(tcos, 0, jst, jst, lr, kr)
                         end if
 
@@ -897,7 +897,7 @@ contains
             case (2)
                 kr = lr + jst
                 call genbun_aux%cosgen(kr, jstsav, ZERO, fi, tcos)
-                call genbun_aux%cosgen(lr, jstsav, ZERO, fi, tcos(kr+1))
+                call genbun_aux%cosgen(lr, jstsav, ZERO, fi, tcos(kr+1:))
                 ideg = kr
             case default
                 call genbun_aux%cosgen(jst, 1, HALF, ZERO, tcos)
@@ -975,7 +975,7 @@ contains
 
     kr = jst + lr
     call genbun_aux%cosgen(kr, jstsav, ZERO, fi, tcos)
-    call genbun_aux%cosgen(lr, jstsav, ZERO, fi, tcos(kr+1))
+    call genbun_aux%cosgen(lr, jstsav, ZERO, fi, tcos(kr+1:))
     ideg = kr
     jdeg = lr
 
@@ -1204,7 +1204,7 @@ subroutine poisn2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
                 q(:mr, j) = q(:mr, j) - q(:mr, jm1) + q(:mr, jm2)
             end if
             if (lr /= 0) then
-                call genbun_aux%cosgen(lr, 1, HALF, fden, tcos(kr+1))
+                call genbun_aux%cosgen(lr, 1, HALF, fden, tcos(kr+1:))
             else
                 b(:mr) = fistag*b(:mr)
             end if
@@ -1252,7 +1252,7 @@ subroutine poisn2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
         b(:mr) = p(ipp+1:mr+ipp) + q(:mr, jp2)
 
         if (lr /= 0) then
-            call genbun_aux%cosgen(lr, 1, HALF, fden, tcos(i2r+1))
+            call genbun_aux%cosgen(lr, 1, HALF, fden, tcos(i2r+1:))
             call genbun_aux%merger(tcos, 0, i2r, i2r, lr, kr)
         else
             do i = 1, i2r
@@ -1444,26 +1444,26 @@ goto 104
     tcos(k1+1) = -2.
     k4 = k1 + 3 - istag
 
-    call genbun_aux%cosgen(k2 + istag - 2, 1, ZERO, fnum, tcos(k4))
+    call genbun_aux%cosgen(k2 + istag - 2, 1, ZERO, fnum, tcos(k4:))
 
     k4 = k1 + k2 + 1
 
-    call genbun_aux%cosgen(jr - 1, 1, ZERO, ONE, tcos(k4))
+    call genbun_aux%cosgen(jr - 1, 1, ZERO, ONE, tcos(k4:))
     call genbun_aux%merger(tcos, k1, k2, k1 + k2, jr - 1, 0)
 
     k3 = k1 + k2 + lr
 
-    call genbun_aux%cosgen(jr, 1, HALF, ZERO, tcos(k3+1))
+    call genbun_aux%cosgen(jr, 1, HALF, ZERO, tcos(k3+1:))
 
     k4 = k3 + jr + 1
 
-    call genbun_aux%cosgen(kr, 1, HALF, fden, tcos(k4))
+    call genbun_aux%cosgen(kr, 1, HALF, fden, tcos(k4:))
     call genbun_aux%merger(tcos, k3, jr, k3 + jr, kr, k1)
 
     if (lr /= 0) then
-        call genbun_aux%cosgen(lr, 1, HALF, fden, tcos(k4))
+        call genbun_aux%cosgen(lr, 1, HALF, fden, tcos(k4:))
         call genbun_aux%merger(tcos, k3, jr, k3 + jr, lr, k3 - lr)
-        call genbun_aux%cosgen(kr, 1, HALF, fden, tcos(k4))
+        call genbun_aux%cosgen(kr, 1, HALF, fden, tcos(k4:))
     end if
 
     k3 = kr
@@ -1521,18 +1521,18 @@ k1 = kr + jr - 1
 tcos(k1+1) = -2.
 k4 = k1 + 3 - istag
 
-call genbun_aux%cosgen(kr + istag - 2, 1, ZERO, fnum, tcos(k4))
+call genbun_aux%cosgen(kr + istag - 2, 1, ZERO, fnum, tcos(k4:))
 
 k4 = k1 + kr + 1
 
-call genbun_aux%cosgen(jr - 1, 1, ZERO, ONE, tcos(k4))
+call genbun_aux%cosgen(jr - 1, 1, ZERO, ONE, tcos(k4:))
 call genbun_aux%merger(tcos, k1, kr, k1 + kr, jr - 1, 0)
-call genbun_aux%cosgen(kr, 1, HALF, fden, tcos(k1+1))
+call genbun_aux%cosgen(kr, 1, HALF, fden, tcos(k1+1:))
 
 k2 = kr
 k4 = k1 + k2 + 1
 
-call genbun_aux%cosgen(lr, 1, HALF, fden, tcos(k4))
+call genbun_aux%cosgen(lr, 1, HALF, fden, tcos(k4:))
 
 k3 = lr
 k4 = 0
@@ -1572,7 +1572,7 @@ goto 194
         end if
     end if
     call genbun_aux%cosgen(kr, 1, HALF, fden, tcos)
-    call genbun_aux%cosgen(lr, 1, HALF, fden, tcos(kr+1))
+    call genbun_aux%cosgen(lr, 1, HALF, fden, tcos(kr+1:))
 
     if (lr == 0) then
         b(:mr) = fistag*b(:mr)

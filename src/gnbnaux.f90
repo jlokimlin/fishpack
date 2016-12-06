@@ -144,7 +144,7 @@ contains
         integer(ip), intent(in)  :: ijump
         real(wp),    intent(in)  :: fnum
         real(wp),    intent(in)  :: fden
-        real(wp),    intent(out) :: a(n)
+        real(wp),    intent(out) :: a(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -205,7 +205,7 @@ contains
         real(wp),    intent(in)     :: b(m)
         real(wp),    intent(in)     :: c(m)
         real(wp),    intent(inout)  :: y(m)
-        real(wp),    intent(in)     :: tcos(*)
+        real(wp),    intent(in)     :: tcos(:)
         real(wp),    intent(inout)  :: d(m)
         real(wp),    intent(inout)  :: w(m)
         !-----------------------------------------------
@@ -284,7 +284,7 @@ contains
         real(wp),    intent(inout) :: y1(m)
         real(wp),    intent(inout) :: y2(m)
         real(wp),    intent(inout) :: y3(m)
-        real(wp),    intent(in)    :: tcos(*)
+        real(wp),    intent(in)    :: tcos(:)
         real(wp),    intent(inout) :: d(m)
         real(wp),    intent(inout) :: w1(m)
         real(wp),    intent(inout) :: w2(m)
@@ -398,7 +398,7 @@ contains
         integer(ip), intent(in)     :: i2
         integer(ip), intent(in)     :: m2
         integer(ip), intent(in)     :: i3
-        real(wp),    intent(inout) :: tcos(*)
+        real(wp),    intent(inout) :: tcos(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
