@@ -297,23 +297,21 @@ contains
 
     end subroutine genbun
 
-
-
     subroutine genbunn(nperod, n, mperod, m, a, b, c, idimy, y, ierror, w)
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        integer(ip),          intent(in)     :: nperod
-        integer(ip),          intent(in)     :: n
-        integer(ip),          intent(in)     :: mperod
-        integer(ip),          intent(in)     :: m
-        integer(ip),          intent(in)     :: idimy
-        integer(ip),          intent(out)    :: ierror
-        real(wp),             intent(in)     :: a(m)
-        real(wp),             intent(in)     :: b(m)
-        real(wp),             intent(in)     :: c(m)
-        real(wp),             intent(inout) :: y(idimy,n)
-        real(wp),             intent(inout) :: w(*)
+        integer(ip), intent(in)    :: nperod
+        integer(ip), intent(in)    :: n
+        integer(ip), intent(in)    :: mperod
+        integer(ip), intent(in)    :: m
+        integer(ip), intent(in)    :: idimy
+        integer(ip), intent(out)   :: ierror
+        real(wp),    intent(in)    :: a(m)
+        real(wp),    intent(in)    :: b(m)
+        real(wp),    intent(in)    :: c(m)
+        real(wp),    intent(inout) :: y(idimy,n)
+        real(wp),    intent(inout) :: w(*)
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
@@ -332,7 +330,7 @@ contains
         if (ierror /= 0) return
 
         !
-        !==> Compute workspace indices
+        !==> Set up workspace for lower routine poisson solvers
         !
         workspace_indices = get_workspace_indices(n, m)
 
@@ -403,18 +401,18 @@ contains
 
                 select case (np)
                     case (1)
-                        call poisp2(m, n, w(iwba), w(iwbb), w(iwbc), &
+                        call solve_poisson_periodic(m, n, w(iwba), w(iwbb), w(iwbc), &
                             y, idimy, w, w(iwb2), w(iwb3), w(iww1), &
                             w(iww2), w(iww3), w(iwd), w(iwtcos), w(iwp) )
                     case (2)
-                        call poisd2(m, n, 1, w(iwba), w(iwbb), w(iwbc), &
+                        call solve_poisson_dirichlet(m, n, 1, w(iwba), w(iwbb), w(iwbc), &
                             y, idimy, w, w(iww1), w(iwd), w(iwtcos), w(iwp))
                     case (3)
-                        call poisn2(m, n, 1, 2, w(iwba), w(iwbb), w(iwbc), &
+                        call solve_poisson_neumann(m, n, 1, 2, w(iwba), w(iwbb), w(iwbc), &
                             y, idimy, w, w(iwb2), w(iwb3), w(iww1), w(iww2),  &
                             w(iww3), w(iwd), w(iwtcos), w(iwp))
                     case (4)
-                        call poisn2(m, n, 1, 1, w(iwba), w(iwbb), w(iwbc), &
+                        call solve_poisson_neumann(m, n, 1, 1, w(iwba), w(iwbb), w(iwbc), &
                             y, idimy, w, w(iwb2), w(iwb3), w(iww1), w(iww2), &
                             w(iww3), w(iwd), w(iwtcos), w(iwp))
                 end select
@@ -503,7 +501,7 @@ contains
 
                         select case (irev)
                             case (1)
-                                call poisn2(m, n, 1, 2, w(iwba), w(iwbb), w(iwbc), &
+                                call solve_poisson_neumann(m, n, 1, 2, w(iwba), w(iwbb), w(iwbc), &
                                     y, idimy, w, w(iwb2), w(iwb3), w(iww1), w(iww2),  &
                                     w(iww3), w(iwd), w(iwtcos), w(iwp))
 
@@ -540,8 +538,6 @@ contains
         end associate
 
     end subroutine genbunn
-
-
 
     pure subroutine check_input_arguments(nperod, n, mperod, m, idimy, ierror, a, b, c)
         !--------------------------------------------------------------
@@ -634,7 +630,7 @@ contains
 
     end function get_workspace_indices
 
-    subroutine poisd2(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
+    subroutine solve_poisson_dirichlet(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
         !
         ! Purpose:
         !
@@ -1018,12 +1014,9 @@ goto 164
 
 w(1) = ipstor
 
-end subroutine poisd2
+end subroutine solve_poisson_dirichlet
 
-
-
-
-subroutine poisn2(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
+subroutine solve_poisson_neumann(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
     b3, w, w2, w3, d, tcos, p)
     !
     ! Purpose
@@ -1651,25 +1644,24 @@ goto 194
 
 end associate
 
-end subroutine poisn2
+end subroutine solve_poisson_neumann
 
-
-subroutine poisp2(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
+subroutine solve_poisson_periodic(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
     !
     ! Purpose:
     !
-    !     subroutine to solve poisson equation with periodic boundary
-    !     conditions.
+    !     Solve poisson equation with periodic
+    !     boundary conditions.
     !
     !-----------------------------------------------
     ! Dummy arguments
     !-----------------------------------------------
-    integer(ip), intent(in)     :: m
-    integer(ip), intent(in)     :: n
-    integer(ip), intent(in)     :: idimq
-    real(wp),    intent(in)     :: a(m)
-    real(wp),    intent(in)     :: bb(m)
-    real(wp),    intent(in)     :: c(m)
+    integer(ip), intent(in)    :: m
+    integer(ip), intent(in)    :: n
+    integer(ip), intent(in)    :: idimq
+    real(wp),    intent(in)    :: a(m)
+    real(wp),    intent(in)    :: bb(m)
+    real(wp),    intent(in)    :: c(m)
     real(wp),    intent(inout) :: q(idimq,m)
     real(wp),    intent(inout) :: b(m)
     real(wp),    intent(inout) :: b2(m)
@@ -1710,11 +1702,11 @@ subroutine poisp2(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
         q(:mr, nr) = TWO * q(:mr, nr)
         q(:mr, n) = TWO * q(:mr, n)
 
-        call poisd2(mr, nrm1, 1, a, bb, c, q, idimq, b, w, d, tcos, p)
+        call solve_poisson_dirichlet(mr, nrm1, 1, a, bb, c, q, idimq, b, w, d, tcos, p)
 
         ipstor = w(1)
 
-        call poisn2(mr, (nr + 1), 1, 1, a, bb, c, q(1, nr), idimq, b, b2, &
+        call solve_poisson_neumann(mr, (nr + 1), 1, 1, a, bb, c, q(1, nr), idimq, b, b2, &
             b3, w, w2, w3, d, tcos, p)
 
         ipstor = max(ipstor, w(1))
@@ -1754,12 +1746,12 @@ subroutine poisp2(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
             end do
         end do
 
-        call poisd2(mr, nrm1, 2, a, bb, c, q, &
+        call solve_poisson_dirichlet(mr, nrm1, 2, a, bb, c, q, &
             idimq, b, w, d, tcos, p)
 
         ipstor = w(1)
 
-        call poisn2(mr, nr, 2, 1, a, bb, c, q(1, nr), &
+        call solve_poisson_neumann(mr, nr, 2, 1, a, bb, c, q(1, nr), &
             idimq, b, b2, b3, w, w2, w3, d, tcos, p)
 
         ipstor = max(ipstor, w(1))
@@ -1788,8 +1780,7 @@ subroutine poisp2(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
 
     w(1) = ipstor
 
-end subroutine poisp2
-
+end subroutine solve_poisson_periodic
 
 end module module_genbun
 !
