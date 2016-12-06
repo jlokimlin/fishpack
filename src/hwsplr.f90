@@ -351,9 +351,16 @@ module module_hwsplr
     private
     public :: hwsplr
 
+    !---------------------------------------------------------------
+    ! Variables confined to the module
+    !---------------------------------------------------------------
+    real(wp), parameter :: ZERO = 0.0_wp
+    real(wp), parameter :: HALF = 0.5_wp
+    real(wp), parameter :: ONE = 1.0_wp
+    real(wp), parameter :: TWO = 2.0_wp
+    !---------------------------------------------------------------
 
 contains
-
 
     subroutine hwsplr(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror)
@@ -387,7 +394,7 @@ contains
         !
         !==> Check validity of input arguments
         !
-        if (a < 0.0_wp) then
+        if (a < ZERO) then
             ierror = 1
             return
         else if (a >= b) then
@@ -405,10 +412,10 @@ contains
         else if (nbdcnd <= -1 .or. nbdcnd >= 5) then
             ierror = 6
             return
-        else if (a == 0.0_wp .and. (mbdcnd==3 .or. mbdcnd==4)) then
+        else if (a == ZERO .and. (mbdcnd==3 .or. mbdcnd==4)) then
             ierror = 7
             return
-        else if (a > 0.0_wp .and. mbdcnd >= 5) then
+        else if (a > ZERO .and. mbdcnd >= 5) then
             ierror = 8
             return
         else if (mbdcnd >= 5 .and. nbdcnd /= 0 .and. nbdcnd /= 3) then
@@ -427,7 +434,7 @@ contains
         !
         !==> Compute workspace arrays sizes
         !
-        real_workspace_size = 4*(n+1)+(m+1)*(13+int(log(real(n+1, kind=wp))/log(2.0_wp)))
+        real_workspace_size = 4*(n+1)+(m+1)*(13+int(log(real(n+1, kind=wp))/log(TWO)))
         complex_workspace_size = 0
 
         !
@@ -439,7 +446,7 @@ contains
             !
             !==> Solve system
             !
-            call hwsplrr(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
+            call hwsplr_lower_routine(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
                 elmbda, f, idimf, pertrb, ierror, rew)
 
         end associate
@@ -451,9 +458,7 @@ contains
 
     end subroutine hwsplr
 
-
-
-    subroutine hwsplrr(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc &
+    subroutine hwsplr_lower_routine(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc &
         , bdd, elmbda, f, idimf, pertrb, ierror, w)
         !-----------------------------------------------
         ! Dummy arguments
@@ -474,8 +479,8 @@ contains
         real(wp),    intent(in)     :: bdb(:)
         real(wp),    intent(in)     :: bdc(:)
         real(wp),    intent(in)     :: bdd(:)
-        real(wp),    intent(inout) :: f(idimf,*)
-        real(wp),    intent(inout) :: w(*)
+        real(wp),    intent(inout)  :: f(:,:)
+        real(wp),    intent(inout)  :: w(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -535,17 +540,17 @@ contains
         id4 = id3 + munk
         id5 = id4 + munk
         id6 = id5 + munk
-        a1 = 2.0_wp/dr2
+        a1 = TWO/dr2
         ij = 0
 
-        if (mbdcnd==3 .or. mbdcnd==4) ij = 1
+        if (mbdcnd == 3 .or. mbdcnd == 4) ij = 1
 
         do i = 1, munk
             r = a + real(i - ij, kind=wp)*dr
             j = id5 + i
             w(j) = r
             j = id6 + i
-            w(j) = 1.0_wp/r**2
+            w(j) = ONE/r**2
             w(i) = (r - half_dr)/(r*dr2)
             j = id3 + i
             w(j) = (r + half_dr)/(r*dr2)
@@ -568,7 +573,7 @@ contains
                 a1 = w(1)
                 f(2, nstart:nstop) = f(2, nstart:nstop) - a1*f(1, nstart:nstop)
             case (3:4)
-                a1 = 2.0_wp * dr*w(1)
+                a1 = TWO * dr*w(1)
                 f(1, nstart:nstop) = f(1, nstart:nstop) + a1*bda(nstart:nstop)
         end select
 
@@ -577,14 +582,14 @@ contains
                 a1 = w(id4)
                 f(m, nstart:nstop) = f(m, nstart:nstop) - a1*f(mp1, nstart:nstop)
             case (2:3, 6)
-                a1 = 2.0_wp * dr*w(id4)
+                a1 = TWO * dr*w(id4)
                 f(mp1, nstart:nstop) = f(mp1, nstart:nstop) - a1*bdb(nstart:nstop)
         end select
 
         !
         !==> Enter boundary data for theta-boundaries.
         !
-        a1 = 1.0_wp/dt2
+        a1 = ONE/dt2
         l = id5 - mstart + 1
         lp = id6 - mstart + 1
 
@@ -594,19 +599,19 @@ contains
                     f(mstart:mstop, 2) = f(mstart:mstop, 2) - a1*w(mstart+lp:mstop+lp)*f &
                         (mstart:mstop, 1)
                 case (4:5)
-                    a1 = 2.0_wp/dt
+                    a1 = TWO/dt
                     f(mstart:mstop, 1) = f(mstart:mstop, 1) + a1*w(mstart+lp:mstop+lp)* &
                         bdc(mstart:mstop)
             end select
 
-            a1 = 1.0_wp/dt2
+            a1 = ONE/dt2
 
             select case (np)
                 case (2, 5)
                     f(mstart:mstop, n) = f(mstart:mstop, n) &
                         - a1*w(mstart+lp:mstop+lp) * f(mstart:mstop, np1)
                 case (3:4)
-                    a1 = 2.0_wp/dt
+                    a1 = TWO/dt
                     f(mstart:mstop, np1) = f(mstart:mstop, np1) &
                         - a1 * w(mstart+lp:mstop+lp) * bdd(mstart:mstop)
             end select
@@ -619,35 +624,35 @@ contains
         !     adjust right side of singular problems to insure existence of a
         !     solution.
         !
-        pertrb = 0.0_wp
+        pertrb = ZERO
 
-        if_construct: if (elmbda >= 0.0_wp) then
-            if (elmbda /= 0.0_wp) then
+        if_construct: if (elmbda >= ZERO) then
+            if (elmbda /= ZERO) then
                 ierror = 11
                 return
             else
-                if (nbdcnd==0 .or. nbdcnd==3) then
-                    s2 = 0.0_wp
+                if (nbdcnd == 0 .or. nbdcnd == 3) then
+                    s2 = ZERO
                     select case (mbdcnd)
                         case (1:2, 4:5)
                             exit if_construct
                         case (3)
-                            w(id5+1) = 0.5_wp * (w(id5+2)-half_dr)
+                            w(id5+1) = HALF * (w(id5+2)-half_dr)
                             s2 = 0.25_wp * dr
                     end select
 
                     if (nbdcnd == 0) then
-                        a2 = 1.0_wp
+                        a2 = ONE
                     else
-                        a2 = 2.0_wp
+                        a2 = TWO
                     end if
 
                     j = id5 + munk
-                    w(j) = 0.5_wp * (w(j-1)+half_dr)
-                    s = 0.0_wp
+                    w(j) = HALF * (w(j-1)+half_dr)
+                    s = ZERO
 
                     do i = mstart, mstop
-                        s1 = 0.0_wp
+                        s1 = ZERO
                         ij = nstart + 1
                         k = nstop - 1
                         s1 = sum(f(i, ij:k))
@@ -655,8 +660,8 @@ contains
                         s = s + (a2*s1 + f(i, nstart)+f(i, nstop))*w(j)
                     end do
 
-                    s2=real(m, kind=wp)*a+dr*(real((m-1)*(m+1), kind=wp)*0.5_wp+0.25_wp)+s2
-                    s1 = (2.0_wp + a2*real(nunk - 2, kind=wp))*s2
+                    s2=real(m, kind=wp)*a+dr*(real((m-1)*(m+1), kind=wp)*HALF+0.25_wp)+s2
+                    s1 = (TWO + a2*real(nunk - 2, kind=wp))*s2
 
                     if (mbdcnd /= 3) then
                         s2 = (real(n, kind=wp)*a2*dr)/8
@@ -684,20 +689,29 @@ contains
             f(i, nstart:nstop) = a1*f(i, nstart:nstop)
         end do
 
-        w(1) = 0.0_wp
-        w(id4) = 0.0_wp
+        w(1) = ZERO
+        w(id4) = ZERO
         !
         !==> Solve the system of equations.
         !
         i1 = 1
         local_error_flag = 0
+        associate( &
+            a_arg => w(1:munk), &
+            b_arg => w(id2+1:id2+1+munk), &
+            c_arg => w(id3+1:id3+1+munk), &
+            y_arg => f(mstart:,nstart:nstart+nunk), &
+            w_arg => w(id4+1:) &
+            )
+            call genbunn(nbdcnd, nunk, i1, munk, a_arg, b_arg, c_arg, &
+                idimf, y_arg, local_error_flag, w_arg)
+        end associate
 
-        call genbunn(nbdcnd, nunk, i1, munk, w(1), w(id2+1), w(id3+1), &
-            idimf, f(mstart, nstart), local_error_flag, w(id4+1))
-
+        ! Check error flag
         if (local_error_flag /= 0) then
-            error stop 'fishpack library: genbunn call failed in hwsplrr'
+            error stop 'fishpack library: genbunn call failed in hwsplr_lower_routine'
         end if
+
 
         select case (mbdcnd)
             case (1:4)
@@ -714,23 +728,23 @@ contains
                     w(j) = w(i)/(w(lp)-w(k)*w(j+1))
                 end do
 
-                w(id5+1) = -0.5_wp * dt2/(w(id2+1)-w(id3+1)*w(id5+2))
+                w(id5+1) = -HALF * dt2/(w(id2+1)-w(id3+1)*w(id5+2))
 
                 do i = 2, munk
                     j = id5 + i
                     w(j) = -w(j)*w(j-1)
                 end do
 
-                s = 0.0_wp
+                s = ZERO
                 s = sum(f(2, nstart:nstop))
                 a2 = nunk
 
                 if (nbdcnd /= 0) then
-                    s = s - 0.5_wp * (f(2, nstart)+f(2, nstop))
-                    a2 = a2 - 1.0_wp
+                    s = s - HALF * (f(2, nstart)+f(2, nstop))
+                    a2 = a2 - ONE
                 end if
 
-                ypole = (0.25_wp *dr2*f(1, 1)-s/a2)/(w(id5+1)-1.0_wp + elmbda*dr2* 0.25_wp)
+                ypole = (0.25_wp *dr2*f(1, 1)-s/a2)/(w(id5+1)-ONE + elmbda*dr2* 0.25_wp)
 
                 do i = mstart, mstop
                     k = l + i
@@ -745,18 +759,14 @@ contains
                 !
                 !==> Adjust the solution as necessary for the problems where a = 0.
                 !
-                if (elmbda == 0.0_wp) then
-
-                    ypole = 0.0_wp
+                if (elmbda == ZERO) then
+                    ypole = ZERO
                     f(1, :np1) = ypole
-
                     if (nbdcnd == 0) f(mstart:mstop, np1) = f(mstart:mstop, 1)
-
                 end if
         end select
 
-    end subroutine hwsplrr
-
+    end subroutine hwsplr_lower_routine
 
 end module module_hwsplr
 !

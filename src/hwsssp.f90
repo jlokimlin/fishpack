@@ -411,9 +411,7 @@ module module_hwsssp
     private
     public :: hwsssp
 
-
 contains
-
 
     subroutine hwsssp(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
         bdps, bdpf, elmbda, f, idimf, pertrb, ierror)
@@ -436,14 +434,13 @@ contains
         real(wp),    intent(in)     :: bdtf(:)
         real(wp),    intent(in)     :: bdps(:)
         real(wp),    intent(in)     :: bdpf(:)
-        real(wp),    intent(inout) :: f(:,:)
+        real(wp),    intent(inout)  :: f(:,:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
         type(Fish)  :: workspace
         integer(ip) :: real_workspace_size, complex_workspace_size
         !-----------------------------------------------
-
 
         !
         !==> Check if input values are valid
@@ -507,14 +504,15 @@ contains
         ! check that allocation was successful
         if (ierror == 20) return
 
-        associate( rew => workspace%real_workspace )
+        associate( w => workspace%real_workspace )
 
             !
             !==> Solve system
             !
-            call hwssspp(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, bdps, &
-                bdpf, elmbda, f, idimf, pertrb, ierror, rew)
-
+            call hwsssp_lower_routine(ts, tf, m, mbdcnd, bdts, bdtf, &
+                ps, pf, n, nbdcnd, bdps, bdpf, elmbda, f, idimf, pertrb, &
+                w, w(m+2:), w(2*m+3:), w(3*m+4:), w(4*m+5:), w(5*m+6:), &
+                w(6*m+7:), ierror)
         end associate
 
         !
@@ -524,43 +522,7 @@ contains
 
     end subroutine hwsssp
 
-
-
-    subroutine hwssspp(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, &
-        nbdcnd, bdps, bdpf, elmbda, f, idimf, pertrb, ierror, w)
-        !-----------------------------------------------
-        ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip), intent(in)     :: m
-        integer(ip), intent(in)     :: mbdcnd
-        integer(ip), intent(in)     :: n
-        integer(ip), intent(in)     :: nbdcnd
-        integer(ip), intent(in)     :: idimf
-        integer(ip), intent(out)    :: ierror
-        real(wp),    intent(in)     :: ts
-        real(wp),    intent(in)     :: tf
-        real(wp),    intent(in)     :: ps
-        real(wp),    intent(in)     :: pf
-        real(wp),    intent(in)     :: elmbda
-        real(wp),    intent(out)    :: pertrb
-        real(wp),    intent(in)     :: bdts(:)
-        real(wp),    intent(in)     :: bdtf(:)
-        real(wp),    intent(in)     :: bdps(:)
-        real(wp),    intent(in)     :: bdpf(:)
-        real(wp),    intent(inout) :: f(:,:)
-        real(wp),    intent(inout) :: w(*)
-        !-----------------------------------------------
-
-        call hwsss1(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
-            bdps, bdpf, elmbda, f, idimf, pertrb, w, w(m+2), w(2*m+3), &
-            w(3*m+4), w(4*m+5), w(5*m+6), w(6*m+7), ierror)
-
-
-    end subroutine hwssspp
-
-
-
-    subroutine hwsss1(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
+    subroutine hwsssp_lower_routine(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
         bdps, bdpf, elmbda, f, idimf, pertrb, am, bm, cm, sn, ss, &
         sint, d, error_flag)
         !-----------------------------------------------
@@ -581,7 +543,7 @@ contains
         real(wp),    intent(in)     :: bdtf(:)
         real(wp),    intent(in)     :: bdps(:)
         real(wp),    intent(in)     :: bdpf(:)
-        real(wp),    intent(inout) :: f(idimf,*)
+        real(wp),    intent(inout)  :: f(idimf,*)
         real(wp),    intent(out)    :: am(*)
         real(wp),    intent(out)    :: bm(*)
         real(wp),    intent(out)    :: cm(*)
@@ -926,7 +888,7 @@ contains
 
         if (nbdcnd == 0) f(:mp1,jpf+1) = f(:mp1,jps)
 
-    end subroutine hwsss1
+    end subroutine hwsssp_lower_routine
 
 
 
