@@ -367,12 +367,19 @@ module module_hstplr
     private
     public :: hstplr
 
+    !---------------------------------------------------------------
+    ! Variables confined to the module
+    !---------------------------------------------------------------
+    real(wp), parameter :: ZERO = 0.0_wp
+    real(wp), parameter :: HALF = 0.5_wp
+    real(wp), parameter :: ONE = 1.0_wp
+    real(wp), parameter :: TWO = 2.0_wp
+    !---------------------------------------------------------------
 
 contains
 
-
-    subroutine hstplr( a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
-        bdd, elmbda, f, idimf, pertrb, ierror )
+    subroutine hstplr(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
+        bdd, elmbda, f, idimf, pertrb, ierror)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
@@ -403,7 +410,7 @@ contains
         !
         !==> Check validity of calling arguments
         !
-        if (a < 0.0_wp) then
+        if (a < ZERO) then
             ierror = 1
             return
         else if (a >= b) then
@@ -421,10 +428,10 @@ contains
         else if (nbdcnd < 0 .or. nbdcnd >= 5) then
             ierror = 6
             return
-        else if (a == 0.0_wp .and. (mbdcnd == 3 .or. mbdcnd == 4)) then
+        else if (a == ZERO .and. (mbdcnd == 3 .or. mbdcnd == 4)) then
             ierror = 7
             return
-        else if (a > 0.0_wp .and. mbdcnd >= 5) then
+        else if (a > ZERO .and. mbdcnd >= 5) then
             ierror = 8
             return
         else if (mbdcnd >= 5 .and. nbdcnd /= 0 .and. nbdcnd /= 3) then
@@ -496,8 +503,9 @@ contains
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer(ip) :: np, isw, mb, iwb, iwc, iwr, i, j, k, lp, local_error_flag
-        real    (wp) :: dr, dr2, dth, dth2, a1, a2
+        integer(ip) :: np, isw, mb, iwb, iwc, iwr
+        integer(ip) :: i, j, k, lp, local_error_flag
+        real(wp)    :: dr, dr2, dth, dth2, a1, a2
         !-----------------------------------------------
 
         dr = (b - a)/m
@@ -508,7 +516,7 @@ contains
         isw = 1
         mb = mbdcnd
 
-        if (a == 0.0_wp .and. mbdcnd == 2) mb = 6
+        if (a == ZERO .and. mbdcnd == 2) mb = 6
         !
         !==> define a, b, c coefficients in w-array.
         !
@@ -518,12 +526,12 @@ contains
 
         do i = 1, m
             j = iwr + i
-            w(j) = a + (real(i, kind=wp) - 0.5_wp)*dr
+            w(j) = a + (real(i, kind=wp) - HALF)*dr
             w(i) = (a + real(i - 1, kind=wp)*dr)/dr2
             k = iwc + i
             w(k) = (a + real(i, kind=wp)*dr)/dr2
             k = iwb + i
-            w(k) = (elmbda - 2.0_wp/dr2)*w(j)
+            w(k) = (elmbda - TWO/dr2)*w(j)
         end do
 
         do i = 1, m
@@ -535,7 +543,7 @@ contains
         !
         select case (mb)
             case (1:2)
-                a1 = 2.0_wp*w(1)
+                a1 = TWO*w(1)
                 w(iwb+1) = w(iwb+1) - w(1)
                 f(1,:n) = f(1,:n) - a1*bda(:n)
             case (3:4)
@@ -547,7 +555,7 @@ contains
 
         select case (mb)
             case (1, 4:5)
-                a1 = 2.0_wp *w(iwr)
+                a1 = TWO *w(iwr)
                 w(iwc) = w(iwc) - w(iwr)
                 f(m,:n) = f(m,:n) - a1*bdb(:n)
             case (2:3, 6)
@@ -560,27 +568,27 @@ contains
         !==> Enter boundary data for theta-boundaries.
         !
 
-        a1 = 2.0_wp/dth2
+        a1 = TWO/dth2
         select case (np)
             case (2:3)
                 f(:m, 1) = f(:m, 1) - a1*bdc(:m)/w(iwr+1:m+iwr)
             case (4:5)
-                a1 = 1.0_wp/dth
+                a1 = ONE/dth
                 f(:m, 1) = f(:m, 1) + a1*bdc(:m)/w(iwr+1:m+iwr)
         end select
 
-        a1 = 2.0_wp/dth2
+        a1 = TWO/dth2
         select case (np)
             case (2, 5)
                 f(:m, n) = f(:m, n) - a1*bdd(:m)/w(iwr+1:m+iwr)
             case (3:4)
-                a1 = 1.0_wp /dth
+                a1 = ONE /dth
                 f(:m, n) = f(:m, n) - a1*bdd(:m)/w(iwr+1:m+iwr)
         end select
 
-        pertrb = 0.0_wp
-        if (elmbda >= 0.0_wp) then
-            if (elmbda /= 0.0_wp) then
+        pertrb = ZERO
+        if (elmbda >= ZERO) then
+            if (elmbda /= ZERO) then
                 ierror = 11
                 return
             else
@@ -592,7 +600,7 @@ contains
                                 do j = 1, n
                                     pertrb = pertrb + sum(f(:m, j))
                                 end do
-                                pertrb = pertrb/(real(m*n, kind=wp)*0.5_wp*(a + b))
+                                pertrb = pertrb/(real(m*n, kind=wp)*HALF*(a + b))
                                 do i = 1, m
                                     j = iwr + i
                                     a1 = pertrb*w(j)
@@ -617,8 +625,8 @@ contains
         end do
 
         lp = nbdcnd
-        w(1) = 0.0_wp
-        w(iwr) = 0.0_wp
+        w(1) = ZERO
+        w(iwr) = ZERO
         !
         !==> To solve the system of equations.
         !
@@ -637,7 +645,7 @@ contains
             end if
         end associate set_arguments
 
-        if (.not.(a /= 0.0_wp .or. mbdcnd /= 2 .or. isw /= 2)) then
+        if (.not.(a /= ZERO .or. mbdcnd /= 2 .or. isw /= 2)) then
             a1 = sum(f(1,:n))
             a1 = (a1 - dr2*a2/16)/n
 
@@ -648,7 +656,6 @@ contains
         end if
 
     end subroutine hstplrr
-
 
 end module module_hstplr
 !

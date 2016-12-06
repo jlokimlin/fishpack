@@ -201,13 +201,13 @@ contains
         integer(ip), intent(in)     :: idegbr
         integer(ip), intent(in)     :: idegcr
         integer(ip), intent(in)     :: m
-        real(wp),    intent(in)     :: a(m)
-        real(wp),    intent(in)     :: b(m)
-        real(wp),    intent(in)     :: c(m)
-        real(wp),    intent(inout)  :: y(m)
+        real(wp),    intent(in)     :: a(:)
+        real(wp),    intent(in)     :: b(:)
+        real(wp),    intent(in)     :: c(:)
+        real(wp),    intent(inout)  :: y(:)
         real(wp),    intent(in)     :: tcos(:)
-        real(wp),    intent(inout)  :: d(m)
-        real(wp),    intent(inout)  :: w(m)
+        real(wp),    intent(inout)  :: d(:)
+        real(wp),    intent(inout)  :: w(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -278,17 +278,17 @@ contains
         !-----------------------------------------------
         integer(ip), intent(in)     :: m
         integer(ip), intent(in)     :: k(4)
-        real(wp),    intent(in)     :: a(m)
-        real(wp),    intent(in)     :: b(m)
-        real(wp),    intent(in)     :: c(m)
-        real(wp),    intent(inout) :: y1(m)
-        real(wp),    intent(inout) :: y2(m)
-        real(wp),    intent(inout) :: y3(m)
+        real(wp),    intent(in)     :: a(:)
+        real(wp),    intent(in)     :: b(:)
+        real(wp),    intent(in)     :: c(:)
+        real(wp),    intent(inout) :: y1(:)
+        real(wp),    intent(inout) :: y2(:)
+        real(wp),    intent(inout) :: y3(:)
         real(wp),    intent(in)    :: tcos(:)
-        real(wp),    intent(inout) :: d(m)
-        real(wp),    intent(inout) :: w1(m)
-        real(wp),    intent(inout) :: w2(m)
-        real(wp),    intent(inout) :: w3(m)
+        real(wp),    intent(inout) :: d(:)
+        real(wp),    intent(inout) :: w1(:)
+        real(wp),    intent(inout) :: w2(:)
+        real(wp),    intent(inout) :: w3(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
