@@ -960,74 +960,64 @@ contains
                 jm2 = j - jst
                 jp2 = j + jst
 
-                if (j <= jst) then
-                    b(:m) = q(:m, j) + q(:m, jp2)
-                else
-                    if (jp2 > n) then
-                        b(:m) = q(:m, j) + q(:m, jm2)
-                        if (jst < jstsav) irreg = 1
-
-                        select case (irreg)
-                            case (1)
-                                goto 170
-                            case (2)
-                                goto 171
-                        end select
+                block_construct: block
+                    if (j <= jst) then
+                        b(:m) = q(:m, j) + q(:m, jp2)
                     else
-                        b(:m) = q(:m, j) + q(:m, jm2) + q(:m, jp2)
+                        if (jp2 > n) then
+                            b(:m) = q(:m, j) + q(:m, jm2)
+                            if (jst < jstsav) irreg = 1
+                            select case (irreg)
+                                case (2)
+                                    if (j + l > n) lr = lr - jst
+                                    kr = jst + lr
+                                    call genbun_aux%cosgen(kr, jstsav, ZERO, fi, tcos)
+                                    call genbun_aux%cosgen(lr, jstsav, ZERO, fi, tcos(kr+1:))
+                                    ideg = kr
+                                    jdeg = lr
+                                    exit block_construct
+                            end select
+                        else
+                            b(:m) = q(:m, j) + q(:m, jm2) + q(:m, jp2)
+                        end if
                     end if
-                end if
 
-170         continue
+                    call genbun_aux%cosgen(jst, 1, HALF, ZERO, tcos)
+                    ideg = jst
+                    jdeg = 0
 
-            call genbun_aux%cosgen(jst, 1, HALF, ZERO, tcos)
-            ideg = jst
-            jdeg = 0
-            goto 172
+                end block block_construct
 
-171     continue
+                call genbun_aux%trix(ideg, jdeg, m, ba, bb, bc, b, tcos, d, w)
 
-        if (j + l > n) lr = lr - jst
-        kr = jst + lr
-        call genbun_aux%cosgen(kr, jstsav, ZERO, fi, tcos)
-        call genbun_aux%cosgen(lr, jstsav, ZERO, fi, tcos(kr+1:))
-        ideg = kr
-        jdeg = lr
+                if (jst <= 1) then
+                    q(:m, j) = b(:m)
+                else
+                    if (jp2 > n) goto 177
 
-172 continue
+175             continue
 
-    call genbun_aux%trix(ideg, jdeg, m, ba, bb, bc, b, tcos, d, w)
+                q(:m, j) = HALF *(q(:m, j)-q(:m, jm1)-q(:m, jp1)) + b(:m)
+                cycle inner_loop
 
-    if (jst <= 1) then
-        q(:m, j) = b(:m)
-    else
-        if (jp2 > n) then
-            goto 177
+177         continue
+
+            select case (irreg)
+                case (1)
+                    goto 175
+                case (2)
+                    if (j + jsh <= n) then
+                        q(:m, j) = b(:m) + p(ipp+1:m+ipp)
+                        ipp = ipp - m
+                    else
+                        q(:m, j) = b(:m) + q(:m, j) - q(:m, jm1)
+                    end if
+            end select
         end if
 
-175 continue
+    end do inner_loop
 
-    q(:m, j) = HALF *(q(:m, j)-q(:m, jm1)-q(:m, jp1)) + b(:m)
-    cycle inner_loop
-
-177 continue
-
-    select case (irreg)
-        case (1)
-            goto 175
-        case (2)
-            if (j + jsh <= n) then
-                q(:m, j) = b(:m) + p(ipp+1:m+ipp)
-                ipp = ipp - m
-            else
-                q(:m, j) = b(:m) + q(:m, j) - q(:m, jm1)
-            end if
-    end select
-
-end if
-end do inner_loop
-
-l = l/2
+    l = l/2
 
 end do loop_164
 
