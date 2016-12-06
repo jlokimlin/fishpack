@@ -343,7 +343,7 @@ contains
         real(wp),    intent(inout) :: a(n)
         real(wp),    intent(inout) :: b(n)
         real(wp),    intent(inout) :: c(n)
-        real(wp),    intent(inout) :: f(ldimf, mdimf, *)
+        real(wp),    intent(inout) :: f(:,:,:)
         real(wp),    intent(inout) :: w(:)
         !-----------------------------------------------
         ! Local variables
@@ -571,7 +571,7 @@ contains
         real(wp),    intent(inout) :: a(n)
         real(wp),    intent(in)     :: b(n)
         real(wp),    intent(inout) :: c(n)
-        real(wp),    intent(inout) :: f(ldimf, mdimf,*)
+        real(wp),    intent(inout) :: f(:,:,:)
         real(wp),    intent(inout) :: xrt(:)
         real(wp),    intent(inout) :: yrt(:)
         real(wp),    intent(inout) :: t(:)

@@ -428,7 +428,6 @@ module module_hw3crt
     private
     public :: hw3crt
 
-
     !---------------------------------------------------------------
     ! Variables confined to the module
     !---------------------------------------------------------------
@@ -437,9 +436,7 @@ module module_hw3crt
     real(wp), parameter :: TWO = 2.0_wp
     !---------------------------------------------------------------
 
-
 contains
-
 
     subroutine hw3crt(xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m, mbdcnd, &
         bdys, bdyf, zs, zf, n, nbdcnd, bdzs, bdzf, elmbda, ldimf, &
@@ -495,10 +492,9 @@ contains
             !
             !==> Solve system
             !
-            call hw3crtt(xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m, mbdcnd, bdys, &
+            call hw3crt_lower_routine(xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m, mbdcnd, bdys, &
                 bdyf, zs, zf, n, nbdcnd, bdzs, bdzf, elmbda, ldimf, &
                 mdimf, f, pertrb, ierror, rew)
-
         end associate
 
         !
@@ -508,8 +504,7 @@ contains
 
     end subroutine hw3crt
 
-
-    subroutine hw3crtt(xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m, &
+    subroutine hw3crt_lower_routine(xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m, &
         mbdcnd, bdys, bdyf, zs, zf, n, nbdcnd, bdzs, bdzf, elmbda, &
         ldimf, mdimf, f, pertrb, ierror, w)
         !-----------------------------------------------
@@ -538,8 +533,8 @@ contains
         real(wp),    intent(in)     :: bdyf(:,:)
         real(wp),    intent(in)     :: bdzs(:,:)
         real(wp),    intent(in)     :: bdzf(:,:)
-        real(wp),    intent(inout) :: f(ldimf, mdimf, *)
-        real(wp),    intent(out), contiguous :: w(:)
+        real(wp),    intent(inout)  :: f(:,:,:)
+        real(wp),    intent(out)    :: w(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -774,12 +769,12 @@ contains
         !==> Solve system
         !
         call pois3dd(lbdcnd, lunk, c1, mbdcnd, munk, c2, nperod, nunk, w, &
-            w(iwb:), w(iwc:), ldimf, mdimf, f(lstart, mstart, nstart), &
+            w(iwb:), w(iwc:), ldimf, mdimf, f(lstart:, mstart:, nstart:), &
             ierror, w(iww:))
 
         ! Check error flag
         if (ierror /= 0) then
-            error stop 'fishpack library: pois3dd call failed in hw3crtt'
+            error stop 'fishpack library: pois3dd call failed in hw3crt_lower_routine'
         end if
 
         !
@@ -812,9 +807,7 @@ contains
                 f(lstart:lstop, mstart:mstop,1)
         end if
 
-    end subroutine hw3crtt
-
-
+    end subroutine hw3crt_lower_routine
 
     pure subroutine check_input_arguments(l, lbdcnd, m, mbdcnd, n, nbdcnd, &
         ldimf, mdimf, xs, xf, ys, yf, zs, zf, ierror)
