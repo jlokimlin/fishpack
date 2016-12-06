@@ -344,7 +344,7 @@ contains
         real(wp),    intent(inout) :: b(n)
         real(wp),    intent(inout) :: c(n)
         real(wp),    intent(inout) :: f(ldimf, mdimf, *)
-        real(wp), contiguous, intent(inout) :: w(:)
+        real(wp),    intent(inout) :: w(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -433,7 +433,7 @@ contains
 
             end if
 
-            call pos3d1(lp, l, mp, m, n, a, b, c, ldimf, mdimf, f, &
+            call pois3d_lower_routine(lp, l, mp, m, n, a, b, c, ldimf, mdimf, f, &
                 w, w(iwyrt:), w(iwt:), w(iwd:), w(iwx:), w(iwy:), c1, c2, w(iwbb:))
 
             if (np == 1) then
@@ -554,8 +554,8 @@ contains
 
     end function get_pois3dd_workspace_indices
 
-    subroutine pos3d1(lp, l, mp, m, n, a, b, c, ldimf, mdimf, f, xrt, &
-        yrt, t, d, wx, wy, c1, c2, bb)
+    subroutine pois3d_lower_routine(lp, l, mp, m, n, a, b, c, &
+        ldimf, mdimf, f, xrt, yrt, t, d, wx, wy, c1, c2, bb)
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
@@ -572,19 +572,19 @@ contains
         real(wp),    intent(in)     :: b(n)
         real(wp),    intent(inout) :: c(n)
         real(wp),    intent(inout) :: f(ldimf, mdimf,*)
-        real(wp),    intent(inout) :: xrt(*)
-        real(wp),    intent(inout) :: yrt(*)
-        real(wp),    intent(inout) :: t(*)
-        real(wp),    intent(inout) :: d(*)
-        real(wp),    intent(inout) :: wx(*)
-        real(wp),    intent(inout) :: wy(*)
-        real(wp),    intent(inout) :: bb(*)
+        real(wp),    intent(inout) :: xrt(:)
+        real(wp),    intent(inout) :: yrt(:)
+        real(wp),    intent(inout) :: t(:)
+        real(wp),    intent(inout) :: d(:)
+        real(wp),    intent(inout) :: wx(:)
+        real(wp),    intent(inout) :: wy(:)
+        real(wp),    intent(inout) :: bb(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer(ip)         :: lr, mr, nr, lrdel, i, mrdel, j, ifwrd, is, k
-        real(wp)            :: scalx, dx, di, scaly, dy, dj
-        type(FFTpack)       :: fft
+        integer(ip)    :: lr, mr, nr, lrdel, i, mrdel, j, ifwrd, is, k
+        real(wp)       :: scalx, dx, di, scaly, dy, dj
+        type(FFTpack)  :: fft
         !-----------------------------------------------
 
         lr = l
@@ -830,16 +830,16 @@ contains
 
         f(:lr,:mr,:nr) = f(:lr,:mr,:nr)/(scalx*scaly)
 
-    end subroutine pos3d1
+    end subroutine pois3d_lower_routine
 
     subroutine trid(mr, a, b, c, y, d)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer(ip), intent(in)     :: mr
-        real(wp),    intent(in)     :: a(mr)
-        real(wp),    intent(in)     :: b(mr)
-        real(wp),    intent(in)     :: c(mr)
+        integer(ip), intent(in)    :: mr
+        real(wp),    intent(in)    :: a(mr)
+        real(wp),    intent(in)    :: b(mr)
+        real(wp),    intent(in)    :: c(mr)
         real(wp),    intent(inout) :: y(mr)
         real(wp),    intent(inout) :: d(mr)
         !-----------------------------------------------

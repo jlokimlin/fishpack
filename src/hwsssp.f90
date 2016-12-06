@@ -169,7 +169,7 @@
 !
 !                          if pf is equal to 2*pi then it must be
 !                          computed using the statement
-!                          pf = 2.0_wp *pi_mach(dum). this insures that
+!                          pf = TWO *pi_mach(dum). this insures that
 !                          pf in the users program is equal to
 !                          2*pi in this program which permits tests
 !                          of the input parameters that otherwise
@@ -411,6 +411,15 @@ module module_hwsssp
     private
     public :: hwsssp
 
+    !---------------------------------------------------------------
+    ! Variables confined to the module
+    !---------------------------------------------------------------
+    real(wp), parameter :: ZERO = 0.0_wp
+    real(wp), parameter :: HALF = 0.5_wp
+    real(wp), parameter :: ONE = 1.0_wp
+    real(wp), parameter :: TWO = 2.0_wp
+    !---------------------------------------------------------------
+
 contains
 
     subroutine hwsssp(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
@@ -445,7 +454,7 @@ contains
         !
         !==> Check if input values are valid
         !
-        if (ts < 0.0_wp .or. tf > PI) then
+        if (ts < ZERO .or. tf > PI) then
             ierror = 1
             return
         else if (ts >= tf) then
@@ -454,7 +463,7 @@ contains
         else if (mbdcnd < 1 .or. mbdcnd > 9) then
             ierror = 3
             return
-        else if (ps < 0.0_wp .or. pf > TWO_PI) then
+        else if (ps < ZERO .or. pf > TWO_PI) then
             ierror = 4
             return
         else if (ps >= pf) then
@@ -469,7 +478,7 @@ contains
         else if (nbdcnd < 0 .or. nbdcnd > 4) then
             ierror = 8
             return
-        else if (elmbda > 0.0_wp) then
+        else if (elmbda > ZERO) then
             ierror = 9
             return
         else if (idimf < m + 1) then
@@ -478,13 +487,13 @@ contains
         else if ((nbdcnd == 1 .or. nbdcnd == 2 .or. nbdcnd == 4) .and. mbdcnd >= 5) then
             ierror = 11
             return
-        else if (ts == 0.0_wp .and. (mbdcnd==3.or. mbdcnd==4 .or. mbdcnd == 8)) then
+        else if (ts == ZERO .and. (mbdcnd==3.or. mbdcnd==4 .or. mbdcnd == 8)) then
             ierror = 12
             return
         else if (tf == PI .and. (mbdcnd==2.or. mbdcnd == 3 .or. mbdcnd == 6)) then
             ierror = 13
             return
-        else if ((mbdcnd == 5.or.mbdcnd == 6.or.mbdcnd == 9) .and. ts /= 0.0_wp) then
+        else if ((mbdcnd == 5.or.mbdcnd == 6.or.mbdcnd == 9) .and. ts /= ZERO) then
             ierror = 14
             return
         else if (mbdcnd >= 7 .and. tf /= PI) then
@@ -497,7 +506,7 @@ contains
         !
         !==> Allocate memory
         !
-        real_workspace_size = 4 * (n + 1) + (16 + int(log(real(n+1,kind=wp))/log(2.0_wp), kind=ip)) * (m + 1)
+        real_workspace_size = 4 * (n + 1) + (16 + int(log(real(n+1,kind=wp))/log(TWO), kind=ip)) * (m + 1)
         complex_workspace_size = 0
         call workspace%create(real_workspace_size, complex_workspace_size, ierror)
 
@@ -543,14 +552,14 @@ contains
         real(wp),    intent(in)     :: bdtf(:)
         real(wp),    intent(in)     :: bdps(:)
         real(wp),    intent(in)     :: bdpf(:)
-        real(wp),    intent(inout)  :: f(idimf,*)
-        real(wp),    intent(out)    :: am(*)
-        real(wp),    intent(out)    :: bm(*)
-        real(wp),    intent(out)    :: cm(*)
-        real(wp),    intent(out)    :: sn(*)
-        real(wp),    intent(out)    :: ss(*)
-        real(wp),    intent(out)    :: sint(*)
-        real(wp),    intent(out)    :: d(*)
+        real(wp),    intent(inout)  :: f(:,:)
+        real(wp),    intent(out)    :: am(:)
+        real(wp),    intent(out)    :: bm(:)
+        real(wp),    intent(out)    :: cm(:)
+        real(wp),    intent(out)    :: sn(:)
+        real(wp),    intent(out)    :: ss(:)
+        real(wp),    intent(out)    :: sint(:)
+        real(wp),    intent(out)    :: d(:)
         integer(ip), intent(out)    :: error_flag
         !-----------------------------------------------
         ! Local variables
@@ -569,9 +578,9 @@ contains
         fm = m
         dth = (tf - ts)/fm
         half_dth = dth/2
-        two_dth = 2.0_wp * dth
+        two_dth = TWO * dth
         dphi = (pf - ps)/fn
-        two_dphi = 2.0_wp * dphi
+        two_dphi = TWO * dphi
         dphi2 = dphi**2
         edp2 = elmbda*dphi2
         dth2 = dth**2
@@ -579,18 +588,18 @@ contains
         wpp = fn*sin(half_dth)/4
 
         ! Initialize constants
-        dfn = 0.0_wp
-        dnn = 0.0_wp
-        dsn = 0.0_wp
+        dfn = ZERO
+        dnn = ZERO
+        dsn = ZERO
 
         do i = 1, mp1
             fim1 = i - 1
             theta = fim1*dth + ts
             sint(i) = sin(theta)
 
-            if (sint(i) == 0.0_wp) cycle
+            if (sint(i) == ZERO) cycle
 
-            t1 = 1.0_wp/(dth2*sint(i))
+            t1 = ONE/(dth2*sint(i))
             am(i) = t1*sin(theta - half_dth)
             cm(i) = t1*sin(theta + half_dth)
             bm(i) = (-am(i)) - cm(i) + elmbda
@@ -656,11 +665,11 @@ contains
                 i = m - ii
                 ss(i) = -d(i)*ss(i+1)
             end do
-            ss(m+1) = 1.0_wp
+            ss(m+1) = ONE
         end if
 
         if (inp > 0) then
-            sn(1) = 1.0_wp
+            sn(1) = ONE
             d(itf) = am(itf)/bm(itf)
             iid = itf - 2
             do ii = 1, iid
@@ -676,8 +685,8 @@ contains
         !==> boundary conditions at phi=ps
         !
         nbr = nbdcnd + 1
-        wps = 1.0_wp
-        wpf = 1.0_wp
+        wps = ONE
+        wpf = ONE
         select case (nbr)
             case default
                 jps = 1
@@ -685,7 +694,7 @@ contains
                 jps = 2
             case (4:5)
                 jps = 1
-                wps = 0.5_wp
+                wps = HALF
         end select
         !
         !==> boundary condition at phi=pf
@@ -696,7 +705,7 @@ contains
             case (2, 5)
                 jpf = n
             case (3:4)
-                wpf = 0.5_wp
+                wpf = HALF
                 jpf = n + 1
         end select
 
@@ -714,15 +723,15 @@ contains
             cm(i) = cf*cm(i)
         end do
 
-        am(its) = 0.0_wp
-        cm(itf) = 0.0_wp
+        am(its) = ZERO
+        cm(itf) = ZERO
         ising = 0
 
         select case (mbr)
             case (1, 4, 7, 9:10)
                 select case (nbr)
                     case (1, 4)
-                        if (elmbda >= 0.0_wp) then
+                        if (elmbda >= ZERO) then
                             ising = 1
                             summation = wts*wps + wts*wpf + wtf*wps + wtf*wpf
 
@@ -780,7 +789,7 @@ contains
                     - two_dphi*bdpf(its:itf)/(dphi2*sint(its:itf)*sint(its:itf))
         end select
 
-        pertrb = 0.0_wp
+        pertrb = ZERO
 
         if (ising /= 0) then
             summation = &
@@ -788,7 +797,6 @@ contains
                 + wtf*wps*f(itf,jps) + wtf*wpf*f(itf,jpf)
 
             if (inp > 0) summation = summation + wpp*f(1,jps)
-
             if (isp > 0) summation = summation + wpp*f(m+1,jps)
 
             do i = itsp, itfm
@@ -798,8 +806,8 @@ contains
             sum1 = sum(f(its,jpsp:jpfm))
             sum2 = sum(f(itf,jpsp:jpfm))
             summation = summation + wts*sum1 + wtf*sum2
-            sum1 = 0.0_wp
-            sum2 = 0.0_wp
+            sum1 = ZERO
+            sum2 = ZERO
             sum1 = dot_product(sint(itsp:itfm),f(itsp:itfm,jps))
             sum2 = dot_product(sint(itsp:itfm),f(itsp:itfm,jpf))
             summation = summation + wps*sum1 + wpf*sum2
@@ -814,25 +822,33 @@ contains
             f(i,jps:jpf) = cf*f(i,jps:jpf)
         end do
 
-        !
-        !==> Invoke genbunn solver
-        !
-        call genbunn(nbdcnd, nunk, 1, munk, am(its), bm(its), cm(its), &
-            idimf, f(its,jps), error_flag, d)
+        call_arguments: associate( &
+            a_arg => am(its:), &
+            b_arg => bm(its:), &
+            c_arg => cm(its:), &
+            y_arg => f(its:,jps:) &
+            )
+            !
+            !==> Invoke genbunn solver
+            !
+            call genbunn(nbdcnd, nunk, 1, munk, a_arg, b_arg, c_arg, &
+                idimf, y_arg, error_flag, d)
+        end associate call_arguments
 
+        ! Check error flag
         if (error_flag /= 0) then
-            error stop 'fishpack library: genbunn call failed in hwsss1'
+            error stop 'fishpack library: genbunn call failed in hwsssp_lower_routine'
         end if
 
         if (ising > 0 .and. inp > 0 .and. isp <= 0) then
-            f(1,:np1) = 0.0_wp
+            f(1,:np1) = ZERO
         else if (isp > 0) then
-            f(m+1,:np1) = 0.0_wp
+            f(m+1,:np1) = ZERO
         else if (inp > 0) then
 
             summation = wps*f(its,jps) + wpf*f(its,jpf) + sum(f(its,jpsp:jpfm))
             dfn = cp*summation
-            dnn = cp*((wps + wpf + fjj)*(sn(2)-1.0_wp)) + elmbda
+            dnn = cp*((wps + wpf + fjj)*(sn(2)-ONE)) + elmbda
             dsn = cp*(wps + wpf + fjj)*sn(m)
 
             if (isp > 0) then
@@ -843,12 +859,10 @@ contains
                 end do
                 f(1,:np1) = cnp
             end if
-
         else
-
             summation = wps*f(itf,jps) + wpf*f(itf,jpf) + sum(f(itf,jpsp:jpfm))
             dfs = cp*summation
-            dss = cp*((wps + wpf + fjj)*(ss(m)-1.0_wp)) + elmbda
+            dss = cp*((wps + wpf + fjj)*(ss(m)-ONE)) + elmbda
             dns = cp*(wps + wpf + fjj)*ss(2)
 
             if (inp <= 0) then
@@ -862,10 +876,10 @@ contains
                 rtn = f(1,1) - dfn
                 rts = f(m+1,1) - dfs
                 if (ising > 0) then
-                    csp = 0.0_wp
+                    csp = ZERO
                     cnp = rtn/dnn
                 else
-                    if (abs(dnn) - abs(dsn) > 0.0_wp) then
+                    if (abs(dnn) - abs(dsn) > ZERO) then
                         den = dss - dns*dsn/dnn
                         rts = rts - rtn*dsn/dnn
                         csp = rts/den
@@ -889,8 +903,6 @@ contains
         if (nbdcnd == 0) f(:mp1,jpf+1) = f(:mp1,jps)
 
     end subroutine hwsssp_lower_routine
-
-
 
 end module module_hwsssp
 !
