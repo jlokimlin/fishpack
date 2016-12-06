@@ -311,14 +311,15 @@ contains
         real(wp),    intent(in)    :: b(m)
         real(wp),    intent(in)    :: c(m)
         real(wp),    intent(inout) :: y(idimy,n)
-        real(wp),    intent(inout) :: w(*)
+        real(wp),    intent(inout) :: w(:)
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        integer(ip)  :: workspace_indices(12)
-        integer(ip)  :: i, k, j, mp, np, irev, mh, mhm1, modd
-        integer(ip)  :: nby2, mskip
-        real(wp)     :: temp, ipstor
+        integer(ip)     :: workspace_indices(12)
+        integer(ip)     :: i, k, j, mp, np, irev, mh, mhm1, modd
+        integer(ip)     :: nby2, mskip
+        type(GenbunAux) :: genbun_aux
+        real(wp)        :: ipstor
         !--------------------------------------------------------------
 
         !
@@ -399,23 +400,37 @@ contains
 
             main_loop: do
 
-                select case (np)
-                    case (1)
-                        call solve_poisson_periodic(m, n, w(iwba), w(iwbb), w(iwbc), &
-                            y, idimy, w, w(iwb2), w(iwb3), w(iww1), &
-                            w(iww2), w(iww3), w(iwd), w(iwtcos), w(iwp) )
-                    case (2)
-                        call solve_poisson_dirichlet(m, n, 1, w(iwba), w(iwbb), w(iwbc), &
-                            y, idimy, w, w(iww1), w(iwd), w(iwtcos), w(iwp))
-                    case (3)
-                        call solve_poisson_neumann(m, n, 1, 2, w(iwba), w(iwbb), w(iwbc), &
-                            y, idimy, w, w(iwb2), w(iwb3), w(iww1), w(iww2),  &
-                            w(iww3), w(iwd), w(iwtcos), w(iwp))
-                    case (4)
-                        call solve_poisson_neumann(m, n, 1, 1, w(iwba), w(iwbb), w(iwbc), &
-                            y, idimy, w, w(iwb2), w(iwb3), w(iww1), w(iww2), &
-                            w(iww3), w(iwd), w(iwtcos), w(iwp))
-                end select
+                associate( &
+                    ba => w(iwba:), &
+                    bb => w(iwbb:), &
+                    bc => w(iwbc:), &
+                    b2 => w(iwb2:), &
+                    b3 => w(iwb3:), &
+                    w1 => w(iww1:), &
+                    w2 => w(iww2:), &
+                    w3 => w(iww3:), &
+                    d => w(iwd:), &
+                    tcos => w(iwtcos:), &
+                    p => w(iwp:) &
+                    )
+                    !
+                    !==> Invoke lower routines
+                    !
+                    select case (np)
+                        case (1)
+                            call solve_poisson_periodic(m, n, ba, bb, bc, &
+                                y, idimy, w, b2, b3, w1, w2, w3, d, tcos, p)
+                        case (2)
+                            call solve_poisson_dirichlet(m, n, 1, ba, bb, bc, &
+                                y, idimy, w, w1, d, tcos, p)
+                        case (3)
+                            call solve_poisson_neumann(m, n, 1, 2, ba, bb, bc, &
+                                y, idimy, w, b2, b3, w1, w2, w3, d, tcos, p)
+                        case (4)
+                            call solve_poisson_neumann(m, n, 1, 1, ba, bb, bc, &
+                                y, idimy, w, b2, b3, w1, w2, w3, d, tcos, p)
+                    end select
+                end associate
 
                 loop_113: do
 
@@ -493,17 +508,28 @@ contains
                         do j = 1, nby2
                             mskip = n + 1 - j
                             do i = 1, m
-                                temp = y(i, j)
-                                y(i, j) = y(i, mskip)
-                                y(i, mskip) = temp
+                                call genbun_aux%swap(y(i, j), y(i, mskip))
                             end do
                         end do
 
                         select case (irev)
                             case (1)
-                                call solve_poisson_neumann(m, n, 1, 2, w(iwba), w(iwbb), w(iwbc), &
-                                    y, idimy, w, w(iwb2), w(iwb3), w(iww1), w(iww2),  &
-                                    w(iww3), w(iwd), w(iwtcos), w(iwp))
+                                associate( &
+                                    ba => w(iwba:), &
+                                    bb => w(iwbb:), &
+                                    bc => w(iwbc:), &
+                                    b2 => w(iwb2:), &
+                                    b3 => w(iwb3:), &
+                                    w1 => w(iww1:), &
+                                    w2 => w(iww2:), &
+                                    w3 => w(iww3:), &
+                                    d => w(iwd:), &
+                                    tcos => w(iwtcos:), &
+                                    p => w(iwp:) &
+                                    )
+                                    call solve_poisson_neumann(m, n, 1, 2, ba, bb, bc, &
+                                        y, idimy, w, b2, b3, w1, w2, w3, d, tcos, p)
+                                end associate
 
                                 ipstor = w(iww1)
                                 irev = 2
@@ -588,7 +614,7 @@ contains
         ! Dummy arguments
         !-----------------------------------------------
         integer(ip), intent(in)  :: n, m
-        type(Fish)                :: return_value
+        type(Fish)               :: return_value
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -643,19 +669,19 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        integer(ip), intent(in)     :: mr
-        integer(ip), intent(in)     :: nr
-        integer(ip), intent(in)     :: istag
-        integer(ip), intent(in)     :: idimq
-        real(wp),    intent(in)     :: ba(mr)
-        real(wp),    intent(in)     :: bb(mr)
-        real(wp),    intent(in)     :: bc(mr)
-        real(wp),    intent(inout) :: q(idimq,nr)
-        real(wp),    intent(inout) :: b(mr)
-        real(wp),    intent(inout) :: w(mr)
-        real(wp),    intent(inout) :: d(mr)
-        real(wp),    intent(inout) :: tcos(mr)
-        real(wp),    intent(inout) :: p(4*nr)
+        integer(ip), intent(in)    :: mr
+        integer(ip), intent(in)    :: nr
+        integer(ip), intent(in)    :: istag
+        integer(ip), intent(in)    :: idimq
+        real(wp),    intent(in)    :: ba(:)
+        real(wp),    intent(in)    :: bb(:)
+        real(wp),    intent(in)    :: bc(:)
+        real(wp),    intent(inout) :: q(:,:)
+        real(wp),    intent(inout) :: b(:)
+        real(wp),    intent(inout) :: w(:)
+        real(wp),    intent(inout) :: d(:)
+        real(wp),    intent(inout) :: tcos(:)
+        real(wp),    intent(inout) :: p(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
