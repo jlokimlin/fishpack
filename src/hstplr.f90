@@ -451,22 +451,16 @@ contains
         !==> Allocate memory
         !
         call workspace%compute_genbun_workspace_lengths(n, m, real_workspace_size)
-
         real_workspace_size = real_workspace_size + 3 * m
         complex_workspace_size = 0
-
         call workspace%create(real_workspace_size, complex_workspace_size, ierror)
-
-        ! Check if allocation was successful
-        if (ierror == 20) return
 
         associate( rew => workspace%real_workspace )
             !
             !==> Solve system
             !
-            call hstplrr( a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
+            call hstplr_lower_routine(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
                 elmbda, f, idimf, pertrb, ierror, rew)
-
         end associate
 
         !
@@ -476,8 +470,7 @@ contains
 
     end subroutine hstplr
 
-
-    subroutine hstplrr(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
+    subroutine hstplr_lower_routine(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror, w)
         !-----------------------------------------------
         ! Dummy arguments
@@ -498,8 +491,8 @@ contains
         real(wp),    intent(in)     :: bdb(:)
         real(wp),    intent(in)     :: bdc(:)
         real(wp),    intent(in)     :: bdd(:)
-        real(wp),    intent(inout) :: f(idimf,*)
-        real(wp),    intent(inout) :: w(*)
+        real(wp),    intent(inout)  :: f(:,:)
+        real(wp),    intent(inout)  :: w(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -551,7 +544,6 @@ contains
                 w(iwb+1) = w(iwb+1) + w(1)
                 f(1,:n) = f(1,:n) + a1*bda(:n)
         end select
-
 
         select case (mb)
             case (1, 4:5)
@@ -655,7 +647,7 @@ contains
             f(:m,:n) = f(:m,:n) + a1
         end if
 
-    end subroutine hstplrr
+    end subroutine hstplr_lower_routine
 
 end module module_hstplr
 !
