@@ -656,6 +656,142 @@ contains
 
     end function get_workspace_indices
 
+    subroutine solve_poisson_periodic(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
+        !
+        ! Purpose:
+        !
+        !     Solve poisson equation with periodic
+        !     boundary conditions.
+        !
+        !-----------------------------------------------
+        ! Dummy arguments
+        !-----------------------------------------------
+        integer(ip), intent(in)    :: m
+        integer(ip), intent(in)    :: n
+        integer(ip), intent(in)    :: idimq
+        real(wp),    intent(in)    :: a(m)
+        real(wp),    intent(in)    :: bb(m)
+        real(wp),    intent(in)    :: c(m)
+        real(wp),    intent(inout) :: q(idimq,m)
+        real(wp),    intent(inout) :: b(m)
+        real(wp),    intent(inout) :: b2(m)
+        real(wp),    intent(inout) :: b3(m)
+        real(wp),    intent(inout) :: w(m)
+        real(wp),    intent(inout) :: w2(m)
+        real(wp),    intent(inout) :: w3(m)
+        real(wp),    intent(inout) :: d(m)
+        real(wp),    intent(inout) :: tcos(m)
+        real(wp),    intent(inout) :: p(4*n)
+        !-----------------------------------------------
+        ! Local variables
+        !-----------------------------------------------
+        integer(ip) :: mr, nr, nrm1, j, nrmj, nrpj, i, lh
+        real(wp)    :: ipstor
+        real(wp)    :: s, t
+        !-----------------------------------------------
+
+        mr = m
+        nr = (n + 1)/2
+        nrm1 = nr - 1
+
+        if (2*nr == n) then
+            !
+            !==> even number of unknowns
+            !
+            do j = 1, nrm1
+                nrmj = nr - j
+                nrpj = nr + j
+                do i = 1, mr
+                    s = q(i, nrmj) - q(i, nrpj)
+                    t = q(i, nrmj) + q(i, nrpj)
+                    q(i, nrmj) = s
+                    q(i, nrpj) = t
+                end do
+            end do
+
+            q(:mr, nr) = TWO * q(:mr, nr)
+            q(:mr, n) = TWO * q(:mr, n)
+
+            call solve_poisson_dirichlet(mr, nrm1, 1, a, bb, c, q, idimq, b, w, d, tcos, p)
+
+            ipstor = w(1)
+
+            call solve_poisson_neumann(mr, (nr + 1), 1, 1, a, bb, c, q(1, nr), idimq, b, b2, &
+                b3, w, w2, w3, d, tcos, p)
+
+            ipstor = max(ipstor, w(1))
+
+            do j = 1, nrm1
+                nrmj = nr - j
+                nrpj = nr + j
+                do i = 1, mr
+                    s = HALF*(q(i, nrpj)+q(i, nrmj))
+                    t = HALF*(q(i, nrpj)-q(i, nrmj))
+                    q(i, nrmj) = s
+                    q(i, nrpj) = t
+                end do
+            end do
+            q(:mr, nr) = HALF*q(:mr, nr)
+            q(:mr, n) = HALF*q(:mr, n)
+        else
+            do j = 1, nrm1
+                nrpj = n + 1 - j
+                do i = 1, mr
+                    s = q(i, j) - q(i, nrpj)
+                    t = q(i, j) + q(i, nrpj)
+                    q(i, j) = s
+                    q(i, nrpj) = t
+                end do
+            end do
+
+            q(:mr, nr) = TWO*q(:mr, nr)
+            lh = nrm1/2
+
+            do j = 1, lh
+                nrmj = nr - j
+                do i = 1, mr
+                    s = q(i, j)
+                    q(i, j) = q(i, nrmj)
+                    q(i, nrmj) = s
+                end do
+            end do
+
+            call solve_poisson_dirichlet(mr, nrm1, 2, a, bb, c, q, &
+                idimq, b, w, d, tcos, p)
+
+            ipstor = w(1)
+
+            call solve_poisson_neumann(mr, nr, 2, 1, a, bb, c, q(1, nr), &
+                idimq, b, b2, b3, w, w2, w3, d, tcos, p)
+
+            ipstor = max(ipstor, w(1))
+
+            do j = 1, nrm1
+                nrpj = nr + j
+                do i = 1, mr
+                    s = HALF*(q(i, nrpj)+q(i, j))
+                    t = HALF*(q(i, nrpj)-q(i, j))
+                    q(i, nrpj) = t
+                    q(i, j) = s
+                end do
+            end do
+
+            q(:mr, nr) = HALF*q(:mr, nr)
+
+            do j = 1, lh
+                nrmj = nr - j
+                do i = 1, mr
+                    s = q(i, j)
+                    q(i, j) = q(i, nrmj)
+                    q(i, nrmj) = s
+                end do
+            end do
+        end if
+
+        w(1) = ipstor
+
+    end subroutine solve_poisson_periodic
+
     subroutine solve_poisson_dirichlet(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
         !
         ! Purpose:
@@ -995,33 +1131,34 @@ contains
                 else
                     if (jp2 > n) goto 177
 
-175             continue
+                    loop_175: do
 
-                q(:m, j) = HALF *(q(:m, j)-q(:m, jm1)-q(:m, jp1)) + b(:m)
-                cycle inner_loop
+                        q(:m, j) = HALF *(q(:m, j)-q(:m, jm1)-q(:m, jp1)) + b(:m)
+                        cycle inner_loop
 
-177         continue
+177                 continue
 
-            select case (irreg)
-                case (1)
-                    goto 175
-                case (2)
-                    if (j + jsh <= n) then
-                        q(:m, j) = b(:m) + p(ipp+1:m+ipp)
-                        ipp = ipp - m
-                    else
-                        q(:m, j) = b(:m) + q(:m, j) - q(:m, jm1)
-                    end if
-            end select
-        end if
+                    select case (irreg)
+                        case (1)
+                            cycle loop_175
+                        case (2)
+                            if (j + jsh <= n) then
+                                q(:m, j) = b(:m) + p(ipp+1:m+ipp)
+                                ipp = ipp - m
+                            else
+                                q(:m, j) = b(:m) + q(:m, j) - q(:m, jm1)
+                            end if
+                            exit loop_175
+                    end select
+                end do loop_175
+            end if
+        end do inner_loop
 
-    end do inner_loop
+        l = l/2
 
-    l = l/2
+    end do loop_164
 
-end do loop_164
-
-w(1) = ipstor
+    w(1) = ipstor
 
 end subroutine solve_poisson_dirichlet
 
@@ -1654,142 +1791,6 @@ goto 194
 end associate
 
 end subroutine solve_poisson_neumann
-
-subroutine solve_poisson_periodic(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
-    !
-    ! Purpose:
-    !
-    !     Solve poisson equation with periodic
-    !     boundary conditions.
-    !
-    !-----------------------------------------------
-    ! Dummy arguments
-    !-----------------------------------------------
-    integer(ip), intent(in)    :: m
-    integer(ip), intent(in)    :: n
-    integer(ip), intent(in)    :: idimq
-    real(wp),    intent(in)    :: a(m)
-    real(wp),    intent(in)    :: bb(m)
-    real(wp),    intent(in)    :: c(m)
-    real(wp),    intent(inout) :: q(idimq,m)
-    real(wp),    intent(inout) :: b(m)
-    real(wp),    intent(inout) :: b2(m)
-    real(wp),    intent(inout) :: b3(m)
-    real(wp),    intent(inout) :: w(m)
-    real(wp),    intent(inout) :: w2(m)
-    real(wp),    intent(inout) :: w3(m)
-    real(wp),    intent(inout) :: d(m)
-    real(wp),    intent(inout) :: tcos(m)
-    real(wp),    intent(inout) :: p(4*n)
-    !-----------------------------------------------
-    ! Local variables
-    !-----------------------------------------------
-    integer(ip) :: mr, nr, nrm1, j, nrmj, nrpj, i, lh
-    real(wp)    :: ipstor
-    real(wp)    :: s, t
-    !-----------------------------------------------
-
-    mr = m
-    nr = (n + 1)/2
-    nrm1 = nr - 1
-
-    if (2*nr == n) then
-        !
-        !==> even number of unknowns
-        !
-        do j = 1, nrm1
-            nrmj = nr - j
-            nrpj = nr + j
-            do i = 1, mr
-                s = q(i, nrmj) - q(i, nrpj)
-                t = q(i, nrmj) + q(i, nrpj)
-                q(i, nrmj) = s
-                q(i, nrpj) = t
-            end do
-        end do
-
-        q(:mr, nr) = TWO * q(:mr, nr)
-        q(:mr, n) = TWO * q(:mr, n)
-
-        call solve_poisson_dirichlet(mr, nrm1, 1, a, bb, c, q, idimq, b, w, d, tcos, p)
-
-        ipstor = w(1)
-
-        call solve_poisson_neumann(mr, (nr + 1), 1, 1, a, bb, c, q(1, nr), idimq, b, b2, &
-            b3, w, w2, w3, d, tcos, p)
-
-        ipstor = max(ipstor, w(1))
-
-        do j = 1, nrm1
-            nrmj = nr - j
-            nrpj = nr + j
-            do i = 1, mr
-                s = HALF*(q(i, nrpj)+q(i, nrmj))
-                t = HALF*(q(i, nrpj)-q(i, nrmj))
-                q(i, nrmj) = s
-                q(i, nrpj) = t
-            end do
-        end do
-        q(:mr, nr) = HALF*q(:mr, nr)
-        q(:mr, n) = HALF*q(:mr, n)
-    else
-        do j = 1, nrm1
-            nrpj = n + 1 - j
-            do i = 1, mr
-                s = q(i, j) - q(i, nrpj)
-                t = q(i, j) + q(i, nrpj)
-                q(i, j) = s
-                q(i, nrpj) = t
-            end do
-        end do
-
-        q(:mr, nr) = TWO*q(:mr, nr)
-        lh = nrm1/2
-
-        do j = 1, lh
-            nrmj = nr - j
-            do i = 1, mr
-                s = q(i, j)
-                q(i, j) = q(i, nrmj)
-                q(i, nrmj) = s
-            end do
-        end do
-
-        call solve_poisson_dirichlet(mr, nrm1, 2, a, bb, c, q, &
-            idimq, b, w, d, tcos, p)
-
-        ipstor = w(1)
-
-        call solve_poisson_neumann(mr, nr, 2, 1, a, bb, c, q(1, nr), &
-            idimq, b, b2, b3, w, w2, w3, d, tcos, p)
-
-        ipstor = max(ipstor, w(1))
-
-        do j = 1, nrm1
-            nrpj = nr + j
-            do i = 1, mr
-                s = HALF*(q(i, nrpj)+q(i, j))
-                t = HALF*(q(i, nrpj)-q(i, j))
-                q(i, nrpj) = t
-                q(i, j) = s
-            end do
-        end do
-
-        q(:mr, nr) = HALF*q(:mr, nr)
-
-        do j = 1, lh
-            nrmj = nr - j
-            do i = 1, mr
-                s = q(i, j)
-                q(i, j) = q(i, nrmj)
-                q(i, nrmj) = s
-            end do
-        end do
-    end if
-
-    w(1) = ipstor
-
-end subroutine solve_poisson_periodic
 
 end module module_genbun
 !
