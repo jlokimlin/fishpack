@@ -274,7 +274,6 @@ program tgenbun
 
 contains
 
-
     subroutine coeff_procedure(solver, centered_grid)
         !
         ! Purpose:

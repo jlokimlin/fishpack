@@ -282,7 +282,7 @@ module module_blktri
     public :: BlktriAux
 
     ! Declare derived data type
-    type, public :: BlktriAux
+    type, public, extends(ComfAux) :: BlktriAux
         !-------------------------------------------------
         ! Type components
         !-------------------------------------------------
@@ -296,7 +296,9 @@ module module_blktri
         ! Type-bound procedures
         !-------------------------------------------------
         procedure, nopass, public  :: blktrii
-        procedure, public :: indxa, indxb, indxc
+        procedure, public :: indxa
+        procedure, public :: indxb
+        procedure, public :: indxc
         !-------------------------------------------------
     end type BlktriAux
 
@@ -316,13 +318,13 @@ contains
         !--------------------------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------------------------
-        integer(ip), intent(in)     :: iflg
-        integer(ip), intent(in)     :: np
-        integer(ip), intent(in)     :: n
-        integer(ip), intent(in)     :: mp
-        integer(ip), intent(in)     :: m
-        integer(ip), intent(in)     :: idimy
-        integer(ip), intent(out)    :: ierror
+        integer(ip), intent(in)    :: iflg
+        integer(ip), intent(in)    :: np
+        integer(ip), intent(in)    :: n
+        integer(ip), intent(in)    :: mp
+        integer(ip), intent(in)    :: m
+        integer(ip), intent(in)    :: idimy
+        integer(ip), intent(out)   :: ierror
         real(wp),    intent(inout) :: an(:)
         real(wp),    intent(inout) :: bn(:)
         real(wp),    intent(inout) :: cn(:)
@@ -389,18 +391,18 @@ contains
 
     end subroutine blktri
 
-    subroutine blktrii( iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
+    subroutine blktrii(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
         idimy, y, ierror, w, wc)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer(ip), intent(in)     :: iflg
-        integer(ip), intent(in)     :: np
-        integer(ip), intent(in)     :: n
-        integer(ip), intent(in)     :: mp
-        integer(ip), intent(in)     :: m
-        integer(ip), intent(in)     :: idimy
-        integer(ip), intent(out)    :: ierror
+        integer(ip), intent(in)    :: iflg
+        integer(ip), intent(in)    :: np
+        integer(ip), intent(in)    :: n
+        integer(ip), intent(in)    :: mp
+        integer(ip), intent(in)    :: m
+        integer(ip), intent(in)    :: idimy
+        integer(ip), intent(out)   :: ierror
         real(wp),    intent(inout) :: an(:)
         real(wp),    intent(inout) :: bn(:)
         real(wp),    intent(inout) :: cn(:)
@@ -503,11 +505,11 @@ contains
 
                         select case (mp)
                             case (0)
-                                call blktr1(nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, &
+                                call blktri_lower_routine(nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, &
                                     w(iw1:), w(iw2:), w(iw3:), w(iwd:), w(iww:), w(iwu:), wc(iw1:), &
                                     wc(iw2:), wc(iw3:), prodp, cprodp)
                             case default
-                                call blktr1(nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, &
+                                call blktri_lower_routine(nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, &
                                     w(iw1:), w(iw2:), w(iw3:), w(iwd:), w(iww:), w(iwu:), wc(iw1:), &
                                     wc(iw2:), wc(iw3:), prod, cprod)
                         end select
@@ -519,12 +521,12 @@ contains
 
     end subroutine blktrii
 
-    subroutine blktr1(n, an, bn, cn, m, am, bm, cm, idimy, y, b, bc, &
+    subroutine blktri_lower_routine(n, an, bn, cn, m, am, bm, cm, idimy, y, b, bc, &
         w1, w2, w3, wd, ww, wu, cw1, cw2, cw3, prdct, cprdct)
         !
         ! Purpose:
         !
-        ! blktr1 solves the linear system
+        ! blktri_lower_routine solves the linear system
         !
         ! b  contains the roots of all the b polynomials
         ! w1, w2, w3, wd, ww, wu  are all working arrays
@@ -681,7 +683,7 @@ contains
 
                         if (i > nm) cycle outer_loop
 
-                        call self%indxa (i, ir, idxa, na)
+                        call self%indxa(i, ir, idxa, na)
                         call self%indxb(i, ir, iz, nz)
                         call self%indxb(i - i1, ir - 1, im1, nm1)
                         call self%indxb(i + i1, ir - 1, ip1, np1)
@@ -826,22 +828,21 @@ contains
 
         end associate common_variables
 
-    end subroutine blktr1
+    end subroutine blktri_lower_routine
 
-
-    function bsrh(xll, xrr, iz, c, a, bh, f, sgn) result (return_value)
+    function bsrh(xll, xrr, iz, c, a, bh, sgn, f) result (return_value)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        real(wp),    intent(in)  :: xll
-        real(wp),    intent(in)  :: xrr
-        integer(ip), intent(in)  :: iz
-        real(wp),    intent(in)  :: c(*)
-        real(wp),    intent(in)  :: a(*)
-        real(wp),    intent(in)  :: bh(*)
+        real(wp),    intent(in)    :: xll
+        real(wp),    intent(in)    :: xrr
+        integer(ip), intent(in)    :: iz
+        real(wp),    intent(in)    :: c(:)
+        real(wp),    intent(in)    :: a(:)
+        real(wp),    intent(in)    :: bh(:)
+        real(wp),    intent(in)    :: sgn
         procedure (comf_interface) :: f
-        real(wp),    intent(in)  :: sgn
-        real(wp)                  :: return_value
+        real(wp)                   :: return_value
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -877,12 +878,9 @@ contains
             dx = dx/2
 
             do
-
                 if (dx - cnv > ZERO) exit
-
                 x = (xl + xr)/2
                 r1 = sgn * f(x, iz, c, a, bh)
-
                 if (r1 >= ZERO) then
                     if (r1 == ZERO) then
                         return_value = (xl + xr)/2
@@ -1486,7 +1484,6 @@ contains
         real(wp)      :: r4, r5, r6, scnv, xl, db, sgn, xr, xm, psg
         real(wp)      :: temp
         complex(wp)   :: cx, fsg, hsg, dd, f, fp, fpp, cdis, r1, r2, r3
-        type(ComfAux) :: comf_aux
         !-----------------------------------------------
 
         common_variables: associate( &
@@ -1532,17 +1529,17 @@ contains
                     xl = bh(1)
                     db = bh(3) - bh(1)
                     xl = xl - db
-                    r4 = comf_aux%psgf(xl, iz, c, a, bh)
+                    r4 = self%psgf(xl, iz, c, a, bh)
 
                     do
                         if (ZERO < r4) exit
                         xl = xl - db
-                        r4 = comf_aux%psgf(xl, iz, c, a, bh)
+                        r4 = self%psgf(xl, iz, c, a, bh)
                     end do
 
                     sgn = -ONE
 
-                    temp = bsrh(xl, bh(1), iz, c, a, bh, psgf, sgn)
+                    temp = bsrh(xl, bh(1), iz, c, a, bh, sgn, psgf)
 
                     cbp(1) = cmplx(temp, ZERO, kind=wp)
 
@@ -1564,16 +1561,16 @@ contains
                     xr = bh(iz)
                     db = bh(iz) - bh(iz-2)
                     xr = xr + db
-                    r5 = comf_aux%psgf(xr, iz, c, a, bh)
+                    r5 = self%psgf(xr, iz, c, a, bh)
 
                     do
                         if (ZERO <= r5) exit
                         xr = xr + db
-                        r5 = comf_aux%psgf(xr, iz, c, a, bh)
+                        r5 = self%psgf(xr, iz, c, a, bh)
                     end do
 
                     sgn = ONE
-                    temp = bsrh(bh(iz), xr, iz, c, a, bh, psgf, sgn)
+                    temp = bsrh(bh(iz), xr, iz, c, a, bh, sgn, psgf)
 
                     cbp(iz) = cmplx(temp, ZERO, kind=wp)
                     iif = iz - 2
@@ -1585,24 +1582,24 @@ contains
                     xl = bh(ig)
                     xr = bh(ig+1)
                     sgn = -ONE
-                    xm = bsrh(xl, xr, iz, c, a, bh, ppspf, sgn)
-                    psg = comf_aux%psgf(xm, iz, c, a, bh)
+                    xm = bsrh(xl, xr, iz, c, a, bh, sgn, ppspf)
+                    psg = self%psgf(xm, iz, c, a, bh)
 
                     block_construct: block
 
                         if (abs(psg) > EPS) then
 
-                            r6 = psg*comf_aux%psgf(xm, iz, c, a, bh)
+                            r6 = psg*self%psgf(xm, iz, c, a, bh)
 
                             if (r6 > ZERO) exit block_construct
 
                             if (r6 /= ZERO) then
 
                                 sgn = ONE
-                                temp = bsrh(bh(ig), xm, iz, c, a, bh, psgf, sgn)
+                                temp = bsrh(bh(ig), xm, iz, c, a, bh, sgn, psgf)
                                 cbp(ig) = cmplx(temp, ZERO, kind=wp)
                                 sgn = -ONE
-                                temp = bsrh(xm, bh(ig+1), iz, c, a, bh, psgf, sgn)
+                                temp = bsrh(xm, bh(ig+1), iz, c, a, bh, sgn, psgf)
                                 cbp(ig+1) = cmplx(temp, ZERO, kind=wp)
 
                                 cycle main_loop

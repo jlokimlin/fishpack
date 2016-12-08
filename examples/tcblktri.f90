@@ -50,71 +50,77 @@ program tcblktri
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
-    type(FishpackSolver)               :: solver
-    type(FishpackWorkspace)            :: workspace
-    integer(ip), parameter             :: IDIMY = 75
-    integer(ip)                        :: iflg, np, n, mp, m, i, j, ierror
-    real(wp), dimension(105)           :: an, bn, cn
-    real(wp), dimension(IDIMY)         :: s
-    real(wp), dimension(105)           :: t
-    real(wp)                           :: ds, dt, half_ds, two_ds
-    real(wp)                           :: temp1, temp2, temp3, half_dt, two_dt, discretization_error, z
-    complex(wp), dimension(IDIMY, 105) :: y
-    complex(wp), dimension(IDIMY)      :: am, bm, cm
+    type(FishpackSolver)       :: solver
+    type(FishpackWorkspace)    :: workspace
+    integer(ip), parameter     :: NS = 75, NT = 105, N = 63, M = 50
+    integer(ip)                :: iflg, np, mp, i, j, ierror
+    real(wp), dimension(NT)    :: an, bn, cn, t
+    real(wp), dimension(NS)    :: s
+    real(wp)                   :: ds, dt, half_ds, two_ds
+    real(wp)                   :: half_dt, two_dt, discretization_error, z
+    real(wp), parameter        :: ZERO = 0.0_wp, ONE = 1.0_wp, TWO = 2.0_wp
+    complex(wp)                :: y(NS,NT)
+    complex(wp), dimension(NS) :: am, bm, cm
+    complex(wp), parameter     :: IMAGINARY_UNIT = cmplx(ZERO, ONE, kind=wp)
     !-----------------------------------------------
-    !
+
+    ! Initialize flag
     iflg = 0
+
+    ! Set boundary conditions
     np = 1
-    n = 63
     mp = 1
-    m = 50
     !
     !     generate and store grid points for the purpose of computing the
     !     coefficients and the array y.
     !
-    ds = 1.0_wp/(m + 1)
-
-    do i = 1, m
+    ds = ONE/(M + 1)
+    do i = 1, M
         s(i) = real(i, kind=wp)*ds
     end do
 
-    dt = 1.0_wp/(n + 1)
-
-    do j = 1, n
+    dt = ONE/(N + 1)
+    do j = 1, N
         t(j) = real(j, kind=wp)*dt
     end do
     !
     !     compute the coefficients am, bm, cm corresponding to the s direction
     !
     half_ds = ds/2
-    two_ds = ds + ds
-    do i = 1, m
-        temp1 = 1.0_wp /(s(i)*two_ds)
-        temp2 = 1.0_wp /((s(i)-half_ds)*two_ds)
-        temp3 = 1.0_wp /((s(i)+half_ds)*two_ds)
-        am(i) = cmplx(temp1*temp2, 0.0_wp, kind=wp)
-        cm(i) = cmplx(temp1*temp3, 0.0_wp, kind=wp)
-        bm(i) = (-(am(i)+cm(i))) - cmplx(0.0_wp, 1.0_wp, kind=wp)
+    two_ds = TWO * ds
+    do i = 1, M
+        associate( &
+            temp1 => ONE /(s(i)*two_ds),&
+            temp2 => ONE /((s(i)-half_ds)*two_ds), &
+            temp3 => ONE /((s(i)+half_ds)*two_ds) &
+            )
+            am(i) = cmplx(temp1*temp2, ZERO, kind=wp)
+            cm(i) = cmplx(temp1*temp3, ZERO, kind=wp)
+            bm(i) = (-(am(i)+cm(i))) - IMAGINARY_UNIT
+        end associate
     end do
     !
     !     compute the coefficients an, bn, cn corresponding to the t direction
     !
     half_dt = dt/2
-    two_dt = 2.0_wp * dt
-    do j = 1, n
-        temp1 = 1.0_wp/(t(j)*two_dt)
-        temp2 = 1.0_wp/((t(j)-half_dt)*two_dt)
-        temp3 = 1.0_wp/((t(j)+half_dt)*two_dt)
-        an(j) = temp1*temp2
-        cn(j) = temp1*temp3
-        bn(j) = -(an(j)+cn(j))
+    two_dt = TWO * dt
+    do j = 1, N
+        associate( &
+            temp1 => ONE/(t(j)*two_dt), &
+            temp2 => ONE/((t(j)-half_dt)*two_dt), &
+            temp3 => ONE/((t(j)+half_dt)*two_dt) &
+            )
+            an(j) = temp1*temp2
+            cn(j) = temp1*temp3
+            bn(j) = -(an(j)+cn(j))
+        end associate
     end do
     !
     !     compute right side of equation
     !
-    do j = 1, n
-        y(:m, j) = 3.75_wp*s(:m)*t(j)*(s(:m)**4+t(j)**4) &
-            - cmplx(0.0_wp, 1.0_wp, kind=wp)*(s(:m)*t(j))**5
+    do j = 1, N
+        y(:M, j) = 3.75_wp * s(:M) * t(j) * (s(:M)**4 + t(j)**4) &
+            - IMAGINARY_UNIT * (s(:M)*t(j))**5
     end do
     !
     !     the nonzero boundary conditions enter the linear system via
@@ -125,26 +131,24 @@ program tcblktri
     !     the same analysis applies at j=n and i=1, .., m. note that the
     !     corner at j=n, i=m includes contributions from both boundaries.
     !
-    y(m, :n) = y(m, :n) - cm(m)*t(:n)**5
-    y(:m, n) = y(:m, n) - cn(n)*s(:m)**5
+    y(M,:N) = y(M,:N) - cm(M)*t(:N)**5
+    y(:M,N) = y(:M,N) - cn(N)*s(:M)**5
 
-    call solver%cblktri(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, IDIMY, y, ierror, workspace)
+    call solver%cblktri(iflg, np, N, an, bn, cn, mp, M, am, bm, cm, NS, y, ierror, workspace)
 
     iflg = iflg + 1
-
     do while(iflg <= 1)
 
         ! Solve system
-        call solver%cblktri(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, IDIMY, y, ierror, workspace)
+        call solver%cblktri(iflg, np, N, an, bn, cn, mp, M, am, bm, cm, NS, y, ierror, workspace)
 
         ! Increment iteration flag
         iflg = iflg + 1
-
     end do
 
-    discretization_error = 0.0_wp
-    do j = 1, n
-        do i = 1, m
+    discretization_error = ZERO
+    do j = 1, N
+        do i = 1, M
             z = abs(y(i, j)-(s(i)*t(j))**5)
             discretization_error = max(z, discretization_error)
         end do

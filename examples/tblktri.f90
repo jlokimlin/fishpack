@@ -99,49 +99,43 @@ program tblktri
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
-    type(FishpackSolver)            :: solver
-    type(FishpackWorkspace)         :: workspace
-    integer(ip), parameter          :: IDIMY = 75
-    integer(ip)                     :: iflg, np, n, mp, m, i, j, ierror
-    real(wp), dimension(IDIMY, 105) :: y
-    real(wp), dimension(IDIMY)      :: am, bm, cm
-    real(wp), dimension(105)        :: an, bn, cn
-    real(wp), dimension(IDIMY)      :: s
-    real(wp), dimension(105)        :: t
-    real(wp)                        :: ds, dt
-    real(wp)                        :: discretization_error, local_error
+    type(FishpackSolver)       :: solver
+    type(FishpackWorkspace)    :: workspace
+    integer(ip), parameter     :: NS = 75, NT = 105, N= 63, M = 50
+    integer(ip)                :: iflg, np, mp, i, j, ierror
+    real(wp)                   :: y(NS, NT), exact_solution(M, N)
+    real(wp), dimension(NS)    :: am, bm, cm, s
+    real(wp), dimension(NT)    :: an, bn, cn, t
+    real(wp)                   :: ds, dt
+    real(wp), parameter        :: ONE = 1.0_wp, TWO = 2.0_wp
     !-----------------------------------------------
 
     iflg = 0
     np = 1
-    n = 63
     mp = 1
-    m = 50
     !
     !     Generate and store grid points for the purpose of computing the
     !     coefficients and the array y.
     !
-    ds = 1.0_wp/(m + 1)
-
-    do i = 1, m
+    ds = ONE/(M + 1)
+    do i = 1, M
         s(i) = real(i, kind=wp) * ds
     end do
 
-    dt = 1.0_wp/(n + 1)
-
-    do j = 1, n
+    dt = ONE/(N + 1)
+    do j = 1, N
         t(j) = real(j, kind=wp) * dt
     end do
 
     associate( &
         half_ds => ds/2, &
-        two_ds => 2.0_wp * ds &
+        two_ds => TWO * ds &
         )
-        do i = 1, m
+        do i = 1, M
             associate( &
-                temp1 => 1.0_wp/(s(i)*two_ds), &
-                temp2 => 1.0_wp/((s(i)-half_ds)*two_ds), &
-                temp3 => 1.0_wp/((s(i)+half_ds)*two_ds) &
+                temp1 => ONE/(s(i)*two_ds), &
+                temp2 => ONE/((s(i)-half_ds)*two_ds), &
+                temp3 => ONE/((s(i)+half_ds)*two_ds) &
                 )
                 !
                 !==> Compute the coefficients am, bm, cm corresponding to the s direction
@@ -157,14 +151,14 @@ program tblktri
 
     associate( &
         half_dt => dt/2, &
-        two_dt => 2.0_wp * dt &
+        two_dt => TWO * dt &
         )
 
-        do j = 1, n
+        do j = 1, N
             associate( &
-                temp1 => 1.0_wp / ( t(j) * two_dt ), &
-                temp2 => 1.0_wp / ( (t(j)-half_dt) * two_dt ), &
-                temp3 => 1.0_wp / ( (t(j)+half_dt) * two_dt ) &
+                temp1 => ONE / (t(j) * two_dt), &
+                temp2 => ONE / ((t(j)-half_dt) * two_dt), &
+                temp3 => ONE / ((t(j)+half_dt) * two_dt) &
                 )
                 !
                 !==> Compute the coefficients an, bn, cn corresponding to the t direction
@@ -192,32 +186,29 @@ program tblktri
     !     the same analysis applies at j=n and i=1, .., m. note that the
     !     corner at j=n, i=m includes contributions from both boundaries.
     !
-    y(m, :n) = y(m, :n) - cm(m)*t(:n)**5
-    y(:m, n) = y(:m, n) - cn(n)*s(:m)**5
+    y(M,:N) = y(M,:N) - cm(M)*t(:N)**5
+    y(:M,N) = y(:M,N) - cn(N)*s(:M)**5
     !
-    !==> Determine the approximate solution u(i, j)
+    !==> Determine the approximate solution y(i, j)
     !
-    call solver%blktri(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, IDIMY, y, ierror, workspace)
+    call solver%blktri(iflg, np, N, an, bn, cn, mp, M, am, bm, cm, NS, y, ierror, workspace)
 
     iflg = iflg + 1
-
     do while (iflg <= 1)
 
         ! Solve system
-        call solver%blktri(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, IDIMY, &
-            y, ierror, workspace )
+        call solver%blktri(iflg, np, N, an, bn, cn, mp, M, am, bm, cm, NS, &
+            y, ierror, workspace)
 
         ! Increment flag
         iflg = iflg + 1
 
     end do
 
-    discretization_error = 0.0_wp
-
-    do j = 1, n
-        do i = 1, m
-            local_error = abs(y(i, j)-(s(i)*t(j))**5)
-            discretization_error = max(local_error, discretization_error)
+    ! Compute exact solution
+    do j = 1, N
+        do i = 1, M
+            exact_solution(i,j) = (s(i)*t(j))**5
         end do
     end do
 
@@ -225,14 +216,15 @@ program tblktri
     !==> Print earlier output from platforms with 64-bit floating point
     !    arithmetic followed by the output from this computer
     !
-    write( stdout, '(/a)') '     blktri *** TEST RUN *** '
-    write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-    write( stdout, '(a)') '     ierror = 0,  discretization error = 1.6478e-05'
-    write( stdout, '(a)') '     The output from your computer is: '
-    write( stdout, '(a,i3,a,1pe15.6/)') &
-        '     ierror =' , ierror, &
-        ' discretization error = ',discretization_error
-
+    associate( discretization_error => maxval(abs(exact_solution-y(:M,:N))) )
+        write( stdout, '(/a)') '     blktri *** TEST RUN *** '
+        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(a)') '     ierror = 0,  discretization error = 1.6478e-05'
+        write( stdout, '(a)') '     The output from your computer is: '
+        write( stdout, '(a,i3,a,1pe15.6/)') &
+            '     ierror =' , ierror, &
+            ' discretization error = ',discretization_error
+    end associate
     !
     !==> Release memory
     !

@@ -184,12 +184,11 @@ program tpoistg
     integer(ip)             :: i, j  !! counters
     integer(ip)             :: error_flag
     real(wp),    parameter  :: PI = acos(-1.0_wp)
-    real(wp)                :: approximate_solution( NX, NY )
-    real(wp)                :: source( NX, NY )
+    real(wp)                :: approximate_solution(NX, NY)
+    real(wp)                :: source(NX, NY)
     real(wp)                :: discretization_error
     real(wp)                :: exact_solution
     !------------------------------------------------------------------------------
-
 
     associate( &
         x_interval => [ -PI/2, PI/2 ], &
@@ -199,7 +198,6 @@ program tpoistg
         !==> Allocate memory
         !
         staggered_grid = StaggeredGrid(x_interval, y_interval, NX, NY)
-
     end associate
 
     !
@@ -331,6 +329,5 @@ contains
         end select
 
     end subroutine coeff_procedure
-
 
 end program tpoistg

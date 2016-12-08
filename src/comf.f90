@@ -104,54 +104,59 @@ module module_comf
         end function comf_interface
     end interface
 
+    !---------------------------------------------------------------------------------
+    ! Variables confined to the module
+    !---------------------------------------------------------------------------------
+    real(wp), parameter :: ONE = 1.0_wp
+    !---------------------------------------------------------------------------------
 
 contains
-
 
     pure function ppsgf(x, iz, c, a, bh) result (return_value)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer(ip), intent(in) :: iz
-        real(wp),    intent(in) :: x
-        real(wp),    intent(in) :: c(*)
-        real(wp),    intent(in) :: a(*)
-        real(wp),    intent(in) :: bh(*)
-        real(wp)                :: return_value
+        !class(ComfAux), intent(inout) :: self
+        integer(ip),    intent(in)    :: iz
+        real(wp),       intent(in)    :: x
+        real(wp),       intent(in)    :: c(*)
+        real(wp),       intent(in)    :: a(*)
+        real(wp),       intent(in)    :: bh(*)
+        real(wp)                      :: return_value
         !-----------------------------------------------
 
-        return_value = sum(1.0_wp/(x - bh(1:iz))**2)
+        return_value = sum(ONE/(x - bh(1:iz))**2)
 
     end function ppsgf
-
 
     pure function ppspf(x, iz, c, a, bh) result (return_value)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer(ip), intent(in) :: iz
-        real(wp),    intent(in) :: x
-        real(wp),    intent(in) :: c(*)
-        real(wp),    intent(in) :: a(*)
-        real(wp),    intent(in) :: bh(*)
-        real(wp)                 :: return_value
+        !class(ComfAux), intent(inout) :: self
+        integer(ip),    intent(in)    :: iz
+        real(wp),       intent(in)    :: x
+        real(wp),       intent(in)    :: c(*)
+        real(wp),       intent(in)    :: a(*)
+        real(wp),       intent(in)    :: bh(*)
+        real(wp)                      :: return_value
         !-----------------------------------------------
 
-        return_value = sum(1.0_wp/(x - bh(1:iz)))
+        return_value = sum(ONE/(x - bh(1:iz)))
 
     end function ppspf
-
 
     pure function psgf(x, iz, c, a, bh) result (return_value)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer(ip), intent(in) :: iz
-        real(wp),    intent(in) :: x
-        real(wp),    intent(in) :: c(*)
-        real(wp),    intent(in) :: a(*)
-        real(wp),    intent(in) :: bh(*)
-        real(wp)                 :: return_value
+        !class(ComfAux), intent(inout) :: self
+        integer(ip),    intent(in)    :: iz
+        real(wp),       intent(in)    :: x
+        real(wp),       intent(in)    :: c(*)
+        real(wp),       intent(in)    :: a(*)
+        real(wp),       intent(in)    :: bh(*)
+        real(wp)                      :: return_value
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -159,24 +164,23 @@ contains
         real(wp)    :: fsg, hsg, dd
         !-----------------------------------------------
 
-        fsg = 1.0_wp
-        hsg = 1.0_wp
+        fsg = ONE
+        hsg = ONE
 
         do j = 1, iz
-            dd = 1.0_wp/(x - bh(j))
+            dd = ONE/(x - bh(j))
             fsg = fsg * a(j) * dd
             hsg = hsg * c(j) * dd
         end do
 
         select case (mod(iz,2))
             case (0)
-                return_value = 1.0_wp - fsg - hsg
+                return_value = ONE - fsg - hsg
             case default
-                return_value = 1.0_wp + fsg + hsg
+                return_value = ONE + fsg + hsg
         end select
 
     end function psgf
-
 
 end module module_comf
 !
@@ -189,7 +193,5 @@ end module module_comf
 ! February  1985    Documentation upgrade
 ! November  1988    Version 3.2, FORTRAN 77 changes
 ! June      2004    Version 5.0, Fortran 90 changes
-! April     2016    Replaced epmach with intrinsic function epsilon
-!                   and pimach with acos(-1.0_wp) where wp = REAL64 from the
-!                   intrinsic module ISO_Fortran_env
+! April     2016    Fortran 2008 changes
 !
