@@ -427,7 +427,7 @@ module module_hstssp
     public :: hstssp
 
     !---------------------------------------------------------------
-    ! Variables confined to the module
+    ! Parameters confined to the module
     !---------------------------------------------------------------
     real(wp), parameter :: ZERO = 0.0_wp
     real(wp), parameter :: HALF = 0.5_wp
@@ -435,9 +435,7 @@ module module_hstssp
     real(wp), parameter :: TWO = 2.0_wp
     !---------------------------------------------------------------
 
-
 contains
-
 
     subroutine hstssp(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror)
@@ -472,54 +470,19 @@ contains
 
         if (ierror /= 0) return
 
-        !
-        !==> Allocate memory
-        !
-        workspace = get_workspace(n, m)
+        ! Allocate memory
+        call workspace%initialize_staggered_workspace(n, m)
 
+        ! Solve system
         associate( rew => workspace%real_workspace )
-            !
-            !==> Solve system
-            !
-            call hstsspp(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
-                elmbda, f, idimf, pertrb, ierror, rew)
-
+            call hstssp_lower_routine(a, b, m, mbdcnd, bda, bdb, c, d, n, &
+                nbdcnd, bdc, bdd, elmbda, f, idimf, pertrb, ierror, rew)
         end associate
 
-        !
-        !==> Release memory
-        !
+        ! Release memory
         call workspace%destroy()
 
     end subroutine hstssp
-
-
-
-    function get_workspace(n, m) result (return_value)
-        !-----------------------------------------------
-        ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip), intent(in)  :: n, m
-        type(Fish)                :: return_value
-        !-----------------------------------------------
-        ! Local variables
-        !-----------------------------------------------
-        integer(ip)  :: real_workspace_size, complex_workspace_size
-        !-----------------------------------------------
-
-        ! Get workspace dimensions for genbun
-        call return_value%compute_genbun_workspace_lengths(n, m, real_workspace_size)
-
-        ! Adjust workspace for hstssp
-        real_workspace_size = real_workspace_size + 3 * m
-        complex_workspace_size = 0
-
-        ! Allocate memory
-        call return_value%create(real_workspace_size, complex_workspace_size)
-
-    end function get_workspace
-
-
 
     pure subroutine check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, idimf, ierror)
         !-----------------------------------------------
@@ -594,9 +557,7 @@ contains
 
     end subroutine check_input_arguments
 
-
-
-    subroutine hstsspp(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
+    subroutine hstssp_lower_routine(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror, w)
         !-----------------------------------------------
         ! Dummy arguments
@@ -618,7 +579,7 @@ contains
         real(wp),    intent(in)     :: bdc(:)
         real(wp),    intent(in)     :: bdd(:)
         real(wp),    intent(inout) :: f(:,:)
-        real(wp),    intent(out), contiguous :: w(:)
+        real(wp),    intent(out)   :: w(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -793,7 +754,7 @@ contains
 
                 ! Check error flag
                 if (local_error_flag /= 0) then
-                    error stop 'fishpack library: poistgg call failed in hstsspp'
+                    error stop 'fishpack library: poistgg call failed in hstssp_lower_routine'
                 end if
             else
 
@@ -802,7 +763,7 @@ contains
 
                 ! Check error flag
                 if (local_error_flag /= 0) then
-                    error stop 'fishpack library: genbunn call failed in hstsspp'
+                    error stop 'fishpack library: genbunn call failed in hstssp_lower_routine'
                 end if
             end if
 
@@ -824,9 +785,7 @@ contains
             f(:m,:n) = f(:m,:n) + a1
         end if
 
-    end subroutine hstsspp
-
-
+    end subroutine hstssp_lower_routine
 
 end module module_hstssp
 !

@@ -236,7 +236,7 @@ module module_cmgnbn
 
 
     !---------------------------------------------------------------
-    ! Variables confined to the module
+    ! Parameters confined to the module
     !---------------------------------------------------------------
     real(wp), parameter :: ZERO = 0.0_wp
     real(wp), parameter :: HALF = 0.5_wp
@@ -361,16 +361,16 @@ contains
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer(ip)            :: real_workspace_size, complex_workspace_size, j
+        integer(ip)            :: irwk, icwk, j
         integer(ip), parameter :: NUMBER_OF_INDICES = 11
         !-----------------------------------------------
 
         !
         !==> Allocate memory
         !
-        real_workspace_size = 0
-        complex_workspace_size = (10 + int(log(real(n, kind=wp))/log(TWO), kind=ip))*m + 4*n
-        call return_value%create(real_workspace_size, complex_workspace_size)
+        irwk = 0
+        icwk = (10 + int(log(real(n, kind=wp))/log(TWO), kind=ip))*m + 4*n
+        call return_value%create(irwk, icwk)
 
         !
         !==> Allocate memory for workspace indices

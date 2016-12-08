@@ -368,7 +368,7 @@ module module_hstplr
     public :: hstplr
 
     !---------------------------------------------------------------
-    ! Variables confined to the module
+    ! Parameters confined to the module
     !---------------------------------------------------------------
     real(wp), parameter :: ZERO = 0.0_wp
     real(wp), parameter :: HALF = 0.5_wp
@@ -403,13 +403,49 @@ contains
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer(ip) :: real_workspace_size, complex_workspace_size
         type(Fish)  :: workspace
         !-----------------------------------------------
 
-        !
-        !==> Check validity of calling arguments
-        !
+        ! Check input arguments
+        call check_input_arguments(a, b, m, mbdcnd, c, d, n, &
+            nbdcnd, idimf, ierror)
+
+        ! Check error flag
+        if (ierror /= 0) return
+
+        ! Allocate memory
+        call workspace%initialize_staggered_workspace(n, m)
+
+        ! Solve system
+        associate( rew => workspace%real_workspace )
+            call hstplr_lower_routine(a, b, m, mbdcnd, &
+                bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
+                elmbda, f, idimf, pertrb, ierror, rew)
+        end associate
+
+        ! Release memory
+        call workspace%destroy()
+
+    end subroutine hstplr
+
+    pure subroutine check_input_arguments(a, b, m, mbdcnd, c, d, n, &
+        nbdcnd, idimf, ierror)
+        !-----------------------------------------------
+        ! Dummy arguments
+        !-----------------------------------------------
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: mbdcnd
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: nbdcnd
+        integer(ip), intent(in)     :: idimf
+        integer(ip), intent(out)    :: ierror
+        real(wp),    intent(in)     :: a
+        real(wp),    intent(in)     :: b
+        real(wp),    intent(in)     :: c
+        real(wp),    intent(in)     :: d
+        !-----------------------------------------------
+
+        ! Check validity of calling arguments
         if (a < ZERO) then
             ierror = 1
             return
@@ -447,28 +483,7 @@ contains
             ierror = 0
         end if
 
-        !
-        !==> Allocate memory
-        !
-        call workspace%compute_genbun_workspace_lengths(n, m, real_workspace_size)
-        real_workspace_size = real_workspace_size + 3 * m
-        complex_workspace_size = 0
-        call workspace%create(real_workspace_size, complex_workspace_size, ierror)
-
-        associate( rew => workspace%real_workspace )
-            !
-            !==> Solve system
-            !
-            call hstplr_lower_routine(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
-                elmbda, f, idimf, pertrb, ierror, rew)
-        end associate
-
-        !
-        !==> Release memory
-        !
-        call workspace%destroy()
-
-    end subroutine hstplr
+    end subroutine check_input_arguments
 
     subroutine hstplr_lower_routine(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror, w)

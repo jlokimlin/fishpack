@@ -36,7 +36,7 @@ module type_TridiagonalData
         real(wp), allocatable,              public :: subdiagonal(:)
         real(wp), allocatable,              public :: diagonal(:)
         real(wp), allocatable,              public :: superdiagonal(:)
-        procedure (proc_interface), pointer, public :: assign_coefficients => null()
+        procedure(proc_interface), pointer, public :: assign_coefficients => null()
         !---------------------------------------------------------------
     contains
         !---------------------------------------------------------------
@@ -77,7 +77,7 @@ contains
         integer(ip),            intent(in)      :: nx
         integer(ip),            intent(in)      :: x_type
         integer(ip),            intent(in)      :: y_type
-        procedure (proc_interface), optional      :: proc
+        procedure(proc_interface), optional      :: proc
         !--------------------------------------------------------------
 
         ! Ensure that object is usable

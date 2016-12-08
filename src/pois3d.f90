@@ -255,21 +255,29 @@ module module_pois3d
     ! Everything is private unless stated otherwise
     private
     public :: pois3d
-    public :: pois3dd
+    public :: Pois3dAux
+
+    type, public :: Pois3dAux
+        integer(ip) :: IIWK = 6 ! Size for workspace indices
+    contains
+        procedure, nopass :: pois3dd
+        procedure, nopass :: get_workspace_indices
+    end type
 
     !---------------------------------------------------------------
-    ! Variables confined to the module
+    ! Parameters confined to the module
     !---------------------------------------------------------------
-    real(wp), parameter :: ZERO = 0.0_wp
-    real(wp), parameter :: HALF = 0.5_wp
-    real(wp), parameter :: ONE = 1.0_wp
-    real(wp), parameter :: TWO = 2.0_wp
-    real(wp), parameter :: FOUR = 4.0_wp
+    real(wp),    parameter :: ZERO = 0.0_wp
+    real(wp),    parameter :: HALF = 0.5_wp
+    real(wp),    parameter :: ONE = 1.0_wp
+    real(wp),    parameter :: TWO = 2.0_wp
+    real(wp),    parameter :: FOUR = 4.0_wp
+    integer(ip), parameter :: IIWK = 6 ! Size for workspace indices
     !---------------------------------------------------------------
 
 contains
 
-    subroutine pois3d( lperod, l, c1, mperod, m, c2, nperod, n, a, b, c, &
+    subroutine pois3d(lperod, l, c1, mperod, m, c2, nperod, n, a, b, c, &
         ldimf, mdimf, f, ierror)
         !-----------------------------------------------
         ! Dummy arguments
@@ -292,40 +300,36 @@ contains
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer(ip)  :: real_workspace_size, complex_workspace_size
+        integer(ip)  :: irwk, icwk
         type(Fish)   :: workspace
         !-----------------------------------------------
 
-        !
-        !==> Compute required workspace dimensions
-        !
-        real_workspace_size = 30+l+m+2*n + max(l, m, n) + 7 * ( (l+1)/2+(m+1)/2)
-        complex_workspace_size = 0
+        ! Check input arguments
+        call check_input_arguments(lperod, l, mperod, m, nperod, n, &
+            a, b, c, ldimf, mdimf, ierror)
 
-        !
-        !==> Allocate memory
-        !
-        call workspace%create(real_workspace_size, complex_workspace_size)
+        ! Check error flag
+        if (ierror /= 0) return
 
-        !
-        !==> Solve system
-        !
-        associate( rew => workspace%real_workspace )
+        ! Allocate memory
+        call initialize_workspace(n, m, l, workspace)
 
+        ! Solve system
+        associate( &
+            rew => workspace%real_workspace, &
+            indx => workspace%workspace_indices &
+            )
             call pois3dd(lperod, l, c1, mperod, m, c2, nperod, n, &
-                a, b, c, ldimf, mdimf, f, ierror, rew)
-
+                a, b, c, ldimf, mdimf, f, ierror, rew, indx)
         end associate
 
-        !
-        !==> Release memory
-        !
+        ! Release memory
         call workspace%destroy()
 
     end subroutine pois3d
 
     subroutine pois3dd(lperod, l, c1, mperod, m, c2, nperod, n, a, b, &
-        c, ldimf, mdimf, f, ierror, w)
+        c, ldimf, mdimf, f, ierror, w, workspace_indices)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
@@ -338,6 +342,7 @@ contains
         integer(ip), intent(in)     :: ldimf
         integer(ip), intent(in)     :: mdimf
         integer(ip), intent(out)    :: ierror
+        integer(ip), intent(in)     :: workspace_indices(:)
         real(wp),    intent(in)     :: c1
         real(wp),    intent(in)     :: c2
         real(wp),    intent(inout) :: a(n)
@@ -349,23 +354,15 @@ contains
         ! Local variables
         !-----------------------------------------------
         integer(ip) :: nh, nhm1, nodd, i, j, k
-        integer(ip) :: workspace_indices(6)
-        real(wp)    :: temp_save(6)
+        real(wp)    :: temp_save(IIWK)
         !-----------------------------------------------
 
-        !
-        !==> Check input arguments
-        !
+        ! Check input arguments
         call check_input_arguments(lperod, l, mperod, m, nperod, n, &
             a, b, c, ldimf, mdimf, ierror)
 
         ! Check error flag
         if (ierror /= 0) return
-
-        !
-        !==> Compute workspace indices
-        !
-        workspace_indices = get_pois3dd_workspace_indices(l, m, n)
 
         associate( &
             lp => lperod + 1, &
@@ -531,28 +528,51 @@ contains
 
     end subroutine check_input_arguments
 
-    pure function get_pois3dd_workspace_indices(l, m, n) result (return_value)
+    pure function get_workspace_indices(l, m, n) result (return_value)
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
         integer(ip), intent(in)     :: l
         integer(ip), intent(in)     :: m
         integer(ip), intent(in)     :: n
-        integer(ip)                  :: return_value(6)
+        integer(ip)                 :: return_value(IIWK)
         !--------------------------------------------------------------
 
-        associate( i => return_value )
-
-            i(1) = l + 1
-            i(2) = i(1) + m
-            i(3) = i(2) + max(l, m, n) + 1
-            i(4) = i(3) + n
-            i(5) = i(4) + n
-            i(6) = i(5) + 7*((l + 1)/2) + 15
-
+        associate( indx => return_value )
+            indx(1) = l + 1
+            indx(2) = indx(1) + m
+            indx(3) = indx(2) + max(l, m, n) + 1
+            indx(4) = indx(3) + n
+            indx(5) = indx(4) + n
+            indx(6) = indx(5) + 7*((l + 1)/2) + 15
         end associate
 
-    end function get_pois3dd_workspace_indices
+    end function get_workspace_indices
+
+    subroutine initialize_workspace(n, m, l, workspace)
+        !-----------------------------------------------
+        ! Dummy arguments
+        !-----------------------------------------------
+        integer(ip), intent(in)  :: n, m, l
+        class(Fish), intent(out) :: workspace
+        !-----------------------------------------------
+        ! Local variables
+        !-----------------------------------------------
+        integer(ip)     :: irwk, icwk
+        type(Pois3dAux) :: aux
+        !-----------------------------------------------
+
+        ! Adjust workspace for pois3d
+        irwk = 30+l+m+2*n + max(l, m, n) + 7 * ( (l+1)/2+(m+1)/2)
+        icwk = 0
+
+        ! Allocate memory
+        call workspace%create(irwk, icwk, aux%IIWK)
+
+        ! Set workspace indices
+        workspace%workspace_indices = aux%get_workspace_indices(l, m, n)
+
+    end subroutine initialize_workspace
 
     subroutine pois3d_lower_routine(lp, l, mp, m, n, a, b, c, &
         ldimf, mdimf, f, xrt, yrt, t, d, wx, wy, c1, c2, bb)

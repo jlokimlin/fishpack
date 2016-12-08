@@ -522,17 +522,32 @@ module module_sepeli
     private
     public :: sepeli
 
-    !---------------------------------------------------------------
-    ! Variables confined to the module
-    !---------------------------------------------------------------
-    real(wp), parameter :: ZERO = 0.0_wp
-    real(wp), parameter :: HALF = 0.5_wp
-    real(wp), parameter :: TWO = 2.0_wp
-    !---------------------------------------------------------------
+    type, private, extends(SepAux) :: SepeliAux
+        !---------------------------------------------------------------
+        ! Type components
+        !---------------------------------------------------------------
+        type(BlktriAux), private :: blktri_aux
+        !---------------------------------------------------------------
+    contains
+        !---------------------------------------------------------------
+        ! Type-bound procedures
+        !---------------------------------------------------------------
+        procedure, public  :: spelip
+        procedure, private :: is_PDE_singular
+        procedure, private :: defer
+        !---------------------------------------------------------------
+    end type SepeliAux
 
+    !---------------------------------------------------------------
+    ! Parameters confined to the module
+    !---------------------------------------------------------------
+    real(wp),    parameter :: ZERO = 0.0_wp
+    real(wp),    parameter :: HALF = 0.5_wp
+    real(wp),    parameter :: TWO = 2.0_wp
+    integer(ip), parameter :: IIWK = 12 !! Size of workspace indices
+    !---------------------------------------------------------------
 
 contains
-
 
     subroutine sepeli(intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, &
         beta, c, d, n, nbdcnd, bdc, gama, bdd, xnu, cofx, cofy, grhs, &
@@ -561,18 +576,15 @@ contains
         real(wp),    intent(in)     :: bdb(:)
         real(wp),    intent(in)     :: bdc(:)
         real(wp),    intent(in)     :: bdd(:)
-        real(wp),    intent(inout) :: grhs(:,:)
-        real(wp),    intent(inout) :: usol(:,:)
-        class(Fish), intent(inout) :: workspace
-        !--------------------------------------------------------------
-        ! Dummy procedure arguments
-        !--------------------------------------------------------------
-        procedure (get_coefficients) :: cofx
-        procedure (get_coefficients) :: cofy
+        real(wp),    intent(inout)  :: grhs(:,:)
+        real(wp),    intent(inout)  :: usol(:,:)
+        class(Fish), intent(inout)  :: workspace
+        procedure(get_coefficients) :: cofx
+        procedure(get_coefficients) :: cofy
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        type(SepAux), save :: aux
+        type(SepeliAux), save :: aux
         !--------------------------------------------------------------
 
         !
@@ -587,7 +599,7 @@ contains
         !
         !==> allocate workspace arrays on initial call only
         !
-        if (intl == 0) call setup_workspace(n, m, workspace)
+        if (intl == 0) call initialize_workspace(n, m, workspace)
 
         associate( &
             indx => workspace%workspace_indices, &
@@ -598,7 +610,7 @@ contains
             !
             !==> Compute 2nd or 4th order solution
             !
-            call spelip(aux, intl, iorder, a, b, m, mbdcnd, &
+            call aux%spelip(intl, iorder, a, b, m, mbdcnd, &
                 bda, alpha, bdb, beta, c, d, n, &
                 nbdcnd, bdc, gama, bdd, xnu, cofx, cofy, &
                 rew(indx(1):), rew(indx(2):), rew(indx(3):), rew(indx(4):), &
@@ -610,63 +622,54 @@ contains
 
     end subroutine sepeli
 
-
-
-    subroutine setup_workspace(n, m, workspace)
+    subroutine initialize_workspace(n, m, workspace)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer(ip), intent(in)     :: n
-        integer(ip), intent(in)     :: m
-        class(Fish), intent(inout) :: workspace
+        integer(ip), intent(in)  :: n
+        integer(ip), intent(in)  :: m
+        class(Fish), intent(out) :: workspace
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer(ip) :: real_workspace_size, complex_workspace_size
+        integer(ip) :: irwk, icwk, indx(IIWK)
         !-----------------------------------------------
 
-        ! Ensure that object is usable
-        call workspace%destroy()
-
         ! Compute required blktri workspace lengths
-        call workspace%compute_blktri_workspace_lengths(n, m, real_workspace_size, complex_workspace_size)
+        call workspace%compute_blktri_workspace_lengths(n, m, irwk, icwk)
+
+        ! TODO **************
+        ! Try to eliminate this local variable altogether
+        ! Compute workspace indices
+        indx = get_workspace_indices(irwk, n, m)
+
+        ! Adjust workspace requirements for sepeli
+        irwk = indx(12) + m + 1
+        icwk = icwk + 3 * (m + 1)
+
+        ! Allocate required memory
+        call workspace%create(irwk, icwk, IIWK)
 
         ! Set workspace indices
-        allocate( workspace%workspace_indices(12) )
+        workspace%workspace_indices = indx
 
-        associate( indx => workspace%workspace_indices )
+    end subroutine initialize_workspace
 
-            indx = get_workspace_indices(real_workspace_size, n, m)
-
-            ! Adjust workspace requirements for sepeli
-            real_workspace_size = indx(12) + m + 1
-            complex_workspace_size = complex_workspace_size + 3 * (m + 1)
-
-        end associate
-
-        ! Allocate memory for real and complex workspace arrays
-        allocate( workspace%real_workspace(real_workspace_size) )
-        allocate( workspace%complex_workspace(complex_workspace_size) )
-
-    end subroutine setup_workspace
-
-
-
-    function get_workspace_indices(real_workspace_size, n, m) result (return_value)
+    pure function get_workspace_indices(irwk, n, m) result (return_value)
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        integer(ip), intent(in) :: real_workspace_size
+        integer(ip), intent(in) :: irwk
         integer(ip), intent(in) :: n
         integer(ip), intent(in) :: m
-        integer(ip)              :: return_value(12)
+        integer(ip)             :: return_value(IIWK)
         !--------------------------------------------------------------
         integer(ip) :: j !! Counter
         !--------------------------------------------------------------
 
         associate( indx => return_value)
 
-            indx(1) = real_workspace_size + 1
+            indx(1) = irwk + 1
 
             do j = 1, 6
                 indx(j+1) = indx(j) + n + 1
@@ -680,9 +683,7 @@ contains
 
     end function get_workspace_indices
 
-
-
-    subroutine spelip(sep_aux, intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, &
+    subroutine spelip(self, intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, &
         beta, c, d, n, nbdcnd, bdc, gama, bdd, xnu, cofx, cofy, an, bn, &
         cn, dn, un, zn, am, bm, cm, dm, um, zm, grhs, usol, idmn, w, &
         wc, pertrb, ierror)
@@ -697,7 +698,7 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class(SepAux), intent(inout) :: sep_aux
+        class(SepeliAux), intent(inout) :: self
         integer(ip),   intent(in)     :: intl
         integer(ip),   intent(in)     :: iorder
         integer(ip),   intent(in)     :: m
@@ -719,60 +720,56 @@ contains
         real(wp),      intent(in)     :: bdb(:)
         real(wp),      intent(in)     :: bdc(:)
         real(wp),      intent(in)     :: bdd(:)
-        real(wp),      intent(out), contiguous :: an(:)
-        real(wp),      intent(out), contiguous :: bn(:)
-        real(wp),      intent(out), contiguous :: cn(:)
-        real(wp),      intent(out), contiguous :: dn(:)
-        real(wp),      intent(out), contiguous :: un(:)
-        real(wp),      intent(out), contiguous :: zn(:)
-        real(wp),      intent(out), contiguous :: am(:)
-        real(wp),      intent(out), contiguous :: bm(:)
-        real(wp),      intent(out), contiguous :: cm(:)
-        real(wp),      intent(out), contiguous :: dm(:)
-        real(wp),      intent(out), contiguous :: um(:)
-        real(wp),      intent(out), contiguous :: zm(:)
-        real(wp),      intent(inout)          :: grhs(:,:)
-        real(wp),      intent(inout)          :: usol(:,:)
-        real(wp),      intent(out), contiguous :: w(:)
-        complex(wp),   intent(out), contiguous :: wc(:)
-        !--------------------------------------------------------------
-        ! Dummy procedure arguments
-        !--------------------------------------------------------------
-        procedure (get_coefficients)  :: cofx
-        procedure (get_coefficients)  :: cofy
+        real(wp),      intent(out)    :: an(:)
+        real(wp),      intent(out)    :: bn(:)
+        real(wp),      intent(out)    :: cn(:)
+        real(wp),      intent(out)    :: dn(:)
+        real(wp),      intent(out)    :: un(:)
+        real(wp),      intent(out)    :: zn(:)
+        real(wp),      intent(out)    :: am(:)
+        real(wp),      intent(out)    :: bm(:)
+        real(wp),      intent(out)    :: cm(:)
+        real(wp),      intent(out)    :: dm(:)
+        real(wp),      intent(out)    :: um(:)
+        real(wp),      intent(out)    :: zm(:)
+        real(wp),      intent(inout)  :: grhs(:,:)
+        real(wp),      intent(inout)  :: usol(:,:)
+        real(wp),      intent(out)    :: w(:)
+        complex(wp),   intent(out)    :: wc(:)
+        procedure(get_coefficients)   :: cofx
+        procedure(get_coefficients)   :: cofy
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        integer(ip)     :: i, j, i1, mp, np
-        real(wp)        :: xi, ai, bi, ci, axi, bxi, cxi
-        real(wp)        :: yj, dj, ej, fj, dyj, eyj
-        real(wp)        :: fyj, ax1, cxm, dy1, fyn, prtrb
-        logical          :: singular
-        type(BlktriAux) :: aux
+        integer(ip) :: i, j, i1, mp, np
+        real(wp)    :: xi, ai, bi, ci, axi, bxi, cxi
+        real(wp)    :: yj, dj, ej, fj, dyj, eyj
+        real(wp)    :: fyj, ax1, cxm, dy1, fyn, prtrb
+        logical     :: singular
         !--------------------------------------------------------------
 
         ! Associate various quantities
         associate( &
-            kswx => sep_aux%kswx, &
-            kswy => sep_aux%kswy, &
-            k => sep_aux%k, &
-            l=>sep_aux%l, &
-            mit=>sep_aux%mit, &
-            nit=> sep_aux%nit, &
-            is=> sep_aux%is, &
-            ms=> sep_aux%ms, &
-            js=> sep_aux%js, &
-            ns=> sep_aux%ns, &
-            ait => sep_aux%ait, &
-            bit => sep_aux%bit, &
-            cit => sep_aux%cit, &
-            dit => sep_aux%dit, &
-            dlx => sep_aux%dlx, &
-            dly => sep_aux%dly, &
-            tdlx3 => sep_aux%tdlx3, &
-            tdly3 => sep_aux%tdly3, &
-            dlx4 => sep_aux%dlx4, &
-            dly4 => sep_aux%dly4 &
+            kswx => self%kswx, &
+            kswy => self%kswy, &
+            k => self%k, &
+            l=>self%l, &
+            mit=>self%mit, &
+            nit=> self%nit, &
+            is=> self%is, &
+            ms=> self%ms, &
+            js=> self%js, &
+            ns=> self%ns, &
+            ait => self%ait, &
+            bit => self%bit, &
+            cit => self%cit, &
+            dit => self%dit, &
+            dlx => self%dlx, &
+            dly => self%dly, &
+            tdlx3 => self%tdlx3, &
+            tdly3 => self%tdly3, &
+            dlx4 => self%dlx4, &
+            dly4 => self%dly4 &
             )
 
             !     set parameters internally
@@ -1047,24 +1044,24 @@ contains
             !
             !==> check if operator is singular
             !
-            call is_PDE_singular(sep_aux, mbdcnd, nbdcnd, alpha, beta, &
+            call self%is_PDE_singular(mbdcnd, nbdcnd, alpha, beta, &
                 gama, xnu, cofx, cofy, singular)
             !
             !==> compute non-zero eigenvector in null space of transpose
             !     if singular
             !
             if (singular) then
-                call sep_aux%septri(mit, am, bm, cm, dm, um, zm)
+                call self%septri(mit, am, bm, cm, dm, um, zm)
             end if
 
             if (singular) then
-                call sep_aux%septri(nit, an, bn, cn, dn, un, zn)
+                call self%septri(nit, an, bn, cn, dn, un, zn)
             end if
             !
             !==> make initialization call to blktrii
             !
             if (intl == 0) then
-                call aux%blktrii(intl, np, nit, an, bn, cn, mp, mit, am, bm, cm, &
+                call self%blktri_aux%blktrii(intl, np, nit, an, bn, cn, mp, mit, am, bm, cm, &
                     idmn, usol(is:, js:), ierror, w, wc)
 
                 ! Check error flag
@@ -1076,12 +1073,12 @@ contains
             !     adjust right hand side if necessary
             !
             if (singular) then
-                call sep_aux%seport(usol, zn, zm, pertrb)
+                call self%seport(usol, zn, zm, pertrb)
             end if
             !
             !     compute solution
             !
-            call aux%blktrii(i1, np, nit, an, bn, cn, mp, mit, am, bm, cm, idmn, &
+            call self%blktri_aux%blktrii(i1, np, nit, an, bn, cn, mp, mit, am, bm, cm, idmn, &
                 usol(is:, js:), ierror, w, wc)
 
             if (ierror /= 0) then
@@ -1102,7 +1099,7 @@ contains
             !     norm if operator is singular
             !
             if (singular) then
-                call sep_aux%sepmin(usol, zn, zm, prtrb)
+                call self%sepmin(usol, zn, zm, prtrb)
             end if
             !
             !     return if deferred corrections and a fourth order solution are
@@ -1112,13 +1109,13 @@ contains
             !
             !     compute new right hand side for fourth order solution
             !
-            call defer(sep_aux, cofx, cofy, idmn, usol, grhs)
+            call self%defer(cofx, cofy, idmn, usol, grhs)
 
-            if (singular) call sep_aux%seport(usol, zn, zm, pertrb)
+            if (singular) call self%seport(usol, zn, zm, pertrb)
             !
             !     compute fourth order solution
             !
-            call aux%blktrii(i1, np, nit, an, bn, cn, mp, mit, am, bm, cm, idmn, &
+            call self%blktri_aux%blktrii(i1, np, nit, an, bn, cn, mp, mit, am, bm, cm, idmn, &
                 usol(is:, js:), ierror, w, wc)
 
             if (ierror /= 0) return
@@ -1135,13 +1132,11 @@ contains
             !     minimize solution with respect to weighted least squares
             !     norm if operator is singular
             !
-            if (singular) call sep_aux%sepmin(usol, zn, zm, prtrb)
-
+            if (singular) call self%sepmin(usol, zn, zm, prtrb)
 
         end associate
 
     end subroutine spelip
-
 
     subroutine check_input_arguments(intl, iorder, a, b, m, mbdcnd, c, d, n, nbdcnd, &
         cofx, cofy, idmn, ierror)
@@ -1163,8 +1158,8 @@ contains
         !--------------------------------------------------------------
         ! Dummy procedure arguments
         !--------------------------------------------------------------
-        procedure (get_coefficients) :: cofx
-        procedure (get_coefficients) :: cofy
+        procedure(get_coefficients) :: cofx
+        procedure(get_coefficients) :: cofy
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
@@ -1250,8 +1245,7 @@ contains
 
     end subroutine check_input_arguments
 
-
-    subroutine is_PDE_singular(sep_aux, mbdcnd, nbdcnd, alpha, beta, gama, xnu, cofx, cofy, singlr)
+    subroutine is_PDE_singular(self, mbdcnd, nbdcnd, alpha, beta, gama, xnu, cofx, cofy, singlr)
         !
         ! Purpose:
         !
@@ -1260,7 +1254,7 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class(SepAux), intent(inout) :: sep_aux
+        class(SepeliAux), intent(inout) :: self
         integer(ip),   intent(in)     :: mbdcnd
         integer(ip),   intent(in)     :: nbdcnd
         real(wp),      intent(in)     :: alpha
@@ -1268,8 +1262,8 @@ contains
         real(wp),      intent(in)     :: gama
         real(wp),      intent(in)     :: xnu
         logical ,       intent(out)    :: singlr
-        procedure (get_coefficients)    :: cofx
-        procedure (get_coefficients)    :: cofy
+        procedure(get_coefficients)    :: cofx
+        procedure(get_coefficients)    :: cofy
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
@@ -1279,26 +1273,26 @@ contains
 
         ! Associate various quantities
         associate( &
-            kswx => sep_aux%kswx, &
-            kswy => sep_aux%kswy, &
-            k => sep_aux%k, &
-            l=>sep_aux%l, &
-            mit=>sep_aux%mit, &
-            nit=> sep_aux%nit, &
-            is=> sep_aux%is, &
-            ms=> sep_aux%ms, &
-            js=> sep_aux%js, &
-            ns=> sep_aux%ns, &
-            ait => sep_aux%ait, &
-            bit => sep_aux%bit, &
-            cit => sep_aux%cit, &
-            dit => sep_aux%dit, &
-            dlx => sep_aux%dlx, &
-            dly => sep_aux%dly, &
-            tdlx3 => sep_aux%tdlx3, &
-            tdly3 => sep_aux%tdly3, &
-            dlx4 => sep_aux%dlx4, &
-            dly4 => sep_aux%dly4 &
+            kswx => self%kswx, &
+            kswy => self%kswy, &
+            k => self%k, &
+            l=>self%l, &
+            mit=>self%mit, &
+            nit=> self%nit, &
+            is=> self%is, &
+            ms=> self%ms, &
+            js=> self%js, &
+            ns=> self%ns, &
+            ait => self%ait, &
+            bit => self%bit, &
+            cit => self%cit, &
+            dit => self%dit, &
+            dlx => self%dlx, &
+            dly => self%dly, &
+            tdlx3 => self%tdlx3, &
+            tdly3 => self%tdly3, &
+            dlx4 => self%dlx4, &
+            dly4 => self%dly4 &
             )
 
             ! Initialize flag
@@ -1346,8 +1340,7 @@ contains
 
     end subroutine is_PDE_singular
 
-
-    subroutine defer(sep_aux, cofx, cofy, idmn, usol, grhs)
+    subroutine defer(self, cofx, cofy, idmn, usol, grhs)
         !
         ! Purpose:
         !
@@ -1369,15 +1362,12 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class(SepAux), intent(inout) :: sep_aux
+        class(SepeliAux), intent(inout) :: self
         integer(ip),   intent(in)     :: idmn
         real(wp),      intent(inout) :: usol(:,:)
         real(wp),      intent(inout) :: grhs(:,:)
-        !--------------------------------------------------------------
-        ! Dummy procedure arguments
-        !--------------------------------------------------------------
-        procedure (get_coefficients)    :: cofx
-        procedure (get_coefficients)    :: cofy
+        procedure(get_coefficients)    :: cofx
+        procedure(get_coefficients)    :: cofy
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
@@ -1388,26 +1378,26 @@ contains
 
         ! Associate various quantities
         associate( &
-            kswx => sep_aux%kswx, &
-            kswy => sep_aux%kswy, &
-            k => sep_aux%k, &
-            l=>sep_aux%l, &
-            mit=>sep_aux%mit, &
-            nit=> sep_aux%nit, &
-            is=> sep_aux%is, &
-            ms=> sep_aux%ms, &
-            js=> sep_aux%js, &
-            ns=> sep_aux%ns, &
-            ait => sep_aux%ait, &
-            bit => sep_aux%bit, &
-            cit => sep_aux%cit, &
-            dit => sep_aux%dit, &
-            dlx => sep_aux%dlx, &
-            dly => sep_aux%dly, &
-            tdlx3 => sep_aux%tdlx3, &
-            tdly3 => sep_aux%tdly3, &
-            dlx4 => sep_aux%dlx4, &
-            dly4 => sep_aux%dly4 &
+            kswx => self%kswx, &
+            kswy => self%kswy, &
+            k => self%k, &
+            l=>self%l, &
+            mit=>self%mit, &
+            nit=> self%nit, &
+            is=> self%is, &
+            ms=> self%ms, &
+            js=> self%js, &
+            ns=> self%ns, &
+            ait => self%ait, &
+            bit => self%bit, &
+            cit => self%cit, &
+            dit => self%dit, &
+            dlx => self%dlx, &
+            dly => self%dly, &
+            tdlx3 => self%tdlx3, &
+            tdly3 => self%tdly3, &
+            dlx4 => self%dlx4, &
+            dly4 => self%dly4 &
             )
 
             !
@@ -1422,8 +1412,8 @@ contains
                     !
                     !     compute partial derivative approximations at (xi, yj)
                     !
-                    call sep_aux%sepdx(usol, i, j, uxxx, uxxxx)
-                    call sep_aux%sepdy(usol, idmn, i, j, uyyy, uyyyy)
+                    call self%sepdx(usol, i, j, uxxx, uxxxx)
+                    call self%sepdy(usol, idmn, i, j, uyyy, uyyyy)
                     tx = ai*uxxxx/12 + bi*uxxx/6
                     ty = dj*uyyyy/12 + ej*uyyy/6
                     !
@@ -1448,8 +1438,6 @@ contains
         end associate
 
     end subroutine defer
-
-
 
 end module module_sepeli
 !

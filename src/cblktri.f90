@@ -287,7 +287,7 @@ module module_cblktri
     end type CbltriAux
 
     !---------------------------------------------------------------
-    ! Variables confined to the module
+    ! Parameters confined to the module
     !---------------------------------------------------------------
     real(wp), parameter :: ZERO = 0.0_wp
     real(wp), parameter :: HALF = 0.5_wp
@@ -323,7 +323,7 @@ contains
         !-----------------------------------------------
         integer(ip) :: m2, nh, nl, iwah, iw1, iwbh
         integer(ip) :: iw2, iw3, iwd, iww, iwu
-        integer(ip) :: real_workspace_size, complex_workspace_size
+        integer(ip) :: irwk, icwk
         !-----------------------------------------------
 
         common_variables: associate( &
@@ -398,12 +398,12 @@ contains
                 case (0) !==> Initialize solver
 
                     ! Set required workspace sizes
-                    real_workspace_size = iw1 + 2*n
-                    complex_workspace_size = iw1 + 6*m
+                    irwk = iw1 + 2*n
+                    icwk = iw1 + 6*m
                     !
                     !==> Allocate memory
                     !
-                    call w%create(real_workspace_size, complex_workspace_size, ierror)
+                    call w%create(irwk, icwk)
 
                     ! Check if allocation was successful
                     if (ierror == 20) return
@@ -482,8 +482,8 @@ contains
         complex(wp), intent(out)    :: ww(*)
         complex(wp), intent(out)    :: wu(*)
         external :: prdct, cprdct
-        !procedure (proc_sub)          :: prdct
-        !procedure (cproc_sub)         :: cprdct
+        !procedure(proc_sub)          :: prdct
+        !procedure(cproc_sub)         :: cprdct
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -728,7 +728,7 @@ contains
         real(wp)              :: c(*)
         real(wp)              :: a(*)
         real(wp)              :: bh(*)
-        procedure (comf_interface) :: f
+        procedure(comf_interface) :: f
         real(wp), intent(in)     :: sgn
         real(wp)                   :: return_value
         !-----------------------------------------------

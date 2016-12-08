@@ -98,8 +98,6 @@ module module_sepaux
         !---------------------------------------------------------------
     end type SepAux
 
-
-
     interface
         pure subroutine get_coefficients(x, a, b, c)
             import :: wp
@@ -114,9 +112,7 @@ module module_sepaux
         end subroutine get_coefficients
     end interface
 
-
 contains
-
 
     subroutine seport(this, usol, zn, zm, pertrb)
         !
@@ -191,8 +187,6 @@ contains
         end associate
 
     end subroutine seport
-
-
 
     subroutine sepmin(this, usol, zn, zm, pertrb)
         !

@@ -412,12 +412,13 @@ module module_hwsssp
     public :: hwsssp
 
     !---------------------------------------------------------------
-    ! Variables confined to the module
+    ! Parameters confined to the module
     !---------------------------------------------------------------
-    real(wp), parameter :: ZERO = 0.0_wp
-    real(wp), parameter :: HALF = 0.5_wp
-    real(wp), parameter :: ONE = 1.0_wp
-    real(wp), parameter :: TWO = 2.0_wp
+    real(wp),    parameter :: ZERO = 0.0_wp
+    real(wp),    parameter :: HALF = 0.5_wp
+    real(wp),    parameter :: ONE = 1.0_wp
+    real(wp),    parameter :: TWO = 2.0_wp
+    integer(ip), parameter :: IIWK = 7 ! Size for workspace_indices
     !---------------------------------------------------------------
 
 contains
@@ -447,13 +448,62 @@ contains
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        type(Fish)  :: workspace
-        integer(ip) :: real_workspace_size, complex_workspace_size
+        type(Fish) :: workspace
         !-----------------------------------------------
 
-        !
-        !==> Check if input values are valid
-        !
+        ! Check input arguments
+        call check_input_arguments(ts, tf, m, mbdcnd, ps, pf, n, &
+            nbdcnd, elmbda, idimf, ierror)
+
+        ! Check error flag
+        if (ierror /= 0) return
+
+        ! Allocate memory
+        call initialize_workspace(n, m, workspace)
+
+        ! Solve system
+        associate( &
+            indx => workspace%workspace_indices, &
+            rew => workspace%real_workspace &
+            )
+            associate( &
+                am => rew(indx(1):), &
+                bm => rew(indx(2):), &
+                cm => rew(indx(3):), &
+                sn => rew(indx(4):), &
+                ss => rew(indx(5):), &
+                sint => rew(indx(6):), &
+                d => rew(indx(7):) &
+                )
+                call hwsssp_lower_routine(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
+                    bdps, bdpf, elmbda, f, idimf, pertrb, am, bm, cm, sn, ss, &
+                    sint, d, ierror)
+            end associate
+        end associate
+
+        ! Release memory
+        call workspace%destroy()
+
+    end subroutine hwsssp
+
+    subroutine check_input_arguments(ts, tf, m, mbdcnd, ps, pf, n, &
+        nbdcnd, elmbda, idimf, ierror)
+        !-----------------------------------------------
+        ! Dummy arguments
+        !-----------------------------------------------
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: mbdcnd
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: nbdcnd
+        integer(ip), intent(in)     :: idimf
+        integer(ip), intent(out)    :: ierror
+        real(wp),    intent(in)     :: elmbda
+        real(wp),    intent(in)     :: ts
+        real(wp),    intent(in)     :: tf
+        real(wp),    intent(in)     :: ps
+        real(wp),    intent(in)     :: pf
+        !-----------------------------------------------
+
         if (ts < ZERO .or. tf > PI) then
             ierror = 1
             return
@@ -503,33 +553,54 @@ contains
             ierror = 0
         end if
 
-        !
-        !==> Allocate memory
-        !
-        real_workspace_size = 4 * (n + 1) + (16 + int(log(real(n+1,kind=wp))/log(TWO), kind=ip)) * (m + 1)
-        complex_workspace_size = 0
-        call workspace%create(real_workspace_size, complex_workspace_size, ierror)
+    end subroutine check_input_arguments
 
-        ! check that allocation was successful
-        if (ierror == 20) return
+    subroutine initialize_workspace(n, m, workspace)
+        !-----------------------------------------------
+        ! Dummy arguments
+        !-----------------------------------------------
+        integer(ip), intent(in)  :: n
+        integer(ip), intent(in)  :: m
+        class(Fish), intent(out) :: workspace
+        !-----------------------------------------------
+        ! Local variables
+        !-----------------------------------------------
+        integer(ip) :: irwk, icwk
+        !-----------------------------------------------
 
-        associate( w => workspace%real_workspace )
+        ! Compute workspace lengths for hwsssp
+        irwk = 4 * (n + 1)  &
+            + (16 + int(log(real(n+1,kind=wp))/log(TWO), kind=ip)) &
+            * (m + 1)
+        icwk = 0
 
-            !
-            !==> Solve system
-            !
-            call hwsssp_lower_routine(ts, tf, m, mbdcnd, bdts, bdtf, &
-                ps, pf, n, nbdcnd, bdps, bdpf, elmbda, f, idimf, pertrb, &
-                w, w(m+2:), w(2*m+3:), w(3*m+4:), w(4*m+5:), w(5*m+6:), &
-                w(6*m+7:), ierror)
+        ! Allocate memory
+        call workspace%create(irwk, icwk, IIWK)
+
+        ! Set workspace indices
+        workspace%workspace_indices = get_workspace_indices(m)
+
+    end subroutine initialize_workspace
+
+    pure function get_workspace_indices(m) result (return_value)
+        !--------------------------------------------------------------
+        ! Dummy arguments
+        !----------------------------------------------
+        integer(ip), intent(in) :: m
+        integer(ip)             :: return_value(IIWK)
+        !-----------------------------------------------
+
+        associate( indx => return_value)
+            indx(1) = 1
+            indx(2) = m+2
+            indx(3) = 2*m+3
+            indx(4) = 3*m+4
+            indx(5) = 4*m+5
+            indx(6) = 5*m+6
+            indx(7) = 6*m+7
         end associate
 
-        !
-        !==> Release memory
-        !
-        call workspace%destroy()
-
-    end subroutine hwsssp
+    end function get_workspace_indices
 
     subroutine hwsssp_lower_routine(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
         bdps, bdpf, elmbda, f, idimf, pertrb, am, bm, cm, sn, ss, &

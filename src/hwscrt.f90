@@ -330,19 +330,15 @@ module module_hwscrt
     private
     public :: hwscrt
 
-
     !---------------------------------------------------------------
-    ! Variables confined to the module
+    ! Parameters confined to the module
     !---------------------------------------------------------------
     real(wp), parameter :: ZERO = 0.0_wp
     real(wp), parameter :: ONE = 1.0_wp
     real(wp), parameter :: TWO = 2.0_wp
     !---------------------------------------------------------------
 
-
-
 contains
-
 
     subroutine hwscrt(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror)
@@ -365,101 +361,56 @@ contains
         real(wp),    intent(in)     :: bdb(:)
         real(wp),    intent(in)     :: bdc(:)
         real(wp),    intent(in)     :: bdd(:)
-        real(wp),    intent(inout) :: f(:,:)
+        real(wp),    intent(inout)  :: f(:,:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
         type(Fish)  :: workspace
-        integer(ip) :: real_workspace_size, complex_workspace_size
         !-----------------------------------------------
 
-        !
-        !==>  Check validity of input parameters.
-        !
-        if ((a - b) >= ZERO) then
-            ierror = 1
-            return
-        else if (mbdcnd < 0 .or. mbdcnd > 4) then
-            ierror = 2
-            return
-        else if ((c - d) >= ZERO) then
-            ierror = 3
-            return
-        else if (n <= 3) then
-            ierror = 4
-            return
-        else if (nbdcnd < 0 .or. nbdcnd > 4) then
-            ierror = 5
-            return
-        else if (idimf < m + 1) then
-            ierror = 7
-            return
-        else if (m <= 3) then
-            ierror = 8
-            return
-        else
-            ierror = 0
-        end if
+        ! Check input arguments
+        call check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, idimf, ierror)
 
-        !
-        !==> Estimate real workspace size (generous estimate)
-        !
-        associate( int_arg => real(n + 1, kind=wp)/log(TWO) )
+        ! Check error flag
+        if (ierror /= 0) return
 
-            real_workspace_size = 4*(n+1)+(13+int(int_arg, kind=ip))*(m + 1)
-            complex_workspace_size = 0
+        ! Allocate memory
+        call workspace%initialize_centered_workspace(n, m)
 
-        end associate
-
-        !
-        !==> Allocate memory
-        !
-        call workspace%create(real_workspace_size, complex_workspace_size, ierror)
-
-        ! Check if allocation was successful
-        if (ierror == 20) return
-
+        ! Solve system
         associate( rew => workspace%real_workspace)
-            !
-            !==> Solve system
-            !
-            call hwscrtt(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
-                elmbda, f, idimf, pertrb, ierror, rew)
-
+            call hwscrt_lower_routine(a, b, m, mbdcnd, bda, bdb, c, d, &
+                n, nbdcnd, bdc, bdd, elmbda, f, idimf, pertrb, ierror, rew)
         end associate
 
-        !
-        !==>  Release memory
-        !
+        ! Release memory
         call workspace%destroy()
 
     end subroutine hwscrt
 
-
-
-    subroutine hwscrtt(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
+    subroutine hwscrt_lower_routine(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror, w)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer(ip),          intent(in)     :: m
-        integer(ip),          intent(in)     :: mbdcnd
-        integer(ip),          intent(in)     :: n
-        integer(ip),          intent(in)     :: nbdcnd
-        integer(ip),          intent(in)     :: idimf
-        integer(ip),          intent(out)    :: ierror
-        real(wp),             intent(in)     :: a
-        real(wp),             intent(in)     :: b
-        real(wp),             intent(in)     :: c
-        real(wp),             intent(in)     :: d
-        real(wp),             intent(in)     :: elmbda
-        real(wp),             intent(out)    :: pertrb
-        real(wp),             intent(in)     :: bda(:)
-        real(wp),             intent(in)     :: bdb(:)
-        real(wp),             intent(in)     :: bdc(:)
-        real(wp),             intent(in)     :: bdd(:)
-        real(wp),             intent(inout) :: f(idimf,*)
-        real(wp), contiguous, intent(inout) :: w(:)
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: mbdcnd
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: nbdcnd
+        integer(ip), intent(in)     :: idimf
+        integer(ip), intent(out)    :: ierror
+        real(wp),    intent(in)     :: a
+        real(wp),    intent(in)     :: b
+        real(wp),    intent(in)     :: c
+        real(wp),    intent(in)     :: d
+        real(wp),    intent(in)     :: elmbda
+        real(wp),    intent(out)    :: pertrb
+        real(wp),    intent(in)     :: bda(:)
+        real(wp),    intent(in)     :: bdb(:)
+        real(wp),    intent(in)     :: bdc(:)
+        real(wp),    intent(in)     :: bdd(:)
+        real(wp),    intent(inout)  :: f(idimf,*)
+        real(wp),    intent(inout)  :: w(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -616,7 +567,7 @@ contains
 
             ! Check error flag
             if (local_error_flag /= 0) then
-                error stop 'fishpack library: genbunn call failed in hwscrtt'
+                error stop 'fishpack library: genbunn call failed in hwscrt_lower_routine'
             end if
 
         end associate
@@ -631,8 +582,51 @@ contains
             if (nbdcnd == 0) f(mp1, np1) = f(1, np1)
         end if
 
-    end subroutine hwscrtt
+    end subroutine hwscrt_lower_routine
 
+    pure subroutine check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, idimf, ierror)
+        !-----------------------------------------------
+        ! Dummy arguments
+        !-----------------------------------------------
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: mbdcnd
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: nbdcnd
+        integer(ip), intent(in)     :: idimf
+        integer(ip), intent(out)    :: ierror
+        real(wp),    intent(in)     :: a
+        real(wp),    intent(in)     :: b
+        real(wp),    intent(in)     :: c
+        real(wp),    intent(in)     :: d
+        !-----------------------------------------------
+
+        ! Check input arguments
+        if (ZERO <= (a - b)) then
+            ierror = 1
+            return
+        else if (mbdcnd < 0 .or. mbdcnd > 4) then
+            ierror = 2
+            return
+        else if (ZERO <= (c - d)) then
+            ierror = 3
+            return
+        else if (n <= 3) then
+            ierror = 4
+            return
+        else if (nbdcnd < 0 .or. nbdcnd > 4) then
+            ierror = 5
+            return
+        else if (idimf < m + 1) then
+            ierror = 7
+            return
+        else if (m <= 3) then
+            ierror = 8
+            return
+        else
+            ierror = 0
+        end if
+
+    end subroutine check_input_arguments
 
 end module module_hwscrt
 !

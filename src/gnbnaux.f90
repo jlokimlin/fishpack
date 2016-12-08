@@ -104,7 +104,7 @@ module module_gnbnaux
     end type GenbunAux
 
     !---------------------------------------------------------------
-    ! Variables confined to the module
+    ! Parameters confined to the module
     !---------------------------------------------------------------
     real(wp), parameter :: ZERO = 0.0_wp
     real(wp), parameter :: ONE = 1.0_wp

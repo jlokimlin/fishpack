@@ -231,7 +231,7 @@ module module_poistg
     public :: poistgg
 
     !---------------------------------------------------------------
-    ! Variables confined to the module
+    ! Parameters confined to the module
     !---------------------------------------------------------------
     real(wp), parameter :: ZERO = 0.0_wp
     real(wp), parameter :: HALF = 0.5_wp
@@ -258,20 +258,20 @@ contains
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        integer(ip) :: real_workspace_size, complex_workspace_size
+        integer(ip) :: irwk, icwk
         type(Fish)  :: workspace
         !--------------------------------------------------------------
 
         !
         !==> Compute workspace dimensions
         !
-        real_workspace_size = m * (9 + int(log(real(n, kind=wp))/log(TWO),kind=ip)) + 4 * n
-        complex_workspace_size = 0
+        irwk = m * (9 + int(log(real(n, kind=wp))/log(TWO),kind=ip)) + 4 * n
+        icwk = 0
 
         !
         !==> Allocate memory
         !
-        call workspace%create(real_workspace_size, complex_workspace_size)
+        call workspace%create(irwk, icwk)
 
         associate( rew => workspace%real_workspace )
             !

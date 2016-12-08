@@ -352,7 +352,7 @@ module module_hwsplr
     public :: hwsplr
 
     !---------------------------------------------------------------
-    ! Variables confined to the module
+    ! Parameters confined to the module
     !---------------------------------------------------------------
     real(wp), parameter :: ZERO = 0.0_wp
     real(wp), parameter :: HALF = 0.5_wp
@@ -387,13 +387,45 @@ contains
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        type(Fish)  :: workspace
-        integer(ip) :: real_workspace_size, complex_workspace_size
+        type(Fish) workspace
         !-----------------------------------------------
 
-        !
-        !==> Check validity of input arguments
-        !
+        ! Check validity of input arguments
+        call check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, idimf, ierror)
+
+        ! Check error flag
+        if (ierror /= 0) return
+
+        ! Allocate memory
+        call workspace%initialize_centered_workspace(n, m)
+
+        ! Solve system
+        associate( rew => workspace%real_workspace )
+            call hwsplr_lower_routine(a, b, m, mbdcnd, bda, bdb, c, d, n, &
+                nbdcnd, bdc, bdd, elmbda, f, idimf, pertrb, ierror, rew)
+        end associate
+
+        ! Release memory
+        call workspace%destroy()
+
+    end subroutine hwsplr
+
+    pure subroutine check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, idimf, ierror)
+        !-----------------------------------------------
+        ! Dummy arguments
+        !-----------------------------------------------
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: mbdcnd
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: nbdcnd
+        integer(ip), intent(in)     :: idimf
+        integer(ip), intent(out)    :: ierror
+        real(wp),    intent(in)     :: a
+        real(wp),    intent(in)     :: b
+        real(wp),    intent(in)     :: c
+        real(wp),    intent(in)     :: d
+        !-----------------------------------------------
+
         if (a < ZERO) then
             ierror = 1
             return
@@ -403,22 +435,22 @@ contains
         else if (mbdcnd <= 0 .or. mbdcnd >= 7) then
             ierror = 3
             return
-        else if (c >= d) then
+        else if (d <= c) then
             ierror = 4
             return
         else if (n <= 3) then
             ierror = 5
             return
-        else if (nbdcnd <= -1 .or. nbdcnd >= 5) then
+        else if (nbdcnd <= -1 .or. 5 <= nbdcnd) then
             ierror = 6
             return
         else if (a == ZERO .and. (mbdcnd==3 .or. mbdcnd==4)) then
             ierror = 7
             return
-        else if (a > ZERO .and. mbdcnd >= 5) then
+        else if (a > ZERO .and. 5 <= mbdcnd) then
             ierror = 8
             return
-        else if (mbdcnd >= 5 .and. nbdcnd /= 0 .and. nbdcnd /= 3) then
+        else if (5 <= mbdcnd .and. nbdcnd /= 0 .and. nbdcnd /= 3) then
             ierror = 9
             return
         else if (idimf < m + 1) then
@@ -431,32 +463,7 @@ contains
             ierror = 0
         end if
 
-        !
-        !==> Compute workspace arrays sizes
-        !
-        real_workspace_size = 4*(n+1)+(m+1)*(13+int(log(real(n+1, kind=wp))/log(TWO)))
-        complex_workspace_size = 0
-
-        !
-        !==> Allocate memory
-        !
-        call workspace%create(real_workspace_size, complex_workspace_size, ierror)
-
-        associate( rew => workspace%real_workspace )
-            !
-            !==> Solve system
-            !
-            call hwsplr_lower_routine(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
-                elmbda, f, idimf, pertrb, ierror, rew)
-
-        end associate
-
-        !
-        !==> Release memory
-        !
-        call workspace%destroy()
-
-    end subroutine hwsplr
+    end subroutine check_input_arguments
 
     subroutine hwsplr_lower_routine(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc &
         , bdd, elmbda, f, idimf, pertrb, ierror, w)

@@ -295,20 +295,25 @@ module module_blktri
         !-------------------------------------------------
         ! Type-bound procedures
         !-------------------------------------------------
-        procedure, nopass, public  :: blktrii
-        procedure, public :: indxa
-        procedure, public :: indxb
-        procedure, public :: indxc
+        procedure, public  :: blktrii
+        procedure, private :: blktri_lower_routine
+        procedure, private :: bsrh
+        procedure, private :: compb
+        procedure, private :: ppadd
+        procedure, private :: tevls
+        procedure, private :: indxa
+        procedure, private :: indxb
+        procedure, private :: indxc
         !-------------------------------------------------
     end type BlktriAux
 
     !---------------------------------------------------------------------------------
-    ! Variables confined to the module
+    ! Parameters confined to the module
     !---------------------------------------------------------------------------------
     real(wp),    parameter :: ZERO = 0.0_wp
     real(wp),    parameter :: ONE = 1.0_wp
     real(wp),    parameter :: TWO = 2.0_wp
-    type(BlktriAux)        :: self
+    !type(BlktriAux)        :: self
     !---------------------------------------------------------------------------------
 
 contains
@@ -336,7 +341,8 @@ contains
         !--------------------------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------------------------
-        integer(ip)  :: real_workspace_size, complex_workspace_size
+        integer(ip)           :: irwk, icwk
+        type(BlktriAux), save :: self
         !--------------------------------------------------------------------------------
 
         common_variables: associate( &
@@ -365,14 +371,13 @@ contains
                 ierror = 0
             end if
 
-
             if (iflg == 0) then
 
                 ! compute and allocate real and complex required work space
-                call workspace%compute_blktri_workspace_lengths(n, m, real_workspace_size, complex_workspace_size)
+                call workspace%compute_blktri_workspace_lengths(n, m, irwk, icwk)
 
                 ! Allocate memory for workspace
-                call workspace%create(real_workspace_size, complex_workspace_size, ierror)
+                call workspace%create(irwk, icwk)
 
             end if
 
@@ -383,7 +388,7 @@ contains
                 !
                 !==> Solve system
                 !
-                call blktrii(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
+                call self%blktrii(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
                     idimy, y, ierror, rew, cxw)
             end associate
 
@@ -391,11 +396,12 @@ contains
 
     end subroutine blktri
 
-    subroutine blktrii(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
+    subroutine blktrii(self, iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
         idimy, y, ierror, w, wc)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
+        class(BlktriAux), intent(inout) :: self
         integer(ip), intent(in)    :: iflg
         integer(ip), intent(in)    :: np
         integer(ip), intent(in)    :: n
@@ -496,7 +502,7 @@ contains
                         iww = iwd + m
                         iwu = iww + m
 
-                        call compb(nl, ierror, an, bn, cn, w, wc, w(iwah:), w(iwbh:))
+                        call self%compb(nl, ierror, an, bn, cn, w, wc, w(iwah:), w(iwbh:))
 
                     case default
 
@@ -505,11 +511,11 @@ contains
 
                         select case (mp)
                             case (0)
-                                call blktri_lower_routine(nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, &
+                                call self%blktri_lower_routine(nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, &
                                     w(iw1:), w(iw2:), w(iw3:), w(iwd:), w(iww:), w(iwu:), wc(iw1:), &
                                     wc(iw2:), wc(iw3:), prodp, cprodp)
                             case default
-                                call blktri_lower_routine(nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, &
+                                call self%blktri_lower_routine(nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, &
                                     w(iw1:), w(iw2:), w(iw3:), w(iwd:), w(iww:), w(iwu:), wc(iw1:), &
                                     wc(iw2:), wc(iw3:), prod, cprod)
                         end select
@@ -521,7 +527,7 @@ contains
 
     end subroutine blktrii
 
-    subroutine blktri_lower_routine(n, an, bn, cn, m, am, bm, cm, idimy, y, b, bc, &
+    subroutine blktri_lower_routine(self, n, an, bn, cn, m, am, bm, cm, idimy, y, b, bc, &
         w1, w2, w3, wd, ww, wu, cw1, cw2, cw3, prdct, cprdct)
         !
         ! Purpose:
@@ -540,6 +546,7 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
+        class(BlktriAux), intent(inout) :: self
         integer(ip), intent(in)     :: n
         integer(ip), intent(in)     :: m
         integer(ip), intent(in)     :: idimy
@@ -830,19 +837,20 @@ contains
 
     end subroutine blktri_lower_routine
 
-    function bsrh(xll, xrr, iz, c, a, bh, sgn, f) result (return_value)
+    function bsrh(self, xll, xrr, iz, c, a, bh, sgn, f) result (return_value)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        real(wp),    intent(in)    :: xll
-        real(wp),    intent(in)    :: xrr
-        integer(ip), intent(in)    :: iz
-        real(wp),    intent(in)    :: c(:)
-        real(wp),    intent(in)    :: a(:)
-        real(wp),    intent(in)    :: bh(:)
-        real(wp),    intent(in)    :: sgn
-        procedure (comf_interface) :: f
-        real(wp)                   :: return_value
+        class(BlktriAux), intent(inout) :: self
+        real(wp),         intent(in)    :: xll
+        real(wp),         intent(in)    :: xrr
+        integer(ip),      intent(in)    :: iz
+        real(wp),         intent(in)    :: c(:)
+        real(wp),         intent(in)    :: a(:)
+        real(wp),         intent(in)    :: bh(:)
+        real(wp),         intent(in)    :: sgn
+        procedure(comf_interface)      :: f
+        real(wp)                        :: return_value
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -899,7 +907,7 @@ contains
 
     end function bsrh
 
-    subroutine compb(n, ierror, an, bn, cn, b, bc, ah, bh)
+    subroutine compb(self, n, ierror, an, bn, cn, b, bc, ah, bh)
         !
         ! Purpose:
         !
@@ -911,15 +919,16 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer(ip), intent(in)    :: n
-        integer(ip), intent(out)   :: ierror
-        real(wp),    intent(in)    :: an(:)
-        real(wp),    intent(in)    :: bn(:)
-        real(wp),    intent(in)    :: cn(:)
-        real(wp),    intent(inout) :: b(:)
-        real(wp),    intent(inout) :: ah(:)
-        real(wp),    intent(inout) :: bh(:)
-        complex(wp), intent(inout) :: bc(:)
+        class(BlktriAux), intent(inout) :: self
+        integer(ip),      intent(in)    :: n
+        integer(ip),      intent(out)   :: ierror
+        real(wp),         intent(in)    :: an(:)
+        real(wp),         intent(in)    :: bn(:)
+        real(wp),         intent(in)    :: cn(:)
+        real(wp),         intent(inout) :: b(:)
+        real(wp),         intent(inout) :: ah(:)
+        real(wp),         intent(inout) :: bh(:)
+        complex(wp),      intent(inout) :: bc(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -974,7 +983,7 @@ contains
                     ah(:jf-js+1) = b(js:jf)
 
                     associate( order => nb )
-                        call tevls(bh(1:order), ah(1:order), ierror)
+                        call self%tevls(bh(1:order), ah(1:order), ierror)
                     end associate
 
                     if (ierror /= 0) then
@@ -1010,7 +1019,7 @@ contains
                 end do
 
                 associate( order => nb )
-                    call tevls(ah(1:order), bh(1:order), ierror)
+                    call self%tevls(ah(1:order), bh(1:order), ierror)
                 end associate
 
                 if (ierror /= 0) then
@@ -1049,7 +1058,7 @@ contains
                 j2 = j1 + nmp + nmp
 
                 associate( order => nm + 1 )
-                    call ppadd(ierror, an(1:order), cn(1:order), bc(j1:order), b(j1:order), b(j2:order))
+                    call self%ppadd(ierror, an(1:order), cn(1:order), bc(j1:order), b(j1:order), b(j2:order))
                 end associate
 
             end if
@@ -1454,7 +1463,7 @@ contains
 
     end subroutine indxc
 
-    subroutine ppadd(ierror, a, c, cbp, bp, bh)
+    subroutine ppadd(self, ierror, a, c, cbp, bp, bh)
         !
         ! Purpose
         !
@@ -1470,12 +1479,13 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer(ip), intent(out)   :: ierror
-        real(wp),    intent(in)    :: a(:)
-        real(wp),    intent(in)    :: c(:)
-        real(wp),    intent(inout) :: bp(:)
-        real(wp),    intent(inout) :: bh(:)
-        complex(wp), intent(inout) :: cbp(:)
+        class(BlktriAux), intent(inout) :: self
+        integer(ip),      intent(out)   :: ierror
+        real(wp),         intent(in)    :: a(:)
+        real(wp),         intent(in)    :: c(:)
+        real(wp),         intent(inout) :: bp(:)
+        real(wp),         intent(inout) :: bh(:)
+        complex(wp),      intent(inout) :: cbp(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -1539,7 +1549,7 @@ contains
 
                     sgn = -ONE
 
-                    temp = bsrh(xl, bh(1), iz, c, a, bh, sgn, psgf)
+                    temp = self%bsrh(xl, bh(1), iz, c, a, bh, sgn, psgf)
 
                     cbp(1) = cmplx(temp, ZERO, kind=wp)
 
@@ -1570,7 +1580,7 @@ contains
                     end do
 
                     sgn = ONE
-                    temp = bsrh(bh(iz), xr, iz, c, a, bh, sgn, psgf)
+                    temp = self%bsrh(bh(iz), xr, iz, c, a, bh, sgn, psgf)
 
                     cbp(iz) = cmplx(temp, ZERO, kind=wp)
                     iif = iz - 2
@@ -1582,7 +1592,7 @@ contains
                     xl = bh(ig)
                     xr = bh(ig+1)
                     sgn = -ONE
-                    xm = bsrh(xl, xr, iz, c, a, bh, sgn, ppspf)
+                    xm = self%bsrh(xl, xr, iz, c, a, bh, sgn, ppspf)
                     psg = self%psgf(xm, iz, c, a, bh)
 
                     block_construct: block
@@ -1596,10 +1606,10 @@ contains
                             if (r6 /= ZERO) then
 
                                 sgn = ONE
-                                temp = bsrh(bh(ig), xm, iz, c, a, bh, sgn, psgf)
+                                temp = self%bsrh(bh(ig), xm, iz, c, a, bh, sgn, psgf)
                                 cbp(ig) = cmplx(temp, ZERO, kind=wp)
                                 sgn = -ONE
-                                temp = bsrh(xm, bh(ig+1), iz, c, a, bh, sgn, psgf)
+                                temp = self%bsrh(xm, bh(ig+1), iz, c, a, bh, sgn, psgf)
                                 cbp(ig+1) = cmplx(temp, ZERO, kind=wp)
 
                                 cycle main_loop
@@ -2031,7 +2041,7 @@ contains
 
     end subroutine prodp
 
-    subroutine tevls(diagonal, subdiagonal, error_flag)
+    subroutine tevls(self, diagonal, subdiagonal, error_flag)
         !
         ! Purpose:
         !
@@ -2072,14 +2082,15 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer(ip), intent(out)   :: error_flag
-        real(wp),    intent(inout) :: diagonal(:)
-        real(wp),    intent(inout) :: subdiagonal(:)
+        class(BlktriAux), intent(inout) :: self
+        integer(ip),      intent(out)   :: error_flag
+        real(wp),         intent(inout) :: diagonal(:)
+        real(wp),         intent(inout) :: subdiagonal(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer(ip)  :: i, j, l, m, ii, l1, mml, nhalf, ntop
-        real(wp)     :: b, c, f, g, h, p, r, s, dhold
+        integer(ip) :: i, j, l, m, ii, l1, mml, nhalf, ntop
+        real(wp)    :: b, c, f, g, h, p, r, s, dhold
         !-----------------------------------------------
 
         common_variables: associate( &

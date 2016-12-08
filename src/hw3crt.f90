@@ -419,7 +419,7 @@ module module_hw3crt
         Fish => FishpackWorkspace
 
     use module_pois3d, only: &
-        pois3dd
+        Pois3dAux
 
     ! Explicit typing only
     implicit none
@@ -429,7 +429,7 @@ module module_hw3crt
     public :: hw3crt
 
     !---------------------------------------------------------------
-    ! Variables confined to the module
+    ! Parameters confined to the module
     !---------------------------------------------------------------
     real(wp), parameter :: ZERO = 0.0_wp
     real(wp), parameter :: ONE = 1.0_wp
@@ -474,39 +474,34 @@ contains
         type(Fish) :: workspace
         !-----------------------------------------------
 
-        !
-        !==> Check validity of input arguments
-        !
+        ! Check input arguments
         call check_input_arguments(l, lbdcnd, m, mbdcnd, n, nbdcnd, &
             ldimf, mdimf, xs, xf, ys, yf, zs, zf, ierror)
 
         ! Check error flag
         if (ierror /= 0) return
 
-        !
-        !==> Allocate memory
-        !
-        workspace = get_workspace(n, m, l)
+        ! Allocate memory
+        call initialize_workspace(n, m, l, workspace)
 
-        associate( rew => workspace%real_workspace )
-            !
-            !==> Solve system
-            !
+        ! Solve system
+        associate( &
+            rew => workspace%real_workspace, &
+            indx => workspace%workspace_indices &
+            )
             call hw3crt_lower_routine(xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m, mbdcnd, bdys, &
                 bdyf, zs, zf, n, nbdcnd, bdzs, bdzf, elmbda, ldimf, &
-                mdimf, f, pertrb, ierror, rew)
+                mdimf, f, pertrb, ierror, rew, indx)
         end associate
 
-        !
-        !==> Release memory
-        !
+        ! Release memory
         call workspace%destroy()
 
     end subroutine hw3crt
 
     subroutine hw3crt_lower_routine(xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m, &
         mbdcnd, bdys, bdyf, zs, zf, n, nbdcnd, bdzs, bdzf, elmbda, &
-        ldimf, mdimf, f, pertrb, ierror, w)
+        ldimf, mdimf, f, pertrb, ierror, w, workspace_indices)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
@@ -519,6 +514,7 @@ contains
         integer(ip), intent(in)     :: ldimf
         integer(ip), intent(in)     :: mdimf
         integer(ip), intent(out)    :: ierror
+        integer(ip), intent(in)     :: workspace_indices(:)
         real(wp),    intent(in)     :: xs
         real(wp),    intent(in)     :: xf
         real(wp),    intent(in)     :: ys
@@ -544,6 +540,7 @@ contains
         integer(ip) :: mstpm1, lstpm1, nstpm1, nperod
         real(wp)    :: dy, twbydy, c2, dz, twbydz, c3, dx
         real(wp)    :: c1, twbydx, xlp, ylp, zlp, s1, s2, s
+        type(Pois3dAux) :: aux
         !-----------------------------------------------
 
         dy = (yf - ys)/m
@@ -768,9 +765,9 @@ contains
         !
         !==> Solve system
         !
-        call pois3dd(lbdcnd, lunk, c1, mbdcnd, munk, c2, nperod, nunk, w, &
+        call aux%pois3dd(lbdcnd, lunk, c1, mbdcnd, munk, c2, nperod, nunk, w, &
             w(iwb:), w(iwc:), ldimf, mdimf, f(lstart:, mstart:, nstart:), &
-            ierror, w(iww:))
+            ierror, w(iww:), workspace_indices)
 
         ! Check error flag
         if (ierror /= 0) then
@@ -830,8 +827,6 @@ contains
         real(wp),    intent(in)      :: zf
         integer(ip), intent(out)     :: ierror
         !-----------------------------------------------
-        ! Dummy arguments
-        !-----------------------------------------------
 
         if (xf <= xs) then
             ierror = 1
@@ -872,30 +867,30 @@ contains
 
     end subroutine check_input_arguments
 
-
-
-    function get_workspace(n, m, l) result (return_value)
+    subroutine initialize_workspace(n, m, l, workspace)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
         integer(ip), intent(in)  :: n, m, l
-        type(Fish)                :: return_value
+        class(Fish), intent(out) :: workspace
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer(ip)  :: real_workspace_size, complex_workspace_size
+        integer(ip)     :: irwk, icwk
+        type(Pois3dAux) :: aux
         !-----------------------------------------------
 
         ! Adjust workspace for hw3crt
-        real_workspace_size = 30 + l + m + 5*n + max(n, m, l) + 7*((l+1)/2 + (m+1)/2)
-        complex_workspace_size = 0
+        irwk = 30 + l + m + 5*n + max(n, m, l) + 7*((l+1)/2 + (m+1)/2)
+        icwk = 0
 
         ! Allocate memory
-        call return_value%create(real_workspace_size, complex_workspace_size)
+        call workspace%create(irwk, icwk, aux%IIWK)
 
-    end function get_workspace
+        ! Set workspace indices
+        workspace%workspace_indices = aux%get_workspace_indices(l, m, n)
 
-
+    end subroutine initialize_workspace
 
 end module module_hw3crt
 !

@@ -319,7 +319,7 @@ module module_hstcrt
     public :: hstcrt
 
     !---------------------------------------------------------------
-    ! Variables confined to the module
+    ! Parameters confined to the module
     !---------------------------------------------------------------
     real(wp), parameter :: ZERO = 0.0_wp
     real(wp), parameter :: ONE = 1.0_wp
@@ -356,31 +356,23 @@ contains
         type(Fish) :: workspace
         !-----------------------------------------------
 
-        !
-        !==> Check validity of input arguments
-        !
+        ! Check validity of input arguments
         call check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, idimf, ierror)
 
+        ! Check error flag
         if (ierror /= 0) return
 
-        !
-        !==> Allocate memory
-        !
-        workspace = get_workspace(n, m)
+         ! Allocate memory
+        call workspace%initialize_staggered_workspace(n, m)
 
+        ! Solve system
         associate( rew => workspace%real_workspace )
-            !
-            !==> Solve system
-            !
-            call hstcrtt(a, b, m, mbdcnd, bda, bdb, &
+            call hstcrt_lower_routine(a, b, m, mbdcnd, bda, bdb, &
                 c, d, n, nbdcnd, bdc, bdd, &
                 elmbda, f, idimf, pertrb, ierror, rew)
-
         end associate
 
-        !
-        !==> Release memory
-        !
+        ! Release memory
         call workspace%destroy()
 
     end subroutine hstcrt
@@ -401,13 +393,13 @@ contains
         real(wp),    intent(in)     :: d
         !-----------------------------------------------
 
-        if ((a-b) >= ZERO) then
+        if (ZERO <= (a-b)) then
             ierror = 1
             return
         else if (mbdcnd < 0 .or. mbdcnd > 4) then
             ierror = 2
             return
-        else if ((c-d) >= ZERO) then
+        else if (ZERO <= (c-d)) then
             ierror = 3
             return
         else if(3 > n) then
@@ -428,31 +420,7 @@ contains
 
     end subroutine check_input_arguments
 
-    function get_workspace(n, m) result (return_value)
-        !-----------------------------------------------
-        ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip), intent(in)  :: n, m
-        type(Fish)               :: return_value
-        !-----------------------------------------------
-        ! Local variables
-        !-----------------------------------------------
-        integer(ip)  :: real_workspace_size, complex_workspace_size
-        !-----------------------------------------------
-
-        ! Get workspace dimensions for genbun
-        call return_value%compute_genbun_workspace_lengths(n, m, real_workspace_size)
-
-        ! Adjust workspace for hstcrt
-        real_workspace_size = real_workspace_size + 3 * m
-        complex_workspace_size = 0
-
-        ! Allocate memory
-        call return_value%create(real_workspace_size, complex_workspace_size)
-
-    end function get_workspace
-
-    subroutine hstcrtt(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
+    subroutine hstcrt_lower_routine(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror, w)
         !-----------------------------------------------
         ! Dummy arguments
@@ -474,7 +442,7 @@ contains
         real(wp),    intent(in)     :: bdc(:)
         real(wp),    intent(in)     :: bdd(:)
         real(wp),    intent(inout) :: f(:,:)
-        real(wp),    intent(inout), contiguous :: w(:)
+        real(wp),    intent(inout) :: w(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -599,7 +567,7 @@ contains
 
                     ! Check error flag
                     if (local_error_flag /= 0) then
-                        error stop 'fishpack library: genbunn call failed in hstcrt'
+                        error stop 'fishpack library: genbunn call failed in hstcrt_lower_routine'
                     end if
 
                 case default
@@ -611,14 +579,14 @@ contains
 
                     ! Check error flag
                     if (local_error_flag /= 0) then
-                        error stop 'fishpack library: poistgg call failed in hstcrt'
+                        error stop 'fishpack library: poistgg call failed in hstcrt_lower_routine'
                     end if
 
             end select
 
         end associate
 
-    end subroutine hstcrtt
+    end subroutine hstcrt_lower_routine
 
 end module module_hstcrt
 !

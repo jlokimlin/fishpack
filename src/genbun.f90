@@ -245,7 +245,7 @@ module module_genbun
     public :: genbunn
 
     !---------------------------------------------------------------
-    ! Variables confined to the module
+    ! Parameters confined to the module
     !---------------------------------------------------------------
     real(wp), parameter :: ZERO = 0.0_wp
     real(wp), parameter :: HALF = 0.5_wp
@@ -618,17 +618,17 @@ contains
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer(ip)  :: real_workspace_size, complex_workspace_size
+        integer(ip)  :: irwk, icwk
         !-----------------------------------------------
 
         ! Get workspace dimensions for genbun
-        call return_value%compute_genbun_workspace_lengths(n, m, real_workspace_size)
+        call return_value%compute_genbun_workspace_lengths(n, m, irwk)
 
         ! No need to allocate complex arrays
-        complex_workspace_size = 0
+        icwk = 0
 
         ! Allocate memory
-        call return_value%create(real_workspace_size, complex_workspace_size)
+        call return_value%create(irwk, icwk)
 
     end function get_workspace
 

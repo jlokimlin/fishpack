@@ -450,20 +450,18 @@ module module_hwscsp
     private
     public :: hwscsp
 
-
     !---------------------------------------------------------------
-    ! Variables confined to the module
+    ! Parameters confined to the module
     !---------------------------------------------------------------
-    real(wp), parameter :: ZERO = 0.0_wp
-    real(wp), parameter :: ONE = 1.0_wp
+    real(wp),    parameter :: ZERO = 0.0_wp
+    real(wp),    parameter :: ONE = 1.0_wp
+    integer(ip), parameter :: IIWK = 10 ! Size for workspace_indices
     !---------------------------------------------------------------
-
 
 contains
 
-
     subroutine hwscsp(intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, &
-        nbdcnd, bdrs, bdrf, elmbda, f, idimf, pertrb, ierror, w)
+        nbdcnd, bdrs, bdrf, elmbda, f, idimf, pertrb, ierror, workspace)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
@@ -484,57 +482,91 @@ contains
         real(wp),    intent(in)     :: bdtf(:)
         real(wp),    intent(in)     :: bdrs(:)
         real(wp),    intent(in)     :: bdrf(:)
-        real(wp),    intent(inout) :: f(:,:)
-        class(Fish), intent(inout) :: w
+        real(wp),    intent(inout)  :: f(:,:)
+        class(Fish), intent(inout)  :: workspace
         !-----------------------------------------------
 
-        !
-        !==> Check validity of input arguments
-        !
+        ! Check input arguments
         call check_input_arguments(ts, tf, m, mbdcnd, rs, rf, &
             n, nbdcnd, elmbda, idimf, ierror)
 
         ! Check error flag
         if (ierror /= 0) return
 
-        !
-        !==> Set up workspace on initial call only
-        !
-        if (intl == 0) call setup_workspace(nbdcnd, n, m, w)
+        ! Set up workspace on initial call only
+        if (intl == 0) call initialize_workspace(n, m, nbdcnd, workspace)
 
+        ! Solve system
         associate( &
-            indx => w%workspace_indices, &
-            rew => w%real_workspace, &
-            cxw => w%complex_workspace &
+            indx => workspace%workspace_indices, &
+            rew => workspace%real_workspace, &
+            cxw => workspace%complex_workspace &
             )
-            !
-            !==> Solve system
-            !
-            call hwscs1(intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, &
-                nbdcnd, bdrs, bdrf, elmbda, f, idimf, pertrb, rew, cxw, &
-                rew(indx(1):), rew(indx(2):), rew(indx(3):), rew(indx(4):), rew(indx(5):), &
-                rew(indx(6):), rew(indx(7):), rew(indx(8):), rew(indx(9):), rew(indx(10):), ierror)
-
+            associate( &
+                w => rew, &
+                wc => cxw, &
+                s => rew(indx(1):), &
+                an => rew(indx(2):), &
+                bn => rew(indx(3):), &
+                cn => rew(indx(4):), &
+                r => rew(indx(5):), &
+                am => rew(indx(6):), &
+                bm => rew(indx(7):), &
+                cm => rew(indx(8):), &
+                sint => rew(indx(9):), &
+                bmh => rew(indx(10):) &
+                )
+                call hwscsp_lower_routine(intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, &
+                    nbdcnd, bdrs, bdrf, elmbda, f, idimf, pertrb, w, wc, s, an, bn, &
+                    cn, r, am, bm, cm, sint, bmh, ierror)
+            end associate
         end associate
 
     end subroutine hwscsp
 
-    subroutine setup_workspace(nbdcnd, n, m, workspace)
+    subroutine initialize_workspace(n, m, nbdcnd, workspace)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer(ip), intent(in)     :: nbdcnd
-        integer(ip), intent(in)     :: n
-        integer(ip), intent(in)     :: m
-        class(Fish), intent(inout) :: workspace
+        integer(ip), intent(in)  :: nbdcnd
+        integer(ip), intent(in)  :: n
+        integer(ip), intent(in)  :: m
+        class(Fish), intent(out) :: workspace
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer(ip)  :: nck, l, k, real_workspace_size, complex_workspace_size
+        integer(ip) :: irwk, icwk, indx(IIWK)
         !-----------------------------------------------
 
-        ! Ensure that object is usable
-        call workspace%destroy()
+        ! Compute workspace indices
+        indx = get_workspace_indices(n, m, nbdcnd)
+
+        ! Compute required blktri workspace lengths
+        call workspace%compute_blktri_workspace_lengths(n, m, irwk, icwk)
+
+        ! Adjust workspace requirements for hwscsp
+        irwk = indx(10) + m + 1
+        icwk = icwk + 3 * m
+
+        ! Allocate memory
+        call workspace%create(irwk, icwk, IIWK)
+
+        ! Set workspace indices
+        workspace%workspace_indices = indx
+
+    end subroutine initialize_workspace
+
+    pure function get_workspace_indices(n, m, nbdcnd) result (return_value)
+        !--------------------------------------------------------------
+        ! Dummy arguments
+        !----------------------------------------------
+        integer(ip), intent(in) :: n, m, nbdcnd
+        integer(ip)             :: return_value(IIWK)
+        !-----------------------------------------------
+        ! Local variables
+        !-----------------------------------------------
+        integer(ip)  :: j, nck, l, k
+        !-----------------------------------------------
 
         nck = n
 
@@ -549,47 +581,13 @@ contains
         l = 4
         k = k + 1
 
-        do while (nck > l)
+        do
+            if (nck <= l) exit
             l = 2*l
             k = k + 1
         end do
 
         l = 2*l
-
-        ! Compute required blktri workspace lengths
-        call workspace%compute_blktri_workspace_lengths(n, m, real_workspace_size, complex_workspace_size)
-
-        ! Set workspace indices
-        allocate( workspace%workspace_indices(10) )
-
-        associate( indx => workspace%workspace_indices )
-
-            indx = get_workspace_indices(n, m, l, k)
-
-            ! Adjust workspace requirements for sepeli
-            real_workspace_size = indx(10) + m + 1
-            complex_workspace_size = complex_workspace_size + 3 * m
-
-        end associate
-
-        ! Allocate memory for real and complex workspace arrays
-        allocate( workspace%real_workspace(real_workspace_size) )
-        allocate( workspace%complex_workspace(complex_workspace_size) )
-
-    end subroutine setup_workspace
-
-    function get_workspace_indices(n, m, l, k) result (return_value)
-        !--------------------------------------------------------------
-        ! Dummy arguments
-        !--------------------------------------------------------------
-        integer(ip), intent(in) :: n
-        integer(ip), intent(in) :: m
-        integer(ip), intent(in) :: l
-        integer(ip), intent(in) :: k
-        integer(ip)              :: return_value(10)
-        !--------------------------------------------------------------
-        integer(ip) :: j !! Counter
-        !--------------------------------------------------------------
 
         associate( indx => return_value)
 
@@ -624,9 +622,6 @@ contains
         real(wp),    intent(in)  :: rf
         real(wp),    intent(in)  :: elmbda
         !-----------------------------------------------
-
-        ! Initialize error flag
-        ierror = 0
 
         if (ts < ZERO .or. tf > PI) then
             ierror = 1
@@ -697,11 +692,13 @@ contains
                     ierror = 18
                     return
             end select
+        else
+            ierror = 0
         end if
 
     end subroutine check_input_arguments
 
-    subroutine hwscs1(intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, &
+    subroutine hwscsp_lower_routine(intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, &
         nbdcnd, bdrs, bdrf, elmbda, f, idimf, pertrb, w, wc, s, an, bn &
         , cn, r, am, bm, cm, sint, bmh, ierror)
         !-----------------------------------------------
@@ -725,18 +722,18 @@ contains
         real(wp),    intent(in)     :: bdrs(:)
         real(wp),    intent(in)     :: bdrf(:)
         real(wp),    intent(inout) :: f(idimf,n + 1)
-        real(wp),    intent(out), contiguous :: w(:)
-        real(wp),    intent(out), contiguous :: s(:)
-        real(wp),    intent(out), contiguous :: an(:)
-        real(wp),    intent(out), contiguous :: bn(:)
-        real(wp),    intent(out), contiguous :: cn(:)
-        real(wp),    intent(out), contiguous :: r(:)
-        real(wp),    intent(out), contiguous :: am(:)
-        real(wp),    intent(out), contiguous :: bm(:)
-        real(wp),    intent(out), contiguous :: cm(:)
-        real(wp),    intent(out), contiguous :: sint(:)
-        real(wp),    intent(out), contiguous :: bmh(:)
-        complex(wp), intent(out), contiguous :: wc(:)
+        real(wp),    intent(out) :: w(:)
+        real(wp),    intent(out) :: s(:)
+        real(wp),    intent(out) :: an(:)
+        real(wp),    intent(out) :: bn(:)
+        real(wp),    intent(out) :: cn(:)
+        real(wp),    intent(out) :: r(:)
+        real(wp),    intent(out) :: am(:)
+        real(wp),    intent(out) :: bm(:)
+        real(wp),    intent(out) :: cm(:)
+        real(wp),    intent(out) :: sint(:)
+        real(wp),    intent(out) :: bmh(:)
+        complex(wp), intent(out) :: wc(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -993,7 +990,7 @@ contains
             am(its:), bm(its:), cm(its:), idimf, f(its:, jrs:), ierror, w, wc)
 
         if (ierror /= 0) then
-            error stop 'fishpack library: blktrii call failed in hwscs1'
+            error stop 'fishpack library: blktrii call failed in hwscsp_lower_routine'
         end if
 
         iflg = iflg + 1
@@ -1006,7 +1003,7 @@ contains
                 munk, am(its:), bm(its:), cm(its:), idimf, f(its:, jrs:), ierror, w, wc)
 
             if (ierror /= 0) then
-                error stop 'fishpack library: blktrii call failed in hwscs1'
+                error stop 'fishpack library: blktrii call failed in hwscsp_lower_routine'
             end if
             !
             !==> Increment solver flag
@@ -1034,7 +1031,7 @@ contains
             f(:mp1, 1) = xp
         end if
 
-    end subroutine hwscs1
+    end subroutine hwscsp_lower_routine
 
 end module module_hwscsp
 !

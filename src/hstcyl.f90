@@ -350,7 +350,7 @@ module module_hstcyl
     public :: hstcyl
 
     !---------------------------------------------------------------
-    ! Variables confined to the module
+    ! Parameters confined to the module
     !---------------------------------------------------------------
     real(wp), parameter :: ZERO = 0.0_wp
     real(wp), parameter :: HALF = 0.5_wp
@@ -358,9 +358,7 @@ module module_hstcyl
     real(wp), parameter :: TWO = 2.0_wp
     !---------------------------------------------------------------
 
-
 contains
-
 
     subroutine hstcyl(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror)
@@ -390,54 +388,21 @@ contains
         type(Fish)  :: workspace
         !-----------------------------------------------
 
-        !
-        !==> Allocate memory
-        !
-        workspace = get_workspace(n, m)
+        ! Allocate memory
+        call workspace%initialize_staggered_workspace(n, m)
 
-        !
-        !==> Solve system
-        !
+        ! Solve system
         associate( rew => workspace%real_workspace )
-
-            call hstcyll(a, b, m, mbdcnd, bda, bdb, c, d, n, &
+            call hstcyl_lower_routine(a, b, m, mbdcnd, bda, bdb, c, d, n, &
                 nbdcnd, bdc, bdd, elmbda, f, idimf, pertrb, ierror, rew)
-
         end associate
 
-        !
-        !==> Release memory
-        !
+        ! Release memory
         call workspace%destroy()
 
     end subroutine hstcyl
 
-    function get_workspace(n, m) result (return_value)
-        !-----------------------------------------------
-        ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip), intent(in)  :: n
-        integer(ip), intent(in)  :: m
-        type(Fish)                :: return_value
-        !-----------------------------------------------
-        ! Local variables
-        !-----------------------------------------------
-        integer(ip)  :: real_workspace_size, complex_workspace_size
-        !-----------------------------------------------
-
-        ! Get workspace dimensions for genbun
-        call return_value%compute_genbun_workspace_lengths(n, m, real_workspace_size)
-
-        ! Adjust workspace for hstcyl
-        real_workspace_size = real_workspace_size + 3 * m
-        complex_workspace_size = 0
-
-        ! Allocate memory
-        call return_value%create(real_workspace_size, complex_workspace_size)
-
-    end function get_workspace
-
-    subroutine hstcyll(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
+    subroutine hstcyl_lower_routine(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror, w)
         !-----------------------------------------------
         ! Dummy arguments
@@ -458,8 +423,8 @@ contains
         real(wp),    intent(in)     :: bdb(:)
         real(wp),    intent(in)     :: bdc(:)
         real(wp),    intent(in)     :: bdd(:)
-        real(wp),    intent(inout) :: f(idimf,*)
-        real(wp),    intent(inout), contiguous :: w(:)
+        real(wp),    intent(inout) :: f(:,:)
+        real(wp),    intent(inout) :: w(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -602,7 +567,7 @@ contains
 
                     ! Check error flag
                     if (local_error_flag /= 0) then
-                        error stop 'fishpack library: genbunn call failed in hstcyll'
+                        error stop 'fishpack library: genbunn call failed in hstcyl_lower_routine'
                     end if
 
                 case default
@@ -613,14 +578,13 @@ contains
 
                     ! Check error flag
                     if (local_error_flag /= 0) then
-                        error stop 'fishpack library: poistg call failed in hstcyll'
+                        error stop 'fishpack library: poistg call failed in hstcyl_lower_routine'
                     end if
             end select
 
         end associate
 
-    end subroutine hstcyll
-
+    end subroutine hstcyl_lower_routine
 
     pure subroutine check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, &
         elmbda, idimf, ierror)
@@ -678,8 +642,6 @@ contains
         end if
 
     end subroutine check_input_arguments
-
-
 
 end module module_hstcyl
 !

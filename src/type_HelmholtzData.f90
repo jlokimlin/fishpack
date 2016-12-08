@@ -46,7 +46,7 @@ module type_HelmholtzData
     public :: HelmholtzData
 
     !--------------------------------------------------------------
-    ! variables confined to the module
+    ! Parameters confined to the module
     !---------------------------------------------------------------
     character(len=250) :: error_message !! Probably long enough
     integer(ip)        :: allocate_status  !! To check allocation status
@@ -66,7 +66,7 @@ module type_HelmholtzData
         real(wp), allocatable,              public :: south(:)
         real(wp), allocatable,              public :: north(:)
         type(RectangularDomain),            public :: domain
-        procedure (proc_interface), pointer, public :: assign_boundary_data => null()
+        procedure(proc_interface), pointer, public :: assign_boundary_data => null()
         !---------------------------------------------------------------
     contains
         !---------------------------------------------------------------
@@ -108,7 +108,7 @@ contains
         integer(ip),              intent(in),     optional  :: x_type
         integer(ip),              intent(in),     optional  :: y_type
         class(RectangularDomain), intent(inout), optional  :: rectangular_domain
-        procedure (proc_interface),                 optional  :: func
+        procedure(proc_interface),                 optional  :: func
         !--------------------------------------------------------------
 
         ! Ensure that object is usable
