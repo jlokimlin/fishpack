@@ -223,7 +223,7 @@
 !
 ! PRECISION              64-bit double precision
 !
-! REQUIRED LIBRARY       comf.f90, type_FishpackWorkspace.f90
+! REQUIRED LIBRARY       type_ComfAux.f90, type_FishpackWorkspace.f90
 ! FILES
 !
 ! STANDARD               Fortran 2008
@@ -260,7 +260,7 @@ module module_cblktri
         ip, & ! Integer precision
         MACHINE_EPSILON => EPS ! Machine epsilon
 
-    use module_comf, only: &
+    use type_ComfAux, only: &
         psgf, &
         ppspf, &
         ppsgf, &

@@ -140,7 +140,7 @@
 !
 ! PRECISION              64-bit precision float and 32-bit precision integer
 !
-! REQUIRED FILES         type_FishpackWorkspace.f90, gnbnaux.f90, comf.f90
+! REQUIRED FILES         type_FishpackWorkspace.f90, type_GenbunAux.f9090, type_ComfAux.f90
 !
 ! STANDARD               Fortran 2008
 !
@@ -219,7 +219,7 @@ module module_poistg
     use type_FishpackWorkspace, only: &
         Fish => FishpackWorkspace
 
-    use module_gnbnaux, only: &
+    use type_GenbunAux, only: &
         GenbunAux
 
     ! Explicit typing only

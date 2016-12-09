@@ -290,8 +290,8 @@
 !
 ! PRECISION              64-bit precision float and 32-bit precision integer
 !
-! REQUIRED LIBRARY       type_FishpackWrapper.f90, comf.f90
-! FILES                  genbun.f90, gnbnaux.f90, poistg.f90
+! REQUIRED LIBRARY       type_FishpackWrapper.f90, type_ComfAux.f90
+! FILES                  genbun.f90, type_GenbunAux.f9090, poistg.f90
 !
 ! STANDARD               Fortran 2008
 !

@@ -309,7 +309,7 @@
 !
 ! PRECISION              64-bit double precision
 !
-! REQUIRED FILES         type_FishpackWorkspace.f90, comf.f90, genbun.f90, gnbnaux.f90, poistg.f90
+! REQUIRED FILES         type_FishpackWorkspace.f90, type_ComfAux.f90, genbun.f90, type_GenbunAux.f9090, poistg.f90
 !
 ! STANDARD               Fortran 2008
 !

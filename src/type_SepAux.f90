@@ -1,4 +1,4 @@
-!     file sepaux.f90
+!     file type_SepAux.f90
 !
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
@@ -63,7 +63,7 @@
 !                        features
 !
 !
-module module_sepaux
+module type_SepAux
 
     use fishpack_precision, only: &
         wp, & ! Working precision
@@ -614,7 +614,7 @@ contains
 
 
 
-end module module_sepaux
+end module type_SepAux
 !
 ! REVISION HISTORY
 !

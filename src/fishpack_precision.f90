@@ -1,8 +1,5 @@
 module fishpack_precision
 
-    use, intrinsic :: ISO_Fortran_env, only: &
-        INT32
-
     ! Explicit typing only
     implicit none
 
@@ -10,53 +7,45 @@ module fishpack_precision
     private
     public :: wp ! Working precision
     public :: ip ! Integer precision
-    public :: PI, TWO_PI, EPS
-    public :: pimach, epmach
+    public :: PI, TWO_PI, EPS, MACHINE_EPSILON
+    public :: pimach
 
     !-----------------------------------------------
-    ! Precision constants
+    ! Floating point precision constants
     !-----------------------------------------------
-    integer,   parameter :: ip = INT32
-    integer,   parameter :: sp = selected_real_kind(p=6, r=37)
-    integer,   parameter :: dp = selected_real_kind(p=15, r=307)
-    integer,   parameter :: qp = selected_real_kind(p=33, r=4931)
-    integer,   parameter :: wp = dp
-    real(wp), parameter :: PI = acos(-1.0_wp)
-    real(wp), parameter :: TWO_PI = 2.0_wp * PI
-    real(wp), parameter :: EPS = epsilon(1.0_wp)
+    integer, parameter :: FLOAT128 = selected_real_kind(p=33, r=4931) ! 33 digits, range [10^(-4931), 10^(+4931) - 1], 128 bits
+    integer, parameter :: FLOAT64 = selected_real_kind(p=15, r=307) ! 15 digits, range [10^(-307) , 10^(+307)  - 1], 64 bits
+    integer, parameter :: FLOAT32 = selected_real_kind(p=6, r=37) ! 6 digits, range [10^(-37)  , 10^(+37)   - 1],  32 bits
+    integer, parameter :: wp = FLOAT64 ! Default floating point precision
     !-----------------------------------------------
-
+    ! Integer precision constants
+    !-----------------------------------------------
+    integer, parameter :: INT64 = selected_int_kind(r=18) ! 19 digits plus sign, range [-2^(63),+2^(63) - 1], 64 bits
+    integer, parameter :: INT32 = selected_int_kind(r=9) ! 10 digits plus sign, range [-2^(31),+2^(31) - 1], 32 bits
+    integer, parameter :: INT16 = selected_int_kind(r=4) ! 5 digits plus sign, range [-2^(15),+2^(15) - 1], 16 bits
+    integer, parameter :: INT8 = selected_int_kind(r=2) ! 3 digits plus sign, range [-2^(7) ,+2^(7)  - 1], 8 bits
+    integer, parameter :: ip = INT32 ! Default integer precision
+    !-----------------------------------------------
+    ! Calculation constants3 digits plus sign;
+    !-----------------------------------------------
+    real(wp), parameter :: ONE = 1.0_wp
+    real(wp), parameter :: TWO = 2.0_wp
+    real(wp), parameter :: PI = acos(-ONE)
+    real(wp), parameter :: TWO_PI = TWO * PI
+    real(wp), parameter :: MACHINE_EPSILON = epsilon(ONE)
+    real(wp), parameter :: EPS = MACHINE_EPSILON
+    !-----------------------------------------------
 contains
 
-    pure function pimach(dum) result (return_value)
+    pure function pimach() result (return_value)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        real(wp), optional, intent(in) :: dum
-        real(wp)                        :: return_value
+        real(wp) :: return_value
         !-----------------------------------------------
 
         return_value = 3.141592653589793238462643383279502884197169399375105820974_wp
 
     end function pimach
-
-    pure function epmach(dum) result (return_value)
-        !
-        ! Purpose:
-        !
-        ! Computes an approximate machine epsilon (accuracy), i.e.,
-        !
-        ! the smallest number EPS of the kind wp such that 1 + EPS > 1.
-        !
-        !-----------------------------------------------
-        ! Dummy arguments
-        !-----------------------------------------------
-        real(wp), optional, intent(in) :: dum
-        real(wp)                        :: return_value
-        !-----------------------------------------------
-
-        return_value = epsilon(1.0_wp)
-
-    end function epmach
 
 end module fishpack_precision

@@ -374,7 +374,7 @@
 ! PRECISION              64-bit precision real and 32-bit precision float
 !
 ! REQUIRED Files         type_FishpackWorkspace.f90,
-!                        pois3d.f90, type_FFTpack.f90, comf.f90
+!                        pois3d.f90, type_FFTpack.f90, type_ComfAux.f90
 !
 ! STANDARD               Fortran 2008
 !

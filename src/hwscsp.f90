@@ -407,7 +407,7 @@
 !
 ! PRECISION              64-bit double precision
 !
-! REQUIRED files         type_FishpackWorkspace.f90, blktri.f90, comf.f90
+! REQUIRED files         type_FishpackWorkspace.f90, blktri.f90, type_ComfAux.f90
 !
 ! STANDARD               Fortran 2008
 !

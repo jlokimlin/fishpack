@@ -228,7 +228,7 @@
 !
 ! PRECISION              64-bit precision float and 32-bit precision integer
 !
-! REQUIRED FILES         type_FishpackWorkspace.f90, comf.f90
+! REQUIRED FILES         type_FishpackWorkspace.f90, type_ComfAux.f90
 !
 ! STANDARD               Fortran 2008
 !
@@ -261,12 +261,12 @@ module module_blktri
     use fishpack_precision, only: &
         wp, & ! Working precision
         ip, & ! Integer precision
-        MACHINE_EPSILON => EPS ! Machine epsilon
+        MACHINE_EPSILON ! Machine epsilon
 
     use type_FishpackWorkspace, only: &
         Fish => FishpackWorkspace
 
-    use module_comf, only: &
+    use type_ComfAux, only: &
         ComfAux, &
         psgf, &
         ppspf, &
@@ -281,7 +281,6 @@ module module_blktri
     public :: blktrii
     public :: BlktriAux
 
-    ! Declare derived data type
     type, public, extends(ComfAux) :: BlktriAux
         !-------------------------------------------------
         ! Type components
@@ -313,7 +312,6 @@ module module_blktri
     real(wp),    parameter :: ZERO = 0.0_wp
     real(wp),    parameter :: ONE = 1.0_wp
     real(wp),    parameter :: TWO = 2.0_wp
-    !type(BlktriAux)        :: self
     !---------------------------------------------------------------------------------
 
 contains
@@ -345,6 +343,12 @@ contains
         type(BlktriAux), save :: self
         !--------------------------------------------------------------------------------
 
+        ! Check input arguments
+        call check_input_arguments(n, m, idimy, ierror)
+
+        ! Check error flag
+        if (ierror /= 0) return
+
         common_variables: associate( &
             npp => self%npp, &
             k => self%k, &
@@ -354,22 +358,6 @@ contains
             cnv => self%cnv, &
             EPS => self%MACHINE_EPSILON &
             )
-
-            !
-            !==> Check validity of input arguments
-            !
-            if (m < 5) then
-                ierror = 1
-                return
-            else if (n < 3) then
-                ierror = 2
-                return
-            else if (idimy < m) then
-                ierror = 3
-                return
-            else
-                ierror = 0
-            end if
 
             if (iflg == 0) then
 
@@ -381,20 +369,41 @@ contains
 
             end if
 
+            ! Solve system
             associate( &
                 rew => workspace%real_workspace, &
                 cxw => workspace%complex_workspace &
                 )
-                !
-                !==> Solve system
-                !
-                call self%blktrii(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
-                    idimy, y, ierror, rew, cxw)
+                call self%blktrii(iflg, np, n, an, bn, cn, &
+                    mp, m, am, bm, cm, idimy, y, ierror, rew, cxw)
             end associate
 
         end associate common_variables
 
     end subroutine blktri
+
+    subroutine check_input_arguments(n, m, idimy, ierror)
+        !--------------------------------------------------------------------------------
+        ! Dummy arguments
+        !--------------------------------------------------------------------------------
+        integer(ip), intent(in)  :: n, m, idimy
+        integer(ip), intent(out) :: ierror
+        !--------------------------------------------------------------------------------
+
+        if (m < 5) then
+            ierror = 1
+            return
+        else if (n < 3) then
+            ierror = 2
+            return
+        else if (idimy < m) then
+            ierror = 3
+            return
+        else
+            ierror = 0
+        end if
+
+    end subroutine check_input_arguments
 
     subroutine blktrii(self, iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
         idimy, y, ierror, w, wc)
@@ -402,22 +411,22 @@ contains
         ! Dummy arguments
         !-----------------------------------------------
         class(BlktriAux), intent(inout) :: self
-        integer(ip), intent(in)    :: iflg
-        integer(ip), intent(in)    :: np
-        integer(ip), intent(in)    :: n
-        integer(ip), intent(in)    :: mp
-        integer(ip), intent(in)    :: m
-        integer(ip), intent(in)    :: idimy
-        integer(ip), intent(out)   :: ierror
-        real(wp),    intent(inout) :: an(:)
-        real(wp),    intent(inout) :: bn(:)
-        real(wp),    intent(inout) :: cn(:)
-        real(wp),    intent(inout) :: am(:)
-        real(wp),    intent(inout) :: bm(:)
-        real(wp),    intent(inout) :: cm(:)
-        real(wp),    intent(inout) :: y(:,:)
-        real(wp),    intent(inout) :: w(:)
-        complex(wp), intent(inout) :: wc(:)
+        integer(ip),      intent(in)    :: iflg
+        integer(ip),      intent(in)    :: np
+        integer(ip),      intent(in)    :: n
+        integer(ip),      intent(in)    :: mp
+        integer(ip),      intent(in)    :: m
+        integer(ip),      intent(in)    :: idimy
+        integer(ip),      intent(out)   :: ierror
+        real(wp),         intent(inout) :: an(:)
+        real(wp),         intent(inout) :: bn(:)
+        real(wp),         intent(inout) :: cn(:)
+        real(wp),         intent(inout) :: am(:)
+        real(wp),         intent(inout) :: bm(:)
+        real(wp),         intent(inout) :: cm(:)
+        real(wp),         intent(inout) :: y(:,:)
+        real(wp),         intent(inout) :: w(:)
+        complex(wp),      intent(inout) :: wc(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -435,24 +444,13 @@ contains
             )
 
             ! test m and n for the proper form
-            !
             nm = n
-            !
-            !==> Check again for solvers which call blktrii directly
-            !
-            if (m < 5) then
-                ierror = 1
-                return
-            else if (nm < 3) then
-                ierror = 2
-                return
-            else if (idimy < m) then
-                ierror = 3
-                return
-            else
-                ierror = 0
-            end if
 
+            ! Check again for solvers which call blktrii directly
+            call check_input_arguments(nm, m, idimy, ierror)
+
+            ! Check error flag
+            if (ierror /= 0) return
 
             associate( &
                 iw1 => self%indices(1), &
@@ -468,9 +466,7 @@ contains
                     case (0)
                         nh = n
                         npp = np
-
                         if (npp /= 0)  nh = nh + 1
-
                         ik = 4
                         k = 2
 

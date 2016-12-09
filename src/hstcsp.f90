@@ -438,7 +438,7 @@
 !
 ! PRECISION              64-bit double precision
 !
-! REQUIRED LIBRARY       type_FishpackWorkspace.f90, blktri.f90, comf.f90
+! REQUIRED LIBRARY       type_FishpackWorkspace.f90, blktri.f90, type_ComfAux.f90
 ! FILES
 !
 ! HISTORY                * Written by Roland Sweet at NCAR in 1977.

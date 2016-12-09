@@ -389,7 +389,7 @@
 !
 ! I/O                    None
 !
-! REQUIRED FILES         type_FishpackWorkspace.f90, comf.f90, genbun.f90, gnbnaux.f90, sepaux.f90
+! REQUIRED FILES         type_FishpackWorkspace.f90, type_ComfAux.f90, genbun.f90, type_GenbunAux.f9090, type_SepAux.f90
 !
 !
 ! PRECISION              64-bit double precision
@@ -440,7 +440,7 @@ module module_sepx4
     use module_genbun, only: &
         genbun
 
-    use module_sepaux, only: &
+    use type_SepAux, only: &
         SepAux, &
         get_coefficients
 

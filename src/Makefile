@@ -18,16 +18,16 @@ type_FishpackWorkspace.f90
 	$(FC) $(FFLAGS) -c type_FishpackWorkspace.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
-comf.o: \
+type_ComfAux.o: \
 fishpack_precision.o \
-comf.f90
-	$(FC) $(FFLAGS) -c comf.f90 $(LINKS) \
+type_ComfAux.f90
+	$(FC) $(FFLAGS) -c type_ComfAux.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 blktri.o: \
 fishpack_precision.o \
 type_FishpackWorkspace.o \
-comf.o \
+type_ComfAux.o \
 blktri.f90
 	$(FC) $(FFLAGS) -c blktri.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
@@ -35,7 +35,7 @@ blktri.f90
 cblktri.o: \
 fishpack_precision.o \
 type_FishpackWorkspace.o \
-comf.o \
+type_ComfAux.o \
 cblktri.f90
 	$(FC) $(FFLAGS) -c cblktri.f90 $(LINKS) \
 	-o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
@@ -47,10 +47,10 @@ cmgnbn.f90
 	$(FC) $(FFLAGS) -c cmgnbn.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
-gnbnaux.o: \
+type_GenbunAux.o: \
 fishpack_precision.o \
-gnbnaux.f90
-	$(FC) $(FFLAGS) -c gnbnaux.f90 $(LINKS) \
+type_GenbunAux.f90
+	$(FC) $(FFLAGS) -c type_GenbunAux.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 type_FFTpack.o: \
@@ -62,7 +62,7 @@ type_FFTpack.f90
 genbun.o: \
 fishpack_precision.o \
 type_FishpackWorkspace.o \
-gnbnaux.o \
+type_GenbunAux.o \
 genbun.f90
 	$(FC) $(FFLAGS) -c genbun.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
@@ -70,7 +70,7 @@ genbun.f90
 poistg.o: \
 fishpack_precision.o \
 type_FishpackWorkspace.o \
-gnbnaux.o \
+type_GenbunAux.o \
 poistg.f90
 	$(FC) $(FFLAGS) -c poistg.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
@@ -176,17 +176,17 @@ hwsssp.f90
 	$(FC) $(FFLAGS) -c hwsssp.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
-sepaux.o: \
+type_SepAux.o: \
 fishpack_precision.o \
-sepaux.f90
-	$(FC) $(FFLAGS) -c sepaux.f90 $(LINKS) \
+type_SepAux.f90
+	$(FC) $(FFLAGS) -c type_SepAux.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 sepeli.o: \
 fishpack_precision.o \
 type_FishpackWorkspace.o\
 blktri.o \
-sepaux.o \
+type_SepAux.o \
 sepeli.f90
 	$(FC) $(FFLAGS) -c sepeli.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
@@ -195,7 +195,7 @@ sepx4.o: \
 fishpack_precision.o \
 type_FishpackWorkspace.o\
 genbun.o \
-sepaux.o \
+type_SepAux.o \
 sepx4.f90
 	$(FC) $(FFLAGS) -c sepx4.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)

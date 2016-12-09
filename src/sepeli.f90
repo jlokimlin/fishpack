@@ -447,7 +447,7 @@
 !
 ! PRECISION              Set by the instrinsic module ISO_Fortran_env to 64-bit double precision
 !
-! REQUIRED FILES         blktri.f90, comf.f90, sepaux.f90, type_FishpackWorkspace.f90
+! REQUIRED FILES         blktri.f90, type_ComfAux.f90, type_SepAux.f90, type_FishpackWorkspace.f90
 !
 ! STANDARD               Fortran 2008
 !
@@ -511,7 +511,7 @@ module module_sepeli
     use module_blktri, only: &
         BlktriAux
 
-    use module_sepaux, only: &
+    use type_SepAux, only: &
         SepAux, &
         get_coefficients
 

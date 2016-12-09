@@ -1,5 +1,5 @@
 !
-!     file gnbnaux.f
+!     file type_GenbunAux.f90
 !
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
@@ -65,7 +65,7 @@
 !
 ! Portability            Fortran 2008
 !
-module module_gnbnaux
+module type_GenbunAux
 
     use fishpack_precision, only: &
         wp, & ! Working precision
@@ -528,7 +528,7 @@ contains
         temp = a ; a = b ; b = temp
 
     end subroutine swap_character
-end module module_gnbnaux
+end module type_GenbunAux
 !
 ! REVISION HISTORY
 !

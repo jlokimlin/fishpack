@@ -1,5 +1,5 @@
 !
-!     file comf.f90
+!     file type_ComfAux.f90
 !
 !
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -55,7 +55,7 @@
 !
 ! STANDARD               Fortran 2008
 !
-module module_comf
+module type_ComfAux
 
     use fishpack_precision, only: &
         wp, & ! Working precision
@@ -182,7 +182,7 @@ contains
 
     end function psgf
 
-end module module_comf
+end module type_ComfAux
 !
 ! REVISION HISTORY
 !
