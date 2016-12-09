@@ -75,6 +75,15 @@ poistg.f90
 	$(FC) $(FFLAGS) -c poistg.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
+helmholtz_solvers.o: \
+fishpack_precision.o \
+type_FishpackWorkspace.o \
+genbun.o \
+poistg.o \
+helmholtz_solvers.f90
+	$(FC) $(FFLAGS) -c helmholtz_solvers.f90 $(LINKS) \
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
 pois3d.o: \
 fishpack_precision.o \
 type_FishpackWorkspace.o \
@@ -160,12 +169,10 @@ hwscyl.f90
 	$(FC) $(FFLAGS) -c hwscyl.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
-hwsplr.o: \
-fishpack_precision.o \
-type_FishpackWorkspace.o \
-genbun.o \
-hwsplr.f90
-	$(FC) $(FFLAGS) -c hwsplr.f90 $(LINKS) \
+centered_polar_solver.o: \
+helmholtz_solvers.o \
+centered_polar_solver.f90
+	$(FC) $(FFLAGS) -c centered_polar_solver.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 hwsssp.o: \
@@ -301,7 +308,7 @@ hw3crt.o\
 hwscrt.o\
 hwscsp.o\
 hwscyl.o\
-hwsplr.o\
+helmholtz_solvers.o\
 hwsssp.o\
 pois3d.o\
 poistg.o\

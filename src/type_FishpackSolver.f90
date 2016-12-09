@@ -31,7 +31,8 @@ module type_FishpackSolver
 
     use module_hwscyl, only: hwscyl
 
-    use module_hwsplr, only: hwsplr
+    use helmholtz_solvers, only: &
+        hwsplr
 
     use module_hwsssp, only: hwsssp
 

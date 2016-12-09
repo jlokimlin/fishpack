@@ -20,7 +20,6 @@ $(LANGUAGE_OPTIONS) \
 $(ERROR_WARNING_OPTIONS)
 
 LANGUAGE_OPTIONS = \
--fmodule-private \
 -fimplicit-none
 
 ERROR_WARNING_OPTIONS = \
