@@ -234,19 +234,19 @@ module module_cmgnbn
     private
     public :: cmgnbn
 
-
     !---------------------------------------------------------------
     ! Parameters confined to the module
     !---------------------------------------------------------------
-    real(wp), parameter :: ZERO = 0.0_wp
-    real(wp), parameter :: HALF = 0.5_wp
-    real(wp), parameter :: ONE = 1.0_wp
-    real(wp), parameter :: TWO = 2.0_wp
+    real(wp),    parameter :: ZERO = 0.0_wp
+    real(wp),    parameter :: HALF = 0.5_wp
+    real(wp),    parameter :: ONE = 1.0_wp
+    real(wp),    parameter :: TWO = 2.0_wp
+    real(wp),    parameter :: THREE = 3.0_wp
+    real(wp),    parameter :: FOUR = 4.0_wp
+    integer(ip), parameter :: IIWK = 11 ! Size of workspace_indices
     !---------------------------------------------------------------
 
-
 contains
-
 
     subroutine cmgnbn(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
         !-----------------------------------------------
@@ -261,44 +261,34 @@ contains
         complex(wp), intent(in)     :: a(:)
         complex(wp), intent(in)     :: b(:)
         complex(wp), intent(in)     :: c(:)
-        complex(wp), intent(inout) :: y(:,:)
+        complex(wp), intent(inout)  :: y(:,:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
         type(Fish) :: workspace
         !-----------------------------------------------
 
-        !
-        !==> Check validity of input arguments
-        !
+        ! Check input arguments
         call check_input_arguments(nperod, n, mperod, m, a, b, c, idimy, ierror)
 
+        ! Check error flag
         if (ierror /= 0) return
 
-        !
-        !==> Allocate memory
-        !
-        workspace = get_workspace(n, m)
+        ! Allocate memory
+        call initialize_workspace(n, m, workspace)
 
+        ! Solve system
         associate( &
             cxw => workspace%complex_workspace, &
             indx => workspace%workspace_indices &
             )
-            !
-            !==> Solve system
-            !
             call cmgnbnn(nperod, n, mperod, m, a, b, c, idimy, y, cxw, indx)
-
         end associate
 
-        !
-        !==> Release memory
-        !
+        ! Release memory
         call workspace%destroy()
 
     end subroutine cmgnbn
-
-
 
     pure subroutine check_input_arguments(nperod, n, mperod, m, a, b, c, idimy, ierror)
         !-----------------------------------------------
@@ -315,9 +305,6 @@ contains
         complex(wp), intent(in)     :: c(:)
         !-----------------------------------------------
 
-        !
-        !==> Check validity of input arguments
-        !
         if (3 > m) then
             ierror = 1
             return
@@ -349,54 +336,39 @@ contains
 
     end subroutine check_input_arguments
 
-
-
-    function get_workspace(n, m) result (return_value)
+    subroutine initialize_workspace(n, m, workspace)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer(ip), intent(in) :: n
-        integer(ip), intent(in) :: m
-        type(Fish)               :: return_value
+        integer(ip), intent(in)  :: n
+        integer(ip), intent(in)  :: m
+        class(Fish), intent(out) :: workspace
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer(ip)            :: irwk, icwk, j
-        integer(ip), parameter :: NUMBER_OF_INDICES = 11
+        integer(ip) :: irwk, icwk, j
         !-----------------------------------------------
 
-        !
-        !==> Allocate memory
-        !
+        ! Compute required workspace sizes
         irwk = 0
         icwk = (10 + int(log(real(n, kind=wp))/log(TWO), kind=ip))*m + 4*n
-        call return_value%create(irwk, icwk)
 
-        !
-        !==> Allocate memory for workspace indices
-        !
-        allocate( return_value%workspace_indices(NUMBER_OF_INDICES) )
+        ! Allocate memory
+        call workspace%create(irwk, icwk, IIWK)
 
-        associate (&
-            NUM => NUMBER_OF_INDICES, &
-            indx => return_value%workspace_indices &
-            )
-            !
-            !==> Compute workspace indices
-            !
+        ! Compute workspace indices
+        associate( indx => workspace%workspace_indices )
             indx(1) = m + 1
 
-            do j = 1, NUM - 2
+            do j = 1, IIWK - 2
                 indx(j + 1) = indx(j) + m
             end do
 
-            indx(NUM) = indx(NUM-1) + 4*n
+            indx(IIWK) = indx(IIWK-1) + 4*n
 
         end associate
 
-    end function get_workspace
-
-
+    end subroutine initialize_workspace
 
     subroutine cmgnbnn(nperod, n, mperod, m, a, b, c, idimy, y, w, workspace_indices)
         !-----------------------------------------------
@@ -410,9 +382,9 @@ contains
         complex(wp), intent(in)     :: a(:)
         complex(wp), intent(in)     :: b(:)
         complex(wp), intent(in)     :: c(:)
-        complex(wp), intent(inout) :: y(:,:)
-        complex(wp), intent(out), contiguous :: w(:)
-        integer(ip), intent(in),  contiguous :: workspace_indices(:)
+        complex(wp), intent(inout)  :: y(:,:)
+        complex(wp), intent(out)    :: w(:)
+        integer(ip), intent(in)     :: workspace_indices(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -468,19 +440,19 @@ contains
                 goto 123
         end select
 108 continue
-    call cmposp(m, n, w(iwba:), w(iwbb:), w(iwbc:), y, idimy, w, &
+    call solve_poisson_periodic(m, n, w(iwba:), w(iwbb:), w(iwbc:), y, idimy, w, &
         w(iwb2:), w(iwb3:), w(iww1:), w(iww2:), w(iww3:), w(iwd:), w(iwtcos:), w(iwp:))
     goto 112
 109 continue
-    call cmposd(m, n, 1, w(iwba:), w(iwbb:), w(iwbc:), y, idimy, w, &
+    call solve_poisson_dirichlet(m, n, 1, w(iwba:), w(iwbb:), w(iwbc:), y, idimy, w, &
         w(iww1:), w(iwd:), w(iwtcos:), w(iwp:))
     goto 112
 110 continue
-    call cmposn(m, n, 1, 2, w(iwba:), w(iwbb:), w(iwbc:), y, idimy, w, &
+    call solve_poisson_neumann(m, n, 1, 2, w(iwba:), w(iwbb:), w(iwbc:), y, idimy, w, &
         w(iwb2:), w(iwb3:), w(iww1:), w(iww2:), w(iww3:), w(iwd:), w(iwtcos:), w(iwp:))
     goto 112
 111 continue
-    call cmposn(m, n, 1, 1, w(iwba:), w(iwbb:), w(iwbc:), y, idimy, w, &
+    call solve_poisson_neumann(m, n, 1, 1, w(iwba:), w(iwbb:), w(iwbc:), y, idimy, w, &
         w(iwb2:), w(iwb3:), w(iww1:), w(iww2:), w(iww3:), w(iwd:), w(iwtcos:), w(iwp:))
 112 continue
 
@@ -589,9 +561,7 @@ end associate
 
 end subroutine cmgnbnn
 
-
-
-subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
+subroutine solve_poisson_dirichlet(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
     !
     !     subroutine to solve poisson's equation for dirichlet boundary
     !     conditions.
@@ -755,10 +725,10 @@ subroutine cmposd(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
             tcos(krpi) = tcos(i)
         end do
     else
-        call cmpcsg (lr, jstsav, ZERO, fi, tcos(jst+1))
-        call cmpmrg (tcos, 0, jst, jst, lr, kr)
+        call cmpcsg(lr, jstsav, ZERO, fi, tcos(jst+1))
+        call cmpmrg(tcos, 0, jst, jst, lr, kr)
     end if
-    call cmpcsg (kr, jstsav, ZERO, fi, tcos)
+    call cmpcsg(kr, jstsav, ZERO, fi, tcos)
     call cmptrx(kr, kr, m, ba, bb, bc, b, tcos, d, w)
     q(:m, j) = q(:m, jm2) + b(:m) + p(iip+1:m+iip)
     lr = kr
@@ -780,8 +750,8 @@ case (2)
             ideg = jst
             kr = l
         case (2)
-            call cmpcsg (kr, jstsav, ZERO, fi, tcos)
-            call cmpcsg (lr, jstsav, ZERO, fi, tcos(kr+1))
+            call cmpcsg(kr, jstsav, ZERO, fi, tcos)
+            call cmpcsg(lr, jstsav, ZERO, fi, tcos(kr+1))
             ideg = kr
             kr = kr + jst
     end select
@@ -823,12 +793,12 @@ end select
     b(:m) = q(:m, j)
     select case (irreg)
         case default
-            call cmpcsg (jst, 1, HALF, ZERO, tcos)
+            call cmpcsg(jst, 1, HALF, ZERO, tcos)
             ideg = jst
         case (2)
             kr = lr + jst
-            call cmpcsg (kr, jstsav, ZERO, fi, tcos)
-            call cmpcsg (lr, jstsav, ZERO, fi, tcos(kr+1))
+            call cmpcsg(kr, jstsav, ZERO, fi, tcos)
+            call cmpcsg(lr, jstsav, ZERO, fi, tcos(kr+1))
             ideg = kr
     end select
 
@@ -873,15 +843,15 @@ end select
         b(:m) = q(:m, j) + q(:m, jm2) + q(:m, jp2)
     end if
 170 continue
-    call cmpcsg (jst, 1, HALF, ZERO, tcos)
+    call cmpcsg(jst, 1, HALF, ZERO, tcos)
     ideg = jst
     jdeg = 0
     goto 172
 171 continue
     if (j + l > n) lr = lr - jst
     kr = jst + lr
-    call cmpcsg (kr, jstsav, ZERO, fi, tcos)
-    call cmpcsg (lr, jstsav, ZERO, fi, tcos(kr+1))
+    call cmpcsg(kr, jstsav, ZERO, fi, tcos)
+    call cmpcsg(lr, jstsav, ZERO, fi, tcos(kr+1))
     ideg = kr
     jdeg = lr
 172 continue
@@ -914,10 +884,9 @@ goto 164
 183 continue
     w(1) = cmplx(real(ipstor, kind=wp), ZERO, kind=wp)
 
-end subroutine cmposd
+end subroutine solve_poisson_dirichlet
 
-
-subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
+subroutine solve_poisson_neumann(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
     b3, w, w2, w3, d, tcos, p)
     !
     ! Purpose:
@@ -1013,7 +982,7 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
 
     jstop = nlast - jr
     if (nrod == 0) jstop = jstop - i2r
-    call cmpcsg (i2r, 1, HALF, ZERO, tcos)
+    call cmpcsg(i2r, 1, HALF, ZERO, tcos)
     i2rby2 = i2r/2
     if (jstop < jstart) then
         j = jr
@@ -1072,12 +1041,12 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
                 q(:mr, j) = q(:mr, j) - q(:mr, jm1) + q(:mr, jm2)
             end if
             if (lr /= 0) then
-                call cmpcsg (lr, 1, HALF, fden, tcos(kr+1))
+                call cmpcsg(lr, 1, HALF, fden, tcos(kr+1))
             else
                 b(:mr) = fistag*b(:mr)
             end if
         end if
-        call cmpcsg (kr, 1, HALF, fden, tcos)
+        call cmpcsg(kr, 1, HALF, fden, tcos)
         call cmptrx(kr, lr, mr, a, bb, c, b, tcos, d, w)
         q(:mr, j) = q(:mr, j) + b(:mr)
         kr = kr + i2r
@@ -1100,7 +1069,7 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
                     goto 150
                 case (1)
                     p(:mr) = b(:mr)
-                    q(:mr, j) = q(:mr, jm2) + TWO * q(:mr, jp2) + 3.0_wp*b(:mr)
+                    q(:mr, j) = q(:mr, jm2) + TWO * q(:mr, jp2) + THREE*b(:mr)
                     goto 150
             end select
         end if
@@ -1116,15 +1085,15 @@ subroutine cmposn(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
         p(iip+1:mr+iip) = b(:mr) + HALF * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
         b(:mr) = p(iip+1:mr+iip) + q(:mr, jp2)
         if (lr /= 0) then
-            call cmpcsg (lr, 1, HALF, fden, tcos(i2r+1))
-            call cmpmrg (tcos, 0, i2r, i2r, lr, kr)
+            call cmpcsg(lr, 1, HALF, fden, tcos(i2r+1))
+            call cmpmrg(tcos, 0, i2r, i2r, lr, kr)
         else
             do i = 1, i2r
                 ii = kr + i
                 tcos(ii) = tcos(i)
             end do
         end if
-        call cmpcsg (kr, 1, HALF, fden, tcos)
+        call cmpcsg(kr, 1, HALF, fden, tcos)
         if (lr == 0) then
             select case (istag)
                 case (1)
@@ -1178,7 +1147,7 @@ goto 104
         tcos(1) = ZERO
         call cmptrx(1, 0, mr, a, bb, c, b, tcos, d, w)
         q(:mr, 2) = b(:mr)
-        b(:mr) = 4.0_wp*b(:mr) + q(:mr, 1) + TWO * q(:mr, 3)
+        b(:mr) = FOUR*b(:mr) + q(:mr, 1) + TWO * q(:mr, 3)
         tcos(1) = cmplx(-TWO, ZERO, kind=wp)
         tcos(2) = cmplx(TWO, ZERO, kind=wp)
         i1 = 2
@@ -1205,17 +1174,17 @@ goto 104
 162 continue
     b(:mr) = q(:mr, j) + HALF * q(:mr, 1) - q(:mr, jm1) + q(:mr, nlast) - &
         q(:mr, jm2)
-    call cmpcsg (jr, 1, HALF, ZERO, tcos)
+    call cmpcsg(jr, 1, HALF, ZERO, tcos)
     call cmptrx(jr, 0, mr, a, bb, c, b, tcos, d, w)
     q(:mr, j) = HALF * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1)) + b(:mr)
-    b(:mr) = q(:mr, 1) + TWO * q(:mr, nlast) + 4.0_wp*q(:mr, j)
+    b(:mr) = q(:mr, 1) + TWO * q(:mr, nlast) + FOUR*q(:mr, j)
     jr2 = 2*jr
-    call cmpcsg (jr, 1, ZERO, ZERO, tcos)
+    call cmpcsg(jr, 1, ZERO, ZERO, tcos)
     tcos(jr+1:jr*2) = -tcos(jr:1:(-1))
     call cmptrx(jr2, 0, mr, a, bb, c, b, tcos, d, w)
     q(:mr, j) = q(:mr, j) + b(:mr)
     b(:mr) = q(:mr, 1) + TWO * q(:mr, j)
-    call cmpcsg (jr, 1, HALF, ZERO, tcos)
+    call cmpcsg(jr, 1, HALF, ZERO, tcos)
     call cmptrx(jr, 0, mr, a, bb, c, b, tcos, d, w)
     q(:mr, 1) = HALF * q(:mr, 1) - q(:mr, jm1) + b(:mr)
     goto 194
@@ -1249,29 +1218,29 @@ goto 104
     k2 = kr + jr
     tcos(k1+1) = cmplx(-TWO, ZERO, kind=wp)
     k4 = k1 + 3 - istag
-    call cmpcsg (k2 + istag - 2, 1, ZERO, fnum, tcos(k4))
+    call cmpcsg(k2 + istag - 2, 1, ZERO, fnum, tcos(k4))
     k4 = k1 + k2 + 1
-    call cmpcsg (jr - 1, 1, ZERO, ONE, tcos(k4))
-    call cmpmrg (tcos, k1, k2, k1 + k2, jr - 1, 0)
+    call cmpcsg(jr - 1, 1, ZERO, ONE, tcos(k4))
+    call cmpmrg(tcos, k1, k2, k1 + k2, jr - 1, 0)
     k3 = k1 + k2 + lr
-    call cmpcsg (jr, 1, HALF, ZERO, tcos(k3+1))
+    call cmpcsg(jr, 1, HALF, ZERO, tcos(k3+1))
     k4 = k3 + jr + 1
-    call cmpcsg (kr, 1, HALF, fden, tcos(k4))
-    call cmpmrg (tcos, k3, jr, k3 + jr, kr, k1)
+    call cmpcsg(kr, 1, HALF, fden, tcos(k4))
+    call cmpmrg(tcos, k3, jr, k3 + jr, kr, k1)
     if (lr /= 0) then
-        call cmpcsg (lr, 1, HALF, fden, tcos(k4))
-        call cmpmrg (tcos, k3, jr, k3 + jr, lr, k3 - lr)
-        call cmpcsg (kr, 1, HALF, fden, tcos(k4))
+        call cmpcsg(lr, 1, HALF, fden, tcos(k4))
+        call cmpmrg(tcos, k3, jr, k3 + jr, lr, k3 - lr)
+        call cmpcsg(kr, 1, HALF, fden, tcos(k4))
     end if
     k3 = kr
     k4 = kr
-    call cmptr3 (mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
+    call cmptr3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
     b(:mr) = b(:mr) + b2(:mr) + b3(:mr)
     tcos(1) = cmplx(TWO, ZERO, kind=wp)
     call cmptrx(1, 0, mr, a, bb, c, b, tcos, d, w)
     q(:mr, j) = q(:mr, j) + b(:mr)
     b(:mr) = q(:mr, 1) + TWO * q(:mr, j)
-    call cmpcsg (jr, 1, HALF, ZERO, tcos)
+    call cmpcsg(jr, 1, HALF, ZERO, tcos)
     call cmptrx(jr, 0, mr, a, bb, c, b, tcos, d, w)
     if (jr == 1) then
         q(:mr, 1) = b(:mr)
@@ -1304,17 +1273,17 @@ b2(:mr) = TWO * (q(:mr, 1)+q(:mr, nlast))
 k1 = kr + jr - 1
 tcos(k1+1) = cmplx(-TWO, ZERO, kind=wp)
 k4 = k1 + 3 - istag
-call cmpcsg (kr + istag - 2, 1, ZERO, fnum, tcos(k4))
+call cmpcsg(kr + istag - 2, 1, ZERO, fnum, tcos(k4))
 k4 = k1 + kr + 1
-call cmpcsg (jr - 1, 1, ZERO, ONE, tcos(k4))
-call cmpmrg (tcos, k1, kr, k1 + kr, jr - 1, 0)
-call cmpcsg (kr, 1, HALF, fden, tcos(k1+1))
+call cmpcsg(jr - 1, 1, ZERO, ONE, tcos(k4))
+call cmpmrg(tcos, k1, kr, k1 + kr, jr - 1, 0)
+call cmpcsg(kr, 1, HALF, fden, tcos(k1+1))
 k2 = kr
 k4 = k1 + k2 + 1
-call cmpcsg (lr, 1, HALF, fden, tcos(k4))
+call cmpcsg(lr, 1, HALF, fden, tcos(k4))
 k3 = lr
 k4 = 0
-call cmptr3 (mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
+call cmptr3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
 b(:mr) = b(:mr) + b2(:mr)
 tcos(1) = cmplx(TWO, ZERO, kind=wp)
 call cmptrx(1, 0, mr, a, bb, c, b, tcos, d, w)
@@ -1338,8 +1307,8 @@ goto 194
             q(:mr, nlast) = q(:mr, nlast) - q(:mr, jm2)
         end if
     end if
-    call cmpcsg (kr, 1, HALF, fden, tcos)
-    call cmpcsg (lr, 1, HALF, fden, tcos(kr+1))
+    call cmpcsg(kr, 1, HALF, fden, tcos)
+    call cmpcsg(lr, 1, HALF, fden, tcos(kr+1))
     if (lr == 0) then
         b(:mr) = fistag*b(:mr)
     end if
@@ -1367,7 +1336,7 @@ goto 194
         jstop = nlast - jr
     end if
     lr = kr - jr
-    call cmpcsg (jr, 1, HALF, ZERO, tcos)
+    call cmpcsg(jr, 1, HALF, ZERO, tcos)
     do j = jstart, jstop, jstep
         jm2 = j - jr
         jp2 = j + jr
@@ -1395,10 +1364,9 @@ goto 194
 
 end associate
 
-end subroutine cmposn
+end subroutine solve_poisson_neumann
 
-
-subroutine cmposp(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
+subroutine solve_poisson_periodic(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
     !
     ! Purpose:
     !
@@ -1454,11 +1422,11 @@ subroutine cmposp(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
         q(:mr, nr) = TWO * q(:mr, nr)
         q(:mr, n) = TWO * q(:mr, n)
 
-        call cmposd (mr, nrm1, 1, a, bb, c, q, idimq, b, w, d, tcos, p)
+        call solve_poisson_dirichlet (mr, nrm1, 1, a, bb, c, q, idimq, b, w, d, tcos, p)
 
         ipstor = real(w(1), kind=wp)
 
-        call cmposn(mr, nr + 1, 1, 1, a, bb, c, q(1, nr), idimq, b, b2, &
+        call solve_poisson_neumann(mr, nr + 1, 1, 1, a, bb, c, q(1, nr), idimq, b, b2, &
             b3, w, w2, w3, d, tcos, p)
 
         ipstor = max(ipstor, real(w(1), kind=wp))
@@ -1501,11 +1469,11 @@ subroutine cmposp(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
             end do
         end do
 
-        call cmposd(mr, nrm1, 2, a, bb, c, q, idimq, b, w, d, tcos, p)
+        call solve_poisson_dirichlet(mr, nrm1, 2, a, bb, c, q, idimq, b, w, d, tcos, p)
 
         ipstor = real(w(1), kind=wp)
 
-        call cmposn(mr, nr, 2, 1, a, bb, c, q(1, nr), idimq, b, b2, b3, &
+        call solve_poisson_neumann(mr, nr, 2, 1, a, bb, c, q(1, nr), idimq, b, b2, b3, &
             w, w2, w3, d, tcos, p)
 
         ipstor = max(ipstor, real(w(1), kind=wp))
@@ -1534,8 +1502,7 @@ subroutine cmposp(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
 
     w(1) = cmplx(ipstor, ZERO, kind=wp)
 
-end subroutine cmposp
-
+end subroutine solve_poisson_periodic
 
 pure subroutine cmpcsg(n, ijump, fnum, fden, a)
     !
@@ -1558,7 +1525,7 @@ pure subroutine cmpcsg(n, ijump, fnum, fden, a)
     !        fnum = 0.0, fden = 1.0, for b-r and c-r when istag = 1
     !        fnum = 0.0, fden = 0.5, for b-r and c-r when istag = 2
     !        fnum = 0.5, fden = 0.5, for b-r and c-r when istag = 2
-    !                                in cmposn only.
+    !                                in solve_poisson_neumann only.
     !
     !
     !-----------------------------------------------
@@ -1601,7 +1568,6 @@ pure subroutine cmpcsg(n, ijump, fnum, fden, a)
     end if
 
 end subroutine cmpcsg
-
 
 subroutine cmpmrg(tcos, i1, m1, i2, m2, i3)
     !
@@ -1677,7 +1643,6 @@ subroutine cmpmrg(tcos, i1, m1, i2, m2, i3)
 
 end subroutine cmpmrg
 
-
 subroutine cmptrx(idegbr, idegcr, m, a, b, c, y, tcos, d, w)
     !
     !     Subroutine to solve a system of linear equations where the
@@ -1750,8 +1715,6 @@ subroutine cmptrx(idegbr, idegcr, m, a, b, c, y, tcos, d, w)
     end do
 
 end subroutine cmptrx
-
-
 
 subroutine cmptr3(m, a, b, c, k, y1, y2, y3, tcos, d, w1, w2, w3)
     !-----------------------------------------------
@@ -1862,8 +1825,6 @@ subroutine cmptr3(m, a, b, c, k, y1, y2, y3, tcos, d, w1, w2, w3)
     end do
 
 end subroutine cmptr3
-
-
 
 end module module_cmgnbn
 !

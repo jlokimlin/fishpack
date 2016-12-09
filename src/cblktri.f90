@@ -258,12 +258,13 @@ module module_cblktri
     use fishpack_precision, only: &
         wp, & ! Working precision
         ip, & ! Integer precision
-        MACHINE_EPSILON => EPS ! Machine epsilon
+        EPS => MACHINE_EPSILON ! Machine epsilon
 
     use type_ComfAux, only: &
         psgf, &
         ppspf, &
         ppsgf, &
+        ComfAux, &
         comf_interface
 
     use type_FishpackWorkspace, only: &
@@ -276,14 +277,28 @@ module module_cblktri
     private
     public :: cblktri
 
-    type, public :: CbltriAux
-        !--------------------------------------------------------------
-        ! Type-components
-        !--------------------------------------------------------------
+    type, public, extends(ComfAux) :: CbltriAux
+        !-------------------------------------------------
+        ! Type components
+        !-------------------------------------------------
+        integer(ip) :: indices(6), nl
         integer(ip) :: npp, k, nm, ncmplx, ik
         real(wp)    :: cnv
-        real(wp)    :: MACHINE_EPSILON = MACHINE_EPSILON
-        !--------------------------------------------------------------
+        real(wp)    :: MACHINE_EPSILON = EPS
+        !-------------------------------------------------
+    contains
+        !-------------------------------------------------
+        ! Type-bound procedures
+        !-------------------------------------------------
+        procedure, public  :: cblktri_lower_routine
+        procedure, private :: cbsrh
+        procedure, private :: ccompb
+        procedure, private :: cppadd
+        procedure, private :: ctevls
+        procedure, private :: cindxa
+        procedure, private :: cindxb
+        procedure, private :: cindxc
+        !-------------------------------------------------
     end type CbltriAux
 
     !---------------------------------------------------------------
@@ -293,7 +308,6 @@ module module_cblktri
     real(wp), parameter :: HALF = 0.5_wp
     real(wp), parameter :: ONE = 1.0_wp
     real(wp), parameter :: TWO = 2.0_wp
-    type(CbltriAux)     :: self
     !---------------------------------------------------------------
 
 contains
@@ -321,6 +335,7 @@ contains
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
+        type(CbltriAux) :: self
         integer(ip) :: m2, nh, nl, iwah, iw1, iwbh
         integer(ip) :: iw2, iw3, iwd, iww, iwu
         integer(ip) :: irwk, icwk
@@ -414,7 +429,7 @@ contains
                         )
 
                         ! Compute roots of b polynomials
-                        call ccompb(nl, ierror, an, bn, cn, rew,cxw, rew(iwah), rew(iwbh))
+                        call self%ccompb(nl, ierror, an, bn, cn, rew, cxw, rew(iwah:), rew(iwbh:))
 
                     end associate
 
@@ -427,12 +442,12 @@ contains
 
                         select case (mp)
                             case (0)
-                                call cblkt1(nl, an, bn, cn, m, am, bm, cm, &
+                                call self%cblktri_lower_routine(nl, an, bn, cn, m, am, bm, cm, &
                                     idimy, y, rew, cxw, &
                                     cxw(iw1), cxw(iw2), cxw(iw3), cxw(iwd), cxw(iww), &
                                     cxw(iwu), procp, cprocp)
                             case default
-                                call cblkt1(nl, an, bn, cn, m, am, bm, cm, &
+                                call self%cblktri_lower_routine(nl, an, bn, cn, m, am, bm, cm, &
                                     idimy, y, rew, cxw, &
                                     cxw(iw1), cxw(iw2), cxw(iw3), cxw(iwd), cxw(iww), &
                                     cxw(iwu), proc, cproc)
@@ -446,12 +461,12 @@ contains
 
     end subroutine cblktri
 
-    subroutine cblkt1(n, an, bn, cn, m, am, bm, cm, idimy, y, b, bc, &
+    subroutine cblktri_lower_routine(self, n, an, bn, cn, m, am, bm, cm, idimy, y, b, bc, &
         w1, w2, w3, wd, ww, wu, prdct, cprdct)
         !
         ! Purpose:
         !
-        ! cblkt1 solves the linear system
+        ! cblktri_lower_routine solves the linear system
         !
         ! b  contains the roots of all the b polynomials
         ! w1, w2, w3, wd, ww, wu  are all working arrays
@@ -463,6 +478,7 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
+        class(CbltriAux), intent(inout) :: self
         integer(ip), intent(in)     :: n
         integer(ip), intent(in)     :: m
         integer(ip), intent(in)     :: idimy
@@ -482,8 +498,6 @@ contains
         complex(wp), intent(out)    :: ww(*)
         complex(wp), intent(out)    :: wu(*)
         external :: prdct, cprdct
-        !procedure(proc_sub)          :: prdct
-        !procedure(cproc_sub)         :: cprdct
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -491,7 +505,7 @@ contains
         integer(ip) :: im1, nm1, iif, i, ipi1, ipi2, ipi3, idxc, nc, idxa, na, ip2, np2
         integer(ip) :: ip1, np1, ip3, np3, iz, nz, izr, ll, ifd
         integer(ip) :: iip, np, imi1, imi2
-        real(wp)    :: dum
+        real(wp)    :: dummy_variable(1)
         !-----------------------------------------------
 
         common_variables: associate( &
@@ -514,10 +528,10 @@ contains
                 i3 = i2 + i1
                 i4 = i2 + i2
                 irm1 = ir - 1
-                call cindxb(i2, ir, im2, nm2)
-                call cindxb(i1, irm1, im3, nm3)
-                call cindxb(i3, irm1, im1, nm1)
-                call prdct(nm2, b(im2), nm3, b(im3), nm1, b(im1), 0, dum, &
+                call self%cindxb(i2, ir, im2, nm2)
+                call self%cindxb(i1, irm1, im3, nm3)
+                call self%cindxb(i3, irm1, im1, nm1)
+                call prdct(nm2, b(im2), nm3, b(im3), nm1, b(im1), 0, dummy_variable, &
                     y(1,i2), w3, m, am, bm, cm, wd, ww, wu)
                 iif = 2**k
                 do i = i4, iif, i4
@@ -525,22 +539,22 @@ contains
                     ipi1 = i + i1
                     ipi2 = i + i2
                     ipi3 = i + i3
-                    call cindxc (i, ir, idxc, nc)
+                    call self%cindxc(i, ir, idxc, nc)
                     if (iif <= i) cycle
-                    call cindxa(i, ir, idxa, na)
-                    call cindxb(i - i1, irm1, im1, nm1)
-                    call cindxb(ipi2, ir, ip2, np2)
-                    call cindxb(ipi1, irm1, ip1, np1)
-                    call cindxb(ipi3, irm1, ip3, np3)
-                    call prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa), w3, &
+                    call self%cindxa(i, ir, idxa, na)
+                    call self%cindxb(i - i1, irm1, im1, nm1)
+                    call self%cindxb(ipi2, ir, ip2, np2)
+                    call self%cindxb(ipi1, irm1, ip1, np1)
+                    call self%cindxb(ipi3, irm1, ip3, np3)
+                    call prdct(nm1, b(im1), 0, dummy_variable, 0, dummy_variable, na, an(idxa), w3, &
                         w1, m, am, bm, cm, wd, ww, wu)
                     if (ipi2 > nm) then
                         w3(:m) = ZERO
                         w2(:m) = ZERO
                     else
-                        call prdct(np2, b(ip2), np1, b(ip1), np3, b(ip3), 0, dum, &
+                        call prdct(np2, b(ip2), np1, b(ip1), np3, b(ip3), 0, dummy_variable, &
                             y(1, ipi2), w3, m, am, bm, cm, wd, ww, wu)
-                        call prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc), w3, &
+                        call prdct(np1, b(ip1), 0, dummy_variable, 0, dummy_variable, nc, cn(idxc), w3, &
                             w2, m, am, bm, cm, wd, ww, wu)
                     end if
                     y(:m, i) = w1(:m) + w2(:m) + y(:m, i)
@@ -551,10 +565,10 @@ contains
                 iif = 2**k
                 i = iif/2
                 i1 = i/2
-                call cindxb(i - i1, k - 2, im1, nm1)
-                call cindxb(i + i1, k - 2, ip1, np1)
-                call cindxb(i, k - 1, iz, nz)
-                call prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dum, &
+                call self%cindxb(i - i1, k - 2, im1, nm1)
+                call self%cindxb(i + i1, k - 2, ip1, np1)
+                call self%cindxb(i, k - 1, iz, nz)
+                call prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dummy_variable, &
                     y(1, i), w1, m, am, bm, cm, wd, ww, wu)
 
                 izr = i
@@ -566,14 +580,14 @@ contains
                     i2 = 2**ir
                     i1 = i2/2
                     i = i2
-                    call cindxc(i, ir, idxc, nc)
-                    call cindxb(i, ir, iz, nz)
-                    call cindxb(i - i1, ir - 1, im1, nm1)
-                    call cindxb(i + i1, ir - 1, ip1, np1)
-                    call prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc), w1, &
+                    call self%cindxc(i, ir, idxc, nc)
+                    call self%cindxb(i, ir, iz, nz)
+                    call self%cindxb(i - i1, ir - 1, im1, nm1)
+                    call self%cindxb(i + i1, ir - 1, ip1, np1)
+                    call prdct(np1, b(ip1), 0, dummy_variable, 0, dummy_variable, nc, cn(idxc), w1, &
                         w1, m, am, bm, cm, wd, ww, wu)
                     w1(:m) = y(:m, i) + w1(:m)
-                    call prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dum, w1 &
+                    call prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dummy_variable, w1 &
                         , w1, m, am, bm, cm, wd, ww, wu)
                 end do
 
@@ -590,14 +604,14 @@ contains
 
                         if (i > nm) cycle loop_118
 
-                        call cindxa(i, ir, idxa, na)
-                        call cindxb(i, ir, iz, nz)
-                        call cindxb(i - i1, ir - 1, im1, nm1)
-                        call cindxb(i + i1, ir - 1, ip1, np1)
-                        call prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa), w2 &
+                        call self%cindxa(i, ir, idxa, na)
+                        call self%cindxb(i, ir, iz, nz)
+                        call self%cindxb(i - i1, ir - 1, im1, nm1)
+                        call self%cindxb(i + i1, ir - 1, ip1, np1)
+                        call prdct(nm1, b(im1), 0, dummy_variable, 0, dummy_variable, na, an(idxa), w2 &
                             , w2, m, am, bm, cm, wd, ww, wu)
                         w2(:m) = y(:m, i) + w2(:m)
-                        call prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dum, &
+                        call prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dummy_variable, &
                             w2, w2, m, am, bm, cm, wd, ww, wu)
                         izr = i
                         if (i == nm) exit  loop_118
@@ -606,15 +620,15 @@ contains
 
                 y(:m, nm+1) = y(:m, nm+1) - cn(nm+1)*w1(:m) - an(nm+1)*w2(:m)
 
-                call cindxb(iif/2, k - 1, im1, nm1)
-                call cindxb(iif, k - 1, iip, np)
+                call self%cindxb(iif/2, k - 1, im1, nm1)
+                call self%cindxb(iif, k - 1, iip, np)
 
                 select case (ncmplx)
                     case (0)
-                        call prdct(nm + 1, b(iip), nm1, b(im1), 0, dum, 0, dum, &
+                        call prdct(nm + 1, b(iip), nm1, b(im1), 0, dummy_variable, 0, dummy_variable, &
                             y(1,nm+1), y(1, nm+1), m, am, bm, cm, wd, ww, wu)
                     case default
-                        call cprdct(nm + 1, bc(iip), nm1, b(im1), 0, dum, 0, dum, &
+                        call cprdct(nm + 1, bc(iip), nm1, b(im1), 0, dummy_variable, 0, dummy_variable, &
                             y(1,nm+1), y(1, nm+1), m, am, bm, cm, w1, w3, ww)
                 end select
 
@@ -629,13 +643,13 @@ contains
                     i4 = i2 + i2
                     i1 = i2/2
                     i = i4
-                    call cindxa(i, ir, idxa, na)
-                    call cindxb(i - i2, ir, im2, nm2)
-                    call cindxb(i - i2 - i1, ir - 1, im3, nm3)
-                    call cindxb(i - i1, ir - 1, im1, nm1)
-                    call prdct(nm2, b(im2), nm3, b(im3), nm1, b(im1), 0, dum, &
+                    call self%cindxa(i, ir, idxa, na)
+                    call self%cindxb(i - i2, ir, im2, nm2)
+                    call self%cindxb(i - i2 - i1, ir - 1, im3, nm3)
+                    call self%cindxb(i - i1, ir - 1, im1, nm1)
+                    call prdct(nm2, b(im2), nm3, b(im3), nm1, b(im1), 0, dummy_variable, &
                         w1, w1, m, am, bm, cm, wd, ww, wu)
-                    call prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa), w1, &
+                    call prdct(nm1, b(im1), 0, dummy_variable, 0, dummy_variable, na, an(idxa), w1, &
                         w1, m, am, bm, cm, wd, ww, wu)
                     y(:m, i) = y(:m, i) - w1(:m)
                 end do
@@ -658,13 +672,13 @@ contains
                             cycle  loop_131
                         end if
 
-                        call cindxc (i, ir, idxc, nc)
-                        call cindxb(ipi2, ir, ip2, np2)
-                        call cindxb(ipi1, irm1, ip1, np1)
-                        call cindxb(ipi3, irm1, ip3, np3)
-                        call prdct(np2, b(ip2), np1, b(ip1), np3, b(ip3), 0, dum, &
+                        call self%cindxc(i, ir, idxc, nc)
+                        call self%cindxb(ipi2, ir, ip2, np2)
+                        call self%cindxb(ipi1, irm1, ip1, np1)
+                        call self%cindxb(ipi3, irm1, ip3, np3)
+                        call prdct(np2, b(ip2), np1, b(ip1), np3, b(ip3), 0, dummy_variable, &
                             w2, w2, m, am, bm, cm, wd, ww, wu)
-                        call prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc), w2, &
+                        call prdct(np1, b(ip1), 0, dummy_variable, 0, dummy_variable, nc, cn(idxc), w2, &
                             w2, m, am, bm, cm, wd, ww, wu)
                         y(:m, i) = y(:m, i) - w2(:m)
                         izr = i
@@ -689,39 +703,40 @@ contains
                     imi2 = i - i2
                     ipi1 = i + i1
                     ipi2 = i + i2
-                    call cindxa(i, ir, idxa, na)
-                    call cindxc(i, ir, idxc, nc)
-                    call cindxb(i, ir, iz, nz)
-                    call cindxb(imi1, irm1, im1, nm1)
-                    call cindxb(ipi1, irm1, ip1, np1)
+                    call self%cindxa(i, ir, idxa, na)
+                    call self%cindxc(i, ir, idxc, nc)
+                    call self%cindxb(i, ir, iz, nz)
+                    call self%cindxb(imi1, irm1, im1, nm1)
+                    call self%cindxb(ipi1, irm1, ip1, np1)
 
                     if (i <= i2) then
                         w1(:m) = ZERO
                     else
-                        call prdct(nm1, b(im1), 0, dum, 0, dum, na, an(idxa), &
+                        call prdct(nm1, b(im1), 0, dummy_variable, 0, dummy_variable, na, an(idxa), &
                             y(1,imi2), w1, m, am, bm, cm, wd, ww, wu)
                     end if
 
                     if (ipi2 > nm) then
                         w2(:m) = ZERO
                     else
-                        call prdct(np1, b(ip1), 0, dum, 0, dum, nc, cn(idxc), y( &
+                        call prdct(np1, b(ip1), 0, dummy_variable, 0, dummy_variable, nc, cn(idxc), y( &
                             1, ipi2), w2, m, am, bm, cm, wd, ww, wu)
                     end if
                     w1(:m) = y(:m, i) + w1(:m) + w2(:m)
-                    call prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dum, w1, &
+                    call prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dummy_variable, w1, &
                         y(1, i), m, am, bm, cm, wd, ww, wu)
                 end do
             end do
 
         end associate common_variables
 
-    end subroutine cblkt1
+    end subroutine cblktri_lower_routine
 
-    function cbsrh(xll, xrr, iz, c, a, bh, f, sgn) result(return_value)
+    function cbsrh(self, xll, xrr, iz, c, a, bh, f, sgn) result(return_value)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
+        class(CbltriAux), intent(inout) :: self
         integer(ip)           :: iz
         real(wp), intent(in) :: xll
         real(wp), intent(in) :: xrr
@@ -766,12 +781,9 @@ contains
             dx = HALF * dx
 
             do
-
                 if (dx <= cnv) exit
-
                 x = HALF*(xl + xr)
                 r1 = sgn*f(x, iz, c, a, bh)
-
                 if (r1 >= ZERO) then
                     if (r1 == ZERO) then
                         return_value = HALF*(xl + xr)
@@ -790,7 +802,7 @@ contains
 
     end function cbsrh
 
-    subroutine ccompb(n, ierror, an, bn, cn, b, bc, ah, bh)
+    subroutine ccompb(self, n, ierror, an, bn, cn, b, bc, ah, bh)
         !
         ! Purpose:
         !
@@ -802,19 +814,20 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer(ip), intent(in)  :: n
-        integer(ip), intent(out) :: ierror
-        real(wp)                  :: an(*)
-        real(wp),    intent(in)  :: bn(*)
-        real(wp) :: cn(*)
-        real(wp) :: b(*)
-        real(wp) :: ah(*)
-        real(wp) :: bh(*)
-        complex(wp) :: bc(*)
+        class(CbltriAux), intent(inout) :: self
+        integer(ip),      intent(in)    :: n
+        integer(ip),      intent(out)   :: ierror
+        real(wp),         intent(in)    :: an(:)
+        real(wp),         intent(in)    :: bn(:)
+        real(wp),         intent(in)    :: cn(:)
+        real(wp), target, intent(inout) :: b(:)
+        real(wp),         intent(inout) :: ah(:)
+        real(wp),         intent(inout) :: bh(:)
+        complex(wp),      intent(inout) :: bc(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer(ip) :: j, if_rename, kdo, l, ir, i2, i4
+        integer(ip) :: j, iif, kdo, l, ir, i2, i4
         integer(ip) :: ipl, ifd, i, ib, nb, js, jf
         integer(ip) :: ls, lh, nmp, l1, l2, j2, j1, n2m2
         real(wp)    :: bnorm, arg, d1, d2, d3
@@ -843,7 +856,7 @@ contains
             end do
 
             cnv = EPS*bnorm
-            if_rename = 2**k
+            iif = 2**k
             kdo = k - 1
 
             outer_loop: do l = 1, kdo
@@ -852,11 +865,11 @@ contains
                 i2 = 2**ir
                 i4 = i2 + i2
                 ipl = i4 - 1
-                ifd = if_rename - i4
+                ifd = iif - i4
 
                 do i = i4, ifd, i4
 
-                    call cindxb(i, l, ib, nb)
+                    call self%cindxb(i, l, ib, nb)
 
                     if (nb <= 0) cycle outer_loop
 
@@ -866,7 +879,7 @@ contains
                     bh(:jf-js+1) = bn(js:jf)
                     ah(:jf-js+1) = b(js:jf)
 
-                    call ctevls(bh(1:nb), ah(1:nb), ierror)
+                    call self%ctevls(bh(1:nb), ah(1:nb), ierror)
 
                     if (ierror /= 0) then
                         ierror = 4
@@ -902,15 +915,15 @@ contains
                     ah(j) = -bn(l1)
                 end do
 
-                call ctevls(ah(1:nb), bh(1:nb), ierror)
+                call self%ctevls(ah(1:nb), bh(1:nb), ierror)
 
                 if (ierror /= 0) then
                     ierror = 4
                     return
                 end if
 
-                call cindxb(if_rename, k - 1, j2, lh)
-                call cindxb(if_rename/2, k - 1, j1, lh)
+                call self%cindxb(iif, k - 1, j2, lh)
+                call self%cindxb(iif/2, k - 1, j1, lh)
 
                 j2 = j2 + 1
                 lh = j2
@@ -922,7 +935,7 @@ contains
                     d2 = abs(b(j1)-b(j2))
                     d3 = abs(b(j1)-b(j2+1))
 
-                    if (d2 >= d1 .or. d2 >= d3) then
+                    if (d1 <= d2 .or. d3 <= d2) then
                         b(lh) = b(j2)
                         j2 = j2 + 1
                         lh = lh + 1
@@ -937,19 +950,34 @@ contains
 
                 b(lh) = b(n2m2+1)
 
-                call cindxb(if_rename, k - 1, j1, j2)
+                call self%cindxb(iif, k - 1, j1, j2)
 
                 j2 = j1 + nmp + nmp
 
-                call cppadd(nm + 1, ierror, an, cn, cmplx(b(j1:j1), kind=wp), real(bc(j1:j1), kind=wp), b(j2))
+                ! Compute eigenvalues of the periodic tridiagonal
+                block
+                    complex(wp)       :: cbp_arg(1)
+                    real(wp)          :: bp_arg(1)
+                    real(wp), pointer :: bh_arg(:) => null()
 
+                    ! Associate arguments
+                    cbp_arg = cmplx(b(j1), kind=wp)
+                    bp_arg = real(bc(j1), kind=wp)
+                    bh_arg(1:) => b(j2:)
+
+                    ! Call solver
+                    call self%cppadd(nm + 1, ierror, an, cn, cbp_arg, bp_arg, bh_arg)
+
+                    ! Terminate association
+                    nullify(bh_arg)
+                end block
             end if
 
         end associate common_variables
 
     end subroutine ccompb
 
-    subroutine cproc(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, w, yy)
+    pure subroutine cproc(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, w, yy)
         !
         ! Purpose:
         !
@@ -968,23 +996,23 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer(ip), intent(in)     :: nd
-        integer(ip), intent(in)     :: nm1
-        integer(ip), intent(in)     :: nm2
-        integer(ip), intent(in)     :: na
-        integer(ip), intent(in)     :: m
-        real(wp),    intent(in)     :: bm1(*)
-        real(wp),    intent(in)     :: bm2(*)
-        real(wp),    intent(in)     :: aa(*)
-        complex(wp), intent(in)     :: bd(*)
-        complex(wp), intent(in)     :: x(*)
-        complex(wp), intent(inout) :: y(*)
-        complex(wp), intent(in)     :: a(*)
-        complex(wp), intent(in)     :: b(*)
-        complex(wp), intent(in)     :: c(*)
-        complex(wp), intent(inout) :: d(*)
-        complex(wp), intent(inout) :: w(*)
-        complex(wp)                  :: yy(*)
+        integer(ip), intent(in)  :: nd
+        integer(ip), intent(in)  :: nm1
+        integer(ip), intent(in)  :: nm2
+        integer(ip), intent(in)  :: na
+        integer(ip), intent(in)  :: m
+        real(wp),    intent(in)  :: bm1(nm1)
+        real(wp),    intent(in)  :: bm2(nm2)
+        real(wp),    intent(in)  :: aa(na)
+        real(wp),    intent(in)  :: x(m)
+        real(wp),    intent(out) :: yy(m)
+        real(wp),    intent(in)  :: a(m)
+        real(wp),    intent(in)  :: b(m)
+        real(wp),    intent(in)  :: c(m)
+        complex(wp), intent(in)  :: bd(nd)
+        complex(wp), intent(out) :: d(m)
+        complex(wp), intent(out) :: w(m)
+        complex(wp), intent(out) :: y(m)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -993,112 +1021,100 @@ contains
         complex(wp) :: crt, den, y1, y2
         !-----------------------------------------------
 
-        common_variables: associate( &
-            npp => self%npp, &
-            k => self%k, &
-            nm => self%nm, &
-            ncmplx=> self%ncmplx, &
-            ik => self%ik, &
-            cnv => self%cnv, &
-            EPS => self%MACHINE_EPSILON &
-            )
+        y(:m) = x(:m)
+        mm = m - 1
+        id = nd
+        m1 = nm1
+        m2 = nm2
+        ia = na
 
-            y(:m) = x(:m)
-            mm = m - 1
-            id = nd
-            m1 = nm1
-            m2 = nm2
-            ia = na
+        main_loop: do
 
-            main_loop: do
+            iflg = 0
+            if (id > 0) then
+                crt = bd(id)
+                id = id - 1
+                !
+                ! begin solution to system
+                !
+                d(m) = a(m)/(b(m)-crt)
+                w(m) = y(m)/(b(m)-crt)
 
-                iflg = 0
-                if (id > 0) then
-                    crt = bd(id)
-                    id = id - 1
-                    !
-                    ! begin solution to system
-                    !
-                    d(m) = a(m)/(b(m)-crt)
-                    w(m) = y(m)/(b(m)-crt)
+                do j = 2, mm
+                    k = m - j
+                    den = b(k+1) - crt - c(k+1)*d(k+2)
+                    d(k+1) = a(k+1)/den
+                    w(k+1) = (y(k+1)-c(k+1)*w(k+2))/den
+                end do
 
-                    do j = 2, mm
-                        k = m - j
-                        den = b(k+1) - crt - c(k+1)*d(k+2)
-                        d(k+1) = a(k+1)/den
-                        w(k+1) = (y(k+1)-c(k+1)*w(k+2))/den
-                    end do
+                den = b(1) - crt - c(1)*d(2)
 
-                    den = b(1) - crt - c(1)*d(2)
-
-                    if (abs(den) /= ZERO) then
-                        y(1) = (y(1)-c(1)*w(2))/den
-                    else
-                        y(1) = cmplx(ONE, ZERO, kind=wp)
-                    end if
-
-                    do j = 2, m
-                        y(j) = w(j) - d(j)*y(j-1)
-                    end do
-
+                if (abs(den) /= ZERO) then
+                    y(1) = (y(1)-c(1)*w(2))/den
+                else
+                    y(1) = cmplx(ONE, ZERO, kind=wp)
                 end if
 
-                if (.not.(m1 <= 0 .and. m2 <= 0)) then
-                    if (m1 <= 0) then
-                        rt = bm2(m2)
-                        m2 = m2 - 1
+                do j = 2, m
+                    y(j) = w(j) - d(j)*y(j-1)
+                end do
+
+            end if
+
+            if (.not.(m1 <= 0 .and. m2 <= 0)) then
+                if (m1 <= 0) then
+                    rt = bm2(m2)
+                    m2 = m2 - 1
+                else
+                    if (m2 <= 0) then
+                        rt = bm1(m1)
+                        m1 = m1 - 1
                     else
-                        if (m2 <= 0) then
+                        if (abs(bm1(m1)) - abs(bm2(m2)) > ZERO) then
                             rt = bm1(m1)
                             m1 = m1 - 1
                         else
-                            if (abs(bm1(m1)) - abs(bm2(m2)) > ZERO) then
-                                rt = bm1(m1)
-                                m1 = m1 - 1
-                            else
-                                rt = bm2(m2)
-                                m2 = m2 - 1
-                            end if
+                            rt = bm2(m2)
+                            m2 = m2 - 1
                         end if
                     end if
-
-                    y1 = (b(1)-rt)*y(1) + c(1)*y(2)
-
-                    if (mm >= 2) then
-                        do j = 2, mm
-                            y2 = a(j)*y(j-1) + (b(j)-rt)*y(j) + c(j)*y(j+1)
-                            y(j-1) = y1
-                            y1 = y2
-                        end do
-                    end if
-
-                    y(m) = a(m)*y(m-1) + (b(m)-rt)*y(m)
-                    y(m-1) = y1
-                    iflg = 1
-
-                    cycle main_loop
-
                 end if
 
-                if (ia > 0) then
-                    rt = aa(ia)
-                    ia = ia - 1
-                    iflg = 1
-                    !
-                    ! scalar multiplication
-                    !
-                    y(:m) = rt*y(:m)
+                y1 = (b(1)-rt)*y(1) + c(1)*y(2)
+
+                if (mm >= 2) then
+                    do j = 2, mm
+                        y2 = a(j)*y(j-1) + (b(j)-rt)*y(j) + c(j)*y(j+1)
+                        y(j-1) = y1
+                        y1 = y2
+                    end do
                 end if
 
-                if (iflg <= 0) exit main_loop
+                y(m) = a(m)*y(m-1) + (b(m)-rt)*y(m)
+                y(m-1) = y1
+                iflg = 1
 
-            end do main_loop
+                cycle main_loop
 
-        end associate common_variables
+            end if
+
+            if (ia > 0) then
+                rt = aa(ia)
+                ia = ia - 1
+                iflg = 1
+                !
+                ! scalar multiplication
+                !
+                y(:m) = rt*y(:m)
+            end if
+
+            if (iflg <= 0) exit main_loop
+
+        end do main_loop
 
     end subroutine cproc
 
-    subroutine cprocp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, u, yy)
+    pure subroutine cprocp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, u, yy)
         !
         ! Purpose:
         !
@@ -1118,23 +1134,23 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer(ip), intent(in) :: nd
-        integer(ip), intent(in) :: nm1
-        integer(ip), intent(in) :: nm2
-        integer(ip), intent(in) :: na
-        integer(ip), intent(in) :: m
-        real(wp), intent(in) :: bm1(*)
-        real(wp), intent(in) :: bm2(*)
-        real(wp), intent(in) :: aa(*)
-        real(wp) :: yy(*)
-        complex(wp), intent(in) :: bd(*)
-        complex(wp), intent(in) :: x(*)
-        complex(wp), intent(inout) :: y(*)
-        complex(wp), intent(in) :: a(*)
-        complex(wp), intent(in) :: b(*)
-        complex(wp), intent(in) :: c(*)
-        complex(wp), intent(inout) :: d(*)
-        complex(wp), intent(inout) :: u(*)
+        integer(ip), intent(in)  :: nd
+        integer(ip), intent(in)  :: nm1
+        integer(ip), intent(in)  :: nm2
+        integer(ip), intent(in)  :: na
+        integer(ip), intent(in)  :: m
+        real(wp),    intent(in)  :: bm1(nm1)
+        real(wp),    intent(in)  :: bm2(nm2)
+        real(wp),    intent(in)  :: aa(na)
+        real(wp),    intent(in)  :: x(m)
+        real(wp),    intent(out) :: yy(m)
+        real(wp),    intent(in)  :: a(m)
+        real(wp),    intent(in)  :: b(m)
+        real(wp),    intent(in)  :: c(m)
+        complex(wp), intent(in)  :: bd(nd)
+        complex(wp), intent(out) :: d(m)
+        complex(wp), intent(out) :: u(m)
+        complex(wp), intent(out) :: y(m)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -1143,133 +1159,122 @@ contains
         complex(wp) :: v, den, bh, ym, am, y1, y2, yh, crt
         !-----------------------------------------------
 
-        common_variables: associate( &
-            npp => self%npp, &
-            k => self%k, &
-            nm => self%nm, &
-            ncmplx=> self%ncmplx, &
-            ik => self%ik, &
-            cnv => self%cnv, &
-            EPS => self%MACHINE_EPSILON &
-            )
+        y(:m) = x(:m)
+        mm = m - 1
+        mm2 = m - 2
+        id = nd
+        m1 = nm1
+        m2 = nm2
+        ia = na
 
-            y(:m) = x(:m)
-            mm = m - 1
-            mm2 = m - 2
-            id = nd
-            m1 = nm1
-            m2 = nm2
-            ia = na
+        main_loop: do
 
-            main_loop: do
-
-                iflg = 0
-                if (id > 0) then
-                    crt = bd(id)
-                    id = id - 1
-                    iflg = 1
-                    !
-                    !==>  begin solution to system
-                    !
-                    bh = b(m) - crt
-                    ym = y(m)
-                    den = b(1) - crt
-                    d(1) = c(1)/den
-                    u(1) = a(1)/den
-                    y(1) = y(1)/den
-                    v = c(m)
-                    if (mm2 >= 2) then
-                        do j = 2, mm2
-                            den = b(j) - crt - a(j)*d(j-1)
-                            d(j) = c(j)/den
-                            u(j) = -a(j)*u(j-1)/den
-                            y(j) = (y(j)-a(j)*y(j-1))/den
-                            bh = bh - v*u(j-1)
-                            ym = ym - v*y(j-1)
-                            v = -v*d(j-1)
-                        end do
-                    end if
-                    den = b(m-1) - crt - a(m-1)*d(m-2)
-                    d(m-1) = (c(m-1)-a(m-1)*u(m-2))/den
-                    y(m-1) = (y(m-1)-a(m-1)*y(m-2))/den
-                    am = a(m) - v*d(m-2)
-                    bh = bh - v*u(m-2)
-                    ym = ym - v*y(m-2)
-                    den = bh - am*d(m-1)
-                    if (abs(den) /= ZERO) then
-                        y(m) = (ym - am*y(m-1))/den
-                    else
-                        y(m) = cmplx(ONE, ZERO, kind=wp)
-                    end if
-                    y(m-1) = y(m-1) - d(m-1)*y(m)
-                    do j = 2, mm
-                        k = m - j
-                        y(k) = y(k) - d(k)*y(k+1) - u(k)*y(m)
+            iflg = 0
+            if (id > 0) then
+                crt = bd(id)
+                id = id - 1
+                iflg = 1
+                !
+                !==>  begin solution to system
+                !
+                bh = b(m) - crt
+                ym = y(m)
+                den = b(1) - crt
+                d(1) = c(1)/den
+                u(1) = a(1)/den
+                y(1) = y(1)/den
+                v = c(m)
+                if (mm2 >= 2) then
+                    do j = 2, mm2
+                        den = b(j) - crt - a(j)*d(j-1)
+                        d(j) = c(j)/den
+                        u(j) = -a(j)*u(j-1)/den
+                        y(j) = (y(j)-a(j)*y(j-1))/den
+                        bh = bh - v*u(j-1)
+                        ym = ym - v*y(j-1)
+                        v = -v*d(j-1)
                     end do
                 end if
+                den = b(m-1) - crt - a(m-1)*d(m-2)
+                d(m-1) = (c(m-1)-a(m-1)*u(m-2))/den
+                y(m-1) = (y(m-1)-a(m-1)*y(m-2))/den
+                am = a(m) - v*d(m-2)
+                bh = bh - v*u(m-2)
+                ym = ym - v*y(m-2)
+                den = bh - am*d(m-1)
+                if (abs(den) /= ZERO) then
+                    y(m) = (ym - am*y(m-1))/den
+                else
+                    y(m) = cmplx(ONE, ZERO, kind=wp)
+                end if
+                y(m-1) = y(m-1) - d(m-1)*y(m)
+                do j = 2, mm
+                    k = m - j
+                    y(k) = y(k) - d(k)*y(k+1) - u(k)*y(m)
+                end do
+            end if
 
-                if (.not.(m1 <= 0 .and. m2 <= 0)) then
-                    if (m1 <= 0) then
-                        rt = bm2(m2)
-                        m2 = m2 - 1
+            if (.not.(m1 <= 0 .and. m2 <= 0)) then
+                if (m1 <= 0) then
+                    rt = bm2(m2)
+                    m2 = m2 - 1
+                else
+                    if (m2 <= 0) then
+                        rt = bm1(m1)
+                        m1 = m1 - 1
                     else
-                        if (m2 <= 0) then
+                        if (abs(bm1(m1)) > abs(bm2(m2))) then
                             rt = bm1(m1)
                             m1 = m1 - 1
                         else
-                            if (abs(bm1(m1)) > abs(bm2(m2))) then
-                                rt = bm1(m1)
-                                m1 = m1 - 1
-                            else
-                                rt = bm2(m2)
-                                m2 = m2 - 1
-                            !
-                            ! matrix multiplication
-                            !
-                            end if
+                            rt = bm2(m2)
+                            m2 = m2 - 1
+                        !
+                        ! matrix multiplication
+                        !
                         end if
                     end if
-
-                    yh = y(1)
-                    y1 = (b(1)-rt)*y(1) + c(1)*y(2) + a(1)*y(m)
-
-                    if (mm >= 2) then
-                        do j = 2, mm
-                            y2 = a(j)*y(j-1) + (b(j)-rt)*y(j) + c(j)*y(j+1)
-                            y(j-1) = y1
-                            y1 = y2
-                        end do
-                    end if
-
-                    y(m) = a(m)*y(m-1) + (b(m)-rt)*y(m) + c(m)*yh
-                    y(m-1) = y1
-                    iflg = 1
-
-                    cycle main_loop
                 end if
 
-                if (ia > 0) then
-                    rt = aa(ia)
-                    ia = ia - 1
-                    iflg = 1
-                    !
-                    ! scalar multiplication
-                    !
-                    y(:m) = rt*y(:m)
+                yh = y(1)
+                y1 = (b(1)-rt)*y(1) + c(1)*y(2) + a(1)*y(m)
+
+                if (mm >= 2) then
+                    do j = 2, mm
+                        y2 = a(j)*y(j-1) + (b(j)-rt)*y(j) + c(j)*y(j+1)
+                        y(j-1) = y1
+                        y1 = y2
+                    end do
                 end if
 
-                if (iflg <= 0) exit main_loop
+                y(m) = a(m)*y(m-1) + (b(m)-rt)*y(m) + c(m)*yh
+                y(m-1) = y1
+                iflg = 1
 
-            end do main_loop
+                cycle main_loop
+            end if
 
-        end associate common_variables
+            if (ia > 0) then
+                rt = aa(ia)
+                ia = ia - 1
+                iflg = 1
+                !
+                ! scalar multiplication
+                !
+                y(:m) = rt*y(:m)
+            end if
+
+            if (iflg <= 0) exit main_loop
+
+        end do main_loop
 
     end subroutine cprocp
 
-    subroutine cindxa(i, ir, idxa, na)
+    subroutine cindxa(self, i, ir, idxa, na)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
+        class(CbltriAux), intent(inout) :: self
         integer(ip), intent(in)  :: i
         integer(ip), intent(in)  :: ir
         integer(ip), intent(out) :: idxa
@@ -1294,12 +1299,11 @@ contains
 
     end subroutine cindxa
 
-
-    subroutine cindxb(i, ir, idx, idp)
-
+    subroutine cindxb(self, i, ir, idx, idp)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
+        class(CbltriAux), intent(inout) :: self
         integer(ip), intent(in) :: i
         integer(ip), intent(in) :: ir
         integer(ip), intent(out) :: idx
@@ -1353,10 +1357,11 @@ contains
     end subroutine cindxb
 
 
-    subroutine cindxc(i, ir, idxc, nc)
+    subroutine cindxc(self, i, ir, idxc, nc)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
+        class(CbltriAux), intent(inout) :: self
         integer(ip), intent(in)  :: i
         integer(ip), intent(in)  :: ir
         integer(ip), intent(out) :: idxc
@@ -1372,16 +1377,14 @@ contains
             cnv => self%cnv, &
             EPS => self%MACHINE_EPSILON &
             )
-
             nc = 2**ir
             idxc = i
             if (idxc + nc - 1 > nm) nc = 0
-
         end associate common_variables
 
     end subroutine cindxc
 
-    subroutine cppadd(n, ierror, a, c, cbp, bp, bh)
+    subroutine cppadd(self, n, ierror, a, c, cbp, bp, bh)
         !
         ! Purpose:
         !
@@ -1397,13 +1400,14 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer(ip), intent(in)  :: n
-        integer(ip), intent(out) :: ierror
-        real(wp)                  :: a(*)
-        real(wp)                  :: c(*)
-        real(wp)                  :: bp(*)
-        real(wp)                  :: bh(*)
-        complex(wp)               :: cbp(*)
+        class(CbltriAux), intent(inout) :: self
+        integer(ip),      intent(in)    :: n
+        integer(ip),      intent(out)   :: ierror
+        real(wp),         intent(in)    :: a(:)
+        real(wp),         intent(in)    :: c(:)
+        complex(wp)       :: cbp(:)
+        real(wp)          :: bp(:)
+        real(wp)          :: bh(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
@@ -1456,7 +1460,7 @@ contains
                         r4 = psgf(xl, iz, c, a, bh)
                     end do
                     sgn = -ONE
-                    temp = cbsrh(xl, bh(1), iz, c, a, bh, psgf, sgn)
+                    temp = self%cbsrh(xl, bh(1), iz, c, a, bh, psgf, sgn)
                     cbp(1) = cmplx(temp, ZERO, kind=wp)
                     iis = 2
                 end block block_110
@@ -1477,7 +1481,7 @@ contains
                         r5 = psgf(xr, iz, c, a, bh)
                     end do
                     sgn = ONE
-                    temp = cbsrh(bh(iz), xr, iz, c, a, bh, psgf, sgn)
+                    temp = self%cbsrh(bh(iz), xr, iz, c, a, bh, psgf, sgn)
                     cbp(iz) = cmplx(temp, ZERO, kind=wp)
                     iif = iz - 2
                 end block block_115
@@ -1486,7 +1490,7 @@ contains
                     xl = bh(ig)
                     xr = bh(ig+1)
                     sgn = -1.
-                    xm = cbsrh(xl, xr, iz, c, a, bh, ppspf, sgn)
+                    xm = self%cbsrh(xl, xr, iz, c, a, bh, ppspf, sgn)
                     psg = psgf(xm, iz, c, a, bh)
 
                     if_block: block
@@ -1495,9 +1499,9 @@ contains
                             if (r6 > ZERO) exit if_block
                             if (r6 /= ZERO) then
                                 sgn = ONE
-                                cbp(ig) = cmplx(cbsrh(bh(ig), xm, iz, c, a, bh, psgf, sgn), ZERO, kind=wp)
+                                cbp(ig) = cmplx(self%cbsrh(bh(ig), xm, iz, c, a, bh, psgf, sgn), ZERO, kind=wp)
                                 sgn = -ONE
-                                cbp(ig+1) = cmplx(cbsrh(xm, bh(ig+1), iz, c, a, bh, psgf, sgn), ZERO, kind=wp)
+                                cbp(ig+1) = cmplx(self%cbsrh(xm, bh(ig+1), iz, c, a, bh, psgf, sgn), ZERO, kind=wp)
                                 cycle main_loop
                             !
                             !     case of a multiple zero
@@ -1896,7 +1900,7 @@ contains
 
     end subroutine procp
 
-    subroutine ctevls(diagonal, subdiagonal, error_flag)
+    subroutine ctevls(self, diagonal, subdiagonal, error_flag)
         !
         ! Purpose:
         !
@@ -1940,9 +1944,10 @@ contains
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        real(wp),    intent(inout) :: diagonal(:)
-        real(wp),    intent(inout) :: subdiagonal(:)
-        integer(ip), intent(out)   :: error_flag
+        class(CbltriAux), intent(inout) :: self
+        real(wp),         intent(inout) :: diagonal(:)
+        real(wp),         intent(inout) :: subdiagonal(:)
+        integer(ip),      intent(out)   :: error_flag
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------

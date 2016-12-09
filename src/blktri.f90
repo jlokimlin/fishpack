@@ -928,7 +928,7 @@ contains
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer(ip)  :: j, if, kdo, l, ir, i2, i4, ipl, ifd, i, ib, nb, js, jf
+        integer(ip)  :: j, iif, kdo, l, ir, i2, i4, ipl, ifd, i, ib, nb, js, jf
         integer(ip)  :: ls, lh, nmp, l1, l2, j2, j1, n2m2
         real(wp)     :: bnorm, arg, d1, d2, d3
         !-----------------------------------------------
@@ -958,7 +958,7 @@ contains
             end do
 
             cnv = EPS*bnorm
-            if = 2**k
+            iif = 2**k
             kdo = k - 1
 
             outer_loop: do l = 1, kdo
@@ -966,7 +966,7 @@ contains
                 i2 = 2**ir
                 i4 = i2 + i2
                 ipl = i4 - 1
-                ifd = if - i4
+                ifd = iif - i4
                 do i = i4, ifd, i4
                     call self%indxb(i, l, ib, nb)
 
@@ -1023,8 +1023,8 @@ contains
                     return
                 end if
 
-                call self%indxb(if, k - 1, j2, lh)
-                call self%indxb(if/2, k - 1, j1, lh)
+                call self%indxb(iif, k - 1, j2, lh)
+                call self%indxb(iif/2, k - 1, j1, lh)
 
                 j2 = j2 + 1
                 lh = j2
@@ -1049,7 +1049,7 @@ contains
 
                 b(lh) = b(n2m2+1)
 
-                call self%indxb(if, k - 1, j1, j2)
+                call self%indxb(iif, k - 1, j1, j2)
 
                 j2 = j1 + nmp + nmp
 
