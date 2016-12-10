@@ -332,7 +332,7 @@
 !                        elliptic equations"
 !                          NCAR TN/IA-109, July, 1975, 138 pp.
 !
-submodule (helmholtz_solvers) centered_polar_solver
+submodule (centered_helmholtz_solvers) centered_polar_solver
 
 contains
 

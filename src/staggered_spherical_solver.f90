@@ -403,41 +403,11 @@
 !                        grid of arbitrary size, " J. Comp. Phys.
 !                        20(1976), pp. 171-182.
 !
-module module_hstssp
-
-    use fishpack_precision, only: &
-        wp, & ! Working precision
-        ip, & ! Integer precision
-        PI
-
-    use type_FishpackWorkspace, only: &
-        Fish => FishpackWorkspace
-
-    use module_genbun, only: &
-        genbunn
-
-    use module_poistg, only: &
-        poistgg
-
-    ! Explicit typing only
-    implicit none
-
-    ! Everything is private unless stated otherwise
-    private
-    public :: hstssp
-
-    !---------------------------------------------------------------
-    ! Parameters confined to the module
-    !---------------------------------------------------------------
-    real(wp), parameter :: ZERO = 0.0_wp
-    real(wp), parameter :: HALF = 0.5_wp
-    real(wp), parameter :: ONE = 1.0_wp
-    real(wp), parameter :: TWO = 2.0_wp
-    !---------------------------------------------------------------
+submodule(staggered_helmholtz_solvers) staggered_spherical_solver
 
 contains
 
-    subroutine hstssp(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
+    module subroutine hstssp(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror)
         !-----------------------------------------------
         ! Dummy arguments
@@ -787,7 +757,7 @@ contains
 
     end subroutine hstssp_lower_routine
 
-end module module_hstssp
+end submodule staggered_spherical_solver
 !
 ! REVISION HISTORY
 !

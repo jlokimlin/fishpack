@@ -311,36 +311,11 @@
 !                        elliptic equations"
 !                        NCAR TN/IA-109, July, 1975, 138 pp.
 !
-module module_hwscrt
-
-    use fishpack_precision, only: &
-        wp, & ! Working precision
-        ip ! Integer precision
-
-    use type_FishpackWorkspace, only: &
-        Fish => FishpackWorkspace
-
-    use module_genbun, only: &
-        genbunn
-
-    ! Explicit typing only
-    implicit none
-
-    ! Everything is private unless stated otherwise
-    private
-    public :: hwscrt
-
-    !---------------------------------------------------------------
-    ! Parameters confined to the module
-    !---------------------------------------------------------------
-    real(wp), parameter :: ZERO = 0.0_wp
-    real(wp), parameter :: ONE = 1.0_wp
-    real(wp), parameter :: TWO = 2.0_wp
-    !---------------------------------------------------------------
+submodule(centered_helmholtz_solvers) centered_cartesian_solver
 
 contains
 
-    subroutine hwscrt(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
+    module subroutine hwscrt(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror)
         !-----------------------------------------------
         ! Dummy arguments
@@ -628,7 +603,7 @@ contains
 
     end subroutine check_input_arguments
 
-end module module_hwscrt
+end submodule centered_cartesian_solver
 !
 ! REVISION HISTORY
 !

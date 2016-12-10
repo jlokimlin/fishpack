@@ -8,10 +8,10 @@ module type_HelmholtzSolver
         stderr => ERROR_UNIT, &
         stdout => OUTPUT_UNIT
 
-    use module_hwscrt, only: &
+    use centered_helmholtz_solvers, only: &
         hwscrt
 
-    use module_hstcrt, only: &
+    use staggered_helmholtz_solvers, only: &
         hstcrt
 
     use type_HelmholtzData, only: &
@@ -174,7 +174,6 @@ contains
         end if
 
     end subroutine solve_2d_helmholtz_centered
-
 
     subroutine solve_2d_helmholtz_staggered( & ! hstcrt
         this, helmholtz_constant, source_term, solution, perturbation, error_flag )

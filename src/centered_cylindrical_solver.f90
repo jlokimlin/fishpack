@@ -324,37 +324,11 @@
 !                        elliptic equations"
 !                        NCAR TN/IA-109, July, 1975, 138 pp.
 !
-module module_hwscyl
-
-    use fishpack_precision, only: &
-        wp, & ! Working precision
-        ip ! Integer precision
-
-    use type_FishpackWorkspace, only: &
-        Fish => FishpackWorkspace
-
-    use module_genbun, only: &
-        genbunn
-
-    ! Explicit typing only
-    implicit none
-
-    ! Everything is private unless stated otherwise
-    private
-    public :: hwscyl
-
-    !---------------------------------------------------------------
-    ! Parameters confined to the module
-    !---------------------------------------------------------------
-    real(wp), parameter :: ZERO = 0.0_wp
-    real(wp), parameter :: HALF = 0.5_wp
-    real(wp), parameter :: ONE = 1.0_wp
-    real(wp), parameter :: TWO = 2.0_wp
-    !---------------------------------------------------------------
+submodule(centered_helmholtz_solvers) centered_cylindrical_solver
 
 contains
 
-    subroutine hwscyl(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
+    module subroutine hwscyl(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror)
         !-----------------------------------------------
         ! Dummy arguments
@@ -694,7 +668,7 @@ contains
 
     end subroutine hwscyl_lower_routine
 
-end module module_hwscyl
+end submodule centered_cylindrical_solver
 !
 ! REVISION HISTORY
 !

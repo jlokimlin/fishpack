@@ -484,39 +484,17 @@
 !                        arbitrary size, " J. Comp. Phys. 20(1976), 
 !                        pp. 171-182.
 !
-module module_hstcsp
+submodule(staggered_helmholtz_solvers) staggered_axisymmetric_spherical_solver
 
-    use fishpack_precision, only: &
-        wp, & ! Working precision
-        ip, & ! Integer precision
-        PI
-
-    use type_FishpackWorkspace, only: &
-        Fish => FishpackWorkspace
-
-    use module_blktri, only:&
-        BlktriAux
-
-    ! Explicit typing only
-    implicit none
-
-    ! Everything is private unless stated otherwise
-    private
-    public :: hstcsp
-
-    !---------------------------------------------------------------
-    ! Parameters confined to the module
-    !---------------------------------------------------------------
-    real(wp),    parameter :: ZERO = 0.0_wp
-    real(wp),    parameter :: HALF = 0.5_wp
-    real(wp),    parameter :: ONE = 1.0_wp
-    real(wp),    parameter :: TWO = 2.0_wp
-    integer(ip), parameter :: IIWK = 8_ip ! Size of workspace indices
-    !---------------------------------------------------------------
+!---------------------------------------------------------------
+! Parameters confined to the submodule
+!---------------------------------------------------------------
+integer(ip), parameter :: IIWK = 8_ip ! Size of workspace indices
+!---------------------------------------------------------------
 
 contains
 
-    subroutine hstcsp(intl, a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, &
+    module subroutine hstcsp(intl, a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, &
         bdc, bdd, elmbda, f, idimf, pertrb, ierror, workspace)
         !-----------------------------------------------
         ! Dummy arguments
@@ -552,7 +530,7 @@ contains
 
         ! Solve system
         associate( &
-            iw1 => workspace%workspace_indices(1), &
+            iwam => workspace%workspace_indices(1), &
             iwbm => workspace%workspace_indices(2), &
             iwcm => workspace%workspace_indices(3), &
             iwan => workspace%workspace_indices(4), &
@@ -564,7 +542,7 @@ contains
             cxw => workspace%complex_workspace &
             )
             associate( &
-                am => rew(iw1:), &
+                am => rew(iwam:), &
                 bm => rew(iwbm:), &
                 cm => rew(iwcm:), &
                 an => rew(iwan:), &
@@ -916,7 +894,7 @@ contains
 
     end subroutine hstcsp_lower_routine
 
-end module module_hstcsp
+end submodule staggered_axisymmetric_spherical_solver
 !
 ! REVISION HISTORY
 !

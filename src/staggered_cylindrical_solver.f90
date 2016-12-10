@@ -327,40 +327,11 @@
 !                        arbitrary size, " J. Comp. Phys. 20(1976), 
 !                        pp. 171-182.
 !
-module module_hstcyl
-
-    use fishpack_precision, only: &
-        wp, & ! Working precision
-        ip ! Integer precision
-
-    use type_FishpackWorkspace, only: &
-        Fish => FishpackWorkspace
-
-    use module_genbun, only: &
-        genbunn
-
-    use module_poistg, only: &
-        poistgg
-
-    ! Explicit typing only
-    implicit none
-
-    ! Everything is private unless stated otherwise
-    private
-    public :: hstcyl
-
-    !---------------------------------------------------------------
-    ! Parameters confined to the module
-    !---------------------------------------------------------------
-    real(wp), parameter :: ZERO = 0.0_wp
-    real(wp), parameter :: HALF = 0.5_wp
-    real(wp), parameter :: ONE = 1.0_wp
-    real(wp), parameter :: TWO = 2.0_wp
-    !---------------------------------------------------------------
+submodule(staggered_helmholtz_solvers) staggered_cylindrical_solver
 
 contains
 
-    subroutine hstcyl(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
+    module subroutine hstcyl(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror)
         !-----------------------------------------------
         ! Dummy arguments
@@ -643,7 +614,7 @@ contains
 
     end subroutine check_input_arguments
 
-end module module_hstcyl
+end submodule staggered_cylindrical_solver
 !
 ! REVISION HISTORY
 !

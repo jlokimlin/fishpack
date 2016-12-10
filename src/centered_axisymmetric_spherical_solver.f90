@@ -430,37 +430,17 @@
 !                        elliptic equations"
 !                          NCAR TN/IA-109, July, 1975, 138 pp.
 !
-module module_hwscsp
+submodule(centered_helmholtz_solvers) centered_axisymmetric_spherical_solver
 
-    use fishpack_precision, only: &
-        wp, & ! Working precision
-        ip, & ! Integer precision
-        PI
-
-    use type_FishpackWorkspace, only: &
-        Fish => FishpackWorkspace
-
-    use module_blktri, only: &
-        BlktriAux
-
-    ! Explicit typing only
-    implicit none
-
-    ! Everything is private unless stated otherwise
-    private
-    public :: hwscsp
-
-    !---------------------------------------------------------------
-    ! Parameters confined to the module
-    !---------------------------------------------------------------
-    real(wp),    parameter :: ZERO = 0.0_wp
-    real(wp),    parameter :: ONE = 1.0_wp
-    integer(ip), parameter :: IIWK = 10 ! Size for workspace_indices
-    !---------------------------------------------------------------
+!---------------------------------------------------------------
+! Parameters confined to the submodule
+!---------------------------------------------------------------
+integer(ip), parameter :: IIWK = 10 ! Size for workspace_indices
+!---------------------------------------------------------------
 
 contains
 
-    subroutine hwscsp(intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, &
+    module subroutine hwscsp(intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, &
         nbdcnd, bdrs, bdrf, elmbda, f, idimf, pertrb, ierror, workspace)
         !-----------------------------------------------
         ! Dummy arguments
@@ -1033,7 +1013,7 @@ contains
 
     end subroutine hwscsp_lower_routine
 
-end module module_hwscsp
+end submodule centered_axisymmetric_spherical_solver
 !
 ! REVISION HISTORY
 !

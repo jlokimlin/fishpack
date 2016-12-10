@@ -13,28 +13,7 @@ module type_FishpackSolver
 
     use module_genbun, only: genbun
 
-    use module_hstcrt, only: hstcrt
-
-    use module_hstcsp, only: hstcsp
-
-    use module_hstcyl, only: hstcyl
-
-    use module_hstplr, only: hstplr
-
-    use module_hstssp, only: hstssp
-
     use module_hw3crt, only: hw3crt
-
-    use module_hwscrt, only: hwscrt
-
-    use module_hwscsp, only: hwscsp
-
-    use module_hwscyl, only: hwscyl
-
-    use helmholtz_solvers, only: &
-        hwsplr
-
-    use module_hwsssp, only: hwsssp
 
     use module_pois3d, only: pois3d
 
@@ -43,6 +22,20 @@ module type_FishpackSolver
     use module_sepeli, only: sepeli
 
     use module_sepx4, only: sepx4
+
+    use staggered_helmholtz_solvers, only: &
+        hstcrt, & ! Staggered cartesian solver
+        hstplr, & ! Staggered polar solver
+        hstcyl, & ! Staggered cylindrical solver
+        hstssp, & ! Staggered spherical solver
+        hstcsp ! Staggered axisymmetric spherical solver
+
+    use centered_helmholtz_solvers, only: &
+        hwscrt, & ! Centered cartesian solver
+        hwsplr, & ! Centered polar solver
+        hwscyl, & ! Centered cylindrical solver
+        hwsssp, & ! Centered spherical solver
+        hwscsp ! Centered axisymmetric spherical solver
 
     ! Explicit typing only
     implicit none

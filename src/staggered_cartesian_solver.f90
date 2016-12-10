@@ -296,39 +296,11 @@
 !                        arbitrary size, " J. Comp. Phys. 20(1976), 
 !                        PP. 171-182.
 !
-module module_hstcrt
-
-    use fishpack_precision, only: &
-        wp, & ! Working precision
-        ip ! Integer precision
-
-    use type_FishpackWorkspace, only: &
-        Fish => FishpackWorkspace
-
-    use module_genbun, only: &
-        genbunn
-
-    use module_poistg, only: &
-        poistgg
-
-    ! Explicit typing only
-    implicit none
-
-    ! Everything is private unless stated otherwise
-    private
-    public :: hstcrt
-
-    !---------------------------------------------------------------
-    ! Parameters confined to the module
-    !---------------------------------------------------------------
-    real(wp), parameter :: ZERO = 0.0_wp
-    real(wp), parameter :: ONE = 1.0_wp
-    real(wp), parameter :: TWO = 2.0_wp
-    !---------------------------------------------------------------
+submodule(staggered_helmholtz_solvers) staggered_cartesian_solver
 
 contains
 
-    subroutine hstcrt(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
+    module subroutine hstcrt(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror)
         !-----------------------------------------------
         ! Dummy arguments
@@ -588,7 +560,7 @@ contains
 
     end subroutine hstcrt_lower_routine
 
-end module module_hstcrt
+end submodule staggered_cartesian_solver
 !
 ! REVISION HISTORY
 !

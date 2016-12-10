@@ -75,15 +75,6 @@ poistg.f90
 	$(FC) $(FFLAGS) -c poistg.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
-helmholtz_solvers.o: \
-fishpack_precision.o \
-type_FishpackWorkspace.o \
-genbun.o \
-poistg.o \
-helmholtz_solvers.f90
-	$(FC) $(FFLAGS) -c helmholtz_solvers.f90 $(LINKS) \
-	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
-
 pois3d.o: \
 fishpack_precision.o \
 type_FishpackWorkspace.o \
@@ -100,87 +91,84 @@ hw3crt.f90
 	$(FC) $(FFLAGS) -c hw3crt.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
-hstcrt.o: \
+staggered_helmholtz_solvers.o: \
 fishpack_precision.o \
 type_FishpackWorkspace.o \
 genbun.o \
 poistg.o \
-hstcrt.f90
-	$(FC) $(FFLAGS) -c hstcrt.f90 $(LINKS) \
-	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
-
-hstcsp.o: \
-fishpack_precision.o \
-type_FishpackWorkspace.o \
-blktri.o\
-hstcsp.f90
-	$(FC) $(FFLAGS) -c hstcsp.f90 $(LINKS) \
-	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
-
-hstcyl.o: \
-fishpack_precision.o \
-type_FishpackWorkspace.o \
-genbun.o \
-poistg.o \
-hstcrt.f90
-	$(FC) $(FFLAGS) -c hstcyl.f90 $(LINKS) \
-	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
-
-hstplr.o: \
-fishpack_precision.o \
-type_FishpackWorkspace.o \
-genbun.o \
-poistg.o \
-hstcrt.f90
-	$(FC) $(FFLAGS) -c hstplr.f90 $(LINKS) \
-	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
-
-hstssp.o: \
-fishpack_precision.o \
-type_FishpackWorkspace.o \
-genbun.o \
-poistg.o \
-hstssp.f90
-	$(FC) $(FFLAGS) -c hstssp.f90 $(LINKS) \
-	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
-
-hwscrt.o: \
-fishpack_precision.o \
-type_FishpackWorkspace.o \
-genbun.o \
-poistg.o \
-hwscrt.f90
-	$(FC) $(FFLAGS) -c hwscrt.f90 $(LINKS) \
-	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
-
-hwscsp.o: \
-fishpack_precision.o \
-type_FishpackWorkspace.o \
 blktri.o \
-hwscsp.f90
-	$(FC) $(FFLAGS) -c hwscsp.f90 $(LINKS) \
+staggered_helmholtz_solvers.f90
+	$(FC) $(FFLAGS) -c staggered_helmholtz_solvers.f90 $(LINKS) \
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+	 
+staggered_cartesian_solver.o: \
+staggered_helmholtz_solvers.o \
+staggered_cartesian_solver.f90
+	$(FC) $(FFLAGS) -c staggered_cartesian_solver.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
-hwscyl.o: \
+staggered_axisymmetric_spherical_solver.o: \
+staggered_helmholtz_solvers.o \
+staggered_axisymmetric_spherical_solver.f90
+	$(FC) $(FFLAGS) -c staggered_axisymmetric_spherical_solver.f90 $(LINKS) \
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
+staggered_cylindrical_solver.o: \
+staggered_helmholtz_solvers.o \
+staggered_cylindrical_solver.f90
+	$(FC) $(FFLAGS) -c staggered_cylindrical_solver.f90 $(LINKS) \
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
+staggered_polar_solver.o: \
+staggered_helmholtz_solvers.o \
+staggered_polar_solver.f90
+	$(FC) $(FFLAGS) -c staggered_polar_solver.f90 $(LINKS) \
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
+staggered_spherical_solver.o: \
+staggered_helmholtz_solvers.o \
+staggered_spherical_solver.f90
+	$(FC) $(FFLAGS) -c staggered_spherical_solver.f90 $(LINKS) \
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
+centered_helmholtz_solvers.o: \
 fishpack_precision.o \
 type_FishpackWorkspace.o \
 genbun.o \
-hwscyl.f90
-	$(FC) $(FFLAGS) -c hwscyl.f90 $(LINKS) \
+poistg.o \
+blktri.o \
+centered_helmholtz_solvers.f90
+	$(FC) $(FFLAGS) -c centered_helmholtz_solvers.f90 $(LINKS) \
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
+centered_cartesian_solver.o: \
+centered_helmholtz_solvers.o \
+centered_cartesian_solver.f90
+	$(FC) $(FFLAGS) -c centered_cartesian_solver.f90 $(LINKS) \
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
+centered_axisymmetric_spherical_solver.o: \
+centered_helmholtz_solvers.o \
+centered_axisymmetric_spherical_solver.f90
+	$(FC) $(FFLAGS) -c centered_axisymmetric_spherical_solver.f90 $(LINKS) \
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
+centered_cylindrical_solver.o: \
+centered_helmholtz_solvers.o \
+centered_cylindrical_solver.f90
+	$(FC) $(FFLAGS) -c centered_cylindrical_solver.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 centered_polar_solver.o: \
-helmholtz_solvers.o \
+centered_helmholtz_solvers.o \
 centered_polar_solver.f90
 	$(FC) $(FFLAGS) -c centered_polar_solver.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
-hwsssp.o: \
-fishpack_precision.o \
-type_FishpackWorkspace.o \
-genbun.o \
-hwsssp.f90
-	$(FC) $(FFLAGS) -c hwsssp.f90 $(LINKS) \
+centered_spherical_solver.o: \
+centered_helmholtz_solvers.o \
+centered_spherical_solver.f90
+	$(FC) $(FFLAGS) -c centered_spherical_solver.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 type_SepAux.o: \
@@ -257,8 +245,8 @@ type_HelmholtzData.f90
 
 type_HelmholtzSolver.o: \
 fishpack_precision.o \
-hwscrt.o \
-hstcrt.o \
+staggered_helmholtz_solvers.o \
+centered_helmholtz_solvers.o \
 type_HelmholtzData.o \
 type_Grid.o\
 type_StaggeredGrid.o\
@@ -299,21 +287,12 @@ blktri.o\
 cblktri.o\
 cmgnbn.o\
 genbun.o\
-hstcrt.o\
-hstcsp.o\
-hstcyl.o\
-hstplr.o\
-hstssp.o\
-hw3crt.o\
-hwscrt.o\
-hwscsp.o\
-hwscyl.o\
-helmholtz_solvers.o\
-hwsssp.o\
 pois3d.o\
 poistg.o\
 sepeli.o\
 sepx4.o\
+centered_helmholtz_solvers.o \
+staggered_helmholtz_solvers.o \
 type_FishpackSolver.f90
 	$(FC) $(FFLAGS) -c type_FishpackSolver.f90 $(LINKS)\
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
