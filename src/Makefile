@@ -308,6 +308,17 @@ type_FishpackSolver.f90
 
 fishpack_library.o: \
 fishpack_precision.o \
+real_block_tridiagonal_linear_systems_solver.o \
+cblktri.o\
+cmgnbn.o\
+genbun.o\
+pois3d.o\
+hw3crt.o\
+poistg.o\
+sepeli.o\
+sepx4.o\
+centered_helmholtz_solvers.o \
+staggered_helmholtz_solvers.o \
 type_FishpackWorkspace.o\
 type_FishpackSolver.o\
 type_HelmholtzData.o\

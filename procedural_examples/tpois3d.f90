@@ -39,9 +39,7 @@ program tpois3d
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-        wp, &
-        ip, &
-        FishpackSolver
+        ip, wp, TWO_PI, PI, pois3d
 
     ! Explicit typing only
     implicit none
@@ -49,95 +47,104 @@ program tpois3d
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
-    type(FishpackSolver)     :: solver
-    integer(ip) :: ldimf, mdimf, lperod, l, mperod, m, nperod, n, i, j, k, ierror
-    real(wp), dimension(32, 33, 10) :: f
-    real(wp), dimension(10) :: a, b, c
-    real(wp), dimension(30) :: x, y
-    real(wp), dimension(10) :: z
-    real(wp) :: pi, dx, c1, dy, c2, dz, dzsq, t, discretization_error
+    integer(ip), parameter :: L = 30, M = 30, N = 10
+    integer(ip), parameter :: LDIMF = L + 2, MDIMF = M + 3
+    integer(ip)            :: lperod, mperod, nperod, i, j, k, ierror
+    real(wp)               :: x(L), y(M), f(LDIMF, MDIMF, N)
+    real(wp), dimension(M) :: a, b, c, z
+    real(wp)               :: dx, c1, dy, c2, dz, dz2, discretization_error
+    real(wp), parameter    :: ZERO = 0.0_wp, ONE = 1.0_wp, TWO = 2.0_wp
     !-----------------------------------------------
-    !
-    !     from the dimension statement we get that ldimf = 32, mdimf = 33,
-    !
-    ldimf = 32
-    mdimf = 33
-    pi = acos(-1.0_wp)
+
+    ! Set boundary conditions
     lperod = 0
-    l = 30
-    dx = 2.0_wp*pi/l
-    c1 = 1.0_wp/dx**2
     mperod = 0
-    m = 30
-    dy = 2.0_wp*pi/m
-    c2 = 1.0_wp/dy**2
     nperod = 1
-    n = 10
-    dz = 1.0_wp/n
-    dzsq = 1.0_wp/dz**2
-    !
-    !     generate grid points for later use.
-    !
-    do i = 1, l
-        x(i) = (-pi) + real(i - 1)*dx
-    end do
-    do j = 1, m
-        y(j) = (-pi) + real(j - 1)*dy
-    end do
-    !
-    !     generate coefficients
-    !
-    a(1) = 0.
-    b(1) = -2.0_wp *dzsq
-    c(1) = -b(1)
-    z(1) = 0.
-    do k = 2, n
-        z(k) = real(k - 1)*dz
-        t = 1. + z(k)
-        a(k) = t**2*dzsq + t/dz
-        b(k) = -2.0_wp *t**2*dzsq
-        c(k) = t**2*dzsq - t/dz
-    end do
-    !
-    !     generate right side of equation
-    !
-    do i = 1, l
-        do j = 1, m
-            do k = 2, n
-                f(i, j, k) = 2.0_wp *sin(x(i))*sin(y(j))*(1. + z(k))**4
-            end do
-        end do
-    end do
-    do i = 1, l
-        do j = 1, l
-            f(i, j, 1) = (10. + 8./dz)*sin(x(i))*sin(y(j))
-            f(i, j, n) = f(i, j, n) - c(n)*16.*sin(x(i))*sin(y(j))
-        end do
-    end do
-    c(n) = 0.
-    !
-    !     call pois3d to solve equations.
-    !
-    call solver%pois3d(lperod, l, c1, mperod, m, c2, nperod, n, a, b, c, &
-        ldimf, mdimf, f, ierror)
-    !
-    !     compute discretization error.  the exact solution is
-    !
-    !              u(x, y, z) = sin(x)*sin(y)*(1+z)**4
-    !
-    discretization_error = 0.
-    do i = 1, l
-        do j = 1, m
-            do k = 1, n
-                t = abs(f(i, j, k)-sin(x(i))*sin(y(j))*(1.+z(k))**4)
-                discretization_error = max(t, discretization_error)
-            end do
-        end do
+
+    ! Set mesh sizes
+    dx = TWO_PI/L
+    dy = TWO_PI/M
+    dz = ONE/N
+    dz2 = ONE/dz**2
+
+    ! Define constants
+    c1 = ONE/dx**2
+    c2 = ONE/dy**2
+
+    ! Generate grid points for later use
+    do i = 1, L
+        x(i) = (-PI) + real(i - 1, kind=wp)*dx
     end do
 
+    do j = 1, M
+        y(j) = (-PI) + real(j - 1, kind=wp)*dy
+    end do
+
+    ! Generate coefficients
+    block
+        real(wp) :: t, t2
+
+        a(1) = ZERO
+        b(1) = -TWO *dz2
+        c(1) = -b(1)
+        z(1) = ZERO
+        do k = 2, N
+            z(k) = real(k - 1, kind=wp)*dz
+            t = ONE + z(k)
+            t2 = t**2
+            a(k) = t2 * dz2 + t/dz
+            b(k) = -TWO * t2 * dz2
+            c(k) = t2 * dz2 - t/dz
+        end do
+    end block
+
+    ! Generate right hand side of equation
+    block
+        real(wp), parameter :: EIGHT = 8.0_wp
+        real(wp), parameter :: TEN = 10.0_wp
+        real(wp), parameter :: SIXTEEN = 16.0_wp
+
+        do i = 1, L
+            do j = 1, M
+                do k = 2, N
+                    f(i, j, k) = TWO *sin(x(i))*sin(y(j))*(ONE + z(k))**4
+                end do
+            end do
+        end do
+        do i = 1, L
+            do j = 1, L
+                f(i,j,1) = (TEN + (EIGHT/dz)) * sin(x(i)) * sin(y(j))
+                f(i,j,N) = f(i,j,N) - c(N) * SIXTEEN * sin(x(i)) * sin(y(j))
+            end do
+        end do
+        c(N) = ZERO
+    end block
+
+    ! Solve 3D real linear system on centered grid
+    call pois3d(lperod, L, c1, mperod, M, c2, nperod, N, a, b, c, &
+        LDIMF, MDIMF, f, ierror)
+
+    ! Compute discretization error. The exact solution is
     !
-    !==> Print earlier output from platforms with 64-bit floating point
-    !    arithmetic followed by the output from this computer
+    ! u(x, y, z) = sin(x)*sin(y)*(1+z)**4
+    !
+    block
+        real(wp) :: local_error, exact_solution
+
+        discretization_error = ZERO
+        do k = 1, N
+            do j = 1, M
+                do i = 1, L
+                    exact_solution = sin(x(i)) * sin(y(j)) * (ONE + z(k))**4
+                    local_error = abs(f(i, j, k) - exact_solution)
+                    discretization_error = max(local_error, discretization_error)
+                end do
+            end do
+        end do
+    end block
+
+    ! Print earlier output from platforms with 64-bit floating point
+    ! arithmetic followed by the output from this computer
     !
     write( stdout, '(/a)') '     pois3d *** TEST RUN *** '
     write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '

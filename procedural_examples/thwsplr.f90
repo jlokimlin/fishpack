@@ -63,9 +63,7 @@ program thwsplr
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-        wp, &
-        ip, &
-        FishpackSolver
+    ip, wp, HALF_PI, hwsplr
 
     ! Explicit typing only
     implicit none
@@ -73,78 +71,81 @@ program thwsplr
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
-    type(FishpackSolver)        :: solver
-    integer(ip), parameter      :: m = 50
-    integer(ip), parameter      :: n = 48
+    integer(ip), parameter      :: m = 50, n = 48
     integer(ip), parameter      :: idimf = 100
-    integer(ip)                 :: mbdcnd, nbdcnd, mp1, np1, i, j, ierror
-    real(wp), parameter         :: pi = acos(-1.0_wp)
-    real(wp)                    :: f(idimf, m)
-    real(wp), dimension (m + 1) :: bdc, bdd, r, bda, bdb
-    real(wp), dimension (n + 1) :: theta
+    integer(ip), parameter      :: mp1 = m + 1, np1 = n + 1
+    integer(ip)                 :: mbdcnd, nbdcnd, i, j, ierror
+    real(wp)                    :: f(idimf, m), theta(np1)
+    real(wp), dimension (mp1)   :: bdc, bdd, r, bda, bdb
     real(wp)                    :: a, b, c, d, elmbda
-    real(wp)                    :: pertrb, discretization_error, z
+    real(wp)                    :: pertrb, discretization_error
+    real(wp), parameter         :: ZERO = 0.0_wp, ONE = 1.0_wp, FOUR = 4.0_wp
     !-----------------------------------------------
 
-    a = 0.0_wp
-    b = 1.0_wp
+    ! Set domain
+    a = ZERO
+    b = ONE
+    c = ZERO
+    d = HALF_PI
+
+    ! Set boundary conditions
     mbdcnd = 5
-    c = 0.0_wp
-    d = pi/2
     nbdcnd = 3
-    elmbda = 0.0_wp
-    !
-    !     auxiliary quantities.
-    !
-    mp1 = m + 1
-    np1 = n + 1
-    !
-    !     generate and store grid points for the purpose of computing
-    !     boundary data and the right side of the poisson equation.
+
+    ! Set helmholtz constant
+    elmbda = ZERO
+
+    ! Generate and store grid points for the purpose of computing
+    ! boundary data and the right side of the poisson equation.
     !
     do i = 1, mp1
-        r(i) = real(i - 1, kind=wp)/50
+        r(i) = real(i - 1, kind=wp)/m
     end do
 
     do j = 1, np1
-        theta(j) = real(j - 1, kind=wp)*pi/96
-    end do
-    !
-    !     generate boundary data.
-    !
-    bdc(:mp1) = 0.0_wp
-    bdd(:mp1) = 0.0_wp
-    !
-    !     bda and bdb are dummy variables.
-    !
-    do j = 1, np1
-        f(mp1, j) = 1.0_wp - cos(4.0_wp*theta(j))
-    end do
-    !
-    !     generate right side of equation.
-    !
-    do i = 1, m
-        f(i, :np1) = 16.0_wp * r(i)**2
+        theta(j) = real(j - 1, kind=wp) * (HALF_PI/n)
     end do
 
-    ! Solve system
-    call solver%hwsplr(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
-        elmbda, f, idimf, pertrb, ierror)
-    !
-    !     compute discretization error.  the exact solution is
-    !                u(r, theta) = (r**4)*(1 - cos(4*theta))
-    !
-    discretization_error = 0.0_wp
-    do i = 1, mp1
+    ! Generate boundary data. bda and bdb are dummy variables.
+    bdc = ZERO
+    bdd = ZERO
+
+    ! Generate right hand side of equation
+    block
+        real(wp), parameter :: SIXTEEN = 16.0_wp
+
         do j = 1, np1
-            z = abs(f(i, j)-(r(i)**4)*(1.0_wp-cos(4.0_wp*theta(j))))
-            discretization_error = max(z, discretization_error)
+            f(mp1, j) = ONE - cos(FOUR * theta(j))
         end do
-    end do
 
+        do i = 1, m
+            f(i, :np1) = SIXTEEN * r(i)**2
+        end do
+    end block
+
+    ! Solve 2D Helmholtz in polar coordinates on centered grid
+    call hwsplr(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
+        elmbda, f, idimf, pertrb, ierror)
+
+    ! Compute discretization error. The exact solution is
     !
-    !==> Print earlier output from platforms with 64-bit floating point
-    !    arithmetic followed by the output from this computer
+    ! u(r,theta) = (r**4)*(1 - cos(4*theta))
+    !
+    block
+        real(wp) :: local_error, exact_solution
+
+        discretization_error = ZERO
+        do j = 1, np1
+            do i = 1, mp1
+                exact_solution = (r(i)**4)*(ONE-cos(FOUR * theta(j)))
+                local_error = abs(f(i, j) - exact_solution)
+                discretization_error = max(local_error, discretization_error)
+            end do
+        end do
+    end block
+
+    ! Print earlier output from platforms with 64-bit floating point
+    ! arithmetic followed by the output from this computer
     !
     write( stdout, '(/a)') '     hwsplr *** TEST RUN *** '
     write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '

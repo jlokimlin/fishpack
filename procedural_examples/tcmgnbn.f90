@@ -142,12 +142,7 @@ program tcmgnbn
     use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
 
-    use fishpack_library, only: &
-        wp, &
-        ip, &
-        PI, &
-        FishpackSolver, &
-        FishpackGrid
+    use fishpack_library
 
     ! Explicit typing only
     implicit none
@@ -155,59 +150,102 @@ program tcmgnbn
     !------------------------------------------------------------------
     ! Dictionary
     !------------------------------------------------------------------
-    type(FishpackSolver)     :: solver
-    type(FishpackGrid)       :: grid
-    integer(ip), parameter   :: M = 20
-    integer(ip), parameter   :: N = 40
-    integer(ip), parameter   :: IDIMF = M + 2
-    integer(ip)              :: mp1, mperod, nperod, k, j, ierror
-    real(wp), allocatable    :: x(:), y(:)
-    real(wp)                 :: discretization_error
+    integer(ip), parameter   :: M = 20, N = 40
+    integer(ip), parameter   :: MP1 = M + 1, IDIMF = M + 2
+    integer(ip)              :: MPEROD = 1, NPEROD = 0
+    integer (ip)             :: k, i, j, ierror
+    real(wp)                 :: x(MP1), y(N + 1)
+    real(wp)                 :: dx, dy, discretization_error
+    real(wp), parameter      :: ZERO = 0.0_wp, ONE = 1.0_wp, TWO = 2.0_wp
     complex(wp)              :: f(IDIMF, N)
-    complex(wp), allocatable :: a(:), b(:), c(:)
+    complex(wp), dimension(M):: a, b, c
     !------------------------------------------------------------------
 
-    mp1 = M + 1
-    mperod = 1
-    nperod = 0
-    !
-    !==> Generate grid points for later use.
-    !
-    x = grid%get_centered_grid(start=0.0_wp, stop=1.0_wp, num=M)
-    y = grid%get_centered_grid(start=-PI, stop=PI, num=N)
+    ! Set mesh points
+    dx = TWO/N
+    dy = PI/M
 
-    !
-    !==> Generate coefficients.
-    !
-    call get_coefficients(x, y, a, b, c)
+    ! Generate grid points for later use
+    do i = 1, MP1
+        x(i) = real(i - 1)*dx
+    end do
 
-    !
-    !==> Generate right side.
-    !
-    call get_right_hand_side(x, y, f)
+    do j = 1, N
+        y(j) = (-PI) + real(j - 1)*dy
+    end do
 
-    !
-    !==> Solve system
-    !
-    call solver%cmgnbn(nperod, N, mperod, M, a, b, c, IDIMF, f, ierror)
+    ! Generate coefficients
+    block
+        !-----------------------------------------------
+        ! Local variables
+        !-----------------------------------------------
+        real(wp)               :: s, t, t2
+        complex(wp), parameter :: IMAGINARY_UNIT = (ZERO, ONE)
+        !-----------------------------------------------
 
-    discretization_error = 0.0_wp
+        s = (dy/dx)**2
+        do k = 2, M - 1
+            t = ONE + x(k)
+            t2 = t**2
+            a(k) = cmplx((t2 + t*dx)*s, ZERO, kind=wp)
+            b(k) = -TWO * t2*s - IMAGINARY_UNIT*(dy**2)
+            c(k) = cmplx((t2 - t*dx)*s, ZERO, kind=wp)
+        end do
+        a(1) = ZERO
+        b(1) = -TWO * s - IMAGINARY_UNIT*(dy**2)
+        c(1) = cmplx(TWO * s, ZERO, kind=wp)
+        b(M) = (-TWO * s*(ONE + x(M))**2) - IMAGINARY_UNIT*(dy**2)
+        a(M) = cmplx(s*(ONE + x(M))**2 + (ONE + x(M))*dx*s, ZERO, kind=wp)
+        c(M) = ZERO
+    end block
+
+    ! Generate right side
+    block
+        !-----------------------------------------------
+        ! Local variables
+        !-----------------------------------------------
+        real(wp)            :: s, t, t2, t4
+        real(wp), parameter :: THREE = 3.0_wp, EIGHT = 8.0_wp
+        real(wp), parameter :: ELEVEN = 11.0_wp, SIXTEEN = 16.0_wp
+        !-----------------------------------------------
+
+        s = (dy/dx)**2
+        do k = 2, M - 1
+            do j = 1, N
+                f(k, j) = cmplx(THREE, -ONE, kind=wp)*(ONE + x(k))**4*(dy**2)*sin(y(j))
+            end do
+        end do
+
+        s = (dy/dx)**2
+        t = ONE + x(M)
+        t2 = t**2
+        t4 = t**4
+        do j = 1, N
+            f(1, j) = (cmplx(ELEVEN, -ONE, kind=wp) + EIGHT/dx)*(dy**2)*sin(y(j))
+            f(M, j) = (cmplx(THREE, -ONE, kind=wp) * t4 * (dy**2) &
+                - SIXTEEN * t2 * s + SIXTEEN * t * s * dx)*sin(y(j))
+        end do
+    end block
+
+    ! Solve system
+    call cmgnbn(NPEROD, N, MPEROD, M, a, b, c, IDIMF, f, ierror)
+
+    discretization_error = ZERO
     do k = 1, M
         do j = 1, N
-            associate( local_error =>  abs(f(k, j)-(1.0_wp+x(k))**4*sin(y(j))) )
+            associate( local_error =>  abs(f(k, j)-((ONE+x(k))**4) * sin(y(j))) )
                 !
-                !==> Compute discretization error. The exact solution is
+                ! Compute discretization error. The exact solution is
                 !
                 !            u(x, y) = (1+x)**4*sin(y).
                 !
                 discretization_error = max(local_error, discretization_error)
-
             end associate
         end do
     end do
 
     !
-    !==> Print earlier output from platforms with 64-bit floating point
+    !    Print earlier output from platforms with 64-bit floating point
     !    arithmetic followed by the output from this computer
     !
     write( stdout, '(/a)') '     cmgnbn *** TEST RUN *** '
@@ -217,96 +255,5 @@ program tcmgnbn
     write( stdout, '(a,i3,a,1pe15.6/)') &
         '     ierror =', ierror, &
         ' discretization error = ', discretization_error
-
-    !
-    !==> Release memory
-    !
-    deallocate( x, y, a, b, c )
-
-
-contains
-
-
-    pure subroutine get_coefficients(x, y, a, b, c)
-        !-----------------------------------------------
-        ! Dummy arguments
-        !-----------------------------------------------
-        real(wp),                 intent(in)  :: x(:)
-        real(wp),                 intent(in)  :: y(:)
-        complex(wp), allocatable, intent(out) :: a(:)
-        complex(wp), allocatable, intent(out) :: b(:)
-        complex(wp), allocatable, intent(out) :: c(:)
-        !-----------------------------------------------
-        ! Local variables
-        !-----------------------------------------------
-        integer(ip)            :: m, k
-        real(wp)               :: dx, dy, s, t, t2
-        complex(wp), parameter :: I = (0.0_wp, 1.0_wp)
-        !-----------------------------------------------
-
-        m = size(x) - 1
-        !
-        !==> Allocate memory
-        !
-        allocate( a(m), b(m), c(m) )
-
-        dx = x(2)-x(1)
-        dy = y(2)-y(1)
-        s = (dy/dx)**2
-        do k = 2, m - 1
-            t = 1.0_wp + x(k)
-            t2 = t**2
-            a(k) = cmplx((t2 + t*dx)*s, 0.0_wp, kind=wp)
-            b(k) = -2.0_wp * t2*s - I*(dy**2)
-            c(k) = cmplx((t2 - t*dx)*s, 0.0_wp, kind=wp)
-        end do
-        a(1) = 0.0_wp
-        b(1) = -2.0_wp * s - I*(dy**2)
-        c(1) = cmplx(2.0_wp * s, 0.0_wp, kind=wp)
-        b(m) = (-2.0_wp * s*(1.0_wp + x(m))**2) - I*(dy**2)
-        a(m) = cmplx(s*(1.0_wp + x(m))**2 + (1.0_wp + x(m))*dx*s, 0.0_wp, kind=wp)
-        c(m) = 0.0_wp
-
-    end subroutine get_coefficients
-
-
-
-    pure subroutine get_right_hand_side(x, y, f)
-        !-----------------------------------------------
-        ! Dummy arguments
-        !-----------------------------------------------
-        real(wp),    intent(in)  :: x(:)
-        real(wp),    intent(in)  :: y(:)
-        complex(wp), intent(out) :: f(:,:)
-        !-----------------------------------------------
-        ! Local variables
-        !-----------------------------------------------
-        integer(ip) :: n, m, k, j
-        real(wp)    :: dx, dy, s, t, t2, t4
-        !-----------------------------------------------
-
-        m = size(x) - 1
-        n = size(y) - 1
-        dx = x(2)-x(1)
-        dy = y(2)-y(1)
-        s = (dy/dx)**2
-
-        do k = 2, m - 1
-            do j = 1, n
-                f(k, j) = (3.0_wp, -1.0_wp)*(1.0_wp + x(k))**4*(dy**2)*sin(y(j))
-            end do
-        end do
-
-        s = (dy/dx)**2
-        t = 1.0_wp + x(m)
-        t2 = t**2
-        t4 = t**4
-        do j = 1, n
-            f(1, j) = ((11.0_wp, -1.0_wp) + 8.0_wp/dx)*(dy**2)*sin(y(j))
-            f(m, j)=((3.0_wp, -1.0_wp)*t4*(dy**2) &
-                -16.0_wp*t2*s+16.0_wp*t*s*dx)*sin(y(j))
-        end do
-
-    end subroutine get_right_hand_side
 
 end program tcmgnbn

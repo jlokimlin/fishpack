@@ -164,12 +164,7 @@ program tpoistg
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-        wp, &
-        ip, &
-        TridiagonalData, &
-        TridiagonalSolver, &
-        Grid, &
-        StaggeredGrid
+        ip, wp, PI, HALF_PI, poistg
 
     ! Explicit typing only
     implicit none
@@ -177,157 +172,94 @@ program tpoistg
     !--------------------------------------------------------------
     ! Dictionary
     !--------------------------------------------------------------
-    type(TridiagonalSolver) :: solver
-    type(StaggeredGrid)     :: staggered_grid
-    integer(ip), parameter  :: NX = 40 !! number of horizontally staggered grid points
-    integer(ip), parameter  :: NY = 20 !! number of vertically staggered grid points
-    integer(ip)             :: i, j  !! counters
-    integer(ip)             :: error_flag
-    real(wp),    parameter  :: PI = acos(-1.0_wp)
-    real(wp)                :: approximate_solution(NX, NY)
-    real(wp)                :: source(NX, NY)
-    real(wp)                :: discretization_error
-    real(wp)                :: exact_solution
-    !------------------------------------------------------------------------------
+    integer(ip), parameter        :: M = 40, N = 20
+    integer(ip), parameter        :: IDIMF = M + 2
+    integer(ip)                   :: mperod, nperod, i, j, ierror
+    real(wp), dimension(IDIMF, N) :: f
+    real(wp), dimension(M)        :: a, b, c, x
+    real(wp)                      :: y(N)
+    real(wp)                      :: dx, dy, discretization_error
+    real(wp), parameter           :: ZERO = 0.0_wp, HALF = 0.5_wp
+    real(wp), parameter           :: ONE = 1.0_wp, TWO = 2.0_wp
+    !--------------------------------------------------------------
 
-    associate( &
-        x_interval => [ -PI/2, PI/2 ], &
-        y_interval => [ 0.0_wp, 1.0_wp ] &
-        )
-        !
-        !==> Allocate memory
-        !
-        staggered_grid = StaggeredGrid(x_interval, y_interval, NX, NY)
-    end associate
+    ! Set boundary conditions
+    mperod = 1
+    nperod = 2
 
-    !
-    !==> Associate various quantities
-    !
-    associate( &
-        dx => staggered_grid%DX, &
-        dy => staggered_grid%DY, &
-        x => staggered_grid%x, &
-        y => staggered_grid%y, &
-        f => source, &
-        u => approximate_solution, &
-        HALF_PI => PI/2 &
-        )
+    ! Set mesh sizes
+    dx = PI/M
+    dy = ONE/N
 
-        !
-        !==> Initialize the tridiagonal solver
-        !
-        associate( &
-            X_PERIODICITY => 1, &
-            Y_PERIODICITY => 2 &
-            )
-            call solver%create(NX, X_PERIODICITY, Y_PERIODICITY, coeff_procedure)
-        end associate
+    ! Generate and store grid points for computation
+    do i = 1, M
+        x(i) = -HALF_PI + (real(i, kind=wp) - HALF)*dx
+    end do
 
-        !
-        !==> Set system coefficients
-        !
-        call solver%assign_coefficients(staggered_grid)
+    do j = 1, N
+        y(j) = (real(j, kind=wp) - HALF)*dy
+    end do
 
-        !
-        !==> Generate the source, i.e., right side of equation
-        !
-        do j = 1, NY
-            do i = 1, NX
-                f(i, j) = 2.0_wp * ( dy**2 ) * y(j)**2 * ( 6.0_wp - y(j)**2 ) * sin(x(i))
-            end do
+    ! Generate coefficients
+    block
+        real(wp) :: s, half_dx
+
+        s = (dy/dx)**2
+        half_dx = dx/TWO
+        a(1) = ZERO
+        b(1) = -s * cos(-HALF_PI + dx)/cos(x(1))
+        c(1) = -b(1)
+
+        do i = 2, M
+            a(i) = s * cos(x(i)-half_dx)/cos(x(i))
+            c(i) = s * cos(x(i)+half_dx)/cos(x(i))
+            b(i) = -(a(i) + c(i))
         end do
 
-        f(:, NY) = f(:, NY) - 4.0_wp * dy * sin(x(1:NX))
+        a(M) = -b(M)
+        c(M) = ZERO
+    end block
 
-        !
-        !==> Solve system
-        !
-        call solver%solve_2d_real_linear_system_staggered(f, u, error_flag)
+    ! Generate right hand side of equation
+    block
+        real(wp), parameter :: FOUR = 4.0_wp
+        real(wp), parameter :: SIX = 6.0_wp
 
-        !
-        !==> Compute discretization error
-        !
-        discretization_error = 0.0_wp
-        do j = 1, NY
-            do i = 1, NX
-                ! Set exact solution
-                exact_solution = y(j)**4 * sin(x(i))
-                ! Set local error
-                associate( local_error => abs(u(i, j) - exact_solution))
-                    ! Set discretization error
-                    discretization_error = max(discretization_error, local_error)
-                end associate
+        do j = 1, N
+            do i = 1, M
+                f(i, j) = TWO * (dy**2) * (y(j)**2) * (SIX - y(j)**2) * sin(x(i))
             end do
         end do
-    end associate
+        f(1:M,N) = f(1:M,N) - FOUR * dy * sin(x)
+    end block
 
+    ! Solve 2D real linear system on staggered grid
+    call poistg(nperod, N, mperod, M, a, b, c, IDIMF, f, ierror)
+
+    ! Compute discretization error. The exact solution is
     !
-    !==> Print earlier output from platforms with 64-bit floating point
-    !    arithmetic followed by the output from this computer
+    !  u(x,y) = (y**4) * sin(x)
     !
+    discretization_error = ZERO
+    block
+        real(wp) :: exact_solution, local_error
+
+        do j = 1, N
+            do i = 1, M
+                exact_solution = (y(j)**4) * sin(x(i))
+                local_error = abs(f(i, j) - exact_solution)
+                discretization_error = max(discretization_error, local_error)
+            end do
+        end do
+    end block
+
+    ! Print earlier output from platforms with 64-bit floating point
+    ! arithmetic followed by the output from this computer
     write( stdout, '(/a)') '     poistg *** TEST RUN *** '
     write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
     write( stdout, '(a)') '     ierror = 0,  discretization error = 5.6417e-4'
     write( stdout, '(a)') '     The output from your computer is: '
     write( stdout, '(a,i3,a,1pe15.6/)')&
-        '     error_flag = ', error_flag, ' discretization error = ', discretization_error
-
-    !
-    !==> Release memory
-    !
-    call solver%destroy()
-    call staggered_grid%destroy()
-
-contains
-
-
-    subroutine coeff_procedure(solver, staggered_grid)
-        !
-        ! Purpose:
-        !
-        ! User-supplied subroutine to assign coefficients
-        !
-        !--------------------------------------------------------------
-        ! Dummy arguments
-        !--------------------------------------------------------------
-        class(TridiagonalData), intent(inout)  :: solver
-        class(Grid),            intent(inout)  :: staggered_grid
-        !--------------------------------------------------------------
-        integer(ip) :: i ! counter
-        !--------------------------------------------------------------
-
-        select type(solver)
-            class is (TridiagonalSolver)
-            select type(staggered_grid)
-                class is (StaggeredGrid)
-                associate( &
-                    nx => staggered_grid%NX, &
-                    dx => staggered_grid%DX, &
-                    dy => staggered_grid%DY &
-                    )
-                    associate( &
-                        s => (dy/dx)**2, &
-                        a => solver%subdiagonal, &
-                        b => solver%diagonal, &
-                        c => solver%superdiagonal, &
-                        x => staggered_grid%x, &
-                        pi => acos(-1.0_wp) &
-                        )
-                        a(1) = 0.0_wp
-                        b(1) = -s * cos((-pi/2.0_wp) + dx)/cos(x(1))
-                        c(1) = -b(1)
-                        do i = 2, nx
-                            a(i) = s * cos( x(i) - dx/2.0_wp ) / cos(x(i))
-                            c(i) = s * cos( x(i) + dx/2.0_wp ) / cos(x(i))
-                            b(i) = -( a(i)+c(i) )
-                        end do
-                        a(nx) = -b(nx)
-                        c(nx) = 0.0_wp
-                    end associate
-                end associate
-            end select
-        end select
-
-    end subroutine coeff_procedure
+        '     error_flag = ', ierror, ' discretization error = ', discretization_error
 
 end program tpoistg

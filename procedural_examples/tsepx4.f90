@@ -1,9 +1,9 @@
 !
-!     file tsepeli.f90
+!     file tsepx4.f90
 !
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
-!     *                  copyright (c) 2005 by UCAR                   *
+!     *                  copyright(c) 2005 by UCAR                   *
 !     *                                                               *
 !     *       University Corporation for Atmospheric Research         *
 !     *                                                               *
@@ -25,7 +25,7 @@
 !     *                                                               *
 !     *         the National Center for Atmospheric Research          *
 !     *                                                               *
-!     *                Boulder, Colorado  (80307)  U.S.A.             *
+!     *                Boulder, Colorado (80307)  U.S.A.             *
 !     *                                                               *
 !     *                   which is sponsored by                       *
 !     *                                                               *
@@ -33,16 +33,13 @@
 !     *                                                               *
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-program tsepeli
+program tsepx4
 
     use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-        wp, &
-        ip, &
-        FishpackSolver, &
-        FishpackWorkspace
+        ip, wp, sepx4
 
     ! Explicit typing only
     implicit none
@@ -50,26 +47,19 @@ program tsepeli
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
-    type(FishpackSolver)    :: solver
-    type(FishpackWorkspace) :: workspace
-    integer(ip), parameter  :: m = 32
-    integer(ip), parameter  :: n = 32
-    integer(ip), parameter  :: idmn = m + 1
-    integer(ip)             :: nx, ny, i, j, mbdcnd, nbdcnd, intl, iorder, ierror
-    real(wp), allocatable   :: usol(:,:), grhs(:,:), bda(:), bdb(:)
-    real(wp)                :: a, b, c, d, dlx, dly
-    real(wp)                :: x, af, bf, cf, y, df, ef, ff, alpha
-    real(wp)                :: beta, dummy_variable(1), pertrb
-    real(wp)                :: local_error, order2_error, order4_error
-    real(wp), parameter     :: ZERO = 0.0_wp
-    real(wp), parameter     :: ONE = 1.0_wp, TWO = 2.0_wp
-    !------------------------------------------------------------------
+    integer(ip), parameter      :: M = 32, N = M
+    integer(ip), parameter      :: NX = M + 1, NY = N + 1
+    integer(ip)                 :: i, j, mbdcnd, nbdcnd, idmn, iorder, ierror
+    real(wp), dimension(NX, NY) :: usol, grhs
+    real(wp), dimension(NY)     :: bda, bdb
+    real(wp)                    :: a, b, c, d, dx, dy, x, af, bf, cf, y
+    real(wp)                    :: alpha, beta, dummy_variable(1)
+    real(wp)                    :: pertrb, discretization_error
+    real(wp)                    :: second_order_error, fourth_order_error
+    real(wp), parameter         :: ZERO = 0.0_wp, ONE = 1.0_wp
+    !--------------------------------------------------------------------------
 
     !
-    !==> Allocate memory
-    !
-    allocate( usol(idmn,idmn), grhs(idmn,idmn), bda(idmn), bdb(idmn) )
-
     !     define arithmetic functions giving exact solution
     !
     !
@@ -80,28 +70,25 @@ program tsepeli
     c = ZERO
     d = ONE
     !
-    !     set grid size
+    !     Set mesh size
     !
-    dlx = (b - a)/m
-    dly = (d - c)/n
-    nx = m + 1
-    ny = n + 1
-    do i = 1, nx
-        x = a + real(i - 1, kind=wp)*dlx
+    dx = (b - a)/M
+    dy = (d - c)/N
+
+    do i = 1, NX
+        x = a + real(i - 1, kind=wp) * dx
         !
         !     set specified boundary conditions at y=c, d
         !
         usol(i, 1) = ue(x, c)
-        usol(i, ny) = ue(x, d)
-        call get_coefficients_in_x_direction (x, af, bf, cf)
-        do j = 1, ny
-            y = c + real(j - 1, kind=wp)*dly
-            call get_coefficients_in_y_direction (y, df, ef, ff)
+        usol(i, NY) = ue(x, d)
+        call get_coefficients_in_x_direction(x, af, bf, cf)
+        do j = 1, NY
+            y = c + real(j - 1, kind=wp)*dy
             !
             !     set right hand side
             !
-            grhs(i, j) = af*uxxe(x, y) + bf*uxe(x, y) + cf*ue(x, y) + df* &
-                uyye(x, y) + ef*uye(x, y) + ff*ue(x, y)
+            grhs(i, j)=af*uxxe(x, y)+bf*uxe(x, y)+cf*ue(x, y)+uyye(x, y)
         end do
     end do
     !
@@ -109,10 +96,10 @@ program tsepeli
     !
     alpha = ONE
     beta = ONE
-    do j = 1, ny
-        y = c + real(j - 1, kind=wp)*dly
-        bda(j) = uxe(a, y) + alpha*ue(a, y)
-        bdb(j) = uxe(b, y) + beta*ue(b, y)
+    do j = 1, NY
+        y = c + real(j - 1, kind=wp) * dy
+        bda(j) = uxe(a, y) + alpha * ue(a, y)
+        bdb(j) = uxe(b, y) + beta * ue(b, y)
     end do
     !
     !     set boundary swithces
@@ -120,143 +107,135 @@ program tsepeli
     mbdcnd = 3
     nbdcnd = 1
     !
-
-    !     set for initialization of sepeli
-    intl = 0
+    !     set first dimension of usol, grhs and work space length
+    !
+    idmn = size(usol, dim=1)
     !
     !     obtain second order approximation
     !
     iorder = 2
 
-    call solver%sepeli(intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta, &
-        c, d, n, nbdcnd, dummy_variable(1:1), dummy_variable(1), dummy_variable(1:1), dummy_variable(1), &
-        get_coefficients_in_x_direction, get_coefficients_in_y_direction, grhs, usol, &
-        idmn, workspace, pertrb, ierror)
-
-    local_error = ZERO
-
-    do i = 1, nx
-        x = a + real(i - 1)*dlx
-        do j = 1, ny
-            y = c + real(j - 1)*dly
-            local_error = max(local_error, abs((usol(i, j)-ue(x, y))/ue(x, y)))
+    call sepx4(iorder, a, b, M, mbdcnd, bda, alpha, bdb, beta, c, d, &
+        N, nbdcnd, dummy_variable, dummy_variable, &
+        get_coefficients_in_x_direction, grhs, usol, idmn, pertrb, ierror)
+    !
+    !     compute second order discretization error(relative)
+    !     also reset specified boundaries and right hand side.
+    !
+    discretization_error = ZERO
+    do i = 1, NX
+        x = a + real(i - 1, kind=wp) * dx
+        usol(i, 1) = ue(x, c)
+        usol(i, NY) = ue(x, d)
+        call get_coefficients_in_x_direction(x, af, bf, cf)
+        do j = 1, NY
+            y = c + real(j - 1, kind=wp)*dy
+            discretization_error = max(discretization_error, abs((usol(i, j)-ue(x, y))/ue(x, y)))
+            !
+            !     reset right hand side in grhs for fourth order approximation call
+            !
+            grhs(i, j)=af*uxxe(x, y)+bf*uxe(x, y)+cf*ue(x, y)+uyye(x, y)
         end do
     end do
-
-    order2_error = local_error
+    second_order_error = discretization_error
     !
     !     obtain fourth order approximation
     !
     iorder = 4
+    call sepx4(iorder, a, b, M, mbdcnd, bda, alpha, bdb, beta, c, d, &
+        N, nbdcnd, dummy_variable, dummy_variable, get_coefficients_in_x_direction, &
+        grhs, usol, idmn, pertrb, ierror)
     !
-    !     non-initial call
+    !     compute fourth order discretization error(relative)
     !
-    intl = 1
-    call solver%sepeli(intl, iorder, a, b, m, mbdcnd, bda, alpha, bdb, beta &
-        , c, d, n, nbdcnd, dummy_variable(1:1), dummy_variable(1), dummy_variable(1:1), dummy_variable(1), &
-        get_coefficients_in_x_direction, get_coefficients_in_y_direction, grhs, usol, &
-        idmn, workspace, pertrb, ierror)
-    !
-    !     compute discretization error
-    !
-    local_error = ZERO
-    do j = 1, ny
-        y = c + real(j - 1, kind=wp)*dly
-        do i = 1, nx
-            x = a + real(i - 1, kind=wp)*dlx
-            local_error = max(local_error, abs((usol(i, j)-ue(x, y))/ue(x, y)))
+    discretization_error = ZERO
+    do j = 1, NY
+        y = c + real(j - 1, kind=wp)*dy
+        do i = 1, NX
+            x = a + real(i - 1, kind=wp)*dx
+            discretization_error = max(discretization_error, abs((usol(i, j)-ue(x, y))/ue(x, y)))
         end do
     end do
-    order4_error = local_error
+    fourth_order_error = discretization_error
 
     !
     !==> Print earlier output from platforms with 64-bit floating point
     !    arithmetic followed by the output from this computer
     !
-    write( stdout, '(/a)') '     sepeli *** TEST RUN *** '
+    write( stdout, '(/a)') '     sepx4 *** TEST RUN *** '
     write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
     write( stdout, '(a)') '     ierror = 0'
-    write( stdout, '(a)') '     Second Order discretization error = 9.7891e-5'
-    write( stdout, '(a)') '     Fourth Order discretization error = 1.4735e-6'
+    write( stdout, '(a)') '     Second Order discretization error = 1.5985e-4'
+    write( stdout, '(a)') '     Fourth Order discretization error = 1.8575e-6'
     write( stdout, '(a)') '     The output from your computer is: '
-    write( stdout, '(a,i3)')  '     ierror =', ierror
-    write( stdout, '(a,1pe15.6)') '     Second Order discretization error =', order2_error
-    write( stdout, '(a,1pe15.6/)')  '     Fourth Order discretization error =', order4_error
-
-    !
-    !==> Release memory
-    !
-    call workspace%destroy()
-    deallocate( usol, grhs, bda, bdb )
-
+    write( stdout, '(a,i3)') '     ierror =', ierror
+    write( stdout, '(a,1pe15.6)') '     Second Order discretization error =', second_order_error
+    write( stdout, '(a,1pe15.6/)') '     Fourth Order discretization error =', fourth_order_error
 
 contains
 
-
-    pure function ue (s, t) result (return_value)
+    pure function ue(s, t) result (return_value)
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
         real(wp), intent(in) :: s
         real(wp), intent(in) :: t
-        real(wp)              :: return_value
+        real(wp)          :: return_value
         !--------------------------------------------------------------
 
-        return_value = (s * t)**3 + ONE
+        return_value =(s*t)**3 + ONE
 
     end function ue
 
-
-    pure function uxe (s, t) result( return_value )
+    pure function uxe(s, t) result (return_value)
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
         real(wp), intent(in) :: s
         real(wp), intent(in) :: t
-        real(wp)              :: return_value
+        real(wp)          :: return_value
+        !--------------------------------------------------------------
+        ! Local variables
+        !--------------------------------------------------------------
+        real(wp), parameter :: THREE = 3.0_wp
         !--------------------------------------------------------------
 
-        return_value = 3.0_wp * (s**2) * (t**3)
+        return_value = THREE *(s**2)*(t**3)
 
     end function uxe
 
-
-    pure function uxxe(s, t) result( return_value )
+    pure function uxxe(s, t) result (return_value)
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
         real(wp), intent(in) :: s
         real(wp), intent(in) :: t
-        real(wp)              :: return_value
+        real(wp)             :: return_value
+        !--------------------------------------------------------------
+        ! Local variables
+        !--------------------------------------------------------------
+        real(wp), parameter :: SIX = 6.0_wp
         !--------------------------------------------------------------
 
-        return_value = 6.0_wp * s * (t**3)
+        return_value = SIX * s *(t**3)
 
     end function uxxe
 
 
-    pure function uye(s, t) result( return_value )
+    pure function uyye(s, t) result (return_value)
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
         real(wp), intent(in) :: s
         real(wp), intent(in) :: t
-        real(wp)              :: return_value
-
-        return_value = 3.0_wp * (s**3) * (t**2)
-
-    end function uye
-
-
-    pure function uyye (s, t) result( return_value )
+        real(wp)             :: return_value
         !--------------------------------------------------------------
-        ! Dummy arguments
+        ! Local variables
         !--------------------------------------------------------------
-        real(wp), intent(in) :: s
-        real(wp), intent(in) :: t
-        real(wp)              :: return_value
+        real(wp), parameter :: SIX = 6.0_wp
+        !--------------------------------------------------------------
 
-        return_value = 6.0_wp * (s**3) * t
+        return_value = SIX *(s**3) * t
 
     end function uyye
 
@@ -269,34 +248,17 @@ contains
         real(wp), intent(out) :: af
         real(wp), intent(out) :: bf
         real(wp), intent(out) :: cf
-        !-----------------------------------------------
-        !
+        !--------------------------------------------------------------
+        ! Local variables
+        !--------------------------------------------------------------
+        real(wp), parameter :: TWO = 2.0_wp
+        !--------------------------------------------------------------
         !     set coefficients in the x-direction.
         !
-        af = (x + ONE)**2
+        af =(x + ONE)**2
         bf = TWO * (x + ONE)
         cf = -x
 
     end subroutine get_coefficients_in_x_direction
 
-
-    pure subroutine get_coefficients_in_y_direction(y, df, ef, ff)
-        !--------------------------------------------------------------
-        ! Dummy arguments
-        !--------------------------------------------------------------
-        real(wp), intent(in)  :: y
-        real(wp), intent(out) :: df
-        real(wp), intent(out) :: ef
-        real(wp), intent(out) :: ff
-        !-----------------------------------------------
-        !
-        !     set coefficients in y direction
-        !
-        df = exp(y)
-        ef = ZERO
-        ff = -y
-
-    end subroutine get_coefficients_in_y_direction
-
-
-end program tsepeli
+end program tsepx4

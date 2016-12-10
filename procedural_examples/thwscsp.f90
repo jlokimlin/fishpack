@@ -39,11 +39,7 @@ program thwscsp
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-        wp, &
-        ip, &
-        PI, &
-        FishpackSolver, &
-        FishpackWorkspace
+        FishpackWorkspace, ip, wp, HALF_PI, hwscsp, PI
 
     ! Explicit typing only
     implicit none
@@ -51,81 +47,90 @@ program thwscsp
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
-    type(FishpackSolver)     :: solver
     type(FishpackWorkspace)  :: workspace
-    integer(ip) :: intl, m, mbdcnd, n, nbdcnd, idimf, mp1, i, np1, j, ierror
-    real(wp), dimension(48, 33) :: f
-    real(wp), dimension(33) :: bdtf, bdts, bdrs, bdrf
-    real(wp), dimension(48) :: theta
-    real(wp), dimension(33) :: r
-    real(wp)                :: ts, tf, rs, rf, elmbda
-    real(wp)                :: dtheta, dr, ci4, pertrb, discretization_error, z, dphi, si
+    integer(ip), parameter   :: M = 36, N = 32
+    integer(ip), parameter   :: MP1 = M + 1, NP1 = N + 1
+    integer(ip), parameter   :: IDIMF = M + 12
+    integer(ip)              :: intl, mbdcnd, nbdcnd, i, j, ierror
+    real(wp)                 :: f(IDIMF, NP1), theta(IDIMF)
+    real(wp), dimension(NP1) :: bdtf, bdts, bdrs, bdrf, r
+    real(wp)                 :: ts, tf, rs, rf, elmbda
+    real(wp)                 :: dtheta, dr, pertrb
+    real(wp)                 :: discretization_error, dphi
+    real(wp)                 :: ZERO = 0.0_wp, ONE = 1.0_wp, TWO = 2.0_wp
     !-----------------------------------------------
-    !
-    !     program to illustrate the use of hwscsp
-    !
-    !
+
+    ! Initialization flag
     intl = 0
-    ts = 0.0_wp
-    tf = PI/2
-    m = 36
+
+    ! Set domain
+    ts = ZERO
+    tf = HALF_PI
+    rs = ZERO
+    rf = ONE
+
+    ! Set boundary conditions
     mbdcnd = 6
-    rs = 0.0_wp
-    rf = 1.0_wp
-    n = 32
     nbdcnd = 5
-    elmbda = 0.0_wp
-    idimf = 48
-    !
-    !     generate and store grid points for the purpose of computing the
-    !     boundary data and the right side of the equation.
-    !
-    mp1 = m + 1
-    dtheta = tf/m
-    do i = 1, mp1
-        theta(i) = real(i - 1, kind=wp)*dtheta
-    end do
-    np1 = n + 1
-    dr = 1.0_wp /n
-    do j = 1, np1
-        r(j) = real(j - 1, kind=wp)*dr
-    end do
-    !
-    !     generate normal derivative data at equator
-    !
-    bdtf(:np1) = 0.0_wp
-    !
-    !     compute boundary data on the surface of the sphere
-    !
-    do i = 1, mp1
-        f(i, n+1) = cos(theta(i))**4
-    end do
-    !
-    !     compute right side of equation
-    !
-    do i = 1, mp1
-        ci4 = 12.0_wp *cos(theta(i))**2
-        f(i, :n) = ci4*r(:n)**2
+
+    ! Set helmholtz constant
+    elmbda = ZERO
+
+        ! Set mesh sizes
+    dtheta = tf/M
+    dr = ONE /N
+
+
+    ! Generate and store grid points for the purpose of computing the
+    ! boundary data and the right side of the equation.
+    do i = 1, MP1
+        theta(i) = real(i - 1, kind=wp) * dtheta
     end do
 
-    ! Solve system
-    call solver%hwscsp(intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, &
-        nbdcnd, bdrs, bdrf, elmbda, f, idimf, pertrb, ierror, workspace)
-    !
-    !     compute discretization error
-    !
-    discretization_error = 0.0_wp
-    do i = 1, mp1
-        ci4 = cos(theta(i))**4
-        do j = 1, n
-            z = abs(f(i, j)-ci4*r(j)**4)
-            discretization_error = max(z, discretization_error)
+    do j = 1, NP1
+        r(j) = real(j - 1, kind=wp) * dr
+    end do
+
+    ! Generate normal derivative data at equator
+    bdtf = ZERO
+
+    ! Compute boundary data on the surface of the sphere
+    do i = 1, MP1
+        f(i, NP1) = cos(theta(i))**4
+    end do
+
+    ! Compute right hand side of equation
+    block
+        real(wp)            :: cost2
+        real(wp), parameter :: TWELVE = 12.0_wp
+
+        do i = 1, MP1
+            cost2 = cos(theta(i))**2
+            f(i, :N) = TWELVE * cost2 * (r(:N)**2)
         end do
-    end do
+    end block
 
-    !     Print earlier output from platforms with 64 bit floating point
-    !     arithmetic followed by the output from this computer
-    !
+    ! Solve 2D axisymmetric Helmholtz equation on centered grid
+    call hwscsp(intl, ts, tf, M, mbdcnd, bdts, bdtf, rs, rf, N, &
+        nbdcnd, bdrs, bdrf, elmbda, f, IDIMF, pertrb, ierror, workspace)
+
+    ! Compute discretization error
+    block
+        real(wp) :: cost4, exact_solution, local_error
+
+        discretization_error = ZERO
+        do j = 1, N
+            do i = 1, MP1
+                cost4 = cos(theta(i))**4
+                exact_solution = cost4 * (r(j)**4)
+                local_error = abs(f(i, j) - exact_solution)
+                discretization_error = max(local_error, discretization_error)
+            end do
+        end do
+    end block
+
+    ! Print earlier output from platforms with 64 bit floating point
+    ! arithmetic followed by the output from this computer
     write( stdout, '(/a)') '     hwscsp *** TEST RUN, EXAMPLE 1 *** '
     write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
     write( stdout, '(a)') '     ierror = 0,  discretization error = 7.9984e-4 '
@@ -134,43 +139,42 @@ program thwscsp
         '     ierror =', ierror, &
         '     discretization error =', discretization_error
     !
-    !     the following program illustrates the use of hwscsp to solve
-    !     a three dimensional problem which has longitudnal dependence
+    ! The following program illustrates the use of hwscsp to solve
+    ! a three dimensional problem which has longitudinal dependence
     !
     mbdcnd = 2
     nbdcnd = 1
     dphi = PI/72
-    elmbda = -2.0_wp *(1.0_wp - cos(dphi))/dphi**2
-    !
-    !     compute boundary data on the surface of the sphere
-    !
-    do i = 1, mp1
-        f(i, n+1) = sin(theta(i))
+    elmbda = -TWO *(ONE - cos(dphi))/dphi**2
+
+    ! Compute boundary data on the surface of the sphere
+    do i = 1, MP1
+        f(i, NP1) = sin(theta(i))
     end do
-    !
-    !     compute right side of the equation
-    !
-    f(:mp1, :n) = 0.0_wp
+
+    ! Compute right side of the equation
+    f(:MP1, :N) = ZERO
 
     ! Solve system
-    call solver%hwscsp(intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, &
-        nbdcnd, bdrs, bdrf, elmbda, f, idimf, pertrb, ierror, workspace)
-    !
-    !     compute discretization error   (fourier coefficients)
-    !
-    discretization_error = 0.0_wp
-    do i = 1, mp1
-        si = sin(theta(i))
-        do j = 1, np1
-            z = abs(f(i, j)-r(j)*si)
-            discretization_error = max(z, discretization_error)
-        end do
-    end do
+    call hwscsp(intl, ts, tf, M, mbdcnd, bdts, bdtf, rs, rf, N, &
+        nbdcnd, bdrs, bdrf, elmbda, f, IDIMF, pertrb, ierror, workspace)
 
-    !
-    !==> Print earlier output from platforms with 64-bit floating point
-    !    arithmetic followed by the output from this computer
-    !
+    ! Compute discretization error (fourier coefficients)
+    block
+        real(wp) :: exact_solution, local_error
+
+        discretization_error = ZERO
+        do j = 1, NP1
+            do i = 1, MP1
+                exact_solution = r(j) * sin(theta(i))
+                local_error = abs(f(i, j) - exact_solution)
+                discretization_error = max(local_error, discretization_error)
+            end do
+        end do
+    end block
+
+    ! Print earlier output from platforms with 64-bit floating point
+    ! arithmetic followed by the output from this computer
     write( stdout, '(/a)') '     hwscsp *** TEST RUN, EXAMPLE 2 *** '
     write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
     write( stdout, '(a)') '     ierror = 0, discretization error = 5.8682e-5 '
@@ -178,7 +182,6 @@ program thwscsp
     write( stdout, '(a,i3,a,1pe15.6/)') &
         '     ierror =', ierror, &
         '     discretization error =', discretization_error
-
 
     ! Release memory
     call workspace%destroy()

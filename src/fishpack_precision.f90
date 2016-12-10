@@ -7,7 +7,7 @@ module fishpack_precision
     private
     public :: wp ! Working precision
     public :: ip ! Integer precision
-    public :: PI, TWO_PI, EPS, MACHINE_EPSILON
+    public :: PI, TWO_PI, HALF_PI, EPS, MACHINE_EPSILON
     public :: pimach
 
     !-----------------------------------------------
@@ -31,6 +31,7 @@ module fishpack_precision
     real(wp), parameter :: ONE = 1.0_wp
     real(wp), parameter :: TWO = 2.0_wp
     real(wp), parameter :: PI = acos(-ONE)
+    real(wp), parameter :: HALF_PI = PI/TWO
     real(wp), parameter :: TWO_PI = TWO * PI
     real(wp), parameter :: MACHINE_EPSILON = epsilon(ONE)
     real(wp), parameter :: EPS = MACHINE_EPSILON

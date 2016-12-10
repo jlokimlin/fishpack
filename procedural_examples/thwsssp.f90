@@ -41,9 +41,7 @@ program thwsssp
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-        wp, &
-        ip, &
-        FishpackSolver
+        ip, wp, HALF_PI, TWO_PI, hwsssp
 
     ! Explicit typing only
     implicit none
@@ -51,69 +49,79 @@ program thwsssp
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
-    type(FishpackSolver)       :: solver
-    integer(ip), parameter     :: m = 18
-    integer(ip), parameter     :: n = 72
-    integer(ip), parameter     :: idimf = m + 1
-    integer(ip)                :: mbdcnd, nbdcnd, mp1, i, np1, j, ierror
-    real(wp)                   :: f(idimf, n + 1)
-    real(wp), dimension(n + 1) :: bdtf, bdts, bdps, bdpf
-    real(wp), dimension(idimf) :: sint
-    real(wp), dimension(n + 1) :: sinp
-    real(wp)                   :: pi, ts, tf, ps, pf, elmbda
-    real(wp)                   :: dtheta, dphi, pertrb, discretization_error, z
+    integer(ip), parameter     :: M = 18, N = 72
+    integer(ip), parameter     :: MP1 = M + 1, NP1 = N + 1
+    integer(ip), parameter     :: IDIMF = MP1
+    integer(ip)                :: mbdcnd, nbdcnd, i, j, ierror
+    real(wp)                   :: f(IDIMF, NP1), sint(IDIMF)
+    real(wp), dimension(NP1)   :: bdtf, bdts, bdps, bdpf, sinp
+    real(wp)                   :: ts, tf, ps, pf, elmbda
+    real(wp)                   :: dtheta, dphi, pertrb, discretization_error
+    real(wp)                   :: ZERO = 0.0_wp
     !-----------------------------------------------
 
-    pi = acos(-1.0_wp)
-    ts = 0
-    tf = pi/2
-    mbdcnd = 6
-    ps = 0
-    pf = 2.0_wp*pi
+    ! Set domain
+    ts = ZERO
+    tf = HALF_PI
+    ps = ZERO
+    pf = TWO_PI
+
+    ! Set boundary conditions
     nbdcnd = 0
-    elmbda = 0.0_wp
-    !
-    !     generate sines for use in subsequent computations
-    !
-    dtheta = tf/m
-    mp1 = m + 1
-    do i = 1, mp1
-        sint(i) = sin(real(i - 1, kind=wp)*dtheta)
+    mbdcnd = 6
+
+    ! Set helmholtz constant
+    elmbda = ZERO
+
+    ! Set mesh sizes
+    dtheta = tf/M
+    dphi = TWO_PI/N
+
+    ! Generate sines for use in subsequent computations
+    do i = 1, MP1
+        sint(i) = sin(real(i - 1, kind=wp) * dtheta)
     end do
 
-    dphi = (2.0_wp * pi)/n
-    np1 = n + 1
-    do j = 1, np1
-        sinp(j) = sin(real(j - 1, kind=wp)*dphi)
+    do j = 1, NP1
+        sinp(j) = sin(real(j - 1, kind=wp) * dphi)
     end do
-    !
-    !     compute right side of equation and store in f
-    !
-    do j = 1, np1
-        f(:mp1, j) = 2.0_wp - 6.0_wp*(sint(:mp1)*sinp(j))**2
-    end do
+
+    ! Compute right hand side of equation and store in f
+    block
+        real(wp), parameter :: TWO = 2.0_wp
+        real(wp), parameter :: SIX = 6.0_wp
+
+        do j = 1, NP1
+            f(:MP1, j) = TWO - SIX * (sint(:MP1)*sinp(j))**2
+        end do
+    end block
+
     !
     !     store derivative data at the equator
     !
-    bdtf(:np1) = 0.0_wp
-    !
-    call solver%hwsssp(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
-        bdps, bdpf, elmbda, f, idimf, pertrb, ierror)
-    !
-    !     compute discretization error. since problem is singular, the
-    !     solution must be normalized.
-    !
-    discretization_error = 0.0_wp
-    do j = 1, np1
-        do i = 1, mp1
-            z = abs(f(i, j)-(sint(i)*sinp(j))**2-f(1, 1))
-            discretization_error = max(z, discretization_error)
-        end do
-    end do
+    bdtf(:NP1) = ZERO
 
-    !
-    !==> Print earlier output from platforms with 64-bit floating point
-    !    arithmetic followed by the output from this computer
+    ! Solve 2D Helmholtz in spherical coordinates on a centered grid
+    call hwsssp(ts, tf, M, mbdcnd, bdts, bdtf, ps, pf, N, nbdcnd, &
+        bdps, bdpf, elmbda, f, IDIMF, pertrb, ierror)
+
+    ! Compute discretization error. Since problem is singular, the
+    ! solution must be normalized.
+    block
+        real(wp) :: local_error, exact_solution
+
+        discretization_error = ZERO
+        do j = 1, NP1
+            do i = 1, MP1
+                exact_solution = (sint(i)*sinp(j))**2 - f(1, 1)
+                local_error = abs(f(i, j)-exact_solution)
+                discretization_error = max(local_error, discretization_error)
+            end do
+        end do
+    end block
+
+    ! Print earlier output from platforms with 64-bit floating point
+    ! arithmetic followed by the output from this computer
     !
     write( stdout, '(/a)') '     hwsssp *** TEST RUN *** '
     write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '

@@ -138,7 +138,6 @@ program tcblktri
 
     iflg = iflg + 1
     do while(iflg <= 1)
-
         ! Solve system
         call solver%cblktri(iflg, np, N, an, bn, cn, mp, M, am, bm, cm, NS, y, ierror, workspace)
 
@@ -146,6 +145,7 @@ program tcblktri
         iflg = iflg + 1
     end do
 
+    ! Compute error
     discretization_error = ZERO
     do j = 1, N
         do i = 1, M

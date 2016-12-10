@@ -38,92 +38,84 @@ program thwscrt
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-        wp, &
-        ip, &
-        PI, &
-        FishpackSolver
+        ip, wp, PI, HALF_PI, hwscrt
 
     ! Explicit typing only
     implicit none
 
     !-----------------------------------------------
-    ! Local variables
+    ! Dictionary
     !-----------------------------------------------
-    type(FishpackSolver)    :: solver
-    integer(ip) :: idimf, m, mbdcnd, n, nbdcnd, mp1, np1, i, j, ierror
-    real(wp), dimension(45, 82) :: f
-    real(wp), dimension(81) :: bdb, bda, bdc, bdd, y
-    real(wp), dimension(41) :: x
-    real(wp) :: a, b, c, d, elmbda, HALF_PI, PI2, pertrb, discretization_error, z
+    integer(ip), parameter   :: M = 40, N = 80
+    integer(ip), parameter   :: MP1 = M + 1, NP1 = N + 1
+    integer(ip), parameter   :: IDIMF = M + 5
+    integer(ip)              :: mbdcnd, nbdcnd, i, j, ierror
+    real(wp)                 :: f(IDIMF, NP1), x(MP1)
+    real(wp), dimension(NP1) :: bdb, bda, bdc, bdd, y
+    real(wp)                 :: a, b, c, d, elmbda, pertrb, discretization_error
+    real(wp), parameter      :: PI2 = PI**2
+    real(wp), parameter      :: ZERO = 0.0_wp, ONE = 1.0_wp
+    real(wp), parameter      :: TWO = 2.0_wp, THREE = 3.0_wp, FOUR = 4.0_wp
     !-----------------------------------------------
-    !
-    !     from dimension statement we get value of idimf.
-    !
-    idimf = 45
-    a = 0.0_wp
-    b = 2.0_wp
-    m = 40
+
+    ! Set domain
+    a = ZERO
+    b = TWO
+    c = -ONE
+    d = THREE
+
+    ! Set boundary conditions
     mbdcnd = 2
-    c = -1.0_wp
-    d = 3.0_wp
-    n = 80
     nbdcnd = 0
-    elmbda = -4.0_wp
-    !
-    !     auxiliary quantities.
-    !
-    HALF_PI = PI/2
-    PI2 = PI**2
-    mp1 = m + 1
-    np1 = n + 1
-    !
-    !     generate and store grid points for the purpose of computing
-    !     boundary data and the right side of the helmholtz equation.
-    !
-    do i = 1, mp1
-        x(i) = real(i - 1, kind=wp)/20
+
+    ! Set helmholtz constant
+    elmbda = -FOUR
+
+    ! Generate and store grid points for the purpose of computing
+    ! boundary data and the right side of the helmholtz equation.
+    do i = 1, MP1
+        x(i) = TWO * real(i - 1, kind=wp)/M
     end do
 
-    do j = 1, np1
-        y(j) = -1.0_wp + real(j - 1, kind=wp)/20
+    do j = 1, NP1
+        y(j) = -ONE + FOUR * real(j - 1, kind=wp)/N
     end do
-    !
-    !     generate boundary data.
-    !
-    do j = 1, np1
-        bdb(j) = 4.0_wp * cos((y(j) + 1.0_wp)*HALF_PI)
+
+    ! Generate boundary data. bda, bdc, and bdd are dummy variables.
+    do j = 1, NP1
+        bdb(j) = FOUR * cos((y(j) + ONE)*HALF_PI)
     end do
-    !
-    !     bda, bdc, and bdd are dummy variables.
-    !
-    f(1, :np1) = 0.0_wp
-    !
-    !     generate right side of equation.
-    !
-    do i = 2, mp1
-        do j = 1, np1
-            f(i, j) = (2.0_wp - (4.0_wp + PI2/4)*(x(i)**2)) * cos((y(j) + 1.0_wp)*HALF_PI)
+
+    ! Generate right side of equation.
+    f = ZERO
+    do j = 1, NP1
+        do i = 2, MP1
+            f(i, j) = (TWO - (FOUR + PI2/4)*(x(i)**2)) * cos((y(j) + ONE)*HALF_PI)
         end do
     end do
 
-    call solver%hwscrt(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
-        elmbda, f, idimf, pertrb, ierror)
-    !
-    !     compute discretization error.  the exact solution is
-    !                u(x, y) = x**2*cos((y+1)*(pi/2))
-    !
-    discretization_error = 0.0_wp
-    do i = 1, mp1
-        do j = 1, np1
-            z = abs(f(i, j)-(x(i)**2) * cos((y(j)+1.0_wp) * HALF_PI))
-            discretization_error = max(z, discretization_error)
-        end do
-    end do
+    call hwscrt(a, b, M, mbdcnd, bda, bdb, c, d, N, nbdcnd, bdc, bdd, &
+        elmbda, f, IDIMF, pertrb, ierror)
 
+    ! Compute discretization error. The exact solution is
     !
-    !==> Print earlier output from platforms with 64-bit floating point
-    !    arithmetic followed by the output from this computer
+    ! u(x, y) = (x**2) * cos((y+1)*(pi/2))
     !
+    block
+        real(wp) :: local_error, exact_solution
+
+        discretization_error = ZERO
+        do i = 1, MP1
+            do j = 1, NP1
+                exact_solution = (x(i)**2) * cos((y(j)+ONE) * HALF_PI)
+                local_error = abs(f(i, j) - exact_solution)
+                discretization_error = max(local_error, discretization_error)
+            end do
+        end do
+    end block
+
+    ! Print earlier output from platforms with 64-bit floating point
+    ! arithmetic followed by the output from this computer
     write( stdout, '(/a)') '     hwscrt *** TEST RUN *** '
     write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
     write( stdout, '(a)') '     ierror = 0,  discretization error = 5.36508e-4'
