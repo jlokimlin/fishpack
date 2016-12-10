@@ -70,6 +70,7 @@ module type_FishpackWorkspace
         procedure, public :: compute_genbun_workspace_lengths
         procedure, public :: initialize_staggered_workspace
         procedure, public :: initialize_centered_workspace
+        procedure, public :: initialize_blktri_workspace
         !final             :: finalize_fishpack_workspace
         !---------------------------------------------------------------
     end type FishpackWorkspace
@@ -187,6 +188,30 @@ contains
         call self%create(irwk, icwk)
 
     end subroutine initialize_centered_workspace
+
+    subroutine initialize_blktri_workspace(self, n, m)
+        !-----------------------------------------------
+        ! Dummy arguments
+        !-----------------------------------------------
+        class(FishpackWorkspace), intent(inout) :: self
+        integer(ip),              intent(in)    :: n
+        integer(ip),              intent(in)    :: m
+        !-----------------------------------------------
+        ! Local variables
+        !-----------------------------------------------
+        integer(ip) :: irwk, icwk
+        !-----------------------------------------------
+
+        ! Ensure that object is usable
+        call self%destroy()
+
+        ! compute and allocate real and complex required work space
+        call self%compute_blktri_workspace_lengths(n, m, irwk, icwk)
+
+        ! Allocate memory
+        call self%create(irwk, icwk)
+
+    end subroutine initialize_blktri_workspace
 
     pure subroutine compute_blktri_workspace_lengths(self, n, m, irwk, icwk)
         !

@@ -285,8 +285,8 @@ module module_blktri
         !-------------------------------------------------
         ! Type components
         !-------------------------------------------------
-        integer(ip) :: indices(6), nl
-        integer(ip) :: npp, k, nm, ncmplx, ik
+        integer(ip) :: indices(6)
+        integer(ip) :: nl, npp, k, nm, ncmplx, ik
         real(wp)    :: cnv
         real(wp)    :: MACHINE_EPSILON = MACHINE_EPSILON
         !-------------------------------------------------
@@ -312,6 +312,7 @@ module module_blktri
     real(wp),    parameter :: ZERO = 0.0_wp
     real(wp),    parameter :: ONE = 1.0_wp
     real(wp),    parameter :: TWO = 2.0_wp
+    integer(ip), parameter :: IIWK = 6 ! Size of workspace_indices
     !---------------------------------------------------------------------------------
 
 contains
@@ -349,36 +350,17 @@ contains
         ! Check error flag
         if (ierror /= 0) return
 
-        common_variables: associate( &
-            npp => self%npp, &
-            k => self%k, &
-            nm => self%nm, &
-            ncmplx=> self%ncmplx, &
-            ik => self%ik, &
-            cnv => self%cnv, &
-            EPS => self%MACHINE_EPSILON &
+        ! Allocate memory on first call only
+        if (iflg == 0) call workspace%initialize_blktri_workspace(n, m)
+
+        ! Solve system
+        associate( &
+            rew => workspace%real_workspace, &
+            cxw => workspace%complex_workspace &
             )
-
-            if (iflg == 0) then
-
-                ! compute and allocate real and complex required work space
-                call workspace%compute_blktri_workspace_lengths(n, m, irwk, icwk)
-
-                ! Allocate memory for workspace
-                call workspace%create(irwk, icwk)
-
-            end if
-
-            ! Solve system
-            associate( &
-                rew => workspace%real_workspace, &
-                cxw => workspace%complex_workspace &
-                )
-                call self%blktrii(iflg, np, n, an, bn, cn, &
-                    mp, m, am, bm, cm, idimy, y, ierror, rew, cxw)
-            end associate
-
-        end associate common_variables
+            call self%blktrii(iflg, np, n, an, bn, cn, &
+                mp, m, am, bm, cm, idimy, y, ierror, rew, cxw)
+        end associate
 
     end subroutine blktri
 
@@ -437,10 +419,7 @@ contains
             npp => self%npp, &
             k => self%k, &
             nm => self%nm, &
-            ncmplx=> self%ncmplx, &
-            ik => self%ik, &
-            cnv => self%cnv, &
-            EPS => self%MACHINE_EPSILON &
+            ik => self%ik &
             )
 
             ! test m and n for the proper form

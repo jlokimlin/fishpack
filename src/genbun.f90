@@ -260,15 +260,15 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        integer(ip), intent(in)     :: nperod
-        integer(ip), intent(in)     :: n
-        integer(ip), intent(in)     :: mperod
-        integer(ip), intent(in)     :: m
-        integer(ip), intent(in)     :: idimy
-        integer(ip), intent(out)    :: ierror
-        real(wp),    intent(in)     :: a(:)
-        real(wp),    intent(in)     :: b(:)
-        real(wp),    intent(in)     :: c(:)
+        integer(ip), intent(in)    :: nperod
+        integer(ip), intent(in)    :: n
+        integer(ip), intent(in)    :: mperod
+        integer(ip), intent(in)    :: m
+        integer(ip), intent(in)    :: idimy
+        integer(ip), intent(out)   :: ierror
+        real(wp),    intent(in)    :: a(:)
+        real(wp),    intent(in)    :: b(:)
+        real(wp),    intent(in)    :: c(:)
         real(wp),    intent(inout) :: y(idimy,n)
         !--------------------------------------------------------------
         ! Local variables
