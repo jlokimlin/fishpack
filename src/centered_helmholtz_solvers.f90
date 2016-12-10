@@ -15,7 +15,7 @@ module centered_helmholtz_solvers
     use module_poistg, only: &
         poistgg
 
-    use module_blktri, only:&
+    use type_BlktriAux, only:&
         BlktriAux
 
     ! Explicit typing only

@@ -256,7 +256,7 @@
 !                        elliptic equations, SIAM
 !                        J. Numer. Anal., 11(1974) pp. 1136-1150.
 !
-module module_blktri
+module type_BlktriAux
 
     use fishpack_precision, only: &
         wp, & ! Working precision
@@ -277,8 +277,6 @@ module module_blktri
 
     ! Everything is private unless stated otherwise
     private
-    public :: blktri
-    public :: blktrii
     public :: BlktriAux
 
     type, public, extends(ComfAux) :: BlktriAux
@@ -294,6 +292,7 @@ module module_blktri
         !-------------------------------------------------
         ! Type-bound procedures
         !-------------------------------------------------
+        procedure, public, nopass :: check_input_arguments
         procedure, public  :: blktrii
         procedure, private :: blktri_lower_routine
         procedure, private :: bsrh
@@ -316,53 +315,6 @@ module module_blktri
     !---------------------------------------------------------------------------------
 
 contains
-
-    subroutine blktri(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
-        idimy, y, ierror, workspace)
-        !--------------------------------------------------------------------------------
-        ! Dummy arguments
-        !--------------------------------------------------------------------------------
-        integer(ip), intent(in)    :: iflg
-        integer(ip), intent(in)    :: np
-        integer(ip), intent(in)    :: n
-        integer(ip), intent(in)    :: mp
-        integer(ip), intent(in)    :: m
-        integer(ip), intent(in)    :: idimy
-        integer(ip), intent(out)   :: ierror
-        real(wp),    intent(inout) :: an(:)
-        real(wp),    intent(inout) :: bn(:)
-        real(wp),    intent(inout) :: cn(:)
-        real(wp),    intent(inout) :: am(:)
-        real(wp),    intent(inout) :: bm(:)
-        real(wp),    intent(inout) :: cm(:)
-        real(wp),    intent(inout) :: y(:,:)
-        class(Fish), intent(inout) :: workspace
-        !--------------------------------------------------------------------------------
-        ! Local variables
-        !--------------------------------------------------------------------------------
-        integer(ip)           :: irwk, icwk
-        type(BlktriAux), save :: self
-        !--------------------------------------------------------------------------------
-
-        ! Check input arguments
-        call check_input_arguments(n, m, idimy, ierror)
-
-        ! Check error flag
-        if (ierror /= 0) return
-
-        ! Allocate memory on first call only
-        if (iflg == 0) call workspace%initialize_blktri_workspace(n, m)
-
-        ! Solve system
-        associate( &
-            rew => workspace%real_workspace, &
-            cxw => workspace%complex_workspace &
-            )
-            call self%blktrii(iflg, np, n, an, bn, cn, &
-                mp, m, am, bm, cm, idimy, y, ierror, rew, cxw)
-        end associate
-
-    end subroutine blktri
 
     subroutine check_input_arguments(n, m, idimy, ierror)
         !--------------------------------------------------------------------------------
@@ -2228,7 +2180,7 @@ contains
 
     end subroutine tevls
 
-end module module_blktri
+end module type_BlktriAux
 !
 ! REVISION HISTORY
 !

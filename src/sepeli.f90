@@ -508,7 +508,7 @@ module module_sepeli
     use type_FishpackWorkspace, only: &
         Fish => FishpackWorkspace
 
-    use module_blktri, only: &
+    use type_BlktriAux, only: &
         BlktriAux
 
     use type_SepAux, only: &

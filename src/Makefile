@@ -24,12 +24,20 @@ type_ComfAux.f90
 	$(FC) $(FFLAGS) -c type_ComfAux.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
-blktri.o: \
+type_BlktriAux.o: \
 fishpack_precision.o \
 type_FishpackWorkspace.o \
 type_ComfAux.o \
-blktri.f90
-	$(FC) $(FFLAGS) -c blktri.f90 $(LINKS) \
+type_BlktriAux.f90
+	$(FC) $(FFLAGS) -c type_BlktriAux.f90 $(LINKS) \
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
+real_block_tridiagonal_linear_systems_solver.o: \
+fishpack_precision.o \
+type_FishpackWorkspace.o \
+type_BlktriAux.o \
+real_block_tridiagonal_linear_systems_solver.f90
+	$(FC) $(FFLAGS) -c real_block_tridiagonal_linear_systems_solver.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 cblktri.o: \
@@ -96,7 +104,7 @@ fishpack_precision.o \
 type_FishpackWorkspace.o \
 genbun.o \
 poistg.o \
-blktri.o \
+type_BlktriAux.o \
 staggered_helmholtz_solvers.f90
 	$(FC) $(FFLAGS) -c staggered_helmholtz_solvers.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
@@ -136,7 +144,7 @@ fishpack_precision.o \
 type_FishpackWorkspace.o \
 genbun.o \
 poistg.o \
-blktri.o \
+type_BlktriAux.o \
 centered_helmholtz_solvers.f90
 	$(FC) $(FFLAGS) -c centered_helmholtz_solvers.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
@@ -180,7 +188,7 @@ type_SepAux.f90
 sepeli.o: \
 fishpack_precision.o \
 type_FishpackWorkspace.o\
-blktri.o \
+type_BlktriAux.o \
 type_SepAux.o \
 sepeli.f90
 	$(FC) $(FFLAGS) -c sepeli.f90 $(LINKS) \
@@ -283,11 +291,12 @@ type_TridiagonalSolver.f90
 
 type_FishpackSolver.o: \
 fishpack_precision.o \
-blktri.o\
+real_block_tridiagonal_linear_systems_solver.o \
 cblktri.o\
 cmgnbn.o\
 genbun.o\
 pois3d.o\
+hw3crt.o\
 poistg.o\
 sepeli.o\
 sepx4.o\

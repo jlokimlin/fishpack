@@ -1,11 +1,12 @@
 !
 ! Purpose:
 !
-! This derived data type encloses all of fishpack's procedural solvers inside a single class
+! This derived data type encloses all of fishpack's procedural solvers
 !
 module type_FishpackSolver
 
-    use module_blktri, only: blktri
+    use real_block_tridiagonal_linear_systems_solver, &
+        only: blktri
 
     use module_cblktri, only: cblktri
 
@@ -71,7 +72,6 @@ module type_FishpackSolver
         procedure, nopass, public :: sepx4
         !---------------------------------------------------------------
     end type FishpackSolver
-
 
 end module type_FishpackSolver
 
