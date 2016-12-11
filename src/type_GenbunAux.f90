@@ -157,7 +157,7 @@ contains
         select case (ijump)
             case (1)
                 !
-                !==> ijump == 1
+                ! ijump == 1
                 !
                 np1 = n + 1
                 y = PI/(real(n, kind=wp) + fden)
@@ -169,7 +169,7 @@ contains
 
             case default
                 !
-                !==> ijump /= 1
+                ! ijump /= 1
                 !
                 k3 = n/ijump + 1
                 k4 = k3 - 1

@@ -165,7 +165,7 @@ contains
             jstr = js
             jfnl = ns
             !
-            !==> Compute weighted inner products
+            ! Compute weighted inner products
             !
             ute = 0.0_wp
             ete = 0.0_wp

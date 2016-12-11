@@ -453,7 +453,7 @@ contains
         w(id2+1:m+id2) = (-two_s) + elmbda*dy2
         w(id3+1:m+id3) = s
         !
-        !==> Set boundary data for x-boundaries.
+        ! Set boundary data for x-boundaries.
         !
         if (mp /= 1) then
             select case (mp)
@@ -510,7 +510,7 @@ contains
                         select case (np)
                             case (1, 4)
                                 !
-                                !==> For singular problems must adjust data to
+                                ! For singular problems must adjust data to
                                 !    insure that a solution will exist.
                                 !
                                 s = sum(f(:m, 1:n))
@@ -532,7 +532,7 @@ contains
             select case (nperod)
                 case (0)
                     !
-                    !==> Solve system with call to genbunn
+                    ! Solve system with call to genbunn
                     !
                     call genbunn(nperod, n, mperod, m, w(iw1:), w(iw2:), w(iw3:), &
                         idimf, f, local_error_flag, w(iw4:))
@@ -544,7 +544,7 @@ contains
 
                 case default
                     !
-                    !==> Solve system with call to poistgg
+                    ! Solve system with call to poistgg
                     !
                     call poistgg(nperod, n, mperod, m, w(iw1:), w(iw2:), w(iw3:), &
                         idimf, f, local_error_flag, w(iw4:))

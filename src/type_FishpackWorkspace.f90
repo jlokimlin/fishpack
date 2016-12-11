@@ -235,7 +235,7 @@ contains
         !--------------------------------------------------------------
 
         !
-        !==> Compute nearest integer greater than or equal to
+        ! Compute nearest integer greater than or equal to
         !    log base 2 of n+1, i.e., log2n is smallest integer
         !    such that 2**log2n >= n+1
         !
@@ -274,7 +274,7 @@ contains
         !--------------------------------------------------------------
 
         !
-        !==> Compute nearest integer greater than or equal to
+        ! Compute nearest integer greater than or equal to
         !    log base 2 of n+1, i.e., log2n is smallest integer
         !    such that 2**log2n >= n+1
         !

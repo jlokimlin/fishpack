@@ -477,7 +477,7 @@ contains
         dth2 = dth**2
         np = nbdcnd + 1
         !
-        !==> Define range of indices i and j for unknowns u(i, j).
+        ! Define range of indices i and j for unknowns u(i, j).
         !
         mstart = 2
         mstop = m
@@ -506,7 +506,7 @@ contains
 
         nunk = nstop - nstart + 1
         !
-        !==> Define a, b, c coefficients in w-array.
+        ! Define a, b, c coefficients in w-array.
         !
         id2 = munk
         id3 = id2 + munk
@@ -571,7 +571,7 @@ contains
 
 
         !
-        !==> Enter boundary data for z-boundaries.
+        ! Enter boundary data for z-boundaries.
         !
         a1 = ONE/dth2
         l = id5 - mstart + 1
@@ -653,7 +653,7 @@ contains
         w(1) = ZERO
         w(id4) = ZERO
         !
-        !==> Solve the system of equations.
+        ! Solve the system of equations.
         !
         local_error_flag = 0
         i1 = 1

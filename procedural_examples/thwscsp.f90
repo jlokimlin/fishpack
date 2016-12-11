@@ -53,10 +53,10 @@ program thwscsp
     integer(ip), parameter   :: IDIMF = M + 12
     integer(ip)              :: intl, mbdcnd, nbdcnd, i, j, ierror
     real(wp)                 :: f(IDIMF, NP1), theta(IDIMF)
-    real(wp), dimension(NP1) :: bdtf, bdts, bdrs, bdrf, r
+    real(wp), dimension(NP1) :: bdtf, r
+    real(wp), dimension(1)   :: bdts, bdrs, bdrf
     real(wp)                 :: ts, tf, rs, rf, elmbda
-    real(wp)                 :: dtheta, dr, pertrb
-    real(wp)                 :: discretization_error, dphi
+    real(wp)                 :: dtheta, dr, pertrb, dphi
     real(wp)                 :: ZERO = 0.0_wp, ONE = 1.0_wp, TWO = 2.0_wp
     !-----------------------------------------------
 
@@ -92,6 +92,7 @@ program thwscsp
     end do
 
     ! Generate normal derivative data at equator
+    ! In our example, bdts, bdrs, and bdrf are 1-dimensional dummy variables
     bdtf = ZERO
 
     ! Compute boundary data on the surface of the sphere
@@ -116,29 +117,28 @@ program thwscsp
 
     ! Compute discretization error
     block
-        real(wp) :: cost4, exact_solution, local_error
+        real(wp) :: discretization_error, exact_solution(MP1, N)
 
-        discretization_error = ZERO
         do j = 1, N
             do i = 1, MP1
-                cost4 = cos(theta(i))**4
-                exact_solution = cost4 * (r(j)**4)
-                local_error = abs(f(i, j) - exact_solution)
-                discretization_error = max(local_error, discretization_error)
+                exact_solution(i,j) = (cos(theta(i))**4) * (r(j)**4)
             end do
         end do
+
+        ! Set discretization error
+        discretization_error = maxval(abs(exact_solution - f(:MP1,:N)))
+
+        ! Print earlier output from platforms with 64 bit floating point
+        ! arithmetic followed by the output from this computer
+        write( stdout, '(/a)') '     hwscsp *** TEST RUN, EXAMPLE 1 *** '
+        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(a)') '     ierror = 0,  discretization error = 7.9984e-4 '
+        write( stdout, '(a)') '     The output from your computer is: '
+        write( stdout, '(a,i3,a,1pe15.6/)') &
+            '     ierror =', ierror, &
+            '     discretization error =', discretization_error
     end block
 
-    ! Print earlier output from platforms with 64 bit floating point
-    ! arithmetic followed by the output from this computer
-    write( stdout, '(/a)') '     hwscsp *** TEST RUN, EXAMPLE 1 *** '
-    write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-    write( stdout, '(a)') '     ierror = 0,  discretization error = 7.9984e-4 '
-    write( stdout, '(a)') '     The output from your computer is: '
-    write( stdout, '(a,i3,a,1pe15.6/)') &
-        '     ierror =', ierror, &
-        '     discretization error =', discretization_error
-    !
     ! The following program illustrates the use of hwscsp to solve
     ! a three dimensional problem which has longitudinal dependence
     !
@@ -161,27 +161,28 @@ program thwscsp
 
     ! Compute discretization error (fourier coefficients)
     block
-        real(wp) :: exact_solution, local_error
+        real(wp) :: exact_solution(MP1,NP1), discretization_error
 
         discretization_error = ZERO
         do j = 1, NP1
             do i = 1, MP1
-                exact_solution = r(j) * sin(theta(i))
-                local_error = abs(f(i, j) - exact_solution)
-                discretization_error = max(local_error, discretization_error)
+                exact_solution(i,j) = r(j) * sin(theta(i))
             end do
         end do
-    end block
 
-    ! Print earlier output from platforms with 64-bit floating point
-    ! arithmetic followed by the output from this computer
-    write( stdout, '(/a)') '     hwscsp *** TEST RUN, EXAMPLE 2 *** '
-    write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-    write( stdout, '(a)') '     ierror = 0, discretization error = 5.8682e-5 '
-    write( stdout, '(a)') '     The output from your computer is: '
-    write( stdout, '(a,i3,a,1pe15.6/)') &
-        '     ierror =', ierror, &
-        '     discretization error =', discretization_error
+        ! Set discretization error
+        discretization_error = maxval(abs(exact_solution - f(:MP1,:NP1)))
+
+        ! Print earlier output from platforms with 64-bit floating point
+        ! arithmetic followed by the output from this computer
+        write( stdout, '(/a)') '     hwscsp *** TEST RUN, EXAMPLE 2 *** '
+        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(a)') '     ierror = 0, discretization error = 5.8682e-5 '
+        write( stdout, '(a)') '     The output from your computer is: '
+        write( stdout, '(a,i3,a,1pe15.6/)') &
+            '     ierror =', ierror, &
+            '     discretization error =', discretization_error
+    end block
 
     ! Release memory
     call workspace%destroy()

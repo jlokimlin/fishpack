@@ -263,25 +263,25 @@ contains
         !--------------------------------------------------------------
 
         !
-        !==> Compute workspace dimensions
+        ! Compute workspace dimensions
         !
         irwk = m * (9 + int(log(real(n, kind=wp))/log(TWO),kind=ip)) + 4 * n
         icwk = 0
 
         !
-        !==> Allocate memory
+        ! Allocate memory
         !
         call workspace%create(irwk, icwk)
 
         associate( rew => workspace%real_workspace )
             !
-            !==> Solve system
+            ! Solve system
             !
             call poistgg(nperod, n, mperod, m, a, b, c, idimy, y, ierror, rew)
         end associate
 
         !
-        !==> Release memory
+        ! Release memory
         !
         call workspace%destroy()
 
@@ -312,7 +312,7 @@ contains
         !-----------------------------------------------
 
         !
-        !==> Check validity of calling arguments
+        ! Check validity of calling arguments
         !
         call check_input_arguments(nperod, n, mperod, m, idimy, ierror, a, b, c)
 
@@ -320,7 +320,7 @@ contains
         if (ierror /= 0) return
 
         !
-        !==> Compute workspace indices
+        ! Compute workspace indices
         !
         workspace_indices = get_workspace_indices(n,m)
 
@@ -655,11 +655,11 @@ contains
 
                             q(:mr, j) = q(:mr, j) + b(:mr)
                             !
-                            !==> End of reduction for regular unknowns.
+                            ! End of reduction for regular unknowns.
                             !
                         end do
                         !
-                        !==> Begin special reduction for last unknown.
+                        ! Begin special reduction for last unknown.
                         !
                         j = jstop + jr
                     end if
@@ -671,7 +671,7 @@ contains
 
                     if (nrod /= 0) then
                         !
-                        !==> Odd number of unknowns
+                        ! Odd number of unknowns
                         !
                         select case (i2r)
                             case (1)
@@ -779,7 +779,7 @@ contains
                     if_lr:  if (lr == 0) then
                         if_n: if (n == 3) then
                             !
-                            !==> case n = 3.
+                            ! case n = 3.
                             !
                             select case (np)
                                 case (1,3)
@@ -916,7 +916,7 @@ contains
                         exit block_construct
                     end if if_lr
                     !
-                    !==> case of general n with nr = 3 .
+                    ! case of general n with nr = 3 .
                     !
                     b(:mr) = q(:mr, 1) - q(:mr, jm1) + q(:mr, j)
 

@@ -634,7 +634,7 @@ contains
         end select
 
         !
-        !==> Enter boundary data for phi-boundaries.
+        ! Enter boundary data for phi-boundaries.
         !
         a1 = TWO/dth2
 
@@ -706,7 +706,7 @@ contains
         w(1) = ZERO
         w(iwr) = ZERO
         !
-        !==> call poistg or genbun to solve the system of equations.
+        ! call poistg or genbun to solve the system of equations.
         !
         local_error_flag = 0
 

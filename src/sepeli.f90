@@ -588,7 +588,7 @@ contains
         !--------------------------------------------------------------
 
         !
-        !==> Check validity of input arguments
+        ! Check validity of input arguments
         !
         call check_input_arguments(intl, iorder, a, b, m, mbdcnd, c, d, n, &
             nbdcnd, cofx, cofy, idmn, ierror)
@@ -597,7 +597,7 @@ contains
         if (ierror /= 0) return
 
         !
-        !==> allocate workspace arrays on initial call only
+        ! allocate workspace arrays on initial call only
         !
         if (intl == 0) call initialize_workspace(n, m, workspace)
 
@@ -608,7 +608,7 @@ contains
             )
 
             !
-            !==> Compute 2nd or 4th order solution
+            ! Compute 2nd or 4th order solution
             !
             call aux%spelip(intl, iorder, a, b, m, mbdcnd, &
                 bda, alpha, bdb, beta, c, d, n, &
@@ -783,7 +783,7 @@ contains
             cit = c
             dit = d
             !
-            !==> set right hand side values from grhs in usol on the interior
+            ! set right hand side values from grhs in usol on the interior
             !    and non-specified boundaries.
             !
             usol(2:m, 2:n) = grhs(2:m, 2:n)
@@ -822,7 +822,7 @@ contains
 
             i1 = 1
             !
-            !==> set switches for periodic or non-periodic boundaries
+            ! set switches for periodic or non-periodic boundaries
             !
             mp = 1
             np = 1
@@ -863,7 +863,7 @@ contains
             tdly3 = TWO * (dly**3)
             dly4 = dly**4
             !
-            !==> set subscript limits for portion of array to input to blktri
+            ! set subscript limits for portion of array to input to blktri
             !
             is = 1
             js = 1
@@ -1030,7 +1030,7 @@ contains
                 end if
             end if
             !
-            !==> save adjusted edges in grhs if iorder=4
+            ! save adjusted edges in grhs if iorder=4
             !
             if (iorder == 4) then
                 grhs(is, js:ns) = usol(is, js:ns)
@@ -1042,12 +1042,12 @@ contains
             ! Initialize perturbation
             pertrb = ZERO
             !
-            !==> check if operator is singular
+            ! check if operator is singular
             !
             call self%is_PDE_singular(mbdcnd, nbdcnd, alpha, beta, &
                 gama, xnu, cofx, cofy, singular)
             !
-            !==> compute non-zero eigenvector in null space of transpose
+            ! compute non-zero eigenvector in null space of transpose
             !     if singular
             !
             if (singular) then
@@ -1058,7 +1058,7 @@ contains
                 call self%septri(nit, an, bn, cn, dn, un, zn)
             end if
             !
-            !==> make initialization call to blktrii
+            ! make initialization call to blktrii
             !
             if (intl == 0) then
                 call self%blktri_aux%blktrii(intl, np, nit, an, bn, cn, mp, mit, am, bm, cm, &
@@ -1417,7 +1417,7 @@ contains
                     tx = ai*uxxxx/12 + bi*uxxx/6
                     ty = dj*uyyyy/12 + ej*uyyy/6
                     !
-                    !==> reset form of truncation if at boundary which is non-periodic
+                    ! reset form of truncation if at boundary which is non-periodic
                     !
                     if (kswx/=1 .and. (i==1 .or. i==k)) then
                         tx = (ai/3) * (uxxxx/4 + uxxx/dlx)
@@ -1431,7 +1431,7 @@ contains
                 end do
             end do
             !
-            !==> reset the right hand side in usol
+            ! reset the right hand side in usol
             !
             usol(is:ms, js:ns) = grhs(is:ms, js:ns)
 

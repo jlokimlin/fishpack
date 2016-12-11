@@ -655,7 +655,7 @@ contains
         inp = 0
         isp = 0
         !
-        !==> boundary condition at theta=ts
+        ! boundary condition at theta=ts
         !
         mbr = mbdcnd + 1
         select case (mbr)
@@ -675,7 +675,7 @@ contains
         end select
 
         !
-        !==> boundary condition theta=tf
+        ! boundary condition theta=tf
         !
         select case (mbr)
             case (1)
@@ -694,7 +694,7 @@ contains
         end select
 
         !
-        !==> compute homogeneous solution with solution at pole equal to one
+        ! compute homogeneous solution with solution at pole equal to one
         !
         itsp = its + 1
         itfm = itf - 1
@@ -730,7 +730,7 @@ contains
             end do
         end if
         !
-        !==> boundary conditions at phi=ps
+        ! boundary conditions at phi=ps
         !
         nbr = nbdcnd + 1
         wps = ONE
@@ -745,7 +745,7 @@ contains
                 wps = HALF
         end select
         !
-        !==> boundary condition at phi=pf
+        ! boundary condition at phi=pf
         !
         select case (nbr)
             case (1)
@@ -762,7 +762,7 @@ contains
         nunk = jpf - jps + 1
         fjj = jpfm - jpsp + 1
         !
-        !==> scale coefficients for subroutine genbun
+        ! scale coefficients for subroutine genbun
         !
         do i = its, itf
             cf = dphi2*sint(i)*sint(i)
@@ -863,7 +863,7 @@ contains
             f(:mp1,:np1) = f(:mp1,:np1) - pertrb
         end if
         !
-        !==> scale right side for subroutine genbunn
+        ! scale right side for subroutine genbunn
         !
         do i = its, itf
             cf = dphi2*sint(i)*sint(i)
@@ -877,7 +877,7 @@ contains
             y_arg => f(its:,jps:) &
             )
             !
-            !==> Invoke genbunn solver
+            ! Invoke genbunn solver
             !
             call genbunn(nbdcnd, nunk, 1, munk, a_arg, b_arg, c_arg, &
                 idimf, y_arg, error_flag, d)

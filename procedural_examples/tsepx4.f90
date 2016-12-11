@@ -159,7 +159,7 @@ program tsepx4
     fourth_order_error = discretization_error
 
     !
-    !==> Print earlier output from platforms with 64-bit floating point
+    ! Print earlier output from platforms with 64-bit floating point
     !    arithmetic followed by the output from this computer
     !
     write( stdout, '(/a)') '     sepx4 *** TEST RUN *** '

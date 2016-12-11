@@ -497,7 +497,7 @@ contains
 
         if (a == ZERO .and. mbdcnd == 2) mb = 6
         !
-        !==> define a, b, c coefficients in w-array.
+        ! define a, b, c coefficients in w-array.
         !
         iwb = m
         iwc = iwb + m
@@ -518,7 +518,7 @@ contains
             f(i,:n) = w(j)*f(i,:n)
         end do
         !
-        !==> Enter boundary data for r-boundaries.
+        ! Enter boundary data for r-boundaries.
         !
         select case (mb)
             case (1:2)
@@ -543,7 +543,7 @@ contains
         end select
 
         !
-        !==> Enter boundary data for theta-boundaries.
+        ! Enter boundary data for theta-boundaries.
         !
 
         a1 = TWO/dth2
@@ -606,7 +606,7 @@ contains
         w(1) = ZERO
         w(iwr) = ZERO
         !
-        !==> To solve the system of equations.
+        ! To solve the system of equations.
         !
         local_error_flag = 0
 

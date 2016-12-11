@@ -593,7 +593,7 @@ contains
         lstart = 1
         lstop = l
         !
-        !==> Enter boundary data for x-boundaries.
+        ! Enter boundary data for x-boundaries.
         !
         !
         select case (lp)
@@ -623,7 +623,7 @@ contains
         lunk = lstop - lstart + 1
 
         !
-        !==> Enter boundary data for y-boundaries.
+        ! Enter boundary data for y-boundaries.
         !
         select case (mp)
             case (2:3)
@@ -671,7 +671,7 @@ contains
         end select
 
         !
-        !==> Define a, b, c coefficients in w-array.
+        ! Define a, b, c coefficients in w-array.
         !
         iwb = nunk + 1
         iwc = iwb + nunk
@@ -692,7 +692,7 @@ contains
 
         pertrb = ZERO
         !
-        !==> For singular problems adjust data to insure a solution will exist.
+        ! For singular problems adjust data to insure a solution will exist.
         !
         !
         select case (lp)
@@ -763,7 +763,7 @@ contains
         end select
 
         !
-        !==> Solve system
+        ! Solve system
         !
         call aux%pois3dd(lbdcnd, lunk, c1, mbdcnd, munk, c2, nperod, nunk, w, &
             w(iwb:), w(iwc:), ldimf, mdimf, f(lstart:, mstart:, nstart:), &
@@ -775,7 +775,7 @@ contains
         end if
 
         !
-        !==> Fill in sides for periodic boundary conditions.
+        ! Fill in sides for periodic boundary conditions.
         !
         if (lp == 1) then
             if (mp == 1) then

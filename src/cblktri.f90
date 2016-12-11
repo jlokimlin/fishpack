@@ -357,7 +357,7 @@ contains
             m2 = 2*m
 
             !
-            !==> Check validity of input arguments
+            ! Check validity of input arguments
             !
             if (m < 5) then
                 ierror = 1
@@ -373,7 +373,7 @@ contains
             end if
 
             !
-            !==> Compute workspace indices
+            ! Compute workspace indices
             !
             nh = n
             npp = np
@@ -410,13 +410,13 @@ contains
             iwu = iww + m
 
             select case (iflg)
-                case (0) !==> Initialize solver
+                case (0) ! Initialize solver
 
                     ! Set required workspace sizes
                     irwk = iw1 + 2*n
                     icwk = iw1 + 6*m
                     !
-                    !==> Allocate memory
+                    ! Allocate memory
                     !
                     call w%create(irwk, icwk)
 
@@ -518,7 +518,7 @@ contains
             EPS => self%MACHINE_EPSILON &
             )
             !
-            !==> begin reduction phase
+            ! begin reduction phase
             !
             kdo = k - 1
             do l = 1, kdo
@@ -1175,7 +1175,7 @@ contains
                 id = id - 1
                 iflg = 1
                 !
-                !==>  begin solution to system
+                !  begin solution to system
                 !
                 bh = b(m) - crt
                 ym = y(m)
@@ -1606,7 +1606,7 @@ contains
                 return
             end block main_block
             !
-            !==> Procedure failed
+            ! Procedure failed
             !
             ierror = 4
 
@@ -1688,7 +1688,7 @@ contains
 
             if (id == 0) ibr = 1
             !
-            !==> begin solution to system
+            ! begin solution to system
             !
             d(m) = a(m)/(b(m)-rt)
             w(m) = y(m)/(b(m)-rt)
@@ -1979,13 +1979,13 @@ contains
                         c = b*b
                     end if
                     !
-                    !==> look for small squared sub-diagonal element
+                    ! look for small squared sub-diagonal element
                     !
                     do m = l, n
                         if (e2(m) > c) cycle
                         exit
                     !
-                    !==> 2(n) is always zero, so there is no exit
+                    ! 2(n) is always zero, so there is no exit
                     !    through the bottom of the loop
                     !
                     end do
@@ -1995,7 +1995,7 @@ contains
                             loop_105: do
                                 if (j == 30) then
                                     !
-                                    !==> set error -- no convergence to an
+                                    ! set error -- no convergence to an
                                     !    eigenvalue after 30 iterations
                                     !
                                     error_flag = l
@@ -2004,7 +2004,7 @@ contains
 
                                 j = j + 1
                                 !
-                                !==> form shift
+                                ! form shift
                                 !
                                 l1 = l + 1
                                 s = sqrt(e2(l))
@@ -2016,7 +2016,7 @@ contains
                                 d(l1:n) = d(l1:n) - h
                                 f = f + h
                                 !
-                                !==> rational ql transformation
+                                ! rational ql transformation
                                 !
                                 g = d(m)
 
@@ -2026,7 +2026,7 @@ contains
                                 s = ZERO
                                 mml = m - l
                                 !
-                                !==> for i=m-1 step -1 until l do --
+                                ! for i=m-1 step -1 until l do --
                                 !
                                 do ii = 1, mml
                                     i = m - ii
@@ -2043,7 +2043,7 @@ contains
                                 e2(l) = s*g
                                 d(l) = h
                                 !
-                                !==>  guard against underflowed h
+                                !  guard against underflowed h
                                 !
                                 if (h == ZERO .or. abs(e2(l)) <= abs(c/h)) exit if_block
 
@@ -2056,11 +2056,11 @@ contains
 
                     p = d(l) + f
                     !
-                    !==> order eigenvalues
+                    ! order eigenvalues
                     !
                     if (l /= 1) then
                         !
-                        !==> for i=l step -1 until 2 do
+                        ! for i=l step -1 until 2 do
                         !
                         do ii = 2, l
                             i = l + 2 - ii

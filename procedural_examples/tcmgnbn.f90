@@ -142,7 +142,8 @@ program tcmgnbn
     use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
 
-    use fishpack_library
+    use fishpack_library, only: &
+        ip, wp, TWO_PI, PI, cmgnbn
 
     ! Explicit typing only
     implicit none
@@ -150,110 +151,108 @@ program tcmgnbn
     !------------------------------------------------------------------
     ! Dictionary
     !------------------------------------------------------------------
-    integer(ip), parameter   :: M = 20, N = 40
-    integer(ip), parameter   :: MP1 = M + 1, IDIMF = M + 2
-    integer(ip)              :: MPEROD = 1, NPEROD = 0
-    integer (ip)             :: k, i, j, ierror
-    real(wp)                 :: x(MP1), y(N + 1)
-    real(wp)                 :: dx, dy, discretization_error
-    real(wp), parameter      :: ZERO = 0.0_wp, ONE = 1.0_wp, TWO = 2.0_wp
-    complex(wp)              :: f(IDIMF, N)
-    complex(wp), dimension(M):: a, b, c
+    integer(ip), parameter    :: M = 20, N = 40
+    integer(ip), parameter    :: MP1 = M + 1, NP1 = N + 1
+    integer(ip), parameter    :: IDIMF = M + 2
+    integer(ip)               :: mperod, nperod, i, j, ierror
+    real(wp)                  :: dx, dy, x(MP1), y(NP1)
+    real(wp), parameter       :: ZERO = 0.0_wp, ONE = 1.0_wp, TWO = 2.0_wp
+    complex(wp)               :: f(IDIMF, N)
+    complex(wp), dimension(M) :: a, b, c
     !------------------------------------------------------------------
 
-    ! Set mesh points
-    dx = TWO/N
-    dy = PI/M
+    ! Set boundary conditions
+    mperod = 1
+    nperod = 0
 
-    ! Generate grid points for later use
+    ! Set mesh sizes
+    dx = ONE/M
+    dy = TWO_PI/N
+
+    ! Generate grid points for later use.
     do i = 1, MP1
-        x(i) = real(i - 1)*dx
+        x(i) = real(i - 1, kind=wp) * dx
     end do
 
-    do j = 1, N
-        y(j) = (-PI) + real(j - 1)*dy
+    do j = 1, NP1
+        y(j) = -PI + real(j - 1, kind=wp) * dy
     end do
 
-    ! Generate coefficients
+    ! Generate coefficients.
     block
-        !-----------------------------------------------
-        ! Local variables
-        !-----------------------------------------------
-        real(wp)               :: s, t, t2
+        real(wp)               :: s, dy2, t, t2
         complex(wp), parameter :: IMAGINARY_UNIT = (ZERO, ONE)
-        !-----------------------------------------------
 
         s = (dy/dx)**2
-        do k = 2, M - 1
-            t = ONE + x(k)
+        dy2 = dy**2
+        do i = 2, M - 1
+            t = ONE + x(i)
             t2 = t**2
-            a(k) = cmplx((t2 + t*dx)*s, ZERO, kind=wp)
-            b(k) = -TWO * t2*s - IMAGINARY_UNIT*(dy**2)
-            c(k) = cmplx((t2 - t*dx)*s, ZERO, kind=wp)
+            a(i) = cmplx((t2 + t * dx) * s, ZERO, kind=wp)
+            b(i) = -TWO * t2 * s - IMAGINARY_UNIT * dy2
+            c(i) = cmplx((t2 - t * dx) * s, ZERO, kind=wp)
         end do
         a(1) = ZERO
-        b(1) = -TWO * s - IMAGINARY_UNIT*(dy**2)
+        b(1) = -TWO * s - IMAGINARY_UNIT * dy2
         c(1) = cmplx(TWO * s, ZERO, kind=wp)
-        b(M) = (-TWO * s*(ONE + x(M))**2) - IMAGINARY_UNIT*(dy**2)
-        a(M) = cmplx(s*(ONE + x(M))**2 + (ONE + x(M))*dx*s, ZERO, kind=wp)
+        b(M) = (-TWO * s * (ONE + x(M))**2) - IMAGINARY_UNIT * dy2
+        a(M) = cmplx(s * (ONE + x(M))**2 + (ONE + x(M)) * dx * s, ZERO, kind=wp)
         c(M) = ZERO
     end block
 
-    ! Generate right side
+    ! Generate right hand side
     block
-        !-----------------------------------------------
-        ! Local variables
-        !-----------------------------------------------
-        real(wp)            :: s, t, t2, t4
+        real(wp)            :: s, dy2, t, t2, t4
         real(wp), parameter :: THREE = 3.0_wp, EIGHT = 8.0_wp
         real(wp), parameter :: ELEVEN = 11.0_wp, SIXTEEN = 16.0_wp
-        !-----------------------------------------------
 
         s = (dy/dx)**2
-        do k = 2, M - 1
+        dy2 = dy**2
+        do i = 2, M - 1
             do j = 1, N
-                f(k, j) = cmplx(THREE, -ONE, kind=wp)*(ONE + x(k))**4*(dy**2)*sin(y(j))
+                f(i, j) = cmplx(THREE, -ONE, kind=wp) * ((ONE + x(i))**4) * dy2 * sin(y(j))
             end do
         end do
 
-        s = (dy/dx)**2
         t = ONE + x(M)
         t2 = t**2
         t4 = t**4
         do j = 1, N
-            f(1, j) = (cmplx(ELEVEN, -ONE, kind=wp) + EIGHT/dx)*(dy**2)*sin(y(j))
-            f(M, j) = (cmplx(THREE, -ONE, kind=wp) * t4 * (dy**2) &
-                - SIXTEEN * t2 * s + SIXTEEN * t * s * dx)*sin(y(j))
+            f(1, j) = (cmplx(ELEVEN, -ONE, kind=wp) + EIGHT/dx) * dy2 * sin(y(j))
+            f(M, j) = (cmplx(THREE, -ONE, kind=wp) * t4 * dy2 &
+                -SIXTEEN * t2 * s + SIXTEEN * t * s * dx) * sin(y(j))
         end do
     end block
 
-    ! Solve system
-    call cmgnbn(NPEROD, N, MPEROD, M, a, b, c, IDIMF, f, ierror)
+    ! Solve complex linear system
+    call cmgnbn(nperod, N, mperod, M, a, b, c, IDIMF, f, ierror)
 
-    discretization_error = ZERO
-    do k = 1, M
-        do j = 1, N
-            associate( local_error =>  abs(f(k, j)-((ONE+x(k))**4) * sin(y(j))) )
-                !
-                ! Compute discretization error. The exact solution is
-                !
-                !            u(x, y) = (1+x)**4*sin(y).
-                !
-                discretization_error = max(local_error, discretization_error)
-            end associate
+    ! Compute discretization error. The exact solution is
+    !
+    ! u(x, y) = (1+x)**4*sin(y).
+    !
+    block
+        real(wp)    :: discretization_error
+        complex(wp) :: exact_solution(M,N)
+
+        do i = 1, M
+            do j = 1, N
+                exact_solution(i,j) = ((ONE + x(i))**4) * sin(y(j))
+            end do
         end do
-    end do
 
-    !
-    !    Print earlier output from platforms with 64-bit floating point
-    !    arithmetic followed by the output from this computer
-    !
-    write( stdout, '(/a)') '     cmgnbn *** TEST RUN *** '
-    write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-    write( stdout, '(a)') '     ierror = 0,  discretization error = 9.1620e-3'
-    write( stdout, '(a)') '     The output from your computer is: '
-    write( stdout, '(a,i3,a,1pe15.6/)') &
-        '     ierror =', ierror, &
-        ' discretization error = ', discretization_error
+        ! Set discretization error
+        discretization_error = maxval(abs(exact_solution - f(:M,:N)))
+
+        ! Print earlier output from platforms with 64-bit floating point
+        ! arithmetic followed by the output from this computer
+        write( stdout, '(/a)') '     cmgnbn *** TEST RUN *** '
+        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(a)') '     ierror = 0,  discretization error = 9.1620e-3'
+        write( stdout, '(a)') '     The output from your computer is: '
+        write( stdout, '(a,i3,a,1pe15.6/)') &
+            '     ierror =', ierror, &
+            ' discretization error = ', discretization_error
+    end block
 
 end program tcmgnbn

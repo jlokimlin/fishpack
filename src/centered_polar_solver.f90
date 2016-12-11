@@ -481,7 +481,7 @@ contains
         dt2 = dt**2
         np = nbdcnd + 1
         !
-        !==> Define range of indices i and j for unknowns u(i, j).
+        ! Define range of indices i and j for unknowns u(i, j).
         !
         mstart = 2
         mstop = mp1
@@ -514,7 +514,7 @@ contains
 
         nunk = nstop - nstart + 1
         !
-        !==> Define a, b, c coefficients in w-array.
+        ! Define a, b, c coefficients in w-array.
         !
         id2 = munk
         id3 = id2 + munk
@@ -568,7 +568,7 @@ contains
         end select
 
         !
-        !==> Enter boundary data for theta-boundaries.
+        ! Enter boundary data for theta-boundaries.
         !
         a1 = ONE/dt2
         l = id5 - mstart + 1
@@ -673,7 +673,7 @@ contains
         w(1) = ZERO
         w(id4) = ZERO
         !
-        !==> Solve the system of equations.
+        ! Solve the system of equations.
         !
         i1 = 1
         local_error_flag = 0
@@ -738,7 +738,7 @@ contains
 
             case (6)
                 !
-                !==> Adjust the solution as necessary for the problems where a = 0.
+                ! Adjust the solution as necessary for the problems where a = 0.
                 !
                 if (elmbda == ZERO) then
                     ypole = ZERO

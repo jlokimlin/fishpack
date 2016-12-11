@@ -277,21 +277,21 @@ contains
         !--------------------------------------------------------------
 
         !
-        !==> Allocate memory
+        ! Allocate memory
         !
         workspace = get_workspace(n, m)
 
 
         associate( rew => workspace%real_workspace )
             !
-            !==> Solve system
+            ! Solve system
             !
             call genbunn(nperod, n, mperod, m, a, b, c, idimy, y, ierror, rew)
 
         end associate
 
         !
-        !==> Release memory
+        ! Release memory
         !
         call workspace%destroy()
 
@@ -323,7 +323,7 @@ contains
         !--------------------------------------------------------------
 
         !
-        !==> Check validity of input arguments
+        ! Check validity of input arguments
         !
         call check_input_arguments(nperod, n, mperod, m, idimy, ierror, a, b, c)
 
@@ -331,7 +331,7 @@ contains
         if (ierror /= 0) return
 
         !
-        !==> Set up workspace for lower routine poisson solvers
+        ! Set up workspace for lower routine poisson solvers
         !
         workspace_indices = get_workspace_indices(n, m)
 
@@ -414,7 +414,7 @@ contains
                     p => w(iwp:) &
                     )
                     !
-                    !==> Invoke lower routines
+                    ! Invoke lower routines
                     !
                     select case (np)
                         case (1)
@@ -696,7 +696,7 @@ contains
 
         if (2*nr == n) then
             !
-            !==> even number of unknowns
+            ! even number of unknowns
             !
             do j = 1, nrm1
                 nrmj = nr - j
@@ -868,14 +868,14 @@ contains
         jst = 1
         jsp = n
         !
-        !==> irreg = 1 when no irregularities have occurred, otherwise it is 2.
+        ! irreg = 1 when no irregularities have occurred, otherwise it is 2.
         !
         loop_108: do
 
             l = 2*jst
             nodd = 2 - 2*((nun + 1)/2) + nun
             !
-            !==> nodd = 1 when nun is odd, otherwise it is 2.
+            ! nodd = 1 when nun is odd, otherwise it is 2.
             !
             select case (nodd)
                 case (1)
@@ -915,12 +915,12 @@ contains
                 end do
             end if
             !
-            !==> reduction for last unknown
+            ! reduction for last unknown
             !
             case_block: block
                 select case (nodd)
                     !
-                    !==> even number of unknowns
+                    ! even number of unknowns
                     !
                     case (2)
                         jsp = jsp + l
@@ -969,7 +969,7 @@ contains
 
                     case default
                         !
-                        !==> odd number of unknowns
+                        ! odd number of unknowns
                         !
                         if (irreg == 1) exit case_block
 
@@ -1046,7 +1046,7 @@ contains
             if (nun < 2) exit loop_108
         end do loop_108
         !
-        !==> start solution.
+        ! start solution.
         !
         j = jsp
         b(:m) = q(:m, j)
@@ -1320,11 +1320,11 @@ contains
 
             q(:mr, j) = q(:mr, j) + b(:mr)
             !
-            !==> end of reduction for regular unknowns.
+            ! end of reduction for regular unknowns.
             !
         end do
         !
-        !==> begin special reduction for last unknown.
+        ! begin special reduction for last unknown.
         !
         j = jstop + jr
     end if
@@ -1509,7 +1509,7 @@ goto 104
         goto 194
     end if
     !
-    !==> case n = 2**p+1
+    ! case n = 2**p+1
     !
     select case (istag)
         case (1)
@@ -1552,7 +1552,7 @@ goto 104
 
     goto 194
 !
-!==> case of general n with nr = 3 .
+! case of general n with nr = 3 .
 !
 168 continue
 
@@ -1639,7 +1639,7 @@ end if
 
 if (n == 2) then
     !
-    !==> case  n = 2
+    ! case  n = 2
     !
     b(:mr) = q(:mr, 1)
     tcos(1) = ZERO

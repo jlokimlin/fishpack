@@ -378,7 +378,7 @@ contains
 
             if (np == 1) then
                 !
-                !==> Reorder unknowns when nperod = 0
+                ! Reorder unknowns when nperod = 0
                 !
                 nh = (n + 1)/2
                 nhm1 = nh - 1
@@ -611,7 +611,7 @@ contains
         mr = m
         nr = n
         !
-        !==> generate transform roots
+        ! generate transform roots
         !
         lrdel = ((lp - 1)*(lp - 3)*(lp - 5))/3
         scalx = lr + lrdel
@@ -739,7 +739,7 @@ contains
 
         x_transform: do
             !
-            !==> Transform x
+            ! Transform x
             !
             do j=1, mr
                 do k=1, nr
@@ -787,7 +787,7 @@ contains
 
             y_transform: do
                 !
-                !==> Transform y
+                ! Transform y
                 !
                 do i=1, lr
                     do k=1, nr

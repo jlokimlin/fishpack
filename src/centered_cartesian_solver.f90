@@ -432,7 +432,7 @@ contains
 
         nunk = nstop - nstart + 1
         !
-        !==> Enter boundary data for x-boundaries.
+        ! Enter boundary data for x-boundaries.
         !
         mstart = 1
         mstop = m
@@ -468,7 +468,7 @@ contains
 
         munk = mstop - mstart + 1
         !
-        !==> Enter boundary data for y-boundaries.
+        ! Enter boundary data for y-boundaries.
         !
         if (np /= 1) then
             select case (np)
@@ -488,7 +488,7 @@ contains
             end select
         end if
         !
-        !==> Multiply right side by deltay**2.
+        ! Multiply right side by deltay**2.
         !
         delysq = dy**2
         f(mstart:mstop, nstart:nstop) = f(mstart:mstop, nstart:nstop)*delysq
@@ -535,7 +535,7 @@ contains
             )
 
             !
-            !==> Solve system
+            ! Solve system
             !
             call genbunn(nperod, nunk, mperod, munk, w(iw1:), w(iw2:), w(iw3:), &
                 idimf, f(mstart, nstart), local_error_flag, w(iw4:))
@@ -548,7 +548,7 @@ contains
         end associate
 
         !
-        !==>  Fill in identical values when have periodic boundary conditions.
+        !  Fill in identical values when have periodic boundary conditions.
         !
         if (nbdcnd == 0) f(mstart:mstop, np1) = f(mstart:mstop, 1)
 

@@ -55,7 +55,7 @@ contains
         end if
 
         !
-        !==> Solve poisson's equation on centered grid
+        ! Solve poisson's equation on centered grid
         !
         associate( &
             elmbda => HELMHOLTZ_CONSTANT, &
@@ -90,7 +90,7 @@ contains
         end if
 
         !
-        !==> Solve poisson's equation on staggered grid
+        ! Solve poisson's equation on staggered grid
         !
         associate( &
             elmbda => HELMHOLTZ_CONSTANT, &

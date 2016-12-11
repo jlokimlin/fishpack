@@ -60,106 +60,100 @@ program thstcyl
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-        wp, &
-        ip, &
-        FishpackSolver, &
-        FishpackGrid
+        ip, wp, hstcyl
 
     ! Explicit typing only
     implicit none
 
     !-----------------------------------------------
-    ! Local variables
+    ! Dictionary
     !-----------------------------------------------
-    type(FishpackSolver)   :: solver
-    type(FishpackGrid)     :: grid
-    integer(ip), parameter :: m = 50
-    integer(ip), parameter :: n = 52
-    integer(ip), parameter :: idimf = 50 + 1
+    integer(ip), parameter :: M = 50
+    integer(ip), parameter :: N = 52
+    integer(ip), parameter :: IDIMF = M + 1
     integer(ip)            :: mbdcnd, nbdcnd, i, j, ierror
-    real(wp)               :: f(idimf,n)
-    real(wp), allocatable  :: r(:), z(:)
-    real(wp), allocatable  :: bda(:), bdb(:), bdc(:), bdd(:)
-    real(wp)               :: a, b, c, d, elmbda
-    real(wp)               :: pertrb, x, discretization_error
+    real(wp)               :: f(IDIMF,N), pertrb
+    real(wp), dimension(N) :: bdb, z
+    real(wp), dimension(M) :: bdc, bdd, r
+    real(wp)               :: a, b, c, d, elmbda, bda(1)
+    real(wp), parameter    :: ZERO = 0.0_wp, HALF = 0.5_wp
+    real(wp), parameter    :: ONE = 1.0_wp, FOUR = 4.0_wp
     !-----------------------------------------------
 
-    ! Set conditions in r
-    a = 0.0_wp
-    b = 1.0_wp
-    mbdcnd = 6
+    ! Set domain
+    a = ZERO
+    b = ONE
+    c = ZERO
+    d = ONE
 
-    ! Set conditions in z
-    c = 0.0_wp
-    d = 1.0_wp
+    ! Set boundary conditions
+    mbdcnd = 6
     nbdcnd = 3
 
     ! Set helmholtz constant
-    elmbda = 0.0_wp
-    !
-    !     generate and store grid points for the purpose of computing
-    !     boundary data and the right side of the poisson equation.
-    !
-    r = grid%get_staggered_grid(start=a, stop=b, num=m)
-    z = grid%get_staggered_grid(start=c, stop=d, num=n)
+    elmbda = ZERO
 
-    !
-    !==> Generate boundary data. bda is a dummy variable
-    !
-    allocate( bda, bdb, mold=z )
-    allocate( bdc, bdd, mold=r )
-
-    bdb = 4.0_wp * (z**4)
-    bdc = 0.0_wp
-    bdd = 4.0_wp * (r**4)
-    !
-    !     generate right side of equation.
-    !
-    do i = 1, m
-        f(i, :n) = 4.0_wp*(r(i)**2) * (z**2) * (4.0_wp * (z**2) + 3.0_wp * (r(i)**2) )
+    ! Generate and store grid points for the purpose of computing
+    ! boundary data and the right side of the poisson equation.
+    do i = 1, M
+        r(i) = (real(i, kind=wp) - HALF)/M
     end do
 
-    !
-    !==> Solve system
-    !
-    call solver%hstcyl(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, bdd, &
-        elmbda, f, idimf, pertrb, ierror)
-    !
-    !     compute discretization error by minimizing over all a the function
-    !     norm(f(i, j) - a*1 - u(r(i), z(j))).  the exact solution is
-    !                u(r, z) = (r*z)**4 + arbitrary constant.
-    !
-    x = 0.0_wp
-    do i = 1, m
-        x = x + sum(f(i,:)-(r(i)*z)**4)
+    do j = 1, N
+        z(j) = (real(j, kind=wp) - HALF)/N
     end do
 
-    x = x/(m*n)
-    f(:m,:) = f(:m,:) - x
+    ! Generate boundary data. bda is a 1-dimensional dummy variable
+    bdb = FOUR * (z**4)
+    bdc = ZERO
+    bdd = FOUR * (r**4)
 
-    discretization_error = 0.0_wp
-    do i = 1, m
-        do j = 1, n
-            x = abs(f(i, j)-(r(i)*z(j))**4)
-            discretization_error = max(x, discretization_error)
+    ! Generate right side of equation.
+    block
+        real(wp), parameter :: THREE = 3.0_wp
+
+        do i = 1, M
+            f(i,:N) = FOUR * (r(i)**2) * (z**2) * (FOUR * (z**2) + THREE * (r(i)**2) )
         end do
-    end do
+    end block
 
-    !
-    !==> Print earlier output from platforms with 64 bit floating point
-    !    arithmetic followed by the output from this computer
-    !
-    write( stdout, '(/a)') '     hstcyl *** TEST RUN *** '
-    write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-    write( stdout, '(a)') '     ierror = 0,  pertrb = -4.4311e-4'
-    write( stdout, '(a)') '     discretization error = 7.5280e-5'
-    write( stdout, '(a)') '     The output from your computer is: '
-    write( stdout, '(a,i3,a,1pe15.6)') '     ierror =', ierror, ' pertrb = ', pertrb
-    write( stdout, '(a,1pe15.6/)') '     discretization error = ', discretization_error
+    ! Solve 2D Helmholtz in cylindrical coordinates on staggered grid
+    call hstcyl(a, b, M, mbdcnd, bda, bdb, c, d, N, nbdcnd, bdc, bdd, &
+        elmbda, f, IDIMF, pertrb, ierror)
 
+    ! Compute discretization error by minimizing over all a the function
+    ! norm(f(i, j) - a*1 - u(r(i), z(j))). The exact solution is
     !
-    !==> Release memory
-    !
-    deallocate( r, z, bda, bdb, bdc, bdd )
+    ! u(r, z) = (r*z)**4 + arbitrary constant.
+    block
+        real(wp) :: x, discretization_error
+        real(wp) :: exact_solution(M,N)
+
+        x = ZERO
+        do i = 1, M
+            x = x + sum(f(i,:)-(r(i)*z)**4)
+        end do
+        x = x/(M*N)
+        f(:M,:) = f(:M,:) - x
+
+        do j = 1, N
+            do i = 1, M
+                exact_solution(i,j) = (r(i)*z(j))**4
+            end do
+        end do
+
+        ! Set discretization error
+        discretization_error = maxval(abs(exact_solution - f(:M,:N)))
+
+        ! Print earlier output from platforms with 64 bit floating point
+        ! arithmetic followed by the output from this computer
+        write( stdout, '(/a)') '     hstcyl *** TEST RUN *** '
+        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(a)') '     ierror = 0,  pertrb = -4.4311e-4'
+        write( stdout, '(a)') '     discretization error = 7.5280e-5'
+        write( stdout, '(a)') '     The output from your computer is: '
+        write( stdout, '(a,i3,a,1pe15.6)') '     ierror =', ierror, ' pertrb = ', pertrb
+        write( stdout, '(a,1pe15.6/)') '     discretization error = ', discretization_error
+    end block
 
 end program thstcyl

@@ -142,13 +142,7 @@ program tgenbun
     use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
 
-    use fishpack_library, only: &
-        wp, &
-        ip, &
-        TridiagonalData, &
-        TridiagonalSolver, &
-        Grid, &
-        CenteredGrid
+    use fishpack_library
 
     ! Explicit typing only
     implicit none
@@ -156,174 +150,104 @@ program tgenbun
     !--------------------------------------------------------------
     ! Dictionary
     !--------------------------------------------------------------
-    type(TridiagonalSolver) :: solver
-    type(CenteredGrid)      :: centered_grid
-    integer(ip), parameter  :: NX = 20 !! number of horizontally staggered grid points
-    integer(ip), parameter  :: NY = 40 !! number of vertically staggered grid points
-    integer(ip)             :: i, j !! counter
-    integer(ip)             :: error_flag
-    real(wp),    parameter  :: PI = acos(-1.0_wp)
-    real(wp)                :: approximate_solution(NX, NY)
-    real(wp)                :: source(NX + 2, NY)
-    real(wp)                :: discretization_error
-    real(wp)                :: exact_solution
-    !------------------------------------------------------------------------------
+    integer(ip), parameter :: M = 20, N = 40
+    integer(ip), parameter :: mp1 = M + 1, np1 = N + 1
+    integer(ip), parameter :: idimf = M + 2
+    integer(ip)            :: i, j, ierror, mperod, nperod
+    real(wp)               :: f(idimf,N), x(mp1), y(np1), dx, dy
+    real(wp), dimension(M) :: a, b, c
+    real(wp), parameter    :: ZERO = 0.0_wp, ONE = 1.0_wp, TWO = 2.0_wp
+    !--------------------------------------------------------------
 
+    ! Set boundary conditions
+    mperod = 1
+    nperod = 0
 
-    associate( &
-        x_interval => [ 0.0_wp, 1.0_wp ], &
-        y_interval => [ -PI, PI ] &
-        )
-        !
-        !==> Allocate memory
-        !
-        centered_grid = CenteredGrid(x_interval, y_interval, NX, NY)
+    ! Set mesh sizes
+    dx = ONE/M
+    dy = TWO_PI/N
 
-    end associate
+    ! Generate grid points for later use
+    do i = 1, mp1
+        x(i) = real(i - 1, kind=wp) * dx
+    end do
 
-    !
-    !==> Associate various quantities
-    !
-    associate( &
-        dx => centered_grid%DX, &
-        dy => centered_grid%DY, &
-        x => centered_grid%x, &
-        y => centered_grid%y, &
-        f => source, &
-        u => approximate_solution &
-        )
+    do j = 1, N
+        y(j) = -PI + real(j - 1, kind=wp) * dy
+    end do
 
-        !
-        !==> Initialize tridiagonal solver
-        !
-        associate( &
-            X_PERIODICITY => 1, &
-            Y_PERIODICITY => 0 &
-            )
-            call solver%create(NX, X_PERIODICITY, Y_PERIODICITY, coeff_procedure)
-        end associate
+    ! Generate coefficients
+    block
+        real(wp) :: s, t, t2
 
-        !
-        !==> Assign coefficients
-        !
-        call solver%assign_coefficients(centered_grid)
+        s = (dy/dx)**2
+        do i = 2, M - 1
+            t = ONE + x(i)
+            t2 = t**2
+            a(i) = (t2 + t * dx) * s
+            b(i) = -TWO * t2 * s
+            c(i) = (t2 - t * dx) * s
+        end do
+        a(1) = ZERO
+        b(1) = -TWO * s
+        c(1) = -b(1)
+        b(M) = -TWO * s * (ONE + x(M))**2
+        a(M) = (-b(M)/TWO) + (ONE + x(M)) * dx * s
+        c(M) = ZERO
+    end block
 
-        !
-        !==> Generate the source, i.e., right hand side of the equation
-        !
-        associate( s => (dy/dx)**2 )
+    ! Generate right hand side
+    block
+        real(wp)            :: s, dy2, t, t2, t4
+        real(wp), parameter :: THREE = 3.0_wp, EIGHT = 8.0_wp
+        real(wp), parameter :: ELEVEN = 11.0_wp, SIXTEEN = 16.0_wp
 
-            do j = 1, NY
-                do i = 2, NX - 1
-                    f(i, j) = 3.0_wp * (1.0_wp + x(i))**4 * (dy**2) * sin( y(j) )
-                end do
-            end do
-
-            associate( t => 1.0_wp + x(NX) )
-                do j = 1, NY
-                    f(1, j) = &
-                        (11.0_wp + 8.0_wp/dx) * (dy**2) * sin( y(j) )
-
-                    f(NX, j) = &
-                        (3.0_wp * (t**4) * (dy**2) &
-                        - 16.0_wp * (t**2) * s &
-                        + 16.0_wp * t * s * dx) * sin(y(j))
-                end do
-            end associate
-        end associate
-
-        !
-        !==> Solve system
-        !
-        call solver%solve_2d_real_linear_system_centered(f, u, error_flag)
-
-        !
-        !==> Compute the discretization error
-        !
-        discretization_error = 0.0_wp
-        do j = 1, NY
-            do i = 1, NX
-                ! Set exact solution
-                exact_solution = ( (1.0_wp + x(i))**4 ) * sin(y(j))
-                ! Set local error
-                associate( local_error => abs(u(i, j) - exact_solution))
-                    ! Set discretization error
-                    discretization_error = max(discretization_error, local_error)
-                end associate
+        s = (dy/dx)**2
+        dy2 = dy**2
+        do j = 1, N
+            do i = 2, M - 1
+                f(i, j) = THREE * (ONE + x(i))**4 * dy2 * sin(y(j))
             end do
         end do
-    end associate
 
+        t = ONE + x(M)
+        t2 = t**2
+        t4 = t**4
+        do j = 1, N
+            f(1,j) = (ELEVEN + EIGHT/dx) * dy2 * sin(y(j))
+            f(M,j) = (THREE * t4 * dy2 - SIXTEEN * t2 * s + SIXTEEN * t * s * dx) * sin(y(j))
+        end do
+    end block
+
+    ! Solve real linear system on a centered grid
+    call genbun(nperod, N, mperod, M, a, b, c, idimf, f, ierror)
+
+    ! Compute discretization error. The exact solution is
     !
-    !==> Print earlier output from platforms with 64-bit floating point
-    !    arithmetic followed by the output from this computer
+    ! u(x, y) = (1+x)**4*sin(y).
     !
-    write( stdout, '(/a)') '     genbun *** TEST RUN *** '
-    write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-    write( stdout, '(a)') '     ierror = 0,  discretization error = 9.6406e-3'
-    write( stdout, '(a)') '     The output from your computer is: '
-    write( stdout, '(a,i3,a,1pe15.6/)') &
-        '     error_flag =', error_flag, &
-        ' discretization error = ', discretization_error
+    block
+        real(wp) :: discretization_error
+        real(wp) :: exact_solution(M,N)
 
-    !
-    !==> Release memory
-    !
-    call solver%destroy()
-    call centered_grid%destroy()
+        do i = 1, M
+            do j = 1, N
+                exact_solution(i,j) = ((ONE + x(i))**4) * sin(y(j))
+            end do
+        end do
 
-contains
+        ! Set discretization error
+        discretization_error = maxval(abs(exact_solution - f(:M,:N)))
 
-    subroutine coeff_procedure(solver, centered_grid)
-        !
-        ! Purpose:
-        !
-        ! User-supplied subroutine to assign coefficients
-        !
-        !--------------------------------------------------------------
-        ! Dummy arguments
-        !--------------------------------------------------------------
-        class(TridiagonalData), intent(inout)  :: solver
-        class(Grid),            intent(inout)  :: centered_grid
-        !--------------------------------------------------------------
-        integer(ip) :: i !! Counter
-        !--------------------------------------------------------------
-
-        select type(solver)
-            class is (TridiagonalSolver)
-            select type(centered_grid)
-                class is (CenteredGrid)
-                associate( &
-                    nx => centered_grid%NX, &
-                    dx => centered_grid%DX, &
-                    dy => centered_grid%DY, &
-                    x => centered_grid%x &
-                    )
-                    associate( &
-                        s => (dy/dx)**2, &
-                        a => solver%subdiagonal, &
-                        b => solver%diagonal, &
-                        c => solver%superdiagonal &
-                        )
-                        do i = 2, nx - 1
-                            associate( t => 1.0_wp + x(i) )
-                                a(i) = ( (t**2) + t * dx) * s
-                                b(i) = -2.0_wp * ( t**2 ) * s
-                                c(i) = ( (t**2) - t * dx) * s
-                            end associate
-                        end do
-                        a(1) = 0.0_wp
-                        b(1) = -2.0_wp * s
-                        c(1) = -b(1)
-                        b(nx) = -2.0_wp * s * (1.0_wp + x(nx))**2
-                        a(nx) = (-b(nx)/2.0_wp) + (1.0_wp + x(nx)) * dx * s
-                        c(nx) = 0.0_wp
-                    end associate
-                end associate
-            end select
-        end select
-
-    end subroutine coeff_procedure
-
+        ! Print earlier output from platforms with 64-bit floating point
+        ! arithmetic followed by the output from this computer
+        write( stdout, '(/a)') '     genbun *** TEST RUN *** '
+        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(a)') '     ierror = 0,  discretization error = 9.6406e-3'
+        write( stdout, '(a)') '     The output from your computer is: '
+        write( stdout, '(a,i3,a,1pe15.6/)') &
+            '     error_flag =', ierror, &
+            ' discretization error = ', discretization_error
+    end block
 
 end program tgenbun

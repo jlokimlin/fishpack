@@ -51,8 +51,9 @@ program thwscrt
     integer(ip), parameter   :: IDIMF = M + 5
     integer(ip)              :: mbdcnd, nbdcnd, i, j, ierror
     real(wp)                 :: f(IDIMF, NP1), x(MP1)
-    real(wp), dimension(NP1) :: bdb, bda, bdc, bdd, y
-    real(wp)                 :: a, b, c, d, elmbda, pertrb, discretization_error
+    real(wp), dimension(NP1) :: bdb, y
+    real(wp), dimension(1)   :: bda, bdc, bdd
+    real(wp)                 :: a, b, c, d, elmbda, pertrb
     real(wp), parameter      :: PI2 = PI**2
     real(wp), parameter      :: ZERO = 0.0_wp, ONE = 1.0_wp
     real(wp), parameter      :: TWO = 2.0_wp, THREE = 3.0_wp, FOUR = 4.0_wp
@@ -81,10 +82,9 @@ program thwscrt
         y(j) = -ONE + FOUR * real(j - 1, kind=wp)/N
     end do
 
-    ! Generate boundary data. bda, bdc, and bdd are dummy variables.
-    do j = 1, NP1
-        bdb(j) = FOUR * cos((y(j) + ONE)*HALF_PI)
-    end do
+    ! Generate boundary data.
+    ! In our example, bda, bdc, and bdd are 1-dimensional dummy variables.
+    bdb = FOUR * cos((y + ONE) * HALF_PI)
 
     ! Generate right side of equation.
     f = ZERO
@@ -94,6 +94,7 @@ program thwscrt
         end do
     end do
 
+    ! Solve 2D Helmholtz in cartesian coordinates on a centered grid
     call hwscrt(a, b, M, mbdcnd, bda, bdb, c, d, N, nbdcnd, bdc, bdd, &
         elmbda, f, IDIMF, pertrb, ierror)
 
@@ -102,26 +103,27 @@ program thwscrt
     ! u(x, y) = (x**2) * cos((y+1)*(pi/2))
     !
     block
-        real(wp) :: local_error, exact_solution
+        real(wp) :: discretization_error
+        real(wp) :: exact_solution(MP1, NP1)
 
-        discretization_error = ZERO
-        do i = 1, MP1
-            do j = 1, NP1
-                exact_solution = (x(i)**2) * cos((y(j)+ONE) * HALF_PI)
-                local_error = abs(f(i, j) - exact_solution)
-                discretization_error = max(local_error, discretization_error)
+        do j = 1, NP1
+            do i = 1, MP1
+                exact_solution(i,j) = (x(i)**2) * cos((y(j)+ONE) * HALF_PI)
             end do
         end do
-    end block
 
-    ! Print earlier output from platforms with 64-bit floating point
-    ! arithmetic followed by the output from this computer
-    write( stdout, '(/a)') '     hwscrt *** TEST RUN *** '
-    write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-    write( stdout, '(a)') '     ierror = 0,  discretization error = 5.36508e-4'
-    write( stdout, '(a)') '     The output from your computer is: '
-    write( stdout, '(a,i3,a,1pe15.6/)') &
-        '     ierror =', ierror, &
-        ' discretization error = ', discretization_error
+        ! Set discretization error
+        discretization_error = maxval(abs(exact_solution - f(:MP1,:NP1)))
+
+        ! Print earlier output from platforms with 64-bit floating point
+        ! arithmetic followed by the output from this computer
+        write( stdout, '(/a)') '     hwscrt *** TEST RUN *** '
+        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(a)') '     ierror = 0,  discretization error = 5.36508e-4'
+        write( stdout, '(a)') '     The output from your computer is: '
+        write( stdout, '(a,i3,a,1pe15.6/)') &
+            '     ierror =', ierror, &
+            ' discretization error = ', discretization_error
+    end block
 
 end program thwscrt

@@ -38,10 +38,7 @@ program thstcrt
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-        wp, &
-        ip, &
-        FishpackSolver, &
-        FishpackGrid
+        ip, wp, PI, hstcrt
 
     ! Explicit typing only
     implicit none
@@ -49,98 +46,92 @@ program thstcrt
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
-    type(FishpackSolver)   :: solver
-    type(FishpackGrid)     :: grid
-    integer(ip), parameter :: m = 48
-    integer(ip), parameter :: n = 53
-    integer(ip), parameter :: idimf = m + 2
+    integer(ip), parameter :: M = 48
+    integer(ip), parameter :: N = 53
+    integer(ip), parameter :: IDIMF = M + 2
     integer(ip)            :: mbdcnd, nbdcnd, i, j, ierror
-    real(wp)               :: f(idimf, n)
-    real(wp), allocatable  :: bda(:), bdb(:), bdc(:), bdd(:)
-    real(wp), allocatable  :: x(:), y(:)
+    real(wp)               :: f(IDIMF, N)
+    real(wp), dimension(N) :: bda, bdb, y
     real(wp)               :: a, b, c, d
-    real(wp)               :: elmbda, local_error, pertrb, discretization_error
-    real(wp), parameter    :: PI = acos(-1.0_wp)
+    real(wp)               :: dx, dy, x(M), bdc(1), bdd(1)
+    real(wp)               :: elmbda, pertrb
     real(wp), parameter    :: PI2 = PI**2
+    real(wp), parameter    :: ZERO = 0.0_wp, HALF = 0.5_wp, ONE = 1.0_wp
+    real(wp), parameter    :: TWO = 2.0_wp, THREE = 3.0_wp
     !-----------------------------------------------
 
-    ! Set conditions in x
-    a = 1.0_wp
-    b = 3.0_wp
-    mbdcnd = 2
+    ! Set domain
+    a = ONE
+    b = THREE
+    c = -ONE
+    d = ONE
 
-    ! Set conditions in y
-    c = -1.0_wp
-    d = 1.0_wp
+    ! Set boundary conditions
+    mbdcnd = 2
     nbdcnd = 0
 
     ! Set helmholtz constant
-    elmbda = -2.0_wp
+    elmbda = -TWO
 
+    ! Set mesh sizes
+    dx = (b - a)/M
+    dy = (d - c)/N
+
+    ! Generate and store grid points for computation of boundary data
+    ! and the right side of the helmholtz equation.
     !
-    !==> Generate and store grid points for computation of boundary data
-    !    and the right side of the helmholtz equation.
-    !
-    x = grid%get_staggered_grid(start=a, stop=b, num=m)
-    y = grid%get_staggered_grid(start=c, stop=d, num=n)
-
-    !
-    !==> Generate boundary data.
-    !
-    allocate( bda, bdb, mold=y )
-
-    bda = 0.0_wp
-    bdb = -PI*cos(PI*y)
-
-    ! bdc and bdd are dummy arguments in this example.
-    allocate( bdc, bdd, mold=x )
-
-
-    associate( CONST => -2.0_wp*(PI2 + 1.0_wp) )
-        do i = 1, m
-            !
-            !==> Generate right side of equation.
-            !
-            f(i,:) = CONST*sin(PI*x(i))*cos(PI*y(:))
-
-        end do
-    end associate
-
-
-    !
-    !==> Solve system
-    !
-    call solver%hstcrt(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, &
-        bdc, bdd, elmbda, f, idimf, pertrb, ierror)
-
-    discretization_error = 0.0_wp
-    do i = 1, m
-        do j = 1, n
-            !
-            !==> Compute discretization error. The exact solution is
-            !
-            !    u(x, y) = sin(pi*x)*cos(pi*y) .
-            !
-            local_error = abs(f(i, j)-sin(PI*x(i))*cos(PI*y(j)))
-            discretization_error = max(local_error, discretization_error)
-        end do
+    do i = 1, M
+        x(i) = a + (real(i, kind=wp) - HALF) * dx
     end do
 
-    !
-    !==> Print earlier output from platforms with 64-bit floating point
-    !    arithmetic followed by the output from this computer
-    !
-    write( stdout, '(/a)') '     hstcrt *** TEST RUN *** '
-    write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-    write( stdout, '(a)') '     ierror = 0,  discretization error = 1.2600e-3'
-    write( stdout, '(a)') '     The output from your computer is: '
-    write( stdout, '(a,i3,a,1pe15.6/)') &
-        '     ierror =', ierror, &
-        ' discretization error = ', discretization_error
+    do j = 1, N
+        y(j) = c + (real(j, kind=wp) - HALF) * dy
+    end do
 
+    ! Generate boundary data. bdc and bdd are dummy arguments in this example.
+    bda = ZERO
+    bdb = -PI * cos(PI*y)
+
+
+    ! Generate right side of equation
+    block
+        real(wp), parameter :: CONST = -TWO*(PI2 + ONE)
+
+        do i = 1, M
+            f(i,:) = CONST*sin(PI*x(i))*cos(PI*y(:))
+        end do
+    end block
+
+    ! Solve 2D Helmholtz in cartesian coordinates on staggered grid
+    call hstcrt(a, b, M, mbdcnd, bda, bdb, c, d, N, nbdcnd, &
+        bdc, bdd, elmbda, f, IDIMF, pertrb, ierror)
+
+    ! Compute discretization error. The exact solution is
     !
-    !==> Release memory
+    !    u(x, y) = sin(pi*x)*cos(pi*y) .
     !
-    deallocate( x, y, bda, bdb, bdc, bdd )
+    block
+        real(wp) :: discretization_error
+        real(wp) :: exact_solution(M,N)
+
+        do j = 1, N
+            do i = 1, M
+                exact_solution(i,j) = sin(PI*x(i))*cos(PI*y(j))
+            end do
+        end do
+
+        ! Set discretization error
+        discretization_error = maxval(abs(exact_solution - f(:M,:N)))
+
+        ! Print earlier output from platforms with 64-bit floating point
+        ! arithmetic followed by the output from this computer
+        write( stdout, '(/a)') '     hstcrt *** TEST RUN *** '
+        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(a)') '     ierror = 0,  discretization error = 1.2600e-3'
+        write( stdout, '(a)') '     The output from your computer is: '
+        write( stdout, '(a,i3,a,1pe15.6/)') &
+            '     ierror =', ierror, &
+            ' discretization error = ', discretization_error
+    end block
 
 end program thstcrt

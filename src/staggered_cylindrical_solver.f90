@@ -404,7 +404,7 @@ contains
         !-----------------------------------------------
 
         !
-        !==> Check validity of calling arguments
+        ! Check validity of calling arguments
         !
         call check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, &
             elmbda, idimf, ierror)
@@ -423,7 +423,7 @@ contains
         np = nbdcnd + 1
 
         !
-        !==> Define a, b, c coefficients in w-array.
+        ! Define a, b, c coefficients in w-array.
         !
         iwb = m
         iwc = iwb + m
@@ -438,7 +438,7 @@ contains
             w(k) = elmbda/w(j)**2 - TWO/dr2
         end do
         !
-        !==> Enter boundary data for r-boundaries.
+        ! Enter boundary data for r-boundaries.
         !
         select case (mbdcnd)
             case (1:2)
@@ -463,7 +463,7 @@ contains
         end select
 
         !
-        !==> Enter boundary data for theta-boundaries.
+        ! Enter boundary data for theta-boundaries.
         !
         temp = TWO/dt2
 
@@ -527,12 +527,12 @@ contains
             iw3 => iwr + 1 &
             )
             !
-            !==> Solve the system of equations.
+            ! Solve the system of equations.
             !
             select case (nbdcnd)
                 case (0)
                     !
-                    !==> Solve system with call to genbunn
+                    ! Solve system with call to genbunn
                     !
                     call genbunn(lp, n, 1, m, w, w(iw1:), w(iw2:), idimf, f, local_error_flag, w(iw3:))
 
@@ -543,7 +543,7 @@ contains
 
                 case default
                     !
-                    !==> Solve system with call to poistgg
+                    ! Solve system with call to poistgg
                     !
                     call poistgg(lp, n, 1, m, w, w(iw1:), w(iw2:), idimf, f, local_error_flag, w(iw3:))
 

@@ -47,16 +47,15 @@ program thwscyl
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
-    integer(ip), parameter      :: M = 50, N = 100
-    integer(ip), parameter      :: IDIMF = M + 25
-    integer(ip), parameter      :: MP1 = M + 1, NP1 = N + 1
-    integer(ip)                 :: mbdcnd, nbdcnd, i, j, ierror
-    real(wp)                    :: f(IDIMF, N + 1)
-    real(wp), dimension(MP1)    :: bdc, bdd, r
-    real(wp), dimension(NP1)    :: bda, bdb, z
-    real(wp)                    :: a, b, c, d
-    real(wp)                    :: elmbda, pertrb, discretization_error
-    real(wp), parameter         :: ZERO = 0.0_wp, ONE = 1.0_wp, FOUR = 4.0_wp
+    integer(ip), parameter   :: M = 50, N = 100
+    integer(ip), parameter   :: IDIMF = M + 25
+    integer(ip), parameter   :: MP1 = M + 1, NP1 = N + 1
+    integer(ip)              :: mbdcnd, nbdcnd, i, j, ierror
+    real(wp)                 :: f(IDIMF, NP1)
+    real(wp), dimension(MP1) :: bdc, bdd, r
+    real(wp), dimension(NP1) :: bda, bdb, z
+    real(wp)                 :: a, b, c, d, elmbda, pertrb
+    real(wp), parameter      :: ZERO = 0.0_wp, ONE = 1.0_wp, FOUR = 4.0_wp
     !-----------------------------------------------
 
     ! Set domain and boundary conditions in r
@@ -109,36 +108,37 @@ program thwscyl
     ! u(r, z) = (r*z)**4 + arbitrary constant.
     !
     block
-        real(wp) :: x, local_error, exact_solution
+        real(wp) :: x, discretization_error
+        real(wp) :: exact_solution(MP1, NP1)
 
+        ! Adjust solution
         x = ZERO
         do i = 1, MP1
             x = x + sum(f(i,:NP1)-(r(i)*z(:NP1))**4)
         end do
-
         x = x/(NP1*MP1)
         f(:MP1,:NP1) = f(:MP1,:NP1) - x
 
-        discretization_error = ZERO
         do j = 1, NP1
             do i = 1, MP1
-                exact_solution = (r(i)*z(j))**4
-                local_error = abs(f(i, j)-exact_solution)
-                discretization_error = max(local_error, discretization_error)
+                exact_solution(i,j) = (r(i)*z(j))**4
             end do
         end do
-    end block
 
-    ! Print earlier output from platforms with 64-bit floating point
-    ! arithmetic followed by the output from this computer
-    !
-    write( stdout, '(/a)') '     hwscyl *** TEST RUN *** '
-    write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-    write( stdout, '(a)') '     ierror = 0,  pertrb = 2.2674e-4'
-    write( stdout, '(a)') '     discretization error = 3.7367e-4'
-    write( stdout, '(a)') '     The output from your computer is: '
-    write( stdout, '(a,i3,a,1pe15.6)') &
-        '     ierror =', ierror, ' pertrb = ', pertrb
-    write( stdout, '(a,1pe15.6/)') '     discretization error = ', discretization_error
+        ! Set discretization error
+        discretization_error = maxval(abs(exact_solution - f(:MP1,:NP1)))
+
+        ! Print earlier output from platforms with 64-bit floating point
+        ! arithmetic followed by the output from this computer
+        !
+        write( stdout, '(/a)') '     hwscyl *** TEST RUN *** '
+        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(a)') '     ierror = 0,  pertrb = 2.2674e-4'
+        write( stdout, '(a)') '     discretization error = 3.7367e-4'
+        write( stdout, '(a)') '     The output from your computer is: '
+        write( stdout, '(a,i3,a,1pe15.6)') &
+            '     ierror =', ierror, ' pertrb = ', pertrb
+        write( stdout, '(a,1pe15.6/)') '     discretization error = ', discretization_error
+    end block
 
 end program thwscyl

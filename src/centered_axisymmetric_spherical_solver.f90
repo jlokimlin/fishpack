@@ -765,7 +765,7 @@ contains
         np = 1
 
         !
-        !==> Boundary condition at phi=ps
+        ! Boundary condition at phi=ps
         !
         select case (mbdcnd)
             case (1:2,7)
@@ -782,7 +782,7 @@ contains
         end select
 
         !
-        !==> Boundary condition at phi=pf
+        ! Boundary condition at phi=pf
         !
         select case (mbdcnd)
             case (1,4:5)
@@ -834,7 +834,7 @@ contains
         end select
 
         !
-        !==> Boundary condition at r=rf
+        ! Boundary condition at r=rf
         !
         select case (nbdcnd)
             case (1,4:5)
@@ -977,7 +977,7 @@ contains
 
         do while(iflg == 1)
             !
-            !==> Iterate solver
+            ! Iterate solver
             !
             call blktri_aux%blktrii(iflg, np, nunk, an(jrs:), bn(jrs:), cn(jrs:), mp, &
                 munk, am(its:), bm(its:), cm(its:), idimf, f(its:, jrs:), ierror, w, wc)
@@ -986,7 +986,7 @@ contains
                 error stop 'fishpack library: blktrii call failed in hwscsp_lower_routine'
             end if
             !
-            !==> Increment solver flag
+            ! Increment solver flag
             !
             iflg = iflg + 1
         end do

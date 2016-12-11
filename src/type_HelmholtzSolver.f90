@@ -85,7 +85,7 @@ contains
         end if
 
         !
-        !==> Call procedural solver
+        ! Call procedural solver
         !
         associate ( &
             a => this%domain%A, &
@@ -163,7 +163,7 @@ contains
         end associate
 
         !
-        !==> Check optional arguments
+        ! Check optional arguments
         !
         if (present(perturbation)) then
             perturbation = perturbation_op
@@ -208,7 +208,7 @@ contains
         end if
 
         !
-        !==> Call procedural solver
+        ! Call procedural solver
         !
         associate ( &
             a => this%domain%A, &
@@ -287,7 +287,7 @@ contains
         end associate
 
         !
-        !==> Check optional arguments
+        ! Check optional arguments
         !
         if (present(perturbation)) then
             perturbation = perturbation_op

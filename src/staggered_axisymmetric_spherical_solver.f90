@@ -766,7 +766,7 @@ contains
             bm(i) = elmbda*(x**2) - am(i) - cm(i)
         end do
         !
-        !==> Define coefficients an, bn, cn
+        ! Define coefficients an, bn, cn
         !
         x = c/dr
         do j = 1, n
@@ -779,7 +779,7 @@ contains
 
         if (c == ZERO .and. nb == 2) nb = 6
         !
-        !==> Enter data on theta boundaries
+        ! Enter data on theta boundaries
         !
         select case (mbdcnd)
             case (1:2, 7)
@@ -861,7 +861,7 @@ contains
 
         if (intl == 0) then
             !
-            !==> Initialize blktri
+            ! Initialize blktri
             !
             call aux%blktrii(0, 1, n, an, bn, cn, 1, m, am, bm, cm, idimf, f, ierror, w, wc)
 

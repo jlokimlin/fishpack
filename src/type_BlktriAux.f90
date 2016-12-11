@@ -421,7 +421,7 @@ contains
                             iwbh = iw1 + nm
                         end if
                         !
-                        !==> Set workspace indices
+                        ! Set workspace indices
                         !
                         iw2 = iw1 + m
                         iw3 = iw2 + m
@@ -516,7 +516,7 @@ contains
             EPS => self%MACHINE_EPSILON &
             )
             !
-            !==> begin reduction phase
+            ! begin reduction phase
             !
             kdo = k - 1
             do l = 1, kdo
@@ -714,7 +714,7 @@ contains
                 end do loop_131
             end if
             !
-            !==> begin back substitution phase
+            ! begin back substitution phase
             !
             do ll = 1, k
                 l = k - ll + 1
@@ -1064,7 +1064,7 @@ contains
                 crt = bd(id)
                 id = id - 1
                 !
-                !==> begin solution to system
+                ! begin solution to system
                 !
                 d(m) = a(m)/(b(m)-crt)
                 w(m) = y(m)/(b(m)-crt)
@@ -1125,7 +1125,7 @@ contains
                 ia = ia - 1
                 iflg = 1
                 !
-                !==> scalar multiplication
+                ! scalar multiplication
                 !
                 y = rt*y
             end if
@@ -1203,7 +1203,7 @@ contains
                 id = id - 1
                 iflg = 1
                 !
-                !==> begin solution to system
+                ! begin solution to system
                 !
                 bh = b(m) - crt
                 ym = y(m)
@@ -1263,7 +1263,7 @@ contains
                             rt = bm2(m2)
                             m2 = m2 - 1
                         !
-                        !==> matrix multiplication
+                        ! matrix multiplication
                         !
                         end if
                     end if
@@ -1288,7 +1288,7 @@ contains
                 ia = ia - 1
                 iflg = 1
                 !
-                !==> scalar multiplication
+                ! scalar multiplication
                 !
                 y = rt*y
             end if
@@ -1541,7 +1541,7 @@ contains
 
                                 cycle main_loop
                             !
-                            !==> Case of a multiple zero
+                            ! Case of a multiple zero
                             !
                             end if
                         end if
@@ -1551,7 +1551,7 @@ contains
 
                         cycle main_loop
                     !
-                    !==> case of a complex zero
+                    ! case of a complex zero
                     !
                     end block block_construct
 
@@ -1741,7 +1741,7 @@ contains
             if (id == 0) ibr = 1
 
             !
-            !==> begin solution to system
+            ! begin solution to system
             !
             d(m) = a(m)/(b(m)-rt)
             w(m) = y(m)/(b(m)-rt)
@@ -1881,7 +1881,7 @@ contains
             if (id == 0) ibr = 1
 
             !
-            !==> begin solution to system
+            ! begin solution to system
             !
             bh = b(m) - rt
             ym = y(m)
@@ -2054,7 +2054,7 @@ contains
                         c = b**2
                     end if
                     !
-                    !==>  look for small squared sub-diagonal element
+                    !  look for small squared sub-diagonal element
                     !
                     do m = l, n
                         if (e2(m) > c) then
@@ -2062,7 +2062,7 @@ contains
                         end if
                         exit
                     !
-                    !==> e2(n) is always zero, so there is no exit
+                    ! e2(n) is always zero, so there is no exit
                     !    through the bottom of the loop
                     !
                     end do
@@ -2073,7 +2073,7 @@ contains
 
                             if (j == 30) then
                                 !
-                                !==> set error: no convergence to an
+                                ! set error: no convergence to an
                                 !    eigenvalue after 30 iterations
                                 !
                                 error_flag = l
@@ -2082,7 +2082,7 @@ contains
 
                             j = j + 1
                             !
-                            !==> form shift
+                            ! form shift
                             !
                             l1 = l + 1
                             s = sqrt(e2(l))
@@ -2094,7 +2094,7 @@ contains
                             d(l1:n) = d(l1:n) - h
                             f = f + h
                             !
-                            !==> rational ql transformation
+                            ! rational ql transformation
                             !
                             if (g == ZERO) then
                                 g = b
@@ -2106,7 +2106,7 @@ contains
                             s = ZERO
                             mml = m - l
                             !
-                            !==> for i = m-1 step -1 until l do
+                            ! for i = m-1 step -1 until l do
                             !
                             do ii = 1, mml
                                 i = m - ii
@@ -2125,7 +2125,7 @@ contains
                             e2(l) = s*g
                             d(l) = h
                             !
-                            !==> guard against underflowed h
+                            ! guard against underflowed h
                             !
                             if (h == ZERO) exit if_construct
 
@@ -2140,11 +2140,11 @@ contains
 
                     p = d(l) + f
                     !
-                    !==> order eigenvalues
+                    ! order eigenvalues
                     !
                     if (l /= 1) then
                         !
-                        !==> for i=l step -1 until 2 do
+                        ! for i=l step -1 until 2 do
                         !
                         do ii = 2, l
                             i = l + 2 - ii
@@ -2174,7 +2174,7 @@ contains
 
             end associate
         !
-        !==> last card of tqlrat
+        ! last card of tqlrat
         !
         end associate common_variables
 

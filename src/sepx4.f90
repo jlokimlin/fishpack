@@ -547,7 +547,7 @@ contains
         end associate
 
         !
-        !==> Release memory
+        ! Release memory
         !
         call aux%workspace%destroy()
 
@@ -731,7 +731,7 @@ contains
             dit = d
             dly =(dit - cit)/n
             !
-            !==> set right hand side values from grhs in usol on the interior
+            ! set right hand side values from grhs in usol on the interior
             !     and non-specified boundaries.
             !
             usol(2:m, 2:n) = (dly**2) * grhs(2:m, 2:n)
@@ -770,7 +770,7 @@ contains
 
             i1 = 1
             !
-            !==> set switches for periodic or non-periodic boundaries
+            ! set switches for periodic or non-periodic boundaries
             !
             if (kswx == 1) then
                 mp = 0
@@ -810,7 +810,7 @@ contains
             tdly3 = TWO * (dly**3)
             dly4 = dly**4
             !
-            !==> set subscript limits for portion of array to input to blktri
+            ! set subscript limits for portion of array to input to blktri
             !
             if (kswx==2 .or. kswx==3) then
                 is = 2
@@ -974,7 +974,7 @@ contains
                 end if
             end if
             !
-            !==> save adjusted edges in grhs if iorder=4
+            ! save adjusted edges in grhs if iorder=4
             !
             if (iorder == 4) then
                 grhs(is,js:ns) = usol(is,js:ns)
@@ -985,7 +985,7 @@ contains
 
             pertrb = ZERO
             !
-            !==> check if operator is singular
+            ! check if operator is singular
             !
             call self%is_PDE_singular(mbdcnd, nbdcnd, alpha, beta, cofx, singular)
             !
@@ -1007,14 +1007,14 @@ contains
             end if
 
             !
-            !==> compute solution
+            ! compute solution
             !
             !     save adjusted right hand side in grhs
             grhs(is:ms,js:ns) = usol(is:ms,js:ns)
 
             call genbun(np, nit, mp, mit, am, bm, cm, idmn, usol(is:,js:), local_error_flag)
             !
-            !==>  Check if error detected in pois
+            !  Check if error detected in pois
             !     this can only correspond to ierror=12
             if (local_error_flag /= 0) then
                 !       set error flag if improper coefficients input to pois
@@ -1024,7 +1024,7 @@ contains
 
             if (ierror /= 0) return
             !
-            !==> set periodic boundaries if necessary
+            ! set periodic boundaries if necessary
             !
             if (kswx == 1) usol(k, :l) = usol(1, :l)
 
@@ -1040,13 +1040,13 @@ contains
             !
             if (iorder == 2) return
             !
-            !==> compute new right hand side for fourth order solution
+            ! compute new right hand side for fourth order solution
             !
             call self%defer(cofx, idmn, usol, grhs)
 
             if (singular) call self%seport(usol, zn, zm, pertrb)
             !
-            !==> compute solution
+            ! compute solution
             !
             !     save adjusted right hand side in grhs
             grhs(is:ms,js:ns) = usol(is:ms,js:ns)
@@ -1054,7 +1054,7 @@ contains
             call genbun(np, nit, mp, mit, am, bm, cm, idmn, usol(is:,js:), local_error_flag)
 
             !
-            !==> check if error detected in pois
+            ! check if error detected in pois
             !    this can only correspond to ierror=12
             !
             if (local_error_flag /= 0) then
@@ -1065,7 +1065,7 @@ contains
 
             if (ierror /= 0) return
             !
-            !==> set periodic boundaries if necessary
+            ! set periodic boundaries if necessary
             !
             if (kswx == 1) usol(k, :l) = usol(1, :l)
             if (kswy == 1) usol(:k, l) = usol(:k, 1)
@@ -1132,7 +1132,7 @@ contains
             return
         end if
         !
-        !==> Check that equation is elliptic
+        ! Check that equation is elliptic
         !
         dlx =(b - a)/m
         do i = 2, m
@@ -1145,7 +1145,7 @@ contains
             return
         end do
         !
-        !==> no error found
+        ! no error found
         !
         ierror = 0
 

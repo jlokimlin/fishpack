@@ -115,7 +115,7 @@ contains
         call this%destroy()
 
         !
-        !==> Allocate memory
+        ! Allocate memory
         !
         allocate ( &
             this%west(ny), &
@@ -137,7 +137,7 @@ contains
         this%north = 0.0_wp
 
         !
-        !==> Set the boundary condition types
+        ! Set the boundary condition types
         !
         associate( &
             x => this%X_BOUNDARY_CONDITION_TYPE, &
@@ -156,14 +156,14 @@ contains
         end associate
 
         !
-        !==> Set rectangular domain
+        ! Set rectangular domain
         !
         if (present(rectangular_domain)) then
             this%domain = rectangular_domain
         end if
 
         !
-        !==> Assign pointer
+        ! Assign pointer
         !
         if (present(func)) then
             this%assign_boundary_data => func
@@ -261,7 +261,7 @@ contains
         this%Y_BOUNDARY_CONDITION_TYPE = -1
 
         !
-        !==> Nullify pointer
+        ! Nullify pointer
         !
         if (associated(this%assign_boundary_data)) then
             nullify( this%assign_boundary_data )
