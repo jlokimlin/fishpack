@@ -77,7 +77,6 @@ module type_SepAux
     public :: SepAux
     public :: get_coefficients
 
-    ! Declare derived data type
     type, public :: SepAux
         !---------------------------------------------------------------
         ! Type components
@@ -611,8 +610,6 @@ contains
         end associate
 
     end subroutine sepdy
-
-
 
 end module type_SepAux
 !

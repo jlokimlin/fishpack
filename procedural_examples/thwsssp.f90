@@ -56,7 +56,7 @@ program thwsssp
     real(wp)                   :: f(IDIMF, NP1), sint(IDIMF)
     real(wp), dimension(NP1)   :: bdtf, bdts, bdps, bdpf, sinp
     real(wp)                   :: ts, tf, ps, pf, elmbda
-    real(wp)                   :: dtheta, dphi, pertrb, discretization_error
+    real(wp)                   :: dtheta, dphi, pertrb
     real(wp)                   :: ZERO = 0.0_wp
     !-----------------------------------------------
 
@@ -105,30 +105,29 @@ program thwsssp
     call hwsssp(ts, tf, M, mbdcnd, bdts, bdtf, ps, pf, N, nbdcnd, &
         bdps, bdpf, elmbda, f, IDIMF, pertrb, ierror)
 
-    ! Compute discretization error. Since problem is singular, the
-    ! solution must be normalized.
+    ! Compute discretization error.
+    ! Since problem is singular, the solution must be normalized.
     block
-        real(wp) :: local_error, exact_solution
+        real(wp) :: discretization_error, exact_solution(MP1, NP1)
 
-        discretization_error = ZERO
         do j = 1, NP1
             do i = 1, MP1
-                exact_solution = (sint(i)*sinp(j))**2 - f(1, 1)
-                local_error = abs(f(i, j)-exact_solution)
-                discretization_error = max(local_error, discretization_error)
+                exact_solution(i,j) = (sint(i)*sinp(j))**2 - f(1, 1)
             end do
         end do
-    end block
 
-    ! Print earlier output from platforms with 64-bit floating point
-    ! arithmetic followed by the output from this computer
-    !
-    write( stdout, '(/a)') '     hwsssp *** TEST RUN *** '
-    write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-    write( stdout, '(a)') '     ierror = 0,  discretization error = 3.38107e-3'
-    write( stdout, '(a)') '     The output from your computer is: '
-    write( stdout, '(a,i3,a,1pe15.6/)') &
-        '      ierror =', ierror, &
-        ' discretization error = ', discretization_error
+        ! Set discretization error
+        discretization_error = maxval(abs(exact_solution - f(:MP1,:NP1)))
+
+        ! Print earlier output from platforms with 64-bit floating point
+        ! arithmetic followed by the output from this computer
+        write( stdout, '(/a)') '     hwsssp *** TEST RUN *** '
+        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(a)') '     ierror = 0,  discretization error = 3.38107e-3'
+        write( stdout, '(a)') '     The output from your computer is: '
+        write( stdout, '(a,i3,a,1pe15.6/)') &
+            '      ierror =', ierror, &
+            ' discretization error = ', discretization_error
+    end block
 
 end program thwsssp

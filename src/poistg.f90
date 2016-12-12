@@ -233,10 +233,11 @@ module module_poistg
     !---------------------------------------------------------------
     ! Parameters confined to the module
     !---------------------------------------------------------------
-    real(wp), parameter :: ZERO = 0.0_wp
-    real(wp), parameter :: HALF = 0.5_wp
-    real(wp), parameter :: ONE = 1.0_wp
-    real(wp), parameter :: TWO = 2.0_wp
+    real(wp),    parameter :: ZERO = 0.0_wp
+    real(wp),    parameter :: HALF = 0.5_wp
+    real(wp),    parameter :: ONE = 1.0_wp
+    real(wp),    parameter :: TWO = 2.0_wp
+    integer(ip), parameter :: IIWK = 11_ip ! Size of workspace indices
     !---------------------------------------------------------------
 
 contains
@@ -262,27 +263,19 @@ contains
         type(Fish)  :: workspace
         !--------------------------------------------------------------
 
-        !
         ! Compute workspace dimensions
-        !
         irwk = m * (9 + int(log(real(n, kind=wp))/log(TWO),kind=ip)) + 4 * n
         icwk = 0
 
-        !
         ! Allocate memory
-        !
         call workspace%create(irwk, icwk)
 
+        ! Solve system
         associate( rew => workspace%real_workspace )
-            !
-            ! Solve system
-            !
             call poistgg(nperod, n, mperod, m, a, b, c, idimy, y, ierror, rew)
         end associate
 
-        !
         ! Release memory
-        !
         call workspace%destroy()
 
     end subroutine poistg
@@ -300,28 +293,24 @@ contains
         real(wp),    intent(in)     :: a(m)
         real(wp),    intent(in)     :: b(m)
         real(wp),    intent(in)     :: c(m)
-        real(wp),    intent(inout) :: y(idimy,n)
-        real(wp),    intent(inout) :: w(:)
+        real(wp),    intent(inout)  :: y(idimy,n)
+        real(wp),    intent(inout)  :: w(:)
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer(ip)     :: workspace_indices(11)
+        integer(ip)     :: workspace_indices(IIWK)
         integer(ip)     :: i, k, j, np, mp
         integer(ip)     :: nby2, mskip, ipstor, irev, mh, mhm1, m_odd
         real(wp)        :: temp
         !-----------------------------------------------
 
-        !
         ! Check validity of calling arguments
-        !
         call check_input_arguments(nperod, n, mperod, m, idimy, ierror, a, b, c)
 
         ! Check error flag
         if (ierror /= 0) return
 
-        !
         ! Compute workspace indices
-        !
         workspace_indices = get_workspace_indices(n,m)
 
         associate( &
@@ -396,7 +385,7 @@ contains
                 loop_108: do
                     if (nperod /= 4) then
 
-                        call postg2(np, n, m, w(iwba:), w(iwbb:), w(iwbc:), idimy, y, &
+                        call poistg_lower_routine(np, n, m, w(iwba:), w(iwbb:), w(iwbc:), idimy, y, &
                             w, w(iwb2:), w(iwb3:), w(iww1:), w(iww2:), w(iww3:), &
                             w(iwd:), w(iwtcos:), w(iwp:))
 
@@ -513,41 +502,37 @@ contains
         !--------------------------------------------------------------
         integer(ip), intent(in) :: n
         integer(ip), intent(in) :: m
-        integer(ip)             :: return_value(11)
+        integer(ip)             :: return_value(IIWK)
         !--------------------------------------------------------------
         integer(ip) :: j !! Counter
         !--------------------------------------------------------------
 
         associate( i => return_value)
-
             i(1) = m + 1
-
-            do j = 2, 10
+            do j = 2, IIWK - 1
                 i(j) = i(j-1) + m
             end do
-
-            i(11) = i(10) + 4 * n
+            i(IIWK) = i(IIWK - 1) + 4 * n
         end associate
 
     end function get_workspace_indices
 
-    subroutine postg2(nperod, n, m, a, bb, c, idimq, q, b, b2, b3, w, &
+    subroutine poistg_lower_routine(nperod, n, m, a, bb, c, idimq, q, b, b2, b3, w, &
         w2, w3, d, tcos, p)
         !
         ! Purpose:
         !
         ! Subroutine to solve poisson's equation on a staggered grid.
-        !
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
-        integer(ip), intent(in)     :: nperod
-        integer(ip), intent(in)     :: n
-        integer(ip), intent(in)     :: m
-        integer(ip), intent(in)     :: idimq
-        real(wp),    intent(in)     :: a(m)
-        real(wp),    intent(in)     :: bb(m)
-        real(wp),    intent(in)     :: c(m)
+        integer(ip), intent(in)    :: nperod
+        integer(ip), intent(in)    :: n
+        integer(ip), intent(in)    :: m
+        integer(ip), intent(in)    :: idimq
+        real(wp),    intent(in)    :: a(m)
+        real(wp),    intent(in)    :: bb(m)
+        real(wp),    intent(in)    :: c(m)
         real(wp),    intent(inout) :: q(idimq, n)
         real(wp),    intent(inout) :: b(m)
         real(wp),    intent(inout) :: b2(m)
@@ -1135,7 +1120,7 @@ contains
 
         end associate
 
-    end subroutine postg2
+    end subroutine poistg_lower_routine
 
 end module module_poistg
 !

@@ -72,7 +72,7 @@ module type_ComfAux
     public :: ComfAux
     public :: comf_interface
 
-    ! Declare derived data type
+    
     type, public :: ComfAux
         !--------------------------------------------------
         ! Type components

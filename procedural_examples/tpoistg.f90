@@ -177,8 +177,7 @@ program tpoistg
     integer(ip)                   :: mperod, nperod, i, j, ierror
     real(wp), dimension(IDIMF, N) :: f
     real(wp), dimension(M)        :: a, b, c, x
-    real(wp)                      :: y(N)
-    real(wp)                      :: dx, dy, discretization_error
+    real(wp)                      :: y(N), dx, dy
     real(wp), parameter           :: ZERO = 0.0_wp, HALF = 0.5_wp
     real(wp), parameter           :: ONE = 1.0_wp, TWO = 2.0_wp
     !--------------------------------------------------------------
@@ -240,26 +239,27 @@ program tpoistg
     !
     !  u(x,y) = (y**4) * sin(x)
     !
-    discretization_error = ZERO
     block
-        real(wp) :: exact_solution, local_error
+        real(wp) :: discretization_error
+        real(wp) :: exact_solution(M,N)
 
         do j = 1, N
             do i = 1, M
-                exact_solution = (y(j)**4) * sin(x(i))
-                local_error = abs(f(i, j) - exact_solution)
-                discretization_error = max(discretization_error, local_error)
+                exact_solution(i,j) = (y(j)**4) * sin(x(i))
             end do
         end do
-    end block
 
-    ! Print earlier output from platforms with 64-bit floating point
-    ! arithmetic followed by the output from this computer
-    write( stdout, '(/a)') '     poistg *** TEST RUN *** '
-    write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-    write( stdout, '(a)') '     ierror = 0,  discretization error = 5.6417e-4'
-    write( stdout, '(a)') '     The output from your computer is: '
-    write( stdout, '(a,i3,a,1pe15.6/)')&
-        '     error_flag = ', ierror, ' discretization error = ', discretization_error
+        ! Set discretization error
+        discretization_error = maxval(abs(exact_solution - f(:M,:N)))
+
+        ! Print earlier output from platforms with 64-bit floating point
+        ! arithmetic followed by the output from this computer
+        write( stdout, '(/a)') '     poistg *** TEST RUN *** '
+        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(a)') '     ierror = 0,  discretization error = 5.6417e-4'
+        write( stdout, '(a)') '     The output from your computer is: '
+        write( stdout, '(a,i3,a,1pe15.6/)')&
+            '     error_flag = ', ierror, ' discretization error = ', discretization_error
+    end block
 
 end program tpoistg

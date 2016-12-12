@@ -13,8 +13,7 @@ module type_RectangularDomain
     ! Everything is private unless stated otherwise
     private
     public :: RectangularDomain
-
-    ! Declare derived data type
+    
     type, public :: RectangularDomain
         !-------------------------------------------------------------------------------
         ! Type components
@@ -33,7 +32,6 @@ module type_RectangularDomain
         procedure, non_overridable, public  :: destroy => destroy_rectangular_domain
         generic,                    public  :: assignment (=) => copy_rectangular_domain
         procedure,                  private :: copy_rectangular_domain
-        !final                               :: finalize_rectangular_domain
         !-------------------------------------------------------------------------------
     end type RectangularDomain
 
@@ -108,18 +106,5 @@ contains
         this%initialized = .true.
 
     end subroutine copy_rectangular_domain
-
-
-    subroutine finalize_rectangular_domain(this)
-        !--------------------------------------------------------------
-        ! Dummy arguments
-        !--------------------------------------------------------------
-        type(RectangularDomain), intent(inout) :: this
-        !--------------------------------------------------------------
-
-        call this%destroy()
-
-    end subroutine finalize_rectangular_domain
-    
 
 end module type_RectangularDomain

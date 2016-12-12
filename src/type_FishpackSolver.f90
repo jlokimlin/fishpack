@@ -45,7 +45,7 @@ module type_FishpackSolver
     private
     public :: FishpackSolver
 
-    ! Declare derived data type
+    
     type, public :: FishpackSolver
     contains
         !---------------------------------------------------------------

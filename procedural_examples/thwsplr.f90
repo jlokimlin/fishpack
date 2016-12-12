@@ -63,7 +63,7 @@ program thwsplr
         stdout => OUTPUT_UNIT
 
     use fishpack_library, only: &
-    ip, wp, HALF_PI, hwsplr
+        ip, wp, HALF_PI, hwsplr
 
     ! Explicit typing only
     implicit none
@@ -71,15 +71,15 @@ program thwsplr
     !-----------------------------------------------
     ! Dictionary
     !-----------------------------------------------
-    integer(ip), parameter      :: m = 50, n = 48
-    integer(ip), parameter      :: idimf = 100
-    integer(ip), parameter      :: mp1 = m + 1, np1 = n + 1
-    integer(ip)                 :: mbdcnd, nbdcnd, i, j, ierror
-    real(wp)                    :: f(idimf, m), theta(np1)
-    real(wp), dimension (mp1)   :: bdc, bdd, r, bda, bdb
-    real(wp)                    :: a, b, c, d, elmbda
-    real(wp)                    :: pertrb, discretization_error
-    real(wp), parameter         :: ZERO = 0.0_wp, ONE = 1.0_wp, FOUR = 4.0_wp
+    integer(ip), parameter    :: m = 50, n = 48
+    integer(ip), parameter    :: idimf = 100
+    integer(ip), parameter    :: mp1 = m + 1, np1 = n + 1
+    integer(ip)               :: mbdcnd, nbdcnd, i, j, ierror
+    real(wp)                  :: f(idimf, m), theta(np1)
+    real(wp), dimension (mp1) :: bdc, bdd, r
+    real(wp), dimension(1)    :: bda, bdb
+    real(wp)                  :: a, b, c, d, elmbda, pertrb
+    real(wp), parameter       :: ZERO = 0.0_wp, ONE = 1.0_wp, FOUR = 4.0_wp
     !-----------------------------------------------
 
     ! Set domain
@@ -106,7 +106,8 @@ program thwsplr
         theta(j) = real(j - 1, kind=wp) * (HALF_PI/n)
     end do
 
-    ! Generate boundary data. bda and bdb are dummy variables.
+    ! Generate boundary data.
+    ! In our example, bda and bdb are 1-dimensional dummy variables.
     bdc = ZERO
     bdd = ZERO
 
@@ -132,27 +133,27 @@ program thwsplr
     ! u(r,theta) = (r**4)*(1 - cos(4*theta))
     !
     block
-        real(wp) :: local_error, exact_solution
+        real(wp) :: discretization_error, exact_solution(mp1, np1)
 
-        discretization_error = ZERO
         do j = 1, np1
             do i = 1, mp1
-                exact_solution = (r(i)**4)*(ONE-cos(FOUR * theta(j)))
-                local_error = abs(f(i, j) - exact_solution)
-                discretization_error = max(local_error, discretization_error)
+                exact_solution(i,j) = (r(i)**4)*(ONE-cos(FOUR * theta(j)))
             end do
         end do
-    end block
 
-    ! Print earlier output from platforms with 64-bit floating point
-    ! arithmetic followed by the output from this computer
-    !
-    write( stdout, '(/a)') '     hwsplr *** TEST RUN *** '
-    write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-    write( stdout, '(a)') '     ierror = 0,  discretization error = 6.19134e-4'
-    write( stdout, '(a)') '     The output from your computer is: '
-    write( stdout, '(a,i3,a,1pe15.6/)') &
-        '     ierror =', ierror, &
-        ' discretization error = ', discretization_error
+        ! Set discretization error
+        discretization_error = maxval(abs(exact_solution - f(:mp1,:np1)))
+
+        ! Print earlier output from platforms with 64-bit floating point
+        ! arithmetic followed by the output from this computer
+        !
+        write( stdout, '(/a)') '     hwsplr *** TEST RUN *** '
+        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(a)') '     ierror = 0,  discretization error = 6.19134e-4'
+        write( stdout, '(a)') '     The output from your computer is: '
+        write( stdout, '(a,i3,a,1pe15.6/)') &
+            '     ierror =', ierror, &
+            ' discretization error = ', discretization_error
+    end block
 
 end program thwsplr

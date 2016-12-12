@@ -14,30 +14,19 @@ module type_PoissonSolver
     private
     public :: PoissonSolver
 
-
-    ! Declare derived data type
     type, extends (HelmholtzSolver), public :: PoissonSolver
-        !---------------------------------------------------------------
-        ! Type components
-        !---------------------------------------------------------------
     contains
         !---------------------------------------------------------------
         ! Type-bound procedures
         !---------------------------------------------------------------
         procedure, public :: solve_2d_poisson_centered
         procedure, public :: solve_2d_poisson_staggered
-        !final             :: finalize_poisson_solver
         !---------------------------------------------------------------
     end type PoissonSolver
 
-
-
 contains
 
-
-
     subroutine solve_2d_poisson_centered(this, source_term, solution)
-        !
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
@@ -101,20 +90,5 @@ contains
         end associate
 
     end subroutine solve_2d_poisson_staggered
-
-
-
-    subroutine finalize_poisson_solver(this)
-        !--------------------------------------------------------------
-        ! Dummy arguments
-        !--------------------------------------------------------------
-        type(PoissonSolver), intent(inout) :: this
-        !--------------------------------------------------------------
-
-        call this%destroy()
-
-    end subroutine finalize_poisson_solver
-
-
 
 end module type_PoissonSolver

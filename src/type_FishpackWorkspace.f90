@@ -66,12 +66,11 @@ module type_FishpackWorkspace
         !---------------------------------------------------------------
         procedure, public :: create => create_fishpack_workspace
         procedure, public :: destroy => destroy_fishpack_workspace
-        procedure, public :: compute_blktri_workspace_lengths
-        procedure, public :: compute_genbun_workspace_lengths
+        procedure, public, nopass :: compute_blktri_workspace_lengths
+        procedure, public, nopass :: compute_genbun_workspace_lengths
         procedure, public :: initialize_staggered_workspace
         procedure, public :: initialize_centered_workspace
         procedure, public :: initialize_blktri_workspace
-        !final             :: finalize_fishpack_workspace
         !---------------------------------------------------------------
     end type FishpackWorkspace
 
@@ -213,7 +212,7 @@ contains
 
     end subroutine initialize_blktri_workspace
 
-    pure subroutine compute_blktri_workspace_lengths(self, n, m, irwk, icwk)
+    pure subroutine compute_blktri_workspace_lengths(n, m, irwk, icwk)
         !
         ! Purpose:
         !
@@ -223,11 +222,10 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class(FishpackWorkspace), intent(inout) :: self
-        integer(ip),              intent(in)     :: n
-        integer(ip),              intent(in)     :: m
-        integer(ip),              intent(out)    :: irwk
-        integer(ip),              intent(out)    :: icwk
+        integer(ip), intent(in)  :: n
+        integer(ip), intent(in)  :: m
+        integer(ip), intent(out) :: irwk
+        integer(ip), intent(out) :: icwk
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
@@ -253,7 +251,7 @@ contains
 
     end subroutine compute_blktri_workspace_lengths
 
-    pure subroutine compute_genbun_workspace_lengths(self, n, m, irwk)
+    pure subroutine compute_genbun_workspace_lengths(n, m, irwk)
         !
         ! Purpose:
         !
@@ -263,10 +261,9 @@ contains
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
-        class(FishpackWorkspace), intent(inout) :: self
-        integer(ip),              intent(in)     :: n
-        integer(ip),              intent(in)     :: m
-        integer(ip),              intent(out)    :: irwk
+        integer(ip), intent(in)  :: n
+        integer(ip), intent(in)  :: m
+        integer(ip), intent(out) :: irwk
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
@@ -308,16 +305,5 @@ contains
         !--------------------------------------------------------------
 
     end subroutine destroy_fishpack_workspace
-
-    subroutine finalize_fishpack_workspace(self)
-        !--------------------------------------------------------------
-        ! Dummy arguments
-        !--------------------------------------------------------------
-        type(FishpackWorkspace), intent(inout) :: self
-        !--------------------------------------------------------------
-
-        call self%destroy()
-
-    end subroutine finalize_fishpack_workspace
 
 end module type_FishpackWorkspace

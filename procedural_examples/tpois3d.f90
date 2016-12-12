@@ -52,7 +52,7 @@ program tpois3d
     integer(ip)            :: lperod, mperod, nperod, i, j, k, ierror
     real(wp)               :: x(L), y(M), f(LDIMF, MDIMF, N)
     real(wp), dimension(M) :: a, b, c, z
-    real(wp)               :: dx, c1, dy, c2, dz, dz2, discretization_error
+    real(wp)               :: dx, c1, dy, c2, dz, dz2
     real(wp), parameter    :: ZERO = 0.0_wp, ONE = 1.0_wp, TWO = 2.0_wp
     !-----------------------------------------------
 
@@ -73,11 +73,11 @@ program tpois3d
 
     ! Generate grid points for later use
     do i = 1, L
-        x(i) = (-PI) + real(i - 1, kind=wp)*dx
+        x(i) = -PI + real(i - 1, kind=wp)*dx
     end do
 
     do j = 1, M
-        y(j) = (-PI) + real(j - 1, kind=wp)*dy
+        y(j) = -PI + real(j - 1, kind=wp)*dy
     end do
 
     ! Generate coefficients
@@ -129,29 +129,30 @@ program tpois3d
     ! u(x, y, z) = sin(x)*sin(y)*(1+z)**4
     !
     block
-        real(wp) :: local_error, exact_solution
+        real(wp) :: discretization_error
+        real(wp) :: exact_solution(L,M,N)
 
-        discretization_error = ZERO
         do k = 1, N
             do j = 1, M
                 do i = 1, L
-                    exact_solution = sin(x(i)) * sin(y(j)) * (ONE + z(k))**4
-                    local_error = abs(f(i, j, k) - exact_solution)
-                    discretization_error = max(local_error, discretization_error)
+                    exact_solution(i,j,k) = sin(x(i)) * sin(y(j)) * (ONE + z(k))**4
                 end do
             end do
         end do
-    end block
 
-    ! Print earlier output from platforms with 64-bit floating point
-    ! arithmetic followed by the output from this computer
-    !
-    write( stdout, '(/a)') '     pois3d *** TEST RUN *** '
-    write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-    write( stdout, '(a)') '     ierror = 0,  discretization error = 2.93277e-2'
-    write( stdout, '(a)') '     The output from your computer is: '
-    write( stdout, '(a,i3,a,1pe15.6/)') &
-        '     ierror =', ierror, &
-        ' discretization error = ', discretization_error
+        ! Set discretization error
+        discretization_error = maxval(abs(exact_solution - f(:L,:M,:N)))
+
+        ! Print earlier output from platforms with 64-bit floating point
+        ! arithmetic followed by the output from this computer
+        !
+        write( stdout, '(/a)') '     pois3d *** TEST RUN *** '
+        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
+        write( stdout, '(a)') '     ierror = 0,  discretization error = 2.93277e-2'
+        write( stdout, '(a)') '     The output from your computer is: '
+        write( stdout, '(a,i3,a,1pe15.6/)') &
+            '     ierror =', ierror, &
+            ' discretization error = ', discretization_error
+    end block
 
 end program tpois3d

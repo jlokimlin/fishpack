@@ -25,7 +25,7 @@ module type_Grid
     integer(ip)        :: deallocate_status !! To check deallocation status
     !---------------------------------------------------------------
 
-    ! Declare derived data type
+    
     type, public ::  Grid
         !---------------------------------------------------------------
         ! Type components
@@ -51,7 +51,6 @@ module type_Grid
         procedure,         public :: get_discretization_mesh
         procedure,         public :: get_centered_grids
         procedure,         public :: get_staggered_grids
-        !final                     :: finalize_grid
         !---------------------------------------------------------------
     end type Grid
 
@@ -285,16 +284,5 @@ contains
         end associate
 
     end subroutine get_staggered_grids
-
-    subroutine finalize_grid(this)
-        !--------------------------------------------------------------
-        ! Dummy arguments
-        !--------------------------------------------------------------
-        type(Grid), intent(inout) :: this
-        !--------------------------------------------------------------
-
-        call this%destroy()
-
-    end subroutine finalize_grid
 
 end module type_Grid

@@ -300,8 +300,7 @@ contains
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        integer(ip)  :: irwk, icwk
-        type(Fish)   :: workspace
+        type(Fish) :: workspace
         !-----------------------------------------------
 
         ! Check input arguments
@@ -427,10 +426,9 @@ contains
                         b(nhm1) = b(nhm1) - a(nh-1)
                         b(n) = b(n) + a(n)
                 end select
-
             end if
 
-            call pois3d_lower_routine(lp, l, mp, m, n, a, b, c, ldimf, mdimf, f, &
+            call pois3d_lower_routine(lp, l, mp, m, n, a, b, c, f, &
                 w, w(iwyrt:), w(iwt:), w(iwd:), w(iwx:), w(iwy:), c1, c2, w(iwbb:))
 
             if (np == 1) then
@@ -575,7 +573,7 @@ contains
     end subroutine initialize_workspace
 
     subroutine pois3d_lower_routine(lp, l, mp, m, n, a, b, c, &
-        ldimf, mdimf, f, xrt, yrt, t, d, wx, wy, c1, c2, bb)
+        f, xrt, yrt, t, d, wx, wy, c1, c2, bb)
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
@@ -584,8 +582,6 @@ contains
         integer(ip), intent(in)     :: mp
         integer(ip), intent(in)     :: m
         integer(ip), intent(in)     :: n
-        integer(ip), intent(in)     :: ldimf
-        integer(ip), intent(in)     :: mdimf
         real(wp),    intent(in)     :: c1
         real(wp),    intent(in)     :: c2
         real(wp),    intent(inout) :: a(n)

@@ -33,24 +33,17 @@ module type_HelmholtzSolver
     private
     public :: HelmholtzSolver
 
-    ! Declare derived data type
     type, extends (HelmholtzData), public ::  HelmholtzSolver
-        !---------------------------------------------------------------
-        ! Type components
-        !---------------------------------------------------------------
     contains
         !---------------------------------------------------------------
         ! Type-bound procedures
         !---------------------------------------------------------------
         procedure, public :: solve_2d_helmholtz_centered
         procedure, public :: solve_2d_helmholtz_staggered
-        !final                     :: finalize_helmholtz_solver
         !---------------------------------------------------------------
     end type HelmholtzSolver
 
-
 contains
-
 
     subroutine solve_2d_helmholtz_centered( &  ! hwscrt
         this, helmholtz_constant, source_term, solution, perturbation, error_flag )
@@ -298,20 +291,5 @@ contains
         end if
 
     end subroutine solve_2d_helmholtz_staggered
-
-
-
-    subroutine finalize_helmholtz_solver(this)
-        !--------------------------------------------------------------
-        ! Dummy arguments
-        !--------------------------------------------------------------
-        type(HelmholtzSolver), intent(inout) :: this
-        !--------------------------------------------------------------
-
-        call this%destroy()
-
-    end subroutine finalize_helmholtz_solver
-
-
 
 end module type_HelmholtzSolver

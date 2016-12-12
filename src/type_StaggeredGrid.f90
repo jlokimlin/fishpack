@@ -24,7 +24,7 @@ module type_StaggeredGrid
     integer(ip)        :: deallocate_status !! To check deallocation status
     !---------------------------------------------------------------
 
-    ! Declare derived data type
+    
     type, extends( Grid ), public :: StaggeredGrid
         !---------------------------------------------------------------
         ! Type components
@@ -38,7 +38,6 @@ module type_StaggeredGrid
         !---------------------------------------------------------------
         procedure, public :: create => create_staggered_grid
         procedure, public :: destroy => destroy_staggered_grid
-        !final             :: finalize_staggered_grid
         !---------------------------------------------------------------
     end type StaggeredGrid
 
@@ -155,18 +154,5 @@ contains
         this%initialized = .false.
 
     end subroutine destroy_staggered_grid
-
-
-    subroutine finalize_staggered_grid(this)
-        !--------------------------------------------------------------
-        ! Dummy arguments
-        !--------------------------------------------------------------
-        type(StaggeredGrid), intent(inout) :: this
-        !--------------------------------------------------------------
-
-        call this%destroy()
-
-    end subroutine finalize_staggered_grid
-
 
 end module type_StaggeredGrid

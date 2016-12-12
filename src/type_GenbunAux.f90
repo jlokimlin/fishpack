@@ -79,7 +79,7 @@ module type_GenbunAux
     private
     public :: GenbunAux
 
-    ! Declare derived data type
+    
     type, public :: GenbunAux
     contains
         !--------------------------------------------------

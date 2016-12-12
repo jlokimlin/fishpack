@@ -526,7 +526,7 @@ contains
             end if
         end if
 
-        ! Set worspace pointers
+        ! Set worspace indices
         associate( &
             iw1 => 1, &
             iw2 => id2 + 1, &

@@ -53,7 +53,7 @@ module type_HelmholtzData
     integer(ip)        :: deallocate_status !! To check deallocation status
     !---------------------------------------------------------------
 
-    ! Declare derived data type
+    
     type, public ::  HelmholtzData
         !---------------------------------------------------------------
         ! Type components
@@ -77,7 +77,6 @@ module type_HelmholtzData
         procedure, non_overridable, public  :: create_helmholtz_data
         procedure, non_overridable, public  :: destroy_helmholtz_data
         procedure, nopass,          private :: get_boundary_condition_type
-        !final                               :: finalize_helmholtz_data
         !---------------------------------------------------------------
     end type HelmholtzData
 
@@ -292,18 +291,5 @@ contains
         end select
 
     end subroutine get_boundary_condition_type
-
-
-    subroutine finalize_helmholtz_data(this)
-        !--------------------------------------------------------------
-        ! Dummy arguments
-        !--------------------------------------------------------------
-        type(HelmholtzData), intent(inout) :: this
-        !--------------------------------------------------------------
-
-        call this%destroy()
-
-    end subroutine finalize_helmholtz_data
-
 
 end module type_HelmholtzData

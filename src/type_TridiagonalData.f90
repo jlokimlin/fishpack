@@ -25,7 +25,7 @@ module type_TridiagonalData
     integer(ip)        :: deallocate_status !! To check deallocation status
     !---------------------------------------------------------------
 
-    ! Declare derived data type
+    
     type, public :: TridiagonalData
         !---------------------------------------------------------------
         ! Type components
@@ -48,7 +48,6 @@ module type_TridiagonalData
         procedure, non_overridable, public  :: destroy_tridiagonal_data
         procedure, nopass,          private :: get_x_boundary_condition_type
         procedure, nopass,          private :: get_y_boundary_condition_type
-        !final                               :: finalize_tridiagonal_data
         !---------------------------------------------------------------
     end type TridiagonalData
 
@@ -268,22 +267,5 @@ contains
         end select
 
     end subroutine get_x_boundary_condition_type
-
-
-    subroutine finalize_tridiagonal_data(this)
-        !
-        ! Purpose:
-        !< Finalize object
-        !
-        !--------------------------------------------------------------
-        ! Dummy arguments
-        !--------------------------------------------------------------
-        type(TridiagonalData), intent(inout) :: this
-        !--------------------------------------------------------------
-
-        call this%destroy()
-
-    end subroutine finalize_tridiagonal_data
-
 
 end module type_TridiagonalData

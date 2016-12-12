@@ -438,11 +438,11 @@ contains
 
                         select case (mp)
                             case (0)
-                                call self%blktri_lower_routine(nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, &
+                                call self%blktri_lower_routine(an, cn, m, am, bm, cm, y, w, wc, &
                                     w(iw1:), w(iw2:), w(iw3:), w(iwd:), w(iww:), w(iwu:), wc(iw1:), &
                                     wc(iw2:), wc(iw3:), prodp, cprodp)
                             case default
-                                call self%blktri_lower_routine(nl, an, bn, cn, m, am, bm, cm, idimy, y, w, wc, &
+                                call self%blktri_lower_routine(an, cn, m, am, bm, cm, y, w, wc, &
                                     w(iw1:), w(iw2:), w(iw3:), w(iwd:), w(iww:), w(iwu:), wc(iw1:), &
                                     wc(iw2:), wc(iw3:), prod, cprod)
                         end select
@@ -454,7 +454,7 @@ contains
 
     end subroutine blktrii
 
-    subroutine blktri_lower_routine(self, n, an, bn, cn, m, am, bm, cm, idimy, y, b, bc, &
+    subroutine blktri_lower_routine(self, an, cn, m, am, bm, cm, y, b, bc, &
         w1, w2, w3, wd, ww, wu, cw1, cw2, cw3, prdct, cprdct)
         !
         ! Purpose:
@@ -474,11 +474,8 @@ contains
         ! Dummy arguments
         !-----------------------------------------------
         class(BlktriAux), intent(inout) :: self
-        integer(ip), intent(in)     :: n
         integer(ip), intent(in)     :: m
-        integer(ip), intent(in)     :: idimy
         real(wp),    intent(in)     :: an(:)
-        real(wp),    intent(in)     :: bn(:)
         real(wp),    intent(in)     :: cn(:)
         real(wp),    intent(in)     :: am(:)
         real(wp),    intent(in)     :: bm(:)

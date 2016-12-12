@@ -33,7 +33,7 @@ module type_TridiagonalSolver
     private
     public :: TridiagonalSolver
 
-    ! Declare derived data type
+    
     type, extends (TridiagonalData), public :: TridiagonalSolver
        !---------------------------------------------------------------
        ! Type components
@@ -44,25 +44,11 @@ module type_TridiagonalSolver
         !---------------------------------------------------------------
         procedure, public :: solve_2d_real_linear_system_staggered
         procedure, public :: solve_2d_real_linear_system_centered
-        !final             :: finalize_tridiagonal_solver
         !---------------------------------------------------------------
     end type TridiagonalSolver
 
 
 contains
-
-
-    subroutine finalize_tridiagonal_solver(this)
-        !--------------------------------------------------------------
-        ! Dummy arguments
-        !--------------------------------------------------------------
-        type(TridiagonalSolver), intent(inout) :: this
-        !--------------------------------------------------------------
-
-        call this%destroy()
-
-    end subroutine finalize_tridiagonal_solver
-
 
     subroutine solve_2d_real_linear_system_staggered( & ! POISTG
         this, source, solution, error_flag )

@@ -11,7 +11,7 @@ module type_FishpackGrid
     private
     public :: FishpackGrid
 
-    ! Declare derived data type
+    
     type, public ::  FishpackGrid
         !--------------------------------------------------------------
         ! Type components

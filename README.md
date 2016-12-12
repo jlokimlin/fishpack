@@ -3,12 +3,11 @@
 An object-oriented modernization of NCAR's FISHPACK90.
 
 * The original work, written in both FORTRAN 77 and Fortran 90, was heavily refactored to incorporate features of modern Fortran (2008+). 
+* The library is now fully Fortran 2008 (ISO/IEC 1539-1:2010) compliant.
 * Every common block, subroutine, and function is now encapsulated in a module. 
 * Numerous memory leaks in **type**(fishworkspace), now rebaptized as **type**(FishpackWorkspace) are resolved by replacing pointers with allocatable arrays. A valgrind run confirms the fix.
 * Every procedural solver is enclosed as a type-bound procedure in **type**(FishpackSolver) 
 * This project is still a work in progress and every refactored solver passes their original unit test.
-* The functionality of genbun and poistg are now enclosed in **type**(TridiagonalSolver), and that of hwscrt and hstcrt inside **type**(HelmholtzSolver), respectively. 
-* The 2d-separable PDE (second or fourth order) solvers sepx4 (centered grid) and sepeli (staggered grid) are now thread safe. The shared module variables are enclosed inside **type**(SepAux).
 
 -----------------------------------------------------------------------------
 

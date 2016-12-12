@@ -49,7 +49,7 @@ program thstssp
     !-----------------------------------------------
     integer(ip), parameter :: M = 18
     integer(ip), parameter :: N = 72
-    integer(ip), parameter :: IDIMF = 18
+    integer(ip), parameter :: IDIMF = M
     integer(ip)            :: mbdcnd, nbdcnd, i, j, ierror
     real(wp)               :: f(IDIMF,N), sint(M)
     real(wp), dimension(1) :: bda, bdc, bdd
@@ -90,7 +90,7 @@ program thstssp
     block
         real(wp), parameter :: SIX = 6.0_wp
         do j = 1, N
-            f(:, j) = TWO - SIX * (sint*sinp(j))**2
+            f(:, j) = TWO - SIX * (sint * sinp(j))**2
         end do
     end block
     !
@@ -108,9 +108,9 @@ program thstssp
         real(wp) :: discretization_error
         real(wp) :: exact_solution(M,N)
 
-        do i = 1, M
-            do j = 1, N
-                exact_solution(i,j) = (sint(i)*sinp(j))**2 - f(1, 1)
+        do j = 1, N
+            do i = 1, M
+                exact_solution(i,j) = (sint(i) * sinp(j))**2 + f(1, 1)
             end do
         end do
 

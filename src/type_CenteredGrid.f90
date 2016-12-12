@@ -23,7 +23,7 @@ module type_CenteredGrid
     integer(ip) :: deallocate_status  !! To check deallocation status
     !---------------------------------------------------------------
 
-    ! Declare derived data type
+    
     type, extends (Grid), public :: CenteredGrid
         !---------------------------------------------------------------
         ! Type components
@@ -37,7 +37,6 @@ module type_CenteredGrid
         !---------------------------------------------------------------
         procedure, public :: create => create_centered_grid
         procedure, public :: destroy => destroy_centered_grid
-        !final             :: finalize_centered_grid
         !---------------------------------------------------------------
     end type CenteredGrid
 
@@ -102,7 +101,6 @@ contains
 
     end subroutine create_centered_grid
 
-
     subroutine destroy_centered_grid(this)
         !--------------------------------------------------------------
         ! Dummy arguments
@@ -145,18 +143,5 @@ contains
         this%initialized = .false.
 
     end subroutine destroy_centered_grid
-
-
-    subroutine finalize_centered_grid(this)
-        !--------------------------------------------------------------
-        ! Dummy arguments
-        !--------------------------------------------------------------
-        type(CenteredGrid), intent(inout) :: this
-        !--------------------------------------------------------------
-
-        call this%destroy()
-
-    end subroutine finalize_centered_grid
-
 
 end module type_CenteredGrid

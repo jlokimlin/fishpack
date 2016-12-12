@@ -429,7 +429,7 @@ contains
                         )
 
                         ! Compute roots of b polynomials
-                        call self%ccompb(nl, ierror, an, bn, cn, rew, cxw, rew(iwah:), rew(iwbh:))
+                        call self%ccompb(ierror, an, bn, cn, rew, cxw, rew(iwah:), rew(iwbh:))
 
                     end associate
 
@@ -442,12 +442,12 @@ contains
 
                         select case (mp)
                             case (0)
-                                call self%cblktri_lower_routine(nl, an, bn, cn, m, am, bm, cm, &
+                                call self%cblktri_lower_routine(nl, an, cn, m, am, bm, cm, &
                                     idimy, y, rew, cxw, &
                                     cxw(iw1), cxw(iw2), cxw(iw3), cxw(iwd), cxw(iww), &
                                     cxw(iwu), procp, cprocp)
                             case default
-                                call self%cblktri_lower_routine(nl, an, bn, cn, m, am, bm, cm, &
+                                call self%cblktri_lower_routine(nl, an, cn, m, am, bm, cm, &
                                     idimy, y, rew, cxw, &
                                     cxw(iw1), cxw(iw2), cxw(iw3), cxw(iwd), cxw(iww), &
                                     cxw(iwu), proc, cproc)
@@ -461,7 +461,7 @@ contains
 
     end subroutine cblktri
 
-    subroutine cblktri_lower_routine(self, n, an, bn, cn, m, am, bm, cm, idimy, y, b, bc, &
+    subroutine cblktri_lower_routine(self, n, an, cn, m, am, bm, cm, idimy, y, b, bc, &
         w1, w2, w3, wd, ww, wu, prdct, cprdct)
         !
         ! Purpose:
@@ -483,7 +483,6 @@ contains
         integer(ip), intent(in)     :: m
         integer(ip), intent(in)     :: idimy
         real(wp),    intent(in)     :: an(:)
-        real(wp),    intent(in)     :: bn(:)
         real(wp),    intent(in)     :: cn(:)
         complex(wp), intent(in)     :: am(:)
         complex(wp), intent(in)     :: bm(:)
@@ -802,7 +801,7 @@ contains
 
     end function cbsrh
 
-    subroutine ccompb(self, n, ierror, an, bn, cn, b, bc, ah, bh)
+    subroutine ccompb(self, ierror, an, bn, cn, b, bc, ah, bh)
         !
         ! Purpose:
         !
@@ -815,7 +814,6 @@ contains
         ! Dummy arguments
         !-----------------------------------------------
         class(CbltriAux), intent(inout) :: self
-        integer(ip),      intent(in)    :: n
         integer(ip),      intent(out)   :: ierror
         real(wp),         intent(in)    :: an(:)
         real(wp),         intent(in)    :: bn(:)
@@ -956,9 +954,9 @@ contains
 
                 ! Compute eigenvalues of the periodic tridiagonal
                 block
-                    complex(wp)       :: cbp_arg(1)
-                    real(wp)          :: bp_arg(1)
-                    real(wp), pointer :: bh_arg(:) => null()
+                    complex(wp) :: cbp_arg(1)
+                    real(wp)    :: bp_arg(1)
+                    real(wp), contiguous, pointer :: bh_arg(:) => null()
 
                     ! Associate arguments
                     cbp_arg = cmplx(b(j1), kind=wp)

@@ -128,7 +128,7 @@ module type_MacGrid
     integer(ip)        :: deallocate_status  !! To check deallocation status
     !---------------------------------------------------------------
 
-    ! Declare derived data type
+    
     type, extends (Grid), public :: MacGrid
         !---------------------------------------------------------------
         ! Type components
@@ -145,7 +145,6 @@ module type_MacGrid
         procedure, public :: create => create_mac_grid
         procedure, public :: destroy => destroy_mac_grid
         procedure, public :: unformatted_print => print_to_unformatted_binary_files
-        !final             :: finalize_mac_grid
         !---------------------------------------------------------------
     end type MacGrid
 
@@ -354,18 +353,5 @@ contains
         end associate
 
     end subroutine print_to_unformatted_binary_files
-
-
-    subroutine finalize_mac_grid(this)
-        !--------------------------------------------------------------
-        ! Dummy arguments
-        !--------------------------------------------------------------
-        type(MacGrid), intent(inout) :: this
-        !--------------------------------------------------------------
-
-        call this%destroy()
-
-    end subroutine finalize_mac_grid
-
 
 end module type_MacGrid
