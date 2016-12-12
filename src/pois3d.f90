@@ -432,7 +432,6 @@ contains
                 w, w(iwyrt:), w(iwt:), w(iwd:), w(iwx:), w(iwy:), c1, c2, w(iwbb:))
 
             if (np == 1) then
-
                 do i = 1, l
                     do j = 1, m
                         w(nh-1:nh-nhm1:(-1))= &

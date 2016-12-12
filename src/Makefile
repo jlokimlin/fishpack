@@ -12,8 +12,15 @@ fishpack_precision.f90
 	$(FC) $(FFLAGS) -c fishpack_precision.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
+fftpack_routines.o: \
+fishpack_precision.o \
+fftpack_routines.f90
+	$(FC) $(FFLAGS) -c fftpack_routines.f90 $(LINKS) \
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
 type_FishpackWorkspace.o: \
 fishpack_precision.o \
+fftpack_routines.o \
 type_FishpackWorkspace.f90
 	$(FC) $(FFLAGS) -c type_FishpackWorkspace.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
