@@ -9,7 +9,7 @@
 !     *                                                               *
 !     *                      all rights reserved                      *
 !     *                                                               *
-!     *                    FISHPACK90  Version 1.1                    *
+!     *                         Fishpack                              *
 !     *                                                               *
 !     *                      A Package of Fortran                     *
 !     *                                                               *
@@ -33,13 +33,12 @@
 !     *                                                               *
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-program tpois3d
+program test_pois3d
 
     use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
 
-    use fishpack_library, only: &
-        ip, wp, TWO_PI, PI, pois3d
+    use fishpack_library
 
     ! Explicit typing only
     implicit none
@@ -129,6 +128,7 @@ program tpois3d
     ! u(x, y, z) = sin(x)*sin(y)*(1+z)**4
     !
     block
+        real(wp), parameter :: KNOWN_ERROR = 0.293277049861086e-001_wp
         real(wp) :: discretization_error
         real(wp) :: exact_solution(L,M,N)
 
@@ -143,16 +143,7 @@ program tpois3d
         ! Set discretization error
         discretization_error = maxval(abs(exact_solution - f(:L,:M,:N)))
 
-        ! Print earlier output from platforms with 64-bit floating point
-        ! arithmetic followed by the output from this computer
-        !
-        write( stdout, '(/a)') '     pois3d *** TEST RUN *** '
-        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-        write( stdout, '(a)') '     ierror = 0,  discretization error = 2.93277e-2'
-        write( stdout, '(a)') '     The output from your computer is: '
-        write( stdout, '(a,i3,a,1pe15.6/)') &
-            '     ierror =', ierror, &
-            ' discretization error = ', discretization_error
+        call check_output('pois3d', ierror, KNOWN_ERROR, discretization_error)
     end block
 
-end program tpois3d
+end program test_pois3d

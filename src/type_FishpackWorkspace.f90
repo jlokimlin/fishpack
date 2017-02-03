@@ -1,6 +1,4 @@
 !
-!     file type_FishpackWorkspace.f90
-!
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
 !     *                  copyright (c) 2005 by UCAR                   *
@@ -9,7 +7,7 @@
 !     *                                                               *
 !     *                      all rights reserved                      *
 !     *                                                               *
-!     *                    FISHPACK90  Version 1.1                    *
+!     *                         Fishpack                              *
 !     *                                                               *
 !     *                      A Package of Fortran                     *
 !     *                                                               *
@@ -37,7 +35,7 @@
 ! Purpose:
 !
 ! This module is used by all fishpack solvers
-! to allocate real and complex work space arrays for FFTpack
+! to allocate real and complex workspace arrays
 !
 module type_FishpackWorkspace
 
@@ -53,17 +51,12 @@ module type_FishpackWorkspace
     public :: FishpackWorkspace
 
     type, public :: FishpackWorkspace
-        !---------------------------------------------------------------
         ! Type components
-        !---------------------------------------------------------------
         real(wp),    allocatable :: real_workspace(:)
         complex(wp), allocatable :: complex_workspace(:)
         integer(ip), allocatable :: workspace_indices(:)
-        !---------------------------------------------------------------
     contains
-        !---------------------------------------------------------------
         ! Type-bound procedures
-        !---------------------------------------------------------------
         procedure, public :: create => create_fishpack_workspace
         procedure, public :: destroy => destroy_fishpack_workspace
         procedure, public, nopass :: compute_blktri_workspace_lengths
@@ -71,24 +64,20 @@ module type_FishpackWorkspace
         procedure, public :: initialize_staggered_workspace
         procedure, public :: initialize_centered_workspace
         procedure, public :: initialize_blktri_workspace
-        !---------------------------------------------------------------
     end type FishpackWorkspace
 
 contains
 
     subroutine create_fishpack_workspace(self, irwk, icwk, iiwk)
-        !--------------------------------------------------------------
+
         ! Dummy arguments
-        !--------------------------------------------------------------
         class(FishpackWorkspace), intent(inout) :: self
         integer(ip),              intent(in)    :: irwk ! required real work space length
         integer(ip),              intent(in)    :: icwk ! required integer work space length
         integer(ip), optional,    intent(in)    :: iiwk
-        !--------------------------------------------------------------
+
         ! Local variables
-        !--------------------------------------------------------------
         integer(ip) :: allocation_status
-        !--------------------------------------------------------------
 
         ! Ensure that object is usable
         call self%destroy()
@@ -135,17 +124,14 @@ contains
     end subroutine create_fishpack_workspace
 
     subroutine initialize_staggered_workspace(self, n, m)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         class(FishpackWorkspace), intent(inout) :: self
         integer(ip),              intent(in)    :: n
         integer(ip),              intent(in)    :: m
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         integer(ip)  :: irwk, icwk
-        !-----------------------------------------------
 
         ! Ensure that object is usable
         call self%destroy()
@@ -163,18 +149,15 @@ contains
     end subroutine initialize_staggered_workspace
 
     subroutine initialize_centered_workspace(self, n, m)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         class(FishpackWorkspace), intent(inout) :: self
         integer(ip),              intent(in)    :: n
         integer(ip),              intent(in)    :: m
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         integer(ip)         :: irwk, icwk
         real(wp), parameter :: TWO = 2.0_wp
-        !-----------------------------------------------
 
         ! Ensure that object is usable
         call self%destroy()
@@ -189,17 +172,14 @@ contains
     end subroutine initialize_centered_workspace
 
     subroutine initialize_blktri_workspace(self, n, m)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         class(FishpackWorkspace), intent(inout) :: self
         integer(ip),              intent(in)    :: n
         integer(ip),              intent(in)    :: m
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         integer(ip) :: irwk, icwk
-        !-----------------------------------------------
 
         ! Ensure that object is usable
         call self%destroy()
@@ -212,33 +192,27 @@ contains
 
     end subroutine initialize_blktri_workspace
 
+    ! Purpose:
+    !
+    ! This subroutine computes the real and complex work space
+    ! requirements (generous estimate) of blktri for n,m values
+    !
     pure subroutine compute_blktri_workspace_lengths(n, m, irwk, icwk)
-        !
-        ! Purpose:
-        !
-        ! This subroutine computes the real and complex work space
-        ! requirements (generous estimate) of blktri for n,m values
-        !
-        !--------------------------------------------------------------
+
         ! Dummy arguments
-        !--------------------------------------------------------------
         integer(ip), intent(in)  :: n
         integer(ip), intent(in)  :: m
         integer(ip), intent(out) :: irwk
         integer(ip), intent(out) :: icwk
-        !--------------------------------------------------------------
-        ! Local variables
-        !--------------------------------------------------------------
-        integer(ip) :: log2n
-        !--------------------------------------------------------------
 
-        !
+        ! Local variables
+        integer(ip) :: log2n
+
         ! Compute nearest integer greater than or equal to
         !    log base 2 of n+1, i.e., log2n is smallest integer
         !    such that 2**log2n >= n+1
         !
         log2n = 1
-
         do
             if (n+1 <= 2**log2n) exit
             log2n = log2n+1
@@ -251,30 +225,24 @@ contains
 
     end subroutine compute_blktri_workspace_lengths
 
+    ! Purpose:
+    !
+    ! This subroutine computes the real work space
+    ! requirement (generously) of genbun for the current n,m
+    !
     pure subroutine compute_genbun_workspace_lengths(n, m, irwk)
-        !
-        ! Purpose:
-        !
-        ! This subroutine computes the real work space
-        ! requirement (generously) of genbun for the current n,m
-        !
-        !--------------------------------------------------------------
+
         ! Dummy arguments
-        !--------------------------------------------------------------
         integer(ip), intent(in)  :: n
         integer(ip), intent(in)  :: m
         integer(ip), intent(out) :: irwk
-        !--------------------------------------------------------------
-        ! Local variables
-        !--------------------------------------------------------------
-        integer(ip) :: log2n
-        !--------------------------------------------------------------
 
-        !
+        ! Local variables
+        integer(ip) :: log2n
+
         ! Compute nearest integer greater than or equal to
-        !    log base 2 of n+1, i.e., log2n is smallest integer
-        !    such that 2**log2n >= n+1
-        !
+        ! log base 2 of n+1, i.e., log2n is smallest integer
+        ! such that 2**log2n >= n+1
         log2n = 1
 
         do
@@ -286,23 +254,20 @@ contains
 
     end subroutine compute_genbun_workspace_lengths
 
+    ! Purpose:
+    !
+    ! This subroutine releases dynamically allocated work space.
+    ! It should be called after a fishpack solver has finished
+    !
+    ! Remark:
+    !
+    ! When intent(out) is used with a derived type, any component
+    ! not assigned in a procedure will automatically deallocate on exit.
+    !
     subroutine destroy_fishpack_workspace(self)
-        !
-        ! Purpose:
-        !
-        ! This subroutine releases dynamically allocated work space.
-        ! It should be called after a fishpack solver has finished
-        !
-        ! Remark:
-        !
-        ! When intent(out) is used with a derived type, any component
-        ! not assigned in a procedure will automatically deallocate on exit.
-        !
-        !--------------------------------------------------------------
+
         ! Dummy arguments
-        !--------------------------------------------------------------
         class(FishpackWorkspace), intent(out) :: self
-        !--------------------------------------------------------------
 
     end subroutine destroy_fishpack_workspace
 

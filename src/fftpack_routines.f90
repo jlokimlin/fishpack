@@ -10,7 +10,7 @@
 !     *                                                               *
 !     *                      all rights reserved                      *
 !     *                                                               *
-!     *                    FISHPACK90  Version 1.1                    *
+!     *                         Fishpack                              *
 !     *                                                               *
 !     *                      A Package of Fortran                     *
 !     *                                                               *

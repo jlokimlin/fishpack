@@ -1,6 +1,4 @@
 !
-!     file thwscsp.f90
-!
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
 !     *                  copyright (c) 2005 by UCAR                   *
@@ -9,7 +7,7 @@
 !     *                                                               *
 !     *                      all rights reserved                      *
 !     *                                                               *
-!     *                    FISHPACK90  Version 1.1                    *
+!     *                         Fishpack                              *
 !     *                                                               *
 !     *                      A Package of Fortran                     *
 !     *                                                               *
@@ -33,20 +31,14 @@
 !     *                                                               *
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-program thwscsp
+program test_hwscsp
 
-    use, intrinsic :: ISO_Fortran_env, only: &
-        stdout => OUTPUT_UNIT
-
-    use fishpack_library, only: &
-        FishpackWorkspace, ip, wp, HALF_PI, hwscsp, PI
+    use fishpack_library
 
     ! Explicit typing only
     implicit none
 
-    !-----------------------------------------------
     ! Dictionary
-    !-----------------------------------------------
     type(FishpackWorkspace)  :: workspace
     integer(ip), parameter   :: M = 36, N = 32
     integer(ip), parameter   :: MP1 = M + 1, NP1 = N + 1
@@ -58,7 +50,6 @@ program thwscsp
     real(wp)                 :: ts, tf, rs, rf, elmbda
     real(wp)                 :: dtheta, dr, pertrb, dphi
     real(wp)                 :: ZERO = 0.0_wp, ONE = 1.0_wp, TWO = 2.0_wp
-    !-----------------------------------------------
 
     ! Initialization flag
     intl = 0
@@ -76,10 +67,9 @@ program thwscsp
     ! Set helmholtz constant
     elmbda = ZERO
 
-        ! Set mesh sizes
+    ! Set mesh sizes
     dtheta = tf/M
     dr = ONE /N
-
 
     ! Generate and store grid points for the purpose of computing the
     ! boundary data and the right side of the equation.
@@ -117,6 +107,7 @@ program thwscsp
 
     ! Compute discretization error
     block
+        real(wp), parameter :: KNOWN_ERROR = 0.799841637481730e-3_wp
         real(wp) :: discretization_error, exact_solution(MP1, N)
 
         do j = 1, N
@@ -128,20 +119,11 @@ program thwscsp
         ! Set discretization error
         discretization_error = maxval(abs(exact_solution - f(:MP1,:N)))
 
-        ! Print earlier output from platforms with 64 bit floating point
-        ! arithmetic followed by the output from this computer
-        write( stdout, '(/a)') '     hwscsp *** TEST RUN, EXAMPLE 1 *** '
-        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-        write( stdout, '(a)') '     ierror = 0,  discretization error = 7.9984e-4 '
-        write( stdout, '(a)') '     The output from your computer is: '
-        write( stdout, '(a,i3,a,1pe15.6/)') &
-            '     ierror =', ierror, &
-            '     discretization error =', discretization_error
+        call check_output('hwscsp example 1', ierror, KNOWN_ERROR, discretization_error)
     end block
 
     ! The following program illustrates the use of hwscsp to solve
     ! a three dimensional problem which has longitudinal dependence
-    !
     mbdcnd = 2
     nbdcnd = 1
     dphi = PI/72
@@ -161,6 +143,7 @@ program thwscsp
 
     ! Compute discretization error (fourier coefficients)
     block
+        real(wp), parameter :: KNOWN_ERROR = 0.586824289033339e-4_wp
         real(wp) :: exact_solution(MP1,NP1), discretization_error
 
         discretization_error = ZERO
@@ -173,18 +156,10 @@ program thwscsp
         ! Set discretization error
         discretization_error = maxval(abs(exact_solution - f(:MP1,:NP1)))
 
-        ! Print earlier output from platforms with 64-bit floating point
-        ! arithmetic followed by the output from this computer
-        write( stdout, '(/a)') '     hwscsp *** TEST RUN, EXAMPLE 2 *** '
-        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-        write( stdout, '(a)') '     ierror = 0, discretization error = 5.8682e-5 '
-        write( stdout, '(a)') '     The output from your computer is: '
-        write( stdout, '(a,i3,a,1pe15.6/)') &
-            '     ierror =', ierror, &
-            '     discretization error =', discretization_error
+        call check_output('hwscsp example 2', ierror, KNOWN_ERROR, discretization_error)
     end block
 
     ! Release memory
     call workspace%destroy()
 
-end program thwscsp
+end program test_hwscsp

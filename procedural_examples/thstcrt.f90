@@ -1,4 +1,3 @@
-!     file thstcrt.f90
 !
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
@@ -8,7 +7,7 @@
 !     *                                                               *
 !     *                      all rights reserved                      *
 !     *                                                               *
-!     *                    FISHPACK90  Version 1.1                    *
+!     *                         Fishpack                              *
 !     *                                                               *
 !     *                      A Package of Fortran                     *
 !     *                                                               *
@@ -32,20 +31,17 @@
 !     *                                                               *
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-program thstcrt
+program test_hstcrt
 
     use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
 
-    use fishpack_library, only: &
-        ip, wp, PI, hstcrt
+    use fishpack_library
 
     ! Explicit typing only
     implicit none
 
-    !-----------------------------------------------
     ! Dictionary
-    !-----------------------------------------------
     integer(ip), parameter :: M = 48
     integer(ip), parameter :: N = 53
     integer(ip), parameter :: IDIMF = M + 2
@@ -58,7 +54,6 @@ program thstcrt
     real(wp), parameter    :: PI2 = PI**2
     real(wp), parameter    :: ZERO = 0.0_wp, HALF = 0.5_wp, ONE = 1.0_wp
     real(wp), parameter    :: TWO = 2.0_wp, THREE = 3.0_wp
-    !-----------------------------------------------
 
     ! Set domain
     a = ONE
@@ -79,7 +74,6 @@ program thstcrt
 
     ! Generate and store grid points for computation of boundary data
     ! and the right side of the helmholtz equation.
-    !
     do i = 1, M
         x(i) = a + (real(i, kind=wp) - HALF) * dx
     end do
@@ -91,7 +85,6 @@ program thstcrt
     ! Generate boundary data. bdc and bdd are dummy arguments in this example.
     bda = ZERO
     bdb = -PI * cos(PI*y)
-
 
     ! Generate right side of equation
     block
@@ -108,9 +101,9 @@ program thstcrt
 
     ! Compute discretization error. The exact solution is
     !
-    !    u(x, y) = sin(pi*x)*cos(pi*y) .
-    !
+    ! u(x, y) = sin(pi*x) * cos(pi*y).
     block
+        real(wp), parameter :: KNOWN_ERROR = 0.126000790151959e-2_wp
         real(wp) :: discretization_error
         real(wp) :: exact_solution(M,N)
 
@@ -123,15 +116,7 @@ program thstcrt
         ! Set discretization error
         discretization_error = maxval(abs(exact_solution - f(:M,:N)))
 
-        ! Print earlier output from platforms with 64-bit floating point
-        ! arithmetic followed by the output from this computer
-        write( stdout, '(/a)') '     hstcrt *** TEST RUN *** '
-        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-        write( stdout, '(a)') '     ierror = 0,  discretization error = 1.2600e-3'
-        write( stdout, '(a)') '     The output from your computer is: '
-        write( stdout, '(a,i3,a,1pe15.6/)') &
-            '     ierror =', ierror, &
-            ' discretization error = ', discretization_error
+        call check_output('hstcrt', ierror, KNOWN_ERROR, discretization_error)
     end block
 
-end program thstcrt
+end program test_hstcrt

@@ -9,7 +9,7 @@
 !     *                                                               *
 !     *                      all rights reserved                      *
 !     *                                                               *
-!     *                    FISHPACK90  Version 1.1                    *
+!     *                         Fishpack                              *
 !     *                                                               *
 !     *                      A Package of Fortran                     *
 !     *                                                               *
@@ -525,9 +525,12 @@ contains
         character temp
         !-----------------------------------------------
 
-        temp = a ; a = b ; b = temp
+        temp = a
+        a = b
+        b = temp
 
     end subroutine swap_character
+
 end module type_GenbunAux
 !
 ! REVISION HISTORY

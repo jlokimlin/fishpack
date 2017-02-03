@@ -9,7 +9,7 @@
 !     *                                                               *
 !     *                      all rights reserved                      *
 !     *                                                               *
-!     *                    FISHPACK90  Version 1.1                    *
+!     *                         Fishpack                              *
 !     *                                                               *
 !     *                      A Package of Fortran                     *
 !     *                                                               *
@@ -33,13 +33,12 @@
 !     *                                                               *
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-program thstssp
+program test_hstssp
 
     use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
 
-    use fishpack_library, only: &
-        ip, wp, HALF_PI, TWO_PI, hstssp
+    use fishpack_library
 
     ! Explicit typing only
     implicit none
@@ -105,8 +104,10 @@ program thstssp
     ! Compute discretization error. since problem is singular, the
     ! solution must be normalized.
     block
-        real(wp) :: discretization_error
-        real(wp) :: exact_solution(M,N)
+        real(wp), parameter :: KNOWN_PERTRB = 0.635830001454109e-3_wp
+        real(wp), parameter :: KNOWN_ERROR = 0.337523232257420e-2_wp
+        real(wp)            :: discretization_error
+        real(wp)            :: exact_solution(M,N)
 
         do j = 1, N
             do i = 1, M
@@ -117,15 +118,8 @@ program thstssp
         ! Set discretization error
         discretization_error = maxval(abs(exact_solution - f(:M,:N)))
 
-        ! Print earlier output from platforms with 64-bit floating point
-        ! arithmetic followed by the output from this computer
-        write( stdout, '(/a)') '     hstssp *** TEST RUN *** '
-        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-        write( stdout, '(a)') '     ierror = 0,  pertrb = 6.35830e-4'
-        write( stdout, '(a)') '     discretization error = 3.37523e-3'
-        write( stdout, '(a)') '     The output from your computer is: '
-        write( stdout, '(a,i3,a,1pe15.6)') '     ierror =', ierror, ' pertrb = ', pertrb
-        write( stdout, '(a,1pe15.6/)') '     discretization error = ', discretization_error
+        call check_output('hstssp', &
+            ierror, KNOWN_ERROR, discretization_error, KNOWN_PERTRB, pertrb)
     end block
 
-end program thstssp
+end program test_hstssp

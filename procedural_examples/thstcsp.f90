@@ -1,6 +1,4 @@
 !
-!     file thstcsp.f90
-!
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
 !     *                  copyright (c) 2005 by UCAR                   *
@@ -9,7 +7,7 @@
 !     *                                                               *
 !     *                      all rights reserved                      *
 !     *                                                               *
-!     *                    FISHPACK90  Version 1.1                    *
+!     *                         Fishpack                              *
 !     *                                                               *
 !     *                      A Package of Fortran                     *
 !     *                                                               *
@@ -33,13 +31,12 @@
 !     *                                                               *
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-program thstcsp
+program test_hstcsp
 
     use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
 
-    use fishpack_library, only: &
-        FishpackWorkspace, ip, wp, PI, hstcsp
+    use fishpack_library
 
     ! Explicit typing only
     implicit none
@@ -113,6 +110,7 @@ program thstcsp
     ! u(theta, r) = (r*cos(theta))**4
     !
     block
+        real(wp), parameter :: KNOWN_ERROR = 0.558432375660800e-2_wp
         real(wp) :: discretization_error
         real(wp) :: exact_solution(M,N)
 
@@ -125,20 +123,10 @@ program thstcsp
         ! Set discretization error
         discretization_error = maxval(abs(exact_solution - f(:M,:N)))
 
-        ! Print earlier output from platforms with 64-bit floating point
-        ! arithmetic followed by the output from this computer.
-        ! In this example (contrast with blktri and sepeli) the extra precision
-        ! does not reduce the discretization error
-        write( stdout, '(/a)') '     hstcsp *** TEST RUN *** '
-        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-        write( stdout, '(a)') '     ierror = 0,  discretization error = 5.5843e-3'
-        write( stdout, '(a)') '     The output from your computer is: '
-        write( stdout, '(a,i3,a,1pe15.6/)') &
-            '     ierror =', ierror, &
-            ' discretization error = ', discretization_error
+        call check_output('hstcsp', ierror, KNOWN_ERROR, discretization_error)
     end block
 
     ! Release memory
     call workspace%destroy()
 
-end program thstcsp
+end program test_hstcsp

@@ -1,6 +1,4 @@
 !
-!     file thw3crt.f
-!
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
 !     *                  copyright (c) 2005 by UCAR                   *
@@ -9,7 +7,7 @@
 !     *                                                               *
 !     *                      all rights reserved                      *
 !     *                                                               *
-!     *                    FISHPACK90  Version 1.1                    *
+!     *                         Fishpack                              *
 !     *                                                               *
 !     *                      A Package of Fortran                     *
 !     *                                                               *
@@ -33,7 +31,7 @@
 !     *                                                               *
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-program thw3crt
+program test_hw3crt
 
     use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
@@ -135,6 +133,7 @@ program thw3crt
     ! u(x,y,z) = (x**4) * sin(y) * cos(z)
     !
     block
+        real(wp), parameter :: KNOWN_ERROR = 0.964801952068239e-002_wp
         real(wp) :: discretization_error
         real(wp) :: exact_solution(LP1, MP1, NP1)
 
@@ -147,17 +146,8 @@ program thw3crt
         end do
 
         discretization_error = maxval(abs(exact_solution - f(:LP1,:MP1, :NP1)))
-        !
-        ! Print earlier output from platforms with 64-bit floating point
-        !    arithmetic followed by the output from this computer
-        !
-        write( stdout, '(/a)') '     hw3crt *** TEST RUN *** '
-        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-        write( stdout, '(a)') '     ierror = 0,  discretization error = 9.6480e-3'
-        write( stdout, '(a)') '     The output from your computer is: '
-        write( stdout, '(a,i3,a,1pe15.6/)') &
-            '     ierror =', ierror, &
-            ' discretization error = ', discretization_error
+
+        call check_output('hw3crt', ierror, KNOWN_ERROR, discretization_error)
     end block
 
-end program thw3crt
+end program test_hw3crt

@@ -1,4 +1,3 @@
-!     file thstplr.f
 !
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
@@ -8,7 +7,7 @@
 !     *                                                               *
 !     *                      all rights reserved                      *
 !     *                                                               *
-!     *                    FISHPACK90  Version 1.1                    *
+!     *                         Fishpack                              *
 !     *                                                               *
 !     *                      A Package of Fortran                     *
 !     *                                                               *
@@ -32,20 +31,14 @@
 !     *                                                               *
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-program thstplr
+program test_hstplr
 
-    use, intrinsic :: ISO_Fortran_env, only: &
-        stdout => OUTPUT_UNIT
-
-    use fishpack_library, only: &
-        ip, wp, HALF_PI, hstplr
+    use fishpack_library
 
     ! Explicit typing only
     implicit none
 
-    !-----------------------------------------------
     ! Dictionary
-    !-----------------------------------------------
     integer(ip), parameter :: M = 50, N = 48
     integer(ip), parameter :: IDIMF = M + 1, NP1 = N + 1
     integer(ip)            :: mbdcnd, nbdcnd, i, j, ierror
@@ -56,7 +49,6 @@ program thstplr
     real(wp)               :: elmbda, pertrb
     real(wp), parameter    :: ZERO = 0.0_wp, HALF = 0.5_wp
     real(wp), parameter    :: ONE = 1.0_wp, FOUR = 4.0_wp
-    !-----------------------------------------------
 
     ! Set domain
     a = ZERO
@@ -106,8 +98,8 @@ program thstplr
     ! Compute discretization error.  the exact solution is
     !
     ! u(r, theta) = r**4*(1 - cos(4*theta))
-    !
     block
+        real(wp), parameter :: KNOWN_ERROR = 0.113037945648764e-2_wp
         real(wp) :: discretization_error
         real(wp) :: exact_solution(M,N)
 
@@ -120,15 +112,7 @@ program thstplr
         ! Set discretization error
         discretization_error = maxval(abs(exact_solution - f(:M,:N)))
 
-        ! Print earlier output from platforms with 64-bit floating point
-        ! arithmetic followed by the output from this computer
-        write( stdout, '(/a)') '     hstplr *** TEST RUN *** '
-        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-        write( stdout, '(a)') '     ierror = 0,  discretization error = 1.1303e-3'
-        write( stdout, '(a)') '     The output from your computer is: '
-        write( stdout, '(a,i3,a,1pe15.6/)') &
-            '     ierror =', ierror, &
-            ' discretization error = ', discretization_error
+        call check_output('hstplr', ierror, KNOWN_ERROR, discretization_error)
     end block
 
-end program thstplr
+end program test_hstplr

@@ -1,4 +1,3 @@
-! file tblktri.f90
 !
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 ! *                                                               *
@@ -8,7 +7,7 @@
 ! *                                                               *
 ! *                      all rights reserved                      *
 ! *                                                               *
-! *                    FISHPACK90  Version 1.1                    *
+! *                         Fishpack                              *
 ! *                                                               *
 ! *                      A Package of Fortran                     *
 ! *                                                               *
@@ -32,10 +31,12 @@
 ! *                                                               *
 ! * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-! program to illustrate the use of subroutine blktri to
+! Purpose:
+!
+! To illustrate the use of subroutine blktri to
 ! solve the equation
 !
-! .5/s*(d/ds)(.5/s*du/ds)+.5/t*(d/dt)(.5/t*du/dt)
+! 0.5/s*(d/ds)(0.5/s*du/ds)+0.5/t*(d/dt)(0.5/t*du/dt)
 !                                                      (1)
 !               = 15/4*s*t*(s**4+t**4)
 !
@@ -82,20 +83,17 @@
 !
 ! and then call subroutine blktri to determine u(i, j)
 !
-program tblktri
+program test_blktri
 
     use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
 
-    use fishpack_library, only: &
-        FishpackWorkspace, ip, wp, blktri
+    use fishpack_library
 
     ! Explicit typing only
     implicit none
 
-    !-----------------------------------------------
     ! Dictionary
-    !-----------------------------------------------
     type(FishpackWorkspace)    :: workspace
     integer(ip), parameter     :: M = 50, N = 63
     integer(ip), parameter     :: IDIMY = 75, NT = 105
@@ -105,7 +103,6 @@ program tblktri
     real(wp), dimension(NT)    :: an, bn, cn, t
     real(wp)                   :: ds, dt
     real(wp), parameter        :: ONE = 1.0_wp, TWO = 2.0_wp
-    !-----------------------------------------------
 
     ! Set boundary conditions
     np = 1
@@ -193,8 +190,8 @@ program tblktri
     ! Compute discretization error. The exact solution is
     !
     ! u(s,t) = (st)**5
-    !
     block
+        real(wp), parameter :: KNOWN_ERROR = 0.164778571363905e-4_wp
         real(wp) :: discretization_error
         real(wp) :: exact_solution(M, N)
 
@@ -207,19 +204,10 @@ program tblktri
         ! Set discretization error
         discretization_error = maxval(abs(exact_solution-y(:M,:N)))
 
-        ! Print earlier output from platforms with 64-bit floating point
-        ! arithmetic followed by the output from this computer
-        write( stdout, '(/a)') '     blktri *** TEST RUN *** '
-        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-        write( stdout, '(a)') '     ierror = 0,  discretization error = 1.6478e-05'
-        write( stdout, '(a)') '     The output from your computer is: '
-        write( stdout, '(a,i3,a,1pe15.6/)') &
-            '     ierror =' , ierror, &
-            ' discretization error = ',discretization_error
-
+        call check_output('blktri', ierror, KNOWN_ERROR, discretization_error)
     end block
 
     ! Release memory
     call workspace%destroy()
 
-end program tblktri
+end program test_blktri

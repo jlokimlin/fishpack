@@ -8,7 +8,7 @@
 !     *                                                               *
 !     *                      all rights reserved                      *
 !     *                                                               *
-!     *                    FISHPACK90  Version 1.1                    *
+!     *                         Fishpack                              *
 !     *                                                               *
 !     *                      A Package of Fortran                     *
 !     *                                                               *
@@ -54,13 +54,12 @@
 !     the r-interval will contain 50 unknowns and the z-interval will
 !     contain 52 unknowns.
 !
-program thstcyl
+program test_hstcyl
 
     use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
 
-    use fishpack_library, only: &
-        ip, wp, hstcyl
+    use fishpack_library
 
     ! Explicit typing only
     implicit none
@@ -126,6 +125,8 @@ program thstcyl
     !
     ! u(r, z) = (r*z)**4 + arbitrary constant.
     block
+        real(wp), parameter :: KNOWN_PERTRB = -0.443113920336705e-3_wp
+        real(wp), parameter :: KNOWN_ERROR = 0.752796331450795e-4_wp
         real(wp) :: x, discretization_error
         real(wp) :: exact_solution(M,N)
 
@@ -145,15 +146,8 @@ program thstcyl
         ! Set discretization error
         discretization_error = maxval(abs(exact_solution - f(:M,:N)))
 
-        ! Print earlier output from platforms with 64 bit floating point
-        ! arithmetic followed by the output from this computer
-        write( stdout, '(/a)') '     hstcyl *** TEST RUN *** '
-        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-        write( stdout, '(a)') '     ierror = 0,  pertrb = -4.4311e-4'
-        write( stdout, '(a)') '     discretization error = 7.5280e-5'
-        write( stdout, '(a)') '     The output from your computer is: '
-        write( stdout, '(a,i3,a,1pe15.6)') '     ierror =', ierror, ' pertrb = ', pertrb
-        write( stdout, '(a,1pe15.6/)') '     discretization error = ', discretization_error
+        call check_output('hstcyl', &
+            ierror, KNOWN_ERROR, discretization_error, KNOWN_PERTRB, pertrb)
     end block
 
-end program thstcyl
+end program test_hstcyl

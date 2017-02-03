@@ -1,6 +1,4 @@
 !
-!     file thwsplr.f90
-!
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
 !     *                  copyright (c) 2005 by UCAR                   *
@@ -9,7 +7,7 @@
 !     *                                                               *
 !     *                      all rights reserved                      *
 !     *                                                               *
-!     *                    FISHPACK90  Version 1.1                    *
+!     *                         Fishpack                              *
 !     *                                                               *
 !     *                      A Package of Fortran                     *
 !     *                                                               *
@@ -57,20 +55,14 @@
 !
 !     from dimension statement we get value of idimf.
 !
-program thwsplr
+program test_hwsplr
 
-    use, intrinsic :: ISO_Fortran_env, only: &
-        stdout => OUTPUT_UNIT
-
-    use fishpack_library, only: &
-        ip, wp, HALF_PI, hwsplr
+    use fishpack_library
 
     ! Explicit typing only
     implicit none
 
-    !-----------------------------------------------
     ! Dictionary
-    !-----------------------------------------------
     integer(ip), parameter    :: m = 50, n = 48
     integer(ip), parameter    :: idimf = 100
     integer(ip), parameter    :: mp1 = m + 1, np1 = n + 1
@@ -80,7 +72,6 @@ program thwsplr
     real(wp), dimension(1)    :: bda, bdb
     real(wp)                  :: a, b, c, d, elmbda, pertrb
     real(wp), parameter       :: ZERO = 0.0_wp, ONE = 1.0_wp, FOUR = 4.0_wp
-    !-----------------------------------------------
 
     ! Set domain
     a = ZERO
@@ -97,7 +88,6 @@ program thwsplr
 
     ! Generate and store grid points for the purpose of computing
     ! boundary data and the right side of the poisson equation.
-    !
     do i = 1, mp1
         r(i) = real(i - 1, kind=wp)/m
     end do
@@ -131,8 +121,8 @@ program thwsplr
     ! Compute discretization error. The exact solution is
     !
     ! u(r,theta) = (r**4)*(1 - cos(4*theta))
-    !
     block
+        real(wp), parameter :: KNOWN_ERROR = 0.619134227874629e-003
         real(wp) :: discretization_error, exact_solution(mp1, np1)
 
         do j = 1, np1
@@ -144,16 +134,7 @@ program thwsplr
         ! Set discretization error
         discretization_error = maxval(abs(exact_solution - f(:mp1,:np1)))
 
-        ! Print earlier output from platforms with 64-bit floating point
-        ! arithmetic followed by the output from this computer
-        !
-        write( stdout, '(/a)') '     hwsplr *** TEST RUN *** '
-        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-        write( stdout, '(a)') '     ierror = 0,  discretization error = 6.19134e-4'
-        write( stdout, '(a)') '     The output from your computer is: '
-        write( stdout, '(a,i3,a,1pe15.6/)') &
-            '     ierror =', ierror, &
-            ' discretization error = ', discretization_error
+        call check_output('hwsplr', ierror, KNOWN_ERROR, discretization_error)
     end block
 
-end program thwsplr
+end program test_hwsplr

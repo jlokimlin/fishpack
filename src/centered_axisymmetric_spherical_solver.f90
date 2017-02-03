@@ -9,7 +9,7 @@
 !     *                                                               *
 !     *                      all rights reserved                      *
 !     *                                                               *
-!     *                    FISHPACK90  Version 1.1                    *
+!     *                         Fishpack                              *
 !     *                                                               *
 !     *                      A Package of Fortran                     *
 !     *                                                               *
@@ -307,7 +307,7 @@
 !                          be at least m+1  .
 !
 !                        w
-!                          a fortran 90 derived type(fishpackworkspace) variable
+!                          A FishpackWorkspace derived data type variable
 !                          that must be declared by the user.  the first
 !                          two declarative statements in the user program
 !                          calling sepeli must be:
@@ -666,7 +666,7 @@ contains
         else if (nbdcnd >= 5 .and. rs /= ZERO) then
             ierror = 17
             return
-        else if (nbdcnd >= 5) then
+        else if (5 <= nbdcnd) then
             select case (mbdcnd)
                 case (1:2, 5, 7)
                     ierror = 18

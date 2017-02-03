@@ -9,7 +9,7 @@
 !     *                                                               *
 !     *                      all rights reserved                      *
 !     *                                                               *
-!     *                    FISHPACK90  Version 1.1                    *
+!     *                         Fishpack                              *
 !     *                                                               *
 !     *                      A Package of Fortran                     *
 !     *                                                               *
@@ -35,20 +35,14 @@
 !
 !     program to illustrate the use of hwsssp
 !
-program thwsssp
+program test_hwsssp
 
-    use, intrinsic :: ISO_Fortran_env, only: &
-        stdout => OUTPUT_UNIT
-
-    use fishpack_library, only: &
-        ip, wp, HALF_PI, TWO_PI, hwsssp
+    use fishpack_library
 
     ! Explicit typing only
     implicit none
 
-    !-----------------------------------------------
     ! Dictionary
-    !-----------------------------------------------
     integer(ip), parameter     :: M = 18, N = 72
     integer(ip), parameter     :: MP1 = M + 1, NP1 = N + 1
     integer(ip), parameter     :: IDIMF = MP1
@@ -58,7 +52,6 @@ program thwsssp
     real(wp)                   :: ts, tf, ps, pf, elmbda
     real(wp)                   :: dtheta, dphi, pertrb
     real(wp)                   :: ZERO = 0.0_wp
-    !-----------------------------------------------
 
     ! Set domain
     ts = ZERO
@@ -96,9 +89,7 @@ program thwsssp
         end do
     end block
 
-    !
-    !     store derivative data at the equator
-    !
+    ! Store derivative data at the equator
     bdtf(:NP1) = ZERO
 
     ! Solve 2D Helmholtz in spherical coordinates on a centered grid
@@ -108,6 +99,7 @@ program thwsssp
     ! Compute discretization error.
     ! Since problem is singular, the solution must be normalized.
     block
+        real(wp), parameter :: KNOWN_ERROR = 0.338107338525839e-2_wp
         real(wp) :: discretization_error, exact_solution(MP1, NP1)
 
         do j = 1, NP1
@@ -119,15 +111,7 @@ program thwsssp
         ! Set discretization error
         discretization_error = maxval(abs(exact_solution - f(:MP1,:NP1)))
 
-        ! Print earlier output from platforms with 64-bit floating point
-        ! arithmetic followed by the output from this computer
-        write( stdout, '(/a)') '     hwsssp *** TEST RUN *** '
-        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-        write( stdout, '(a)') '     ierror = 0,  discretization error = 3.38107e-3'
-        write( stdout, '(a)') '     The output from your computer is: '
-        write( stdout, '(a,i3,a,1pe15.6/)') &
-            '      ierror =', ierror, &
-            ' discretization error = ', discretization_error
+        call check_output('hwsssp', ierror, KNOWN_ERROR, discretization_error)
     end block
 
-end program thwsssp
+end program test_hwsssp

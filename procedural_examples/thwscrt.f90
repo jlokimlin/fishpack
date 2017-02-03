@@ -9,7 +9,7 @@
 !     *                                                               *
 !     *                      all rights reserved                      *
 !     *                                                               *
-!     *                    FISHPACK90  Version 1.1                    *
+!     *                         Fishpack                              *
 !     *                                                               *
 !     *                      A Package of Fortran                     *
 !     *                                                               *
@@ -32,20 +32,14 @@
 !     *              the National Science Foundation                  *
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-program thwscrt
+program test_hwscrt
 
-    use, intrinsic :: ISO_Fortran_env, only: &
-        stdout => OUTPUT_UNIT
-
-    use fishpack_library, only: &
-        ip, wp, PI, HALF_PI, hwscrt
+    use fishpack_library
 
     ! Explicit typing only
     implicit none
 
-    !-----------------------------------------------
     ! Dictionary
-    !-----------------------------------------------
     integer(ip), parameter   :: M = 40, N = 80
     integer(ip), parameter   :: MP1 = M + 1, NP1 = N + 1
     integer(ip), parameter   :: IDIMF = M + 5
@@ -57,7 +51,6 @@ program thwscrt
     real(wp), parameter      :: PI2 = PI**2
     real(wp), parameter      :: ZERO = 0.0_wp, ONE = 1.0_wp
     real(wp), parameter      :: TWO = 2.0_wp, THREE = 3.0_wp, FOUR = 4.0_wp
-    !-----------------------------------------------
 
     ! Set domain
     a = ZERO
@@ -101,8 +94,8 @@ program thwscrt
     ! Compute discretization error. The exact solution is
     !
     ! u(x, y) = (x**2) * cos((y+1)*(pi/2))
-    !
     block
+        real(wp), parameter :: KNOWN_ERROR = 0.536508246868017e-3_wp
         real(wp) :: discretization_error
         real(wp) :: exact_solution(MP1, NP1)
 
@@ -115,15 +108,7 @@ program thwscrt
         ! Set discretization error
         discretization_error = maxval(abs(exact_solution - f(:MP1,:NP1)))
 
-        ! Print earlier output from platforms with 64-bit floating point
-        ! arithmetic followed by the output from this computer
-        write( stdout, '(/a)') '     hwscrt *** TEST RUN *** '
-        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-        write( stdout, '(a)') '     ierror = 0,  discretization error = 5.36508e-4'
-        write( stdout, '(a)') '     The output from your computer is: '
-        write( stdout, '(a,i3,a,1pe15.6/)') &
-            '     ierror =', ierror, &
-            ' discretization error = ', discretization_error
+        call check_output('hwscrt', ierror, KNOWN_ERROR, discretization_error)
     end block
 
-end program thwscrt
+end program test_hwscrt

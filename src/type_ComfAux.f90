@@ -10,7 +10,7 @@
 !     *                                                               *
 !     *                      all rights reserved                      *
 !     *                                                               *
-!     *                    FISHPACK90  Version 1.1                    *
+!     *                         Fishpack                              *
 !     *                                                               *
 !     *                      A Package of Fortran                     *
 !     *                                                               *
@@ -35,25 +35,11 @@
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
 !
-! PACKAGE COMF           The entries in this package are low-level
-!                        entries, supporting fishpack entries blktri
-!                        and cblktri. that is, these routines are
-!                        not called directly by users, but rather
-!                        by entries within blktri and cblktri.
-!
-!
-! LATEST REVISION        April 2016
-!
-! SPECIAL CONDITIONS     None
-!
-! I/O                    None
-!
-! PRECISION              Set in the module fishpack_precision.f90
-!
-! REQUIRED LIBRARY       None
-! FILES
-!
-! STANDARD               Fortran 2008
+! The entries in this package are low-level
+!  entries, supporting fishpack entries blktri
+!  and cblktri. that is, these routines are
+!  not called directly by users, but rather
+!  by entries within blktri and cblktri.
 !
 module type_ComfAux
 
@@ -72,97 +58,79 @@ module type_ComfAux
     public :: ComfAux
     public :: comf_interface
 
+    ! Parameters confined to the module
+    real(wp), parameter :: ONE = 1.0_wp
     
     type, public :: ComfAux
-        !--------------------------------------------------
-        ! Type components
-        !--------------------------------------------------
     contains
-        !--------------------------------------------------
         ! Type-bound procedures
-        !--------------------------------------------------
         procedure, nopass, public :: ppsgf
         procedure, nopass, public :: ppspf
         procedure, nopass, public :: psgf
-        !--------------------------------------------------
     end type ComfAux
 
     ! Declare interface
     interface
-        function comf_interface(x, iz, c, a, bh) result (return_value)
+        function comf_interface(x, iz, c, a, bh) &
+            result (return_value)
             import :: ip, wp
-            !-----------------------------------------------
+
             ! Dummy arguments
-            !-----------------------------------------------
             integer(ip), intent(in) :: iz
             real(wp),    intent(in) :: x
             real(wp),    intent(in) :: c(*)
             real(wp),    intent(in) :: a(*)
             real(wp),    intent(in) :: bh(*)
             real(wp)                :: return_value
-            !-----------------------------------------------
         end function comf_interface
     end interface
 
-    !---------------------------------------------------------------------------------
-    ! Parameters confined to the module
-    !---------------------------------------------------------------------------------
-    real(wp), parameter :: ONE = 1.0_wp
-    !---------------------------------------------------------------------------------
-
 contains
 
-    pure function ppsgf(x, iz, c, a, bh) result (return_value)
-        !-----------------------------------------------
+    pure function ppsgf(x, iz, c, a, bh) &
+        result (return_value)
+
         ! Dummy arguments
-        !-----------------------------------------------
-        !class(ComfAux), intent(inout) :: self
         integer(ip),    intent(in)    :: iz
         real(wp),       intent(in)    :: x
         real(wp),       intent(in)    :: c(*)
         real(wp),       intent(in)    :: a(*)
         real(wp),       intent(in)    :: bh(*)
         real(wp)                      :: return_value
-        !-----------------------------------------------
 
         return_value = sum(ONE/(x - bh(1:iz))**2)
 
     end function ppsgf
 
-    pure function ppspf(x, iz, c, a, bh) result (return_value)
-        !-----------------------------------------------
+    pure function ppspf(x, iz, c, a, bh) &
+        result (return_value)
+
         ! Dummy arguments
-        !-----------------------------------------------
-        !class(ComfAux), intent(inout) :: self
         integer(ip),    intent(in)    :: iz
         real(wp),       intent(in)    :: x
         real(wp),       intent(in)    :: c(*)
         real(wp),       intent(in)    :: a(*)
         real(wp),       intent(in)    :: bh(*)
         real(wp)                      :: return_value
-        !-----------------------------------------------
 
         return_value = sum(ONE/(x - bh(1:iz)))
 
     end function ppspf
 
-    pure function psgf(x, iz, c, a, bh) result (return_value)
-        !-----------------------------------------------
+    pure function psgf(x, iz, c, a, bh) &
+        result (return_value)
+
         ! Dummy arguments
-        !-----------------------------------------------
-        !class(ComfAux), intent(inout) :: self
         integer(ip),    intent(in)    :: iz
         real(wp),       intent(in)    :: x
         real(wp),       intent(in)    :: c(*)
         real(wp),       intent(in)    :: a(*)
         real(wp),       intent(in)    :: bh(*)
         real(wp)                      :: return_value
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         integer(ip) :: j
         real(wp)    :: fsg, hsg, dd
-        !-----------------------------------------------
 
         fsg = ONE
         hsg = ONE
@@ -193,5 +161,5 @@ end module type_ComfAux
 ! February  1985    Documentation upgrade
 ! November  1988    Version 3.2, FORTRAN 77 changes
 ! June      2004    Version 5.0, Fortran 90 changes
-! April     2016    Fortran 2008 changes
+! April     2016    Modern Fortran (2008+) changes
 !

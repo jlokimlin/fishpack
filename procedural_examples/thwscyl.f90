@@ -9,7 +9,7 @@
 !     *                                                               *
 !     *                      all rights reserved                      *
 !     *                                                               *
-!     *                    FISHPACK90  Version 1.1                    *
+!     *                         Fishpack                              *
 !     *                                                               *
 !     *                      A Package of Fortran                     *
 !     *                                                               *
@@ -33,20 +33,14 @@
 !     *                                                               *
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-program thwscyl
+program test_hwscyl
 
-    use, intrinsic :: ISO_Fortran_env, only: &
-        stdout => OUTPUT_UNIT
-
-    use fishpack_library, only: &
-        ip, wp, hwscyl
+    use fishpack_library
 
     ! Explicit typing only
     implicit none
 
-    !-----------------------------------------------
     ! Dictionary
-    !-----------------------------------------------
     integer(ip), parameter   :: M = 50, N = 100
     integer(ip), parameter   :: IDIMF = M + 25
     integer(ip), parameter   :: MP1 = M + 1, NP1 = N + 1
@@ -56,7 +50,6 @@ program thwscyl
     real(wp), dimension(NP1) :: bda, bdb, z
     real(wp)                 :: a, b, c, d, elmbda, pertrb
     real(wp), parameter      :: ZERO = 0.0_wp, ONE = 1.0_wp, FOUR = 4.0_wp
-    !-----------------------------------------------
 
     ! Set domain and boundary conditions in r
     a = ZERO
@@ -108,6 +101,8 @@ program thwscyl
     ! u(r, z) = (r*z)**4 + arbitrary constant.
     !
     block
+        real(wp), parameter :: KNOWN_PERTRB = 0.226742668667313e-3_wp
+        real(wp), parameter :: KNOWN_ERROR = 0.373672238079603e-3_wp
         real(wp) :: x, discretization_error
         real(wp) :: exact_solution(MP1, NP1)
 
@@ -128,17 +123,8 @@ program thwscyl
         ! Set discretization error
         discretization_error = maxval(abs(exact_solution - f(:MP1,:NP1)))
 
-        ! Print earlier output from platforms with 64-bit floating point
-        ! arithmetic followed by the output from this computer
-        !
-        write( stdout, '(/a)') '     hwscyl *** TEST RUN *** '
-        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-        write( stdout, '(a)') '     ierror = 0,  pertrb = 2.2674e-4'
-        write( stdout, '(a)') '     discretization error = 3.7367e-4'
-        write( stdout, '(a)') '     The output from your computer is: '
-        write( stdout, '(a,i3,a,1pe15.6)') &
-            '     ierror =', ierror, ' pertrb = ', pertrb
-        write( stdout, '(a,1pe15.6/)') '     discretization error = ', discretization_error
+        call check_output('hwscyl', &
+            ierror, KNOWN_ERROR, discretization_error, KNOWN_PERTRB, pertrb)
     end block
 
-end program thwscyl
+end program test_hwscyl

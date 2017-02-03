@@ -360,5 +360,5 @@ all:
 	make lib
 
 clean:
-	rm -f $(OBJS) $(LIB) $(LIB_DIRECTORY)/*.mod
+	rm -f $(OBJS) $(LIB) $(LIB_DIRECTORY)/*.mod $(LIB_DIRECTORY)/*.smod
 	rm -f $(EXECUTABLE)

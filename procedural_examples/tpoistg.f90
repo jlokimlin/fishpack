@@ -1,6 +1,4 @@
 !
-!     file tpoistg.f
-!
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
 !     *                  copyright (c) 2005 by UCAR                   *
@@ -9,7 +7,7 @@
 !     *                                                               *
 !     *                      all rights reserved                      *
 !     *                                                               *
-!     *                    FISHPACK90  Version 1.1                    *
+!     *                         Fishpack                              *
 !     *                                                               *
 !     *                      A Package of Fortran                     *
 !     *                                                               *
@@ -35,11 +33,7 @@
 !
 !     Purpose:
 !
-!     To illustrate the usage of TYPE(TridiagonalSolver) type-bound procedure
-!
-!     SOLVE_2D_REAL_LINEAR_SYSTEM_STAGGERED
-!
-!     to solve the equation
+!     To illustrate the usage of poistg to solve the equation
 !
 !     (1/cos(x))(d/dx)(cos(x)(du/dx)) + (d/dy)(du/dy) =
 !
@@ -120,9 +114,9 @@
 !     a(40) = -b(40) = -s * (cos(x(40)-dx/2)+cos(x(40)+dx/2))
 !
 !     for completeness, we set c(40) = 0.  hence, in the
-!     program Y_PERIODICITY = 1.
+!     program nperod = 1.
 !
-!        for j = 1, we replace equation (3) by the second order
+!     For j = 1, we replace equation (3) by the second order
 !     approximation
 !
 !                (v(i, 0) + v(i, 1))/2 = 0
@@ -131,7 +125,7 @@
 !
 !                v(i, 0) = -v(i, 1) .
 !
-!     for j = 20, we replace equation (4) by the second order
+!     For j = 20, we replace equation (4) by the second order
 !     approximation
 !
 !                (v(i, 21) - v(i, 20))/dy = 4 * sin(x)
@@ -149,29 +143,22 @@
 !
 !     f(i, 20) = 2 * dy**2 * y(j)**2 * (6-y(j)**2) * sin(x(i)) - 4 * dy * sin(x(i))
 !
-!     hence, in the program X_PERIODICITY = 2 .
+!     hence, in the program nperod = 2.
 !
 !     The exact solution to this problem is
 !
-!        u(x, y) = y**4 * cos(x) .
+!     u(x, y) = y**4 * cos(x) .
 !
+!     From dimension statement we get that size(f, dim=1) = 42
 !
-!     from dimension statement we get that size(f, dim=1) = 42
-!
-program tpoistg
+program test_poistg
 
-    use, intrinsic :: ISO_Fortran_env, only: &
-        stdout => OUTPUT_UNIT
-
-    use fishpack_library, only: &
-        ip, wp, PI, HALF_PI, poistg
+    use fishpack_library
 
     ! Explicit typing only
     implicit none
 
-    !--------------------------------------------------------------
     ! Dictionary
-    !--------------------------------------------------------------
     integer(ip), parameter        :: M = 40, N = 20
     integer(ip), parameter        :: IDIMF = M + 2
     integer(ip)                   :: mperod, nperod, i, j, ierror
@@ -180,7 +167,6 @@ program tpoistg
     real(wp)                      :: y(N), dx, dy
     real(wp), parameter           :: ZERO = 0.0_wp, HALF = 0.5_wp
     real(wp), parameter           :: ONE = 1.0_wp, TWO = 2.0_wp
-    !--------------------------------------------------------------
 
     ! Set boundary conditions
     mperod = 1
@@ -240,6 +226,7 @@ program tpoistg
     !  u(x,y) = (y**4) * sin(x)
     !
     block
+        real(wp), parameter :: KNOWN_ERROR = 0.564170618941665e-003
         real(wp) :: discretization_error
         real(wp) :: exact_solution(M,N)
 
@@ -252,14 +239,7 @@ program tpoistg
         ! Set discretization error
         discretization_error = maxval(abs(exact_solution - f(:M,:N)))
 
-        ! Print earlier output from platforms with 64-bit floating point
-        ! arithmetic followed by the output from this computer
-        write( stdout, '(/a)') '     poistg *** TEST RUN *** '
-        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-        write( stdout, '(a)') '     ierror = 0,  discretization error = 5.6417e-4'
-        write( stdout, '(a)') '     The output from your computer is: '
-        write( stdout, '(a,i3,a,1pe15.6/)')&
-            '     error_flag = ', ierror, ' discretization error = ', discretization_error
+        call check_output('poistg', ierror, KNOWN_ERROR, discretization_error)
     end block
 
-end program tpoistg
+end program test_poistg

@@ -8,7 +8,7 @@
 !     *                                                               *
 !     *                      all rights reserved                      *
 !     *                                                               *
-!     *                    FISHPACK90  Version 1.1                    *
+!     *                         Fishpack                              *
 !     *                                                               *
 !     *                      A Package of Fortran                     *
 !     *                                                               *
@@ -35,11 +35,7 @@
 !
 !  Purpose:
 !
-!     To illustrate the usage of type(TridiagonalSolver) type-bound procedure
-!
-!     SOLVE_2D_REAL_LINEAR_SYSTEM_CENTERED
-!
-!     to solve the equation
+!     To illustrate the usage of genbun to solve the equation
 !
 !     (1+x)**2*(d/dx)(du/dx) - 2(1+x)(du/dx) + (d/dy)(du/dy)
 !
@@ -125,31 +121,26 @@
 !
 !     for completeness, we set c(20) = 0.  hence, in the
 !
-!     program Y_PERIODICITY = 1.
+!     program mperod = 1.
 !
-!        the periodicity condition on u gives the conditions
+!     the periodicity condition on u gives the conditions
 !
 !     v(i,0) = v(i,40) and v(i,41) = v(i,1) for i=1,2,...,20.
 !
-!     hence, in the program X_PERIODICITY = 0.
+!     hence, in the program nperod = 0.
 !
 !     The exact solution to this problem is
 !
 !                  u(x,y) = ((1+x)**4) * sin(y).
 !
-program tgenbun
-
-    use, intrinsic :: ISO_Fortran_env, only: &
-        stdout => OUTPUT_UNIT
+program test_genbun
 
     use fishpack_library
 
     ! Explicit typing only
     implicit none
 
-    !--------------------------------------------------------------
     ! Dictionary
-    !--------------------------------------------------------------
     integer(ip), parameter :: M = 20, N = 40
     integer(ip), parameter :: mp1 = M + 1, np1 = N + 1
     integer(ip), parameter :: idimf = M + 2
@@ -157,7 +148,6 @@ program tgenbun
     real(wp)               :: f(idimf,N), x(mp1), y(np1), dx, dy
     real(wp), dimension(M) :: a, b, c
     real(wp), parameter    :: ZERO = 0.0_wp, ONE = 1.0_wp, TWO = 2.0_wp
-    !--------------------------------------------------------------
 
     ! Set boundary conditions
     mperod = 1
@@ -224,9 +214,9 @@ program tgenbun
 
     ! Compute discretization error. The exact solution is
     !
-    ! u(x, y) = (1+x)**4*sin(y).
-    !
+    ! u(x, y) = ((1+x)**4) * sin(y)
     block
+        real(wp), parameter :: KNOWN_ERROR = 0.964062912725572e-2_wp
         real(wp) :: discretization_error
         real(wp) :: exact_solution(M,N)
 
@@ -239,15 +229,7 @@ program tgenbun
         ! Set discretization error
         discretization_error = maxval(abs(exact_solution - f(:M,:N)))
 
-        ! Print earlier output from platforms with 64-bit floating point
-        ! arithmetic followed by the output from this computer
-        write( stdout, '(/a)') '     genbun *** TEST RUN *** '
-        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-        write( stdout, '(a)') '     ierror = 0,  discretization error = 9.6406e-3'
-        write( stdout, '(a)') '     The output from your computer is: '
-        write( stdout, '(a,i3,a,1pe15.6/)') &
-            '     error_flag =', ierror, &
-            ' discretization error = ', discretization_error
+        call check_output('genbun', ierror, KNOWN_ERROR, discretization_error)
     end block
 
-end program tgenbun
+end program test_genbun

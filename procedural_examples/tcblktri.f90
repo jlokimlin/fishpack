@@ -1,4 +1,3 @@
-!     file tcblktri.f90
 !
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
@@ -8,7 +7,7 @@
 !     *                                                               *
 !     *                      all rights reserved                      *
 !     *                                                               *
-!     *                    FISHPACK90  Version 1.1                    *
+!     *                         Fishpack                              *
 !     *                                                               *
 !     *                      A Package of Fortran                     *
 !     *                                                               *
@@ -33,20 +32,17 @@
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
 !
-program tcblktri
+program test_cblktri
 
     use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
 
-    use fishpack_library, only: &
-        FishpackWorkspace, ip, wp, cblktri
+    use fishpack_library
 
     ! Explicit typing only
     implicit none
 
-    !-----------------------------------------------
     ! Dictionary
-    !-----------------------------------------------
     type(FishpackWorkspace)       :: workspace
     integer(ip), parameter        :: N = 63, M = 50
     integer(ip), parameter        :: IDIMY = 75, NT = 105
@@ -58,7 +54,6 @@ program tcblktri
     complex(wp)                   :: y(IDIMY,NT)
     complex(wp), dimension(IDIMY) :: am, bm, cm
     complex(wp), parameter        :: IMAGINARY_UNIT = cmplx(ZERO, ONE, kind=wp)
-    !-----------------------------------------------
 
     ! Set boundary conditions
     np = 1
@@ -119,14 +114,14 @@ program tcblktri
         y(:M, j) = 3.75_wp * s(:M) * t(j) * (s(:M)**4 + t(j)**4) &
             - IMAGINARY_UNIT * (s(:M)*t(j))**5
     end do
-    !
-    !     The nonzero boundary conditions enter the linear system via
-    !     the right side y(i, j). if the equations (3) given above
-    !     are evaluated at i=m and j=1, ..., n then the term cm(m)*u(m+1, j)
-    !     is known from the boundary condition to be cm(m)*t(j)**5.
-    !     therefore this term can be included in the right side y(m, j).
-    !     the same analysis applies at j=n and i=1, .., m. note that the
-    !     corner at j=n, i=m includes contributions from both boundaries.
+
+    ! The nonzero boundary conditions enter the linear system via
+    ! the right side y(i, j). if the equations (3) given above
+    ! are evaluated at i=m and j=1, ..., n then the term cm(m)*u(m+1, j)
+    ! is known from the boundary condition to be cm(m)*t(j)**5.
+    ! therefore this term can be included in the right side y(m, j).
+    ! the same analysis applies at j=n and i=1, .., m. note that the
+    ! corner at j=n, i=m includes contributions from both boundaries.
     y(M,:N) = y(M,:N) - cm(M) * (t(:N)**5)
     y(:M,N) = y(:M,N) - cn(N) * (s(:M)**5)
 
@@ -144,6 +139,7 @@ program tcblktri
     ! Compute discretization error. The exact solution is
     ! u(s,t) = (st)**5
     block
+        real(wp), parameter :: KNOWN_ERROR = 0.164571992877414e-004_wp
         real(wp) :: discretization_error
         real(wp) :: exact_solution(M, N)
 
@@ -156,18 +152,10 @@ program tcblktri
         ! Set discretization error
         discretization_error = maxval(abs(exact_solution-y(:M,:N)))
 
-        ! Print earlier output from platforms with 64-bit floating point
-        ! arithmetic followed by the output from this computer
-        write( stdout, '(/a)') '     cblktri *** TEST RUN *** '
-        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-        write( stdout, '(a)') '     ierror = 0,  discretization error = 1.6457e-05'
-        write( stdout, '(a)') '     The output from your computer is: '
-        write( stdout, '(a,i3,a,1pe15.6/)') &
-            '     ierror =', ierror, &
-            ' discretization error = ', discretization_error
+        call check_output('cblktri', ierror, KNOWN_ERROR, discretization_error)
     end block
 
     ! Release memory
     call workspace%destroy()
 
-end program tcblktri
+end program test_cblktri

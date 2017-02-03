@@ -1,6 +1,4 @@
 !
-!     file tcmgnbn.f90
-!
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
 !     *                  copyright (c) 2005 by UCAR                   *
@@ -9,7 +7,7 @@
 !     *                                                               *
 !     *                      all rights reserved                      *
 !     *                                                               *
-!     *                    FISHPACK90  Version 1.1                    *
+!     *                         Fishpack                              *
 !     *                                                               *
 !     *                      A Package of Fortran                     *
 !     *                                                               *
@@ -137,20 +135,17 @@
 !
 !     from the dimension statement we get that idimf = 22
 !
-program tcmgnbn
+program test_cmgnbn
 
     use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
 
-    use fishpack_library, only: &
-        ip, wp, TWO_PI, PI, cmgnbn
+    use fishpack_library
 
     ! Explicit typing only
     implicit none
 
-    !------------------------------------------------------------------
     ! Dictionary
-    !------------------------------------------------------------------
     integer(ip), parameter    :: M = 20, N = 40
     integer(ip), parameter    :: MP1 = M + 1, NP1 = N + 1
     integer(ip), parameter    :: IDIMF = M + 2
@@ -159,7 +154,6 @@ program tcmgnbn
     real(wp), parameter       :: ZERO = 0.0_wp, ONE = 1.0_wp, TWO = 2.0_wp
     complex(wp)               :: f(IDIMF, N)
     complex(wp), dimension(M) :: a, b, c
-    !------------------------------------------------------------------
 
     ! Set boundary conditions
     mperod = 1
@@ -232,6 +226,7 @@ program tcmgnbn
     ! u(x, y) = (1+x)**4*sin(y).
     !
     block
+        real(wp), parameter :: KNOWN_ERROR = 0.916199590891393e-2_wp
         real(wp)    :: discretization_error
         complex(wp) :: exact_solution(M,N)
 
@@ -244,15 +239,7 @@ program tcmgnbn
         ! Set discretization error
         discretization_error = maxval(abs(exact_solution - f(:M,:N)))
 
-        ! Print earlier output from platforms with 64-bit floating point
-        ! arithmetic followed by the output from this computer
-        write( stdout, '(/a)') '     cmgnbn *** TEST RUN *** '
-        write( stdout, '(a)') '     Previous 64 bit floating point arithmetic result '
-        write( stdout, '(a)') '     ierror = 0,  discretization error = 9.1620e-3'
-        write( stdout, '(a)') '     The output from your computer is: '
-        write( stdout, '(a,i3,a,1pe15.6/)') &
-            '     ierror =', ierror, &
-            ' discretization error = ', discretization_error
+        call check_output('cmgnbn', ierror, KNOWN_ERROR, discretization_error)
     end block
 
-end program tcmgnbn
+end program test_cmgnbn

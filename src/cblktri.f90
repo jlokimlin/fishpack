@@ -292,12 +292,12 @@ module module_cblktri
         !-------------------------------------------------
         procedure, public  :: cblktri_lower_routine
         procedure, private :: cbsrh
-        procedure, private :: ccompb
-        procedure, private :: cppadd
+        procedure, private :: compute_roots_of_b_polynomials
+        procedure, private :: compute_eigenvalues
         procedure, private :: ctevls
-        procedure, private :: cindxa
-        procedure, private :: cindxb
-        procedure, private :: cindxc
+        procedure, private :: compute_index_a_coeff
+        procedure, private :: compute_index_b_coeff
+        procedure, private :: compute_index_c_coeff
         !-------------------------------------------------
     end type CbltriAux
 
@@ -429,7 +429,7 @@ contains
                         )
 
                         ! Compute roots of b polynomials
-                        call self%ccompb(ierror, an, bn, cn, rew, cxw, rew(iwah:), rew(iwbh:))
+                        call self%compute_roots_of_b_polynomials(ierror, an, bn, cn, rew, cxw, rew(iwah:), rew(iwbh:))
 
                     end associate
 
@@ -527,9 +527,9 @@ contains
                 i3 = i2 + i1
                 i4 = i2 + i2
                 irm1 = ir - 1
-                call self%cindxb(i2, ir, im2, nm2)
-                call self%cindxb(i1, irm1, im3, nm3)
-                call self%cindxb(i3, irm1, im1, nm1)
+                call self%compute_index_b_coeff(i2, ir, im2, nm2)
+                call self%compute_index_b_coeff(i1, irm1, im3, nm3)
+                call self%compute_index_b_coeff(i3, irm1, im1, nm1)
                 call prdct(nm2, b(im2), nm3, b(im3), nm1, b(im1), 0, dummy_variable, &
                     y(1,i2), w3, m, am, bm, cm, wd, ww, wu)
                 iif = 2**k
@@ -538,13 +538,13 @@ contains
                     ipi1 = i + i1
                     ipi2 = i + i2
                     ipi3 = i + i3
-                    call self%cindxc(i, ir, idxc, nc)
+                    call self%compute_index_c_coeff(i, ir, idxc, nc)
                     if (iif <= i) cycle
-                    call self%cindxa(i, ir, idxa, na)
-                    call self%cindxb(i - i1, irm1, im1, nm1)
-                    call self%cindxb(ipi2, ir, ip2, np2)
-                    call self%cindxb(ipi1, irm1, ip1, np1)
-                    call self%cindxb(ipi3, irm1, ip3, np3)
+                    call self%compute_index_a_coeff(i, ir, idxa, na)
+                    call self%compute_index_b_coeff(i - i1, irm1, im1, nm1)
+                    call self%compute_index_b_coeff(ipi2, ir, ip2, np2)
+                    call self%compute_index_b_coeff(ipi1, irm1, ip1, np1)
+                    call self%compute_index_b_coeff(ipi3, irm1, ip3, np3)
                     call prdct(nm1, b(im1), 0, dummy_variable, 0, dummy_variable, na, an(idxa), w3, &
                         w1, m, am, bm, cm, wd, ww, wu)
                     if (ipi2 > nm) then
@@ -564,9 +564,9 @@ contains
                 iif = 2**k
                 i = iif/2
                 i1 = i/2
-                call self%cindxb(i - i1, k - 2, im1, nm1)
-                call self%cindxb(i + i1, k - 2, ip1, np1)
-                call self%cindxb(i, k - 1, iz, nz)
+                call self%compute_index_b_coeff(i - i1, k - 2, im1, nm1)
+                call self%compute_index_b_coeff(i + i1, k - 2, ip1, np1)
+                call self%compute_index_b_coeff(i, k - 1, iz, nz)
                 call prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dummy_variable, &
                     y(1, i), w1, m, am, bm, cm, wd, ww, wu)
 
@@ -579,10 +579,10 @@ contains
                     i2 = 2**ir
                     i1 = i2/2
                     i = i2
-                    call self%cindxc(i, ir, idxc, nc)
-                    call self%cindxb(i, ir, iz, nz)
-                    call self%cindxb(i - i1, ir - 1, im1, nm1)
-                    call self%cindxb(i + i1, ir - 1, ip1, np1)
+                    call self%compute_index_c_coeff(i, ir, idxc, nc)
+                    call self%compute_index_b_coeff(i, ir, iz, nz)
+                    call self%compute_index_b_coeff(i - i1, ir - 1, im1, nm1)
+                    call self%compute_index_b_coeff(i + i1, ir - 1, ip1, np1)
                     call prdct(np1, b(ip1), 0, dummy_variable, 0, dummy_variable, nc, cn(idxc), w1, &
                         w1, m, am, bm, cm, wd, ww, wu)
                     w1(:m) = y(:m, i) + w1(:m)
@@ -603,10 +603,10 @@ contains
 
                         if (i > nm) cycle loop_118
 
-                        call self%cindxa(i, ir, idxa, na)
-                        call self%cindxb(i, ir, iz, nz)
-                        call self%cindxb(i - i1, ir - 1, im1, nm1)
-                        call self%cindxb(i + i1, ir - 1, ip1, np1)
+                        call self%compute_index_a_coeff(i, ir, idxa, na)
+                        call self%compute_index_b_coeff(i, ir, iz, nz)
+                        call self%compute_index_b_coeff(i - i1, ir - 1, im1, nm1)
+                        call self%compute_index_b_coeff(i + i1, ir - 1, ip1, np1)
                         call prdct(nm1, b(im1), 0, dummy_variable, 0, dummy_variable, na, an(idxa), w2 &
                             , w2, m, am, bm, cm, wd, ww, wu)
                         w2(:m) = y(:m, i) + w2(:m)
@@ -619,8 +619,8 @@ contains
 
                 y(:m, nm+1) = y(:m, nm+1) - cn(nm+1)*w1(:m) - an(nm+1)*w2(:m)
 
-                call self%cindxb(iif/2, k - 1, im1, nm1)
-                call self%cindxb(iif, k - 1, iip, np)
+                call self%compute_index_b_coeff(iif/2, k - 1, im1, nm1)
+                call self%compute_index_b_coeff(iif, k - 1, iip, np)
 
                 select case (ncmplx)
                     case (0)
@@ -642,10 +642,10 @@ contains
                     i4 = i2 + i2
                     i1 = i2/2
                     i = i4
-                    call self%cindxa(i, ir, idxa, na)
-                    call self%cindxb(i - i2, ir, im2, nm2)
-                    call self%cindxb(i - i2 - i1, ir - 1, im3, nm3)
-                    call self%cindxb(i - i1, ir - 1, im1, nm1)
+                    call self%compute_index_a_coeff(i, ir, idxa, na)
+                    call self%compute_index_b_coeff(i - i2, ir, im2, nm2)
+                    call self%compute_index_b_coeff(i - i2 - i1, ir - 1, im3, nm3)
+                    call self%compute_index_b_coeff(i - i1, ir - 1, im1, nm1)
                     call prdct(nm2, b(im2), nm3, b(im3), nm1, b(im1), 0, dummy_variable, &
                         w1, w1, m, am, bm, cm, wd, ww, wu)
                     call prdct(nm1, b(im1), 0, dummy_variable, 0, dummy_variable, na, an(idxa), w1, &
@@ -671,10 +671,10 @@ contains
                             cycle  loop_131
                         end if
 
-                        call self%cindxc(i, ir, idxc, nc)
-                        call self%cindxb(ipi2, ir, ip2, np2)
-                        call self%cindxb(ipi1, irm1, ip1, np1)
-                        call self%cindxb(ipi3, irm1, ip3, np3)
+                        call self%compute_index_c_coeff(i, ir, idxc, nc)
+                        call self%compute_index_b_coeff(ipi2, ir, ip2, np2)
+                        call self%compute_index_b_coeff(ipi1, irm1, ip1, np1)
+                        call self%compute_index_b_coeff(ipi3, irm1, ip3, np3)
                         call prdct(np2, b(ip2), np1, b(ip1), np3, b(ip3), 0, dummy_variable, &
                             w2, w2, m, am, bm, cm, wd, ww, wu)
                         call prdct(np1, b(ip1), 0, dummy_variable, 0, dummy_variable, nc, cn(idxc), w2, &
@@ -702,11 +702,11 @@ contains
                     imi2 = i - i2
                     ipi1 = i + i1
                     ipi2 = i + i2
-                    call self%cindxa(i, ir, idxa, na)
-                    call self%cindxc(i, ir, idxc, nc)
-                    call self%cindxb(i, ir, iz, nz)
-                    call self%cindxb(imi1, irm1, im1, nm1)
-                    call self%cindxb(ipi1, irm1, ip1, np1)
+                    call self%compute_index_a_coeff(i, ir, idxa, na)
+                    call self%compute_index_c_coeff(i, ir, idxc, nc)
+                    call self%compute_index_b_coeff(i, ir, iz, nz)
+                    call self%compute_index_b_coeff(imi1, irm1, im1, nm1)
+                    call self%compute_index_b_coeff(ipi1, irm1, ip1, np1)
 
                     if (i <= i2) then
                         w1(:m) = ZERO
@@ -801,11 +801,11 @@ contains
 
     end function cbsrh
 
-    subroutine ccompb(self, ierror, an, bn, cn, b, bc, ah, bh)
+    subroutine compute_roots_of_b_polynomials(self, ierror, an, bn, cn, b, bc, ah, bh)
         !
         ! Purpose:
         !
-        ! ccompb computes the roots of the b polynomials using subroutine
+        ! compute_roots_of_b_polynomials computes the roots of the b polynomials using subroutine
         ! ctevls which is a modification the eispack program tqlrat.
         ! ierror is set to 4 if either ctevls fails or if a(j+1)*c(j) is
         ! less than zero for some j.  ah, bh are temporary work arrays.
@@ -867,7 +867,7 @@ contains
 
                 do i = i4, ifd, i4
 
-                    call self%cindxb(i, l, ib, nb)
+                    call self%compute_index_b_coeff(i, l, ib, nb)
 
                     if (nb <= 0) cycle outer_loop
 
@@ -920,8 +920,8 @@ contains
                     return
                 end if
 
-                call self%cindxb(iif, k - 1, j2, lh)
-                call self%cindxb(iif/2, k - 1, j1, lh)
+                call self%compute_index_b_coeff(iif, k - 1, j2, lh)
+                call self%compute_index_b_coeff(iif/2, k - 1, j1, lh)
 
                 j2 = j2 + 1
                 lh = j2
@@ -948,7 +948,7 @@ contains
 
                 b(lh) = b(n2m2+1)
 
-                call self%cindxb(iif, k - 1, j1, j2)
+                call self%compute_index_b_coeff(iif, k - 1, j1, j2)
 
                 j2 = j1 + nmp + nmp
 
@@ -964,7 +964,7 @@ contains
                     bh_arg(1:) => b(j2:)
 
                     ! Call solver
-                    call self%cppadd(nm + 1, ierror, an, cn, cbp_arg, bp_arg, bh_arg)
+                    call self%compute_eigenvalues(nm + 1, ierror, an, cn, cbp_arg, bp_arg, bh_arg)
 
                     ! Terminate association
                     nullify(bh_arg)
@@ -973,7 +973,7 @@ contains
 
         end associate common_variables
 
-    end subroutine ccompb
+    end subroutine compute_roots_of_b_polynomials
 
     pure subroutine cproc(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, w, yy)
         !
@@ -1268,7 +1268,7 @@ contains
 
     end subroutine cprocp
 
-    subroutine cindxa(self, i, ir, idxa, na)
+    subroutine compute_index_a_coeff(self, i, ir, idxa, na)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
@@ -1295,9 +1295,9 @@ contains
 
         end associate common_variables
 
-    end subroutine cindxa
+    end subroutine compute_index_a_coeff
 
-    subroutine cindxb(self, i, ir, idx, idp)
+    subroutine compute_index_b_coeff(self, i, ir, idx, idp)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
@@ -1352,10 +1352,10 @@ contains
 
         end associate common_variables
 
-    end subroutine cindxb
+    end subroutine compute_index_b_coeff
 
 
-    subroutine cindxc(self, i, ir, idxc, nc)
+    subroutine compute_index_c_coeff(self, i, ir, idxc, nc)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
@@ -1380,13 +1380,13 @@ contains
             if (idxc + nc - 1 > nm) nc = 0
         end associate common_variables
 
-    end subroutine cindxc
+    end subroutine compute_index_c_coeff
 
-    subroutine cppadd(self, n, ierror, a, c, cbp, bp, bh)
+    subroutine compute_eigenvalues(self, n, ierror, a, c, cbp, bp, bh)
         !
         ! Purpose:
         !
-        !     cppadd computes the eigenvalues of the periodic tridiagonal
+        !     compute_eigenvalues computes the eigenvalues of the periodic tridiagonal
         !     matrix with coefficients an, bn, cn
         !
         !     n is the order of the bh and bp polynomials
@@ -1610,7 +1610,7 @@ contains
 
         end associate common_variables
 
-    end subroutine cppadd
+    end subroutine compute_eigenvalues
 
     pure subroutine proc(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, w, u)
         !
