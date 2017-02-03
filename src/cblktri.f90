@@ -1,6 +1,4 @@
 !
-!     file cblktri.f90
-!
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
 !     *                  copyright (c) 2005 by UCAR                   *
@@ -9,7 +7,7 @@
 !     *                                                               *
 !     *                      all rights reserved                      *
 !     *                                                               *
-!     *                    FISHPACK90  Version 1.1                    *
+!     *                           Fishpack                            *
 !     *                                                               *
 !     *                      A Package of Fortran                     *
 !     *                                                               *
@@ -33,232 +31,12 @@
 !     *                                                               *
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-!     subroutine cblktr(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, idimy, y,
-!                       ierror)
-!
-!
-! DIMENSION OF           an(n), bn(n), cn(n), am(m), bm(m), cm(m), y(idimy, n)
-! ARGUMENTS
-!
-! LATEST REVISION        May 2016
-!
-! PURPOSE                cblktr solves a system of linear equations
-!                        of the form
-!
-!                        an(j)*x(i, j-1) + am(i)*x(i-1, j) +
-!                        (bn(j)+bm(i))*x(i, j) + cn(j)*x(i, j+1) +
-!                        cm(i)*x(i+1, j) = y(i, j)
-!
-!                        for i = 1, 2, ..., m  and  j = 1, 2, ..., n.
-!
-!                        i+1 and i-1 are evaluated modulo m and
-!                        j+1 and j-1 modulo n, i.e.,
-!
-!                        x(i, 0) = x(i, n),  x(i, n+1) = x(i, 1),
-!                        x(0, j) = x(m, j),  x(m+1, j) = x(1, j).
-!
-!                        these equations usually result from the
-!                        discretization of separable elliptic
-!                        equations.  boundary conditions may be
-!                        dirichlet, neumann, or periodic.
-!
-!                        cblktri is a complex version of package
-!                        blktri on ulib.
-!
-! USAGE                  call cblktr(iflg, np, n, an, bn, cn, mp, m, am, bm,
-!                                     cm, idimy, y, ierror, w)
-!
-! ARGUMENTS
-!
-! ON INPUT               iflg
-!
-!                          = 0  initialization only.
-!                               certain quantities that depend on np,
-!                               n, an, bn, and cn are computed and
-!                               stored in the derived data type w
-!
-!                          = 1  the quantities that were computed
-!                               in the initialization are used
-!                               to obtain the solution x(i, j).
-!
-!                               note:
-!                               a call with iflg=0 takes
-!                               approximately one half the time
-!                               as a call with iflg = 1.
-!                               however, the initialization does
-!                               not have to be repeated unless np,
-!                               n, an, bn, or cn change.
-!
-!                        np
-!                          = 0  if an(1) and cn(n) are not zero,
-!                               which corresponds to periodic
-!                               bounary conditions.
-!
-!                          = 1  if an(1) and cn(n) are zero.
-!
-!                        n
-!                          the number of unknowns in the j-direction.
-!                          n must be greater than 4.
-!                          the operation count is proportional to
-!                          mnlog2(n), hence n should be selected
-!                          less than or equal to m.
-!
-!                        an, bn, cn
-!                          one-dimensional arrays of length n
-!                          that specify the coefficients in the
-!                          linear equations given above.
-!
-!                        mp
-!                          = 0  if am(1) and cm(m) are not zero,
-!                               which corresponds to periodic
-!                               boundary conditions.
-!
-!                          = 1  if am(1) = cm(m) = 0  .
-!
-!                        m
-!                          the number of unknowns in the i-direction.
-!                           m must be greater than 4.
-!
-!                        am, bm, cm
-!                          complex one-dimensional arrays of length m
-!                          that specify the coefficients in the linear
-!                          equations given above.
-!
-!                        idimy
-!                          the row (or first) dimension of the
-!                          two-dimensional array y as it appears
-!                          in the program calling cblktr.
-!                          this parameter is used to specify the
-!                          variable dimension of y.
-!                          idimy must be at least m.
-!
-!                        y
-!                          a complex two-dimensional array that
-!                          specifies the values of the right side of
-!                          the linear system of equations given above.
-!                          y must be dimensioned y(idimy, n) with
-!                          idimy >= m.
-!
-!                        w
-!                          a fortran 90 derived type(FishpackWorkspace) variable
-!                          that must be declared by the user.  the first
-!                          two declarative statements in the user program
-!                          calling cblktri must be:
-!
-!                               use type_FishpackWorkspace
-!                               type(FishpackWorkspace) :: w
-!
-!                          the first statement makes the fishpack module
-!                          defined in the file "type_FishpackWorkspace.f90" available to the
-!                          user program calling cblktri.  the second statement
-!                          declares a derived type variable (defined in
-!                          the module "type_FishpackWorkspace.f90") which is used internally
-!                          in cblktri to dynamically allocate real and complex
-!                          work space used in solution.  an error flag
-!                          (ierror = 20) is set if the required work space
-!                          allocation fails (for example if n, m are too large)
-!                          real and complex values are set in the components
-!                          of w on a initial (iflg=0) call to cblktri.  these
-!                          must be preserved on non-initial calls (iflg=1)
-!                          to cblktri.  this eliminates redundant calculations
-!                          and saves compute time.
-!               ****       important!  the user program calling cblktri should
-!                          include the statement:
-!
-!                               call w%destroy()
-!
-!                          after the final approximation is generated by
-!                          cblktri.  the will deallocate the real and complex
-!                          work space of w.  failure to include this statement
-!                          could result in serious memory leakage.
-!
-!
-! ARGUMENTS
-!
-! ON OUTPUT              y
-!                          contains the solution x.
-!
-!                        ierror
-!                          an error flag that indicates invalid
-!                          input parameters.  except for number zer0,
-!                          a solution is not attempted.
-!
-!                        = 0  no error.
-!                        = 1  m < 5
-!                        = 2  n < 5
-!                        = 3  idimy < m.
-!                        = 4  cblktr failed while computing results
-!                             that depend on the coefficient arrays
-!                             an, bn, cn.  check these arrays.
-!                        = 5  an(j)*cn(j-1) is less than 0 for some j.
-!
-!                             possible reasons for this condition are
-!                             1. the arrays an and cn are not correct
-!                             2. too large a grid spacing was used
-!                                in the discretization of the elliptic
-!                                equation.
-!                             3. the linear equations resulted from a
-!                                partial differential equation which
-!                                was not elliptic.
-!
-!                          = 20 if the dynamic allocation of real and
-!                               complex work space in the derived type
-!                               (FishpackWorkspace) variable w fails (e.g.,
-!                               if n, m are too large for the platform used)
-!
-!
-!
-! SPECIAL CONDITIONS     The algorithm may fail if
-!
-!                        abs(bm(i)+bn(j)) < abs(am(i))+abs(an(j)) +
-!                        abs(cm(i))+abs(cn(j))
-!
-!                        for some i and j. the algorithm will also
-!                        fail if an(j)*cn(j-1) < 0 zero for some j.
-!                        see the description of the output parameter
-!                        ierror.
-!
-!
-! I/O                    None
-!
-! PRECISION              64-bit double precision
-!
-! REQUIRED LIBRARY       type_ComfAux.f90, type_FishpackWorkspace.f90
-! FILES
-!
-! STANDARD               Fortran 2008
-!
-! HISTORY               * Written by Paul Swarztrauber at NCAR in
-!                         the early 1970's.  Rewritten an released
-!                         on NCAR's public software libraries in
-!                         January, 1980.
-!                       * Revised in June 2004 by John Adams using
-!                         Fortran 90 dynamically allocated workspace
-!                         and derived data types to eliminate mixed
-!                         mode conflicts in the earlier versions.
-!
-! ALGORITHM              Generalized cyclic reduction
-!                        (see reference below)
-!
-! PORTABILITY            The approximate machine accuracy is computed
-!                        by calling the intrinsic function epsilon
-!
-! REFERENCES             Swarztrauber, P. and R. Sweet, 'Efficient
-!                        FORTRAN subprograms for the solution of
-!                        elliptic equations'
-!                        NCAR TN/IA-109, July, 1975, 138 pp.
-!
-!                        Swarztrauber P. N., A direct method for
-!                        the discrete solution of separable
-!                        elliptic equations, S.I.A.M.
-!                        J. Numer. Anal., 11(1974) pp. 1136-1150.
-!
 module module_cblktri
 
     use fishpack_precision, only: &
         wp, & ! Working precision
         ip, & ! Integer precision
-        EPS => MACHINE_EPSILON ! Machine epsilon
+        MACHINE_EPSILON
 
     use type_ComfAux, only: &
         psgf, &
@@ -268,7 +46,7 @@ module module_cblktri
         comf_interface
 
     use type_FishpackWorkspace, only: &
-        Fish => FishpackWorkspace
+        FishpackWorkspace
 
     ! Explicit typing only
     implicit none
@@ -277,19 +55,19 @@ module module_cblktri
     private
     public :: cblktri
 
+    ! Parameters confined to the module
+    real(wp), parameter :: ZERO = 0.0_wp
+    real(wp), parameter :: HALF = 0.5_wp
+    real(wp), parameter :: ONE = 1.0_wp
+    real(wp), parameter :: TWO = 2.0_wp
+
     type, public, extends(ComfAux) :: CbltriAux
-        !-------------------------------------------------
         ! Type components
-        !-------------------------------------------------
         integer(ip) :: indices(6), nl
         integer(ip) :: npp, k, nm, ncmplx, ik
         real(wp)    :: cnv
-        real(wp)    :: MACHINE_EPSILON = EPS
-        !-------------------------------------------------
     contains
-        !-------------------------------------------------
         ! Type-bound procedures
-        !-------------------------------------------------
         procedure, public  :: cblktri_lower_routine
         procedure, private :: cbsrh
         procedure, private :: compute_roots_of_b_polynomials
@@ -298,25 +76,209 @@ module module_cblktri
         procedure, private :: compute_index_a_coeff
         procedure, private :: compute_index_b_coeff
         procedure, private :: compute_index_c_coeff
-        !-------------------------------------------------
     end type CbltriAux
-
-    !---------------------------------------------------------------
-    ! Parameters confined to the module
-    !---------------------------------------------------------------
-    real(wp), parameter :: ZERO = 0.0_wp
-    real(wp), parameter :: HALF = 0.5_wp
-    real(wp), parameter :: ONE = 1.0_wp
-    real(wp), parameter :: TWO = 2.0_wp
-    !---------------------------------------------------------------
 
 contains
 
+    ! PURPOSE                cblktr solves a system of linear equations
+    !                        of the form
+    !
+    !                        an(j)*x(i, j-1) + am(i)*x(i-1, j) +
+    !                        (bn(j)+bm(i))*x(i, j) + cn(j)*x(i, j+1) +
+    !                        cm(i)*x(i+1, j) = y(i, j)
+    !
+    !                        for i = 1, 2, ..., m  and  j = 1, 2, ..., n.
+    !
+    !                        i+1 and i-1 are evaluated modulo m and
+    !                        j+1 and j-1 modulo n, i.e.,
+    !
+    !                        x(i, 0) = x(i, n),  x(i, n+1) = x(i, 1),
+    !                        x(0, j) = x(m, j),  x(m+1, j) = x(1, j).
+    !
+    !                        these equations usually result from the
+    !                        discretization of separable elliptic
+    !                        equations.  boundary conditions may be
+    !                        dirichlet, neumann, or periodic.
+    !
+    !                        cblktri is a complex version of package
+    !                        blktri on ulib.
+    !
+    ! USAGE                  call cblktr(iflg, np, n, an, bn, cn, mp, m, am, bm,
+    !                                     cm, idimy, y, ierror, w)
+    !
+    !
+    ! DIMENSION OF           an(n), bn(n), cn(n), am(m), bm(m), cm(m), y(idimy, n)
+    ! ARGUMENTS
+    !
+    ! ARGUMENTS
+    !
+    ! ON INPUT               iflg
+    !
+    !                          = 0  initialization only.
+    !                               certain quantities that depend on np,
+    !                               n, an, bn, and cn are computed and
+    !                               stored in the derived data type w
+    !
+    !                          = 1  the quantities that were computed
+    !                               in the initialization are used
+    !                               to obtain the solution x(i, j).
+    !
+    !                               note:
+    !                               a call with iflg=0 takes
+    !                               approximately one half the time
+    !                               as a call with iflg = 1.
+    !                               however, the initialization does
+    !                               not have to be repeated unless np,
+    !                               n, an, bn, or cn change.
+    !
+    !                        np
+    !                          = 0  if an(1) and cn(n) are not zero,
+    !                               which corresponds to periodic
+    !                               bounary conditions.
+    !
+    !                          = 1  if an(1) and cn(n) are zero.
+    !
+    !                        n
+    !                          the number of unknowns in the j-direction.
+    !                          n must be greater than 4.
+    !                          the operation count is proportional to
+    !                          mnlog2(n), hence n should be selected
+    !                          less than or equal to m.
+    !
+    !                        an, bn, cn
+    !                          one-dimensional arrays of length n
+    !                          that specify the coefficients in the
+    !                          linear equations given above.
+    !
+    !                        mp
+    !                          = 0  if am(1) and cm(m) are not zero,
+    !                               which corresponds to periodic
+    !                               boundary conditions.
+    !
+    !                          = 1  if am(1) = cm(m) = 0  .
+    !
+    !                        m
+    !                          the number of unknowns in the i-direction.
+    !                           m must be greater than 4.
+    !
+    !                        am, bm, cm
+    !                          complex one-dimensional arrays of length m
+    !                          that specify the coefficients in the linear
+    !                          equations given above.
+    !
+    !                        idimy
+    !                          the row (or first) dimension of the
+    !                          two-dimensional array y as it appears
+    !                          in the program calling cblktr.
+    !                          this parameter is used to specify the
+    !                          variable dimension of y.
+    !                          idimy must be at least m.
+    !
+    !                        y
+    !                          a complex two-dimensional array that
+    !                          specifies the values of the right side of
+    !                          the linear system of equations given above.
+    !                          y must be dimensioned y(idimy, n) with
+    !                          idimy >= m.
+    !
+    !                        w
+    !                          A FishpackWorkspace derived data type variable
+    !                          which is used internally in cblktri to
+    !                          dynamically allocate real and complex workspace
+    !                          arrays used in solution. An error flag
+    !                          (ierror = 20) is set if the required work space
+    !                          allocation fails (for example if n, m are too large)
+    !                          real and complex values are set in the components
+    !                          of w on a initial (iflg=0) call to cblktri. These
+    !                          must be preserved on non-initial calls (iflg=1)
+    !                          to cblktri. This eliminates redundant calculations
+    !                          and saves compute time.
+    !               ****       IMPORTANT!  the user program calling cblktri should
+    !                          include the statement:
+    !
+    !                               call w%destroy()
+    !
+    !                          after the final approximation is generated by
+    !                          cblktri. The will deallocate the real and complex
+    !                          workspace arrays of w. Tailure to include this statement
+    !                          could result in serious memory leakage.
+    !
+    !
+    ! ARGUMENTS
+    !
+    ! ON OUTPUT              y
+    !                          contains the solution x.
+    !
+    !                        ierror
+    !                          an error flag that indicates invalid
+    !                          input parameters.  except for number zer0,
+    !                          a solution is not attempted.
+    !
+    !                        = 0  no error.
+    !                        = 1  m < 5
+    !                        = 2  n < 5
+    !                        = 3  idimy < m.
+    !                        = 4  cblktr failed while computing results
+    !                             that depend on the coefficient arrays
+    !                             an, bn, cn.  check these arrays.
+    !                        = 5  an(j)*cn(j-1) is less than 0 for some j.
+    !
+    !                             possible reasons for this condition are
+    !                             1. the arrays an and cn are not correct
+    !                             2. too large a grid spacing was used
+    !                                in the discretization of the elliptic
+    !                                equation.
+    !                             3. the linear equations resulted from a
+    !                                partial differential equation which
+    !                                was not elliptic.
+    !
+    !                          = 20 if the dynamic allocation of real and
+    !                               complex work space in the derived type
+    !                               (FishpackWorkspace) variable w fails (e.g.,
+    !                               if n, m are too large for the platform used)
+    !
+    !
+    !
+    ! SPECIAL CONDITIONS     The algorithm may fail if
+    !
+    !                        abs(bm(i)+bn(j)) < abs(am(i))+abs(an(j)) +
+    !                        abs(cm(i))+abs(cn(j))
+    !
+    !                        for some i and j. the algorithm will also
+    !                        fail if an(j)*cn(j-1) < 0 zero for some j.
+    !                        see the description of the output parameter
+    !                        ierror.
+    !
+    !
+    ! HISTORY               * Written by Paul Swarztrauber at NCAR in
+    !                         the early 1970's.  Rewritten an released
+    !                         on NCAR's public software libraries in
+    !                         January, 1980.
+    !                       * Revised in June 2004 by John Adams using
+    !                         Fortran 90 dynamically allocated workspace
+    !                         and derived data types to eliminate mixed
+    !                         mode conflicts in the earlier versions.
+    !
+    ! ALGORITHM              Generalized cyclic reduction
+    !                        (see reference below)
+    !
+    ! PORTABILITY            The approximate machine accuracy is computed
+    !                        by calling the intrinsic function epsilon
+    !
+    ! REFERENCES             Swarztrauber, P. and R. Sweet, 'Efficient
+    !                        FORTRAN subprograms for the solution of
+    !                        elliptic equations'
+    !                        NCAR TN/IA-109, July, 1975, 138 pp.
+    !
+    !                        Swarztrauber P. N., A direct method for
+    !                        the discrete solution of separable
+    !                        elliptic equations, S.I.A.M.
+    !                        J. Numer. Anal., 11(1974) pp. 1136-1150.
+    !
     subroutine cblktri(iflg, np, n, an, bn, cn, mp, m, am, bm, cm, &
         idimy, y, ierror, w)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         integer(ip), intent(in)    :: iflg
         integer(ip), intent(in)    :: np
         integer(ip), intent(in)    :: n
@@ -331,15 +293,13 @@ contains
         complex(wp), intent(in)    :: bm(:)
         complex(wp), intent(in)    :: cm(:)
         complex(wp), intent(inout) :: y(:,:)
-        class(Fish), intent(inout) :: w
-        !-----------------------------------------------
+        class(FishpackWorkspace), intent(inout) :: w
+
         ! Local variables
-        !-----------------------------------------------
         type(CbltriAux) :: self
-        integer(ip) :: m2, nh, nl, iwah, iw1, iwbh
-        integer(ip) :: iw2, iw3, iwd, iww, iwu
-        integer(ip) :: irwk, icwk
-        !-----------------------------------------------
+        integer(ip)     :: m2, nh, nl, iwah, iw1, iwbh
+        integer(ip)     :: iw2, iw3, iwd, iww, iwu
+        integer(ip)     :: irwk, icwk
 
         common_variables: associate( &
             npp => self%npp, &
@@ -347,18 +307,14 @@ contains
             nm => self%nm, &
             ncmplx=> self%ncmplx, &
             ik => self%ik, &
-            cnv => self%cnv, &
-            EPS => self%MACHINE_EPSILON &
+            cnv => self%cnv &
             )
-            !
-            ! test m and n for the proper form
-            !
+
+            ! Test m and n for the proper form
             nm = n
             m2 = 2*m
 
-            !
             ! Check validity of input arguments
-            !
             if (m < 5) then
                 ierror = 1
                 return
@@ -372,9 +328,7 @@ contains
                 ierror = 0
             end if
 
-            !
             ! Compute workspace indices
-            !
             nh = n
             npp = np
 
@@ -410,14 +364,14 @@ contains
             iwu = iww + m
 
             select case (iflg)
-                case (0) ! Initialize solver
+                case (0)
+                    ! Initialize solver
 
                     ! Set required workspace sizes
                     irwk = iw1 + 2*n
                     icwk = iw1 + 6*m
-                    !
+
                     ! Allocate memory
-                    !
                     call w%create(irwk, icwk)
 
                     ! Check if allocation was successful
@@ -427,19 +381,15 @@ contains
                         rew => w%real_workspace, &
                         cxw => w%complex_workspace &
                         )
-
                         ! Compute roots of b polynomials
                         call self%compute_roots_of_b_polynomials(ierror, an, bn, cn, rew, cxw, rew(iwah:), rew(iwbh:))
-
                     end associate
-
-                case default ! ==> Solve system
-
+                case default
+                    ! Solve system
                     associate( &
                         rew => w%real_workspace, &
                         cxw => w%complex_workspace &
                         )
-
                         select case (mp)
                             case (0)
                                 call self%cblktri_lower_routine(nl, an, cn, m, am, bm, cm, &
@@ -452,32 +402,29 @@ contains
                                     cxw(iw1), cxw(iw2), cxw(iw3), cxw(iwd), cxw(iww), &
                                     cxw(iwu), proc, cproc)
                         end select
-
                     end associate
-
             end select
-
         end associate common_variables
 
     end subroutine cblktri
 
+    ! Purpose:
+    !
+    ! Solves the linear system
+    !
+    ! Remarks:
+    !
+    ! b  contains the roots of all the b polynomials
+    ! w1, w2, w3, wd, ww, wu  are all working arrays
+    ! prdct is either procp or proc depending on whether the boundary
+    ! conditions in the m direction are periodic or not
+    ! cprdct is either cprocp or cproc which are called if some of the zeros
+    ! of the b polynomials are complex.
+    !
     subroutine cblktri_lower_routine(self, n, an, cn, m, am, bm, cm, idimy, y, b, bc, &
         w1, w2, w3, wd, ww, wu, prdct, cprdct)
-        !
-        ! Purpose:
-        !
-        ! cblktri_lower_routine solves the linear system
-        !
-        ! b  contains the roots of all the b polynomials
-        ! w1, w2, w3, wd, ww, wu  are all working arrays
-        ! prdct is either procp or proc depending on whether the boundary
-        ! conditions in the m direction are periodic or not
-        ! cprdct is either cprocp or cproc which are called if some of the zeros
-        ! of the b polynomials are complex.
-        !
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         class(CbltriAux), intent(inout) :: self
         integer(ip), intent(in)     :: n
         integer(ip), intent(in)     :: m
@@ -497,15 +444,13 @@ contains
         complex(wp), intent(out)    :: ww(*)
         complex(wp), intent(out)    :: wu(*)
         external :: prdct, cprdct
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         integer(ip) :: kdo, l, ir, i2, i1, i3, i4, irm1, im2, nm2, im3, nm3
         integer(ip) :: im1, nm1, iif, i, ipi1, ipi2, ipi3, idxc, nc, idxa, na, ip2, np2
         integer(ip) :: ip1, np1, ip3, np3, iz, nz, izr, ll, ifd
         integer(ip) :: iip, np, imi1, imi2
         real(wp)    :: dummy_variable(1)
-        !-----------------------------------------------
 
         common_variables: associate( &
             npp => self%npp, &
@@ -513,12 +458,10 @@ contains
             nm => self%nm, &
             ncmplx=> self%ncmplx, &
             ik => self%ik, &
-            cnv => self%cnv, &
-            EPS => self%MACHINE_EPSILON &
+            cnv => self%cnv &
             )
-            !
+
             ! begin reduction phase
-            !
             kdo = k - 1
             do l = 1, kdo
                 ir = l - 1
@@ -685,9 +628,8 @@ contains
                     end do
                 end do loop_131
             end if
-            !
+
             ! begin back substitution phase
-            !
             do ll = 1, k
                 l = k - ll + 1
                 ir = l - 1
@@ -731,25 +673,23 @@ contains
 
     end subroutine cblktri_lower_routine
 
-    function cbsrh(self, xll, xrr, iz, c, a, bh, f, sgn) result(return_value)
-        !-----------------------------------------------
+    function cbsrh(self, xll, xrr, iz, c, a, bh, f, sgn) &
+        result(return_value)
+
         ! Dummy arguments
-        !-----------------------------------------------
         class(CbltriAux), intent(inout) :: self
-        integer(ip)           :: iz
-        real(wp), intent(in) :: xll
-        real(wp), intent(in) :: xrr
-        real(wp)              :: c(*)
-        real(wp)              :: a(*)
-        real(wp)              :: bh(*)
-        procedure(comf_interface) :: f
-        real(wp), intent(in)     :: sgn
-        real(wp)                   :: return_value
-        !-----------------------------------------------
+        integer(ip)                     :: iz
+        real(wp),         intent(in)    :: xll
+        real(wp),         intent(in)    :: xrr
+        real(wp)                        :: c(*)
+        real(wp)                        :: a(*)
+        real(wp)                        :: bh(*)
+        procedure(comf_interface)       :: f
+        real(wp), intent(in)            :: sgn
+        real(wp)                        :: return_value
+
         ! Local variables
-        !-----------------------------------------------
         real(wp) :: r1, xl, xr, dx, x
-        !-----------------------------------------------
 
         common_variables: associate( &
             npp => self%npp, &
@@ -757,8 +697,7 @@ contains
             nm => self%nm, &
             ncmplx=> self%ncmplx, &
             ik => self%ik, &
-            cnv => self%cnv, &
-            EPS => self%MACHINE_EPSILON &
+            cnv => self%cnv &
             )
 
             xl = xll
@@ -801,18 +740,16 @@ contains
 
     end function cbsrh
 
+    ! Purpose:
+    !
+    ! Computes the roots of the b polynomials using subroutine
+    ! ctevls which is a modification the eispack program tqlrat.
+    ! ierror is set to 4 if either ctevls fails or if a(j+1)*c(j) is
+    ! less than zero for some j.  ah, bh are temporary work arrays.
+    !
     subroutine compute_roots_of_b_polynomials(self, ierror, an, bn, cn, b, bc, ah, bh)
-        !
-        ! Purpose:
-        !
-        ! compute_roots_of_b_polynomials computes the roots of the b polynomials using subroutine
-        ! ctevls which is a modification the eispack program tqlrat.
-        ! ierror is set to 4 if either ctevls fails or if a(j+1)*c(j) is
-        ! less than zero for some j.  ah, bh are temporary work arrays.
-        !
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         class(CbltriAux), intent(inout) :: self
         integer(ip),      intent(out)   :: ierror
         real(wp),         intent(in)    :: an(:)
@@ -822,14 +759,12 @@ contains
         real(wp),         intent(inout) :: ah(:)
         real(wp),         intent(inout) :: bh(:)
         complex(wp),      intent(inout) :: bc(:)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         integer(ip) :: j, iif, kdo, l, ir, i2, i4
         integer(ip) :: ipl, ifd, i, ib, nb, js, jf
         integer(ip) :: ls, lh, nmp, l1, l2, j2, j1, n2m2
         real(wp)    :: bnorm, arg, d1, d2, d3
-        !-----------------------------------------------
 
         common_variables: associate( &
             npp => self%npp, &
@@ -837,8 +772,7 @@ contains
             nm => self%nm, &
             ncmplx=> self%ncmplx, &
             ik => self%ik, &
-            cnv => self%cnv, &
-            EPS => self%MACHINE_EPSILON &
+            cnv => self%cnv &
             )
 
             bnorm = abs(bn(1))
@@ -853,7 +787,7 @@ contains
                 b(j) = sign(sqrt(arg), an(j))
             end do
 
-            cnv = EPS*bnorm
+            cnv = MACHINE_EPSILON*bnorm
             iif = 2**k
             kdo = k - 1
 
@@ -975,25 +909,23 @@ contains
 
     end subroutine compute_roots_of_b_polynomials
 
+    ! Purpose:
+    !
+    ! Applies a sequence of matrix operations to the vector x and
+    ! stores the result in y
+    ! aa   array containing scalar multipliers of the vector x
+    ! nd, nm1, nm2 are the lengths of the arrays bd, bm1, bm2 respectively
+    ! bd, bm1, bm2 are arrays containing roots of certian b polynomials
+    ! na is the length of the array aa
+    ! x, y the matrix operations are applied to x and the result is y
+    ! a, b, c  are arrays which contain the tridiagonal matrix
+    ! m  is the order of the matrix
+    ! d, w are work arrays
+    ! isgn  determines whether or not a change in sign is made
+    !
     pure subroutine cproc(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, w, yy)
-        !
-        ! Purpose:
-        !
-        ! Applies a sequence of matrix operations to the vector x and
-        ! stores the result in y
-        ! aa   array containing scalar multipliers of the vector x
-        ! nd, nm1, nm2 are the lengths of the arrays bd, bm1, bm2 respectively
-        ! bd, bm1, bm2 are arrays containing roots of certian b polynomials
-        ! na is the length of the array aa
-        ! x, y the matrix operations are applied to x and the result is y
-        ! a, b, c  are arrays which contain the tridiagonal matrix
-        ! m  is the order of the matrix
-        ! d, w are work arrays
-        ! isgn  determines whether or not a change in sign is made
-        !
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         integer(ip), intent(in)  :: nd
         integer(ip), intent(in)  :: nm1
         integer(ip), intent(in)  :: nm2
@@ -1011,13 +943,11 @@ contains
         complex(wp), intent(out) :: d(m)
         complex(wp), intent(out) :: w(m)
         complex(wp), intent(out) :: y(m)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         integer(ip) :: j, mm, id, m1, m2, ia, iflg, k
         real(wp)    :: rt
         complex(wp) :: crt, den, y1, y2
-        !-----------------------------------------------
 
         y(:m) = x(:m)
         mm = m - 1
@@ -1032,9 +962,8 @@ contains
             if (id > 0) then
                 crt = bd(id)
                 id = id - 1
-                !
+
                 ! begin solution to system
-                !
                 d(m) = a(m)/(b(m)-crt)
                 w(m) = y(m)/(b(m)-crt)
 
@@ -1100,9 +1029,8 @@ contains
                 rt = aa(ia)
                 ia = ia - 1
                 iflg = 1
-                !
+
                 ! scalar multiplication
-                !
                 y(:m) = rt*y(:m)
             end if
 
@@ -1112,26 +1040,24 @@ contains
 
     end subroutine cproc
 
+    ! Purpose:
+    !
+    ! cprocp applies a sequence of matrix operations to the vector x and
+    ! stores the result in y
+    !
+    ! bd, bm1, bm2 are arrays containing roots of certian b polynomials
+    ! nd, nm1, nm2 are the lengths of the arrays bd, bm1, bm2 respectively
+    ! aa   array containing scalar multipliers of the vector x
+    ! na is the length of the array aa
+    ! x, y the matrix operations are applied to x and the result is y
+    ! a, b, c  are arrays which contain the tridiagonal matrix
+    ! m  is the order of the matrix
+    ! d, u are work arrays
+    ! isgn  determines whether or not a change in sign is made
+    !
     pure subroutine cprocp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, u, yy)
-        !
-        ! Purpose:
-        !
-        ! cprocp applies a sequence of matrix operations to the vector x and
-        ! stores the result in y
-        !
-        ! bd, bm1, bm2 are arrays containing roots of certian b polynomials
-        ! nd, nm1, nm2 are the lengths of the arrays bd, bm1, bm2 respectively
-        ! aa   array containing scalar multipliers of the vector x
-        ! na is the length of the array aa
-        ! x, y the matrix operations are applied to x and the result is y
-        ! a, b, c  are arrays which contain the tridiagonal matrix
-        ! m  is the order of the matrix
-        ! d, u are work arrays
-        ! isgn  determines whether or not a change in sign is made
-        !
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         integer(ip), intent(in)  :: nd
         integer(ip), intent(in)  :: nm1
         integer(ip), intent(in)  :: nm2
@@ -1149,13 +1075,11 @@ contains
         complex(wp), intent(out) :: d(m)
         complex(wp), intent(out) :: u(m)
         complex(wp), intent(out) :: y(m)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         integer(ip) :: j, mm, mm2, id, m1, m2, ia, iflg, k
         real(wp)    :: rt
         complex(wp) :: v, den, bh, ym, am, y1, y2, yh, crt
-        !-----------------------------------------------
 
         y(:m) = x(:m)
         mm = m - 1
@@ -1172,9 +1096,8 @@ contains
                 crt = bd(id)
                 id = id - 1
                 iflg = 1
-                !
+
                 !  begin solution to system
-                !
                 bh = b(m) - crt
                 ym = y(m)
                 den = b(1) - crt
@@ -1227,9 +1150,8 @@ contains
                         else
                             rt = bm2(m2)
                             m2 = m2 - 1
-                        !
+
                         ! matrix multiplication
-                        !
                         end if
                     end if
                 end if
@@ -1256,9 +1178,8 @@ contains
                 rt = aa(ia)
                 ia = ia - 1
                 iflg = 1
-                !
+
                 ! scalar multiplication
-                !
                 y(:m) = rt*y(:m)
             end if
 
@@ -1269,48 +1190,33 @@ contains
     end subroutine cprocp
 
     subroutine compute_index_a_coeff(self, i, ir, idxa, na)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         class(CbltriAux), intent(inout) :: self
-        integer(ip), intent(in)  :: i
-        integer(ip), intent(in)  :: ir
-        integer(ip), intent(out) :: idxa
-        integer(ip), intent(out) :: na
-        !-----------------------------------------------
+        integer(ip),      intent(in)    :: i
+        integer(ip),      intent(in)    :: ir
+        integer(ip),      intent(out)   :: idxa
+        integer(ip),      intent(out)   :: na
 
-        common_variables: associate( &
-            npp => self%npp, &
-            k => self%k, &
-            nm => self%nm, &
-            ncmplx=> self%ncmplx, &
-            ik => self%ik, &
-            cnv => self%cnv, &
-            EPS => self%MACHINE_EPSILON &
-            )
-
+        associate( nm => self%nm )
             na = 2**ir
             idxa = i - na + 1
             if (i > nm) na = 0
-
-        end associate common_variables
+        end associate
 
     end subroutine compute_index_a_coeff
 
     subroutine compute_index_b_coeff(self, i, ir, idx, idp)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         class(CbltriAux), intent(inout) :: self
         integer(ip), intent(in) :: i
         integer(ip), intent(in) :: ir
         integer(ip), intent(out) :: idx
         integer(ip), intent(out) :: idp
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         integer(ip) :: izh, id, ipl
-        !-----------------------------------------------
 
         common_variables: associate( &
             npp => self%npp, &
@@ -1318,13 +1224,10 @@ contains
             nm => self%nm, &
             ncmplx=> self%ncmplx, &
             ik => self%ik, &
-            cnv => self%cnv, &
-            EPS => self%MACHINE_EPSILON &
+            cnv => self%cnv &
             )
 
-            !
             ! b(idx) is the location of the first root of the b(i, ir) polynomial
-            !
             idp = 0
             if (ir >= 0) then
                 if (ir <= 0) then
@@ -1354,50 +1257,36 @@ contains
 
     end subroutine compute_index_b_coeff
 
-
     subroutine compute_index_c_coeff(self, i, ir, idxc, nc)
-        !-----------------------------------------------
-        ! Dummy arguments
-        !-----------------------------------------------
-        class(CbltriAux), intent(inout) :: self
-        integer(ip), intent(in)  :: i
-        integer(ip), intent(in)  :: ir
-        integer(ip), intent(out) :: idxc
-        integer(ip), intent(out) :: nc
-        !-----------------------------------------------
 
-        common_variables: associate( &
-            npp => self%npp, &
-            k => self%k, &
-            nm => self%nm, &
-            ncmplx=> self%ncmplx, &
-            ik => self%ik, &
-            cnv => self%cnv, &
-            EPS => self%MACHINE_EPSILON &
-            )
+        ! Dummy arguments
+        class(CbltriAux), intent(inout) :: self
+        integer(ip),      intent(in)    :: i
+        integer(ip),      intent(in)    :: ir
+        integer(ip),      intent(out)   :: idxc
+        integer(ip),      intent(out)   :: nc
+
+        associate( nm => self%nm )
             nc = 2**ir
             idxc = i
             if (idxc + nc - 1 > nm) nc = 0
-        end associate common_variables
+        end associate
 
     end subroutine compute_index_c_coeff
 
+    ! Purpose:
+    !
+    ! Computes the eigenvalues of the periodic tridiagonal
+    ! matrix with coefficients an, bn, cn
+    !
+    ! n is the order of the bh and bp polynomials
+    ! on output bp contains the eigenvalues
+    ! cbp is the same as bp except type complex
+    ! bh is used to temporarily store the roots of the b hat polynomial
+    ! which enters through bp
     subroutine compute_eigenvalues(self, n, ierror, a, c, cbp, bp, bh)
-        !
-        ! Purpose:
-        !
-        !     compute_eigenvalues computes the eigenvalues of the periodic tridiagonal
-        !     matrix with coefficients an, bn, cn
-        !
-        !     n is the order of the bh and bp polynomials
-        !     on output bp contains the eigenvalues
-        !     cbp is the same as bp except type complex
-        !     bh is used to temporarily store the roots of the b hat polynomial
-        !       which enters through bp
-        !
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         class(CbltriAux), intent(inout) :: self
         integer(ip),      intent(in)    :: n
         integer(ip),      intent(out)   :: ierror
@@ -1406,15 +1295,13 @@ contains
         complex(wp)       :: cbp(:)
         real(wp)          :: bp(:)
         real(wp)          :: bh(:)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         integer(ip) :: iz, izm, izm2, j, nt, modiz
         integer(ip) :: iis, iif, ig, it, icv, i3, i2, nhalf
         real(wp)    :: r4, r5, r6, scnv, xl, db, sgn, xr, xm, psg
         real(wp)    :: temp
         complex(wp) :: cx, fsg, hsg, dd, f, fp, fpp, cdis, r1, r2, r3
-        !-----------------------------------------------
 
         common_variables: associate( &
             npp => self%npp, &
@@ -1422,8 +1309,7 @@ contains
             nm => self%nm, &
             ncmplx=> self%ncmplx, &
             ik => self%ik, &
-            cnv => self%cnv, &
-            EPS => self%MACHINE_EPSILON &
+            cnv => self%cnv &
             )
 
             scnv = sqrt(cnv)
@@ -1492,7 +1378,7 @@ contains
                     psg = psgf(xm, iz, c, a, bh)
 
                     if_block: block
-                        if (abs(psg) > EPS) then
+                        if (abs(psg) > MACHINE_EPSILON) then
                             r6 = psg*ppsgf(xm, iz, c, a, bh)
                             if (r6 > ZERO) exit if_block
                             if (r6 /= ZERO) then
@@ -1501,17 +1387,15 @@ contains
                                 sgn = -ONE
                                 cbp(ig+1) = cmplx(self%cbsrh(xm, bh(ig+1), iz, c, a, bh, psgf, sgn), ZERO, kind=wp)
                                 cycle main_loop
-                            !
+
                             !     case of a multiple zero
-                            !
                             end if
                         end if
                         cbp(ig) = cmplx(xm, ZERO, kind=wp)
                         cbp(ig+1) = cmplx(xm, ZERO, kind=wp)
                         cycle main_loop
-                    !
+
                     !     case of a complex zero
-                    !
                     end block if_block
 
                     it = 0
@@ -1612,25 +1496,23 @@ contains
 
     end subroutine compute_eigenvalues
 
+    ! Purpose:
+    !
+    ! proc applies a sequence of matrix operations to the vector x and
+    ! stores the result in y
+    ! bd, bm1, bm2 are arrays containing roots of certian b polynomials
+    ! nd, nm1, nm2 are the lengths of the arrays bd, bm1, bm2 respectively
+    ! aa   array containing scalar multipliers of the vector x
+    ! na is the length of the array aa
+    ! x, y  the matrix operations are applied to x and the result is y
+    ! a, b, c  are arrays which contain the tridiagonal matrix
+    ! m  is the order of the matrix
+    ! d, w, u are working arrays
+    ! is  determines whether or not a change in sign is made
+    !
     pure subroutine proc(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, w, u)
-        !
-        ! Purpose:
-        !
-        ! proc applies a sequence of matrix operations to the vector x and
-        ! stores the result in y
-        ! bd, bm1, bm2 are arrays containing roots of certian b polynomials
-        ! nd, nm1, nm2 are the lengths of the arrays bd, bm1, bm2 respectively
-        ! aa   array containing scalar multipliers of the vector x
-        ! na is the length of the array aa
-        ! x, y  the matrix operations are applied to x and the result is y
-        ! a, b, c  are arrays which contain the tridiagonal matrix
-        ! m  is the order of the matrix
-        ! d, w, u are working arrays
-        ! is  determines whether or not a change in sign is made
-        !
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         integer(ip), intent(in)  :: nd
         integer(ip), intent(in)  :: nm1
         integer(ip), intent(in)  :: nm2
@@ -1648,13 +1530,11 @@ contains
         complex(wp), intent(out) :: d(m)
         complex(wp), intent(out) :: w(m)
         complex(wp), intent(out) :: u(m)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         integer(ip) :: j, mm, id, ibr, m1, m2, ia, k
         real(wp)    :: rt
         complex(wp) :: den
-        !-----------------------------------------------
 
         w = x
         y = w
@@ -1673,9 +1553,8 @@ contains
                     rt = aa(ia)
                 end if
                 ia = ia - 1
-                !
+
                 ! scalar multiplication
-                !
                 y = rt*w
             end if
 
@@ -1685,9 +1564,8 @@ contains
             id = id - 1
 
             if (id == 0) ibr = 1
-            !
+
             ! begin solution to system
-            !
             d(m) = a(m)/(b(m)-rt)
             w(m) = y(m)/(b(m)-rt)
 
@@ -1745,26 +1623,24 @@ contains
 
     end subroutine proc
 
+    ! Purpose:
+    !
+    ! procp applies a sequence of matrix operations to the vector x and
+    ! stores the result in y  periodic boundary conditions
+    !
+    ! bd, bm1, bm2 are arrays containing roots of certian b polynomials
+    ! nd, nm1, nm2 are the lengths of the arrays bd, bm1, bm2 respectively
+    ! aa   array containing scalar multipliers of the vector x
+    ! na is the length of the array aa
+    ! x, y  the matrix operations are applied to x and the result is y
+    ! a, b, c  are arrays which contain the tridiagonal matrix
+    ! m  is the order of the matrix
+    ! d, u, w are working arrays
+    ! is  determines whether or not a change in sign is made
+    !
     pure subroutine procp(nd, bd, nm1, bm1, nm2, bm2, na, aa, x, y, m, a, b, c, d, u, w)
-        !
-        ! Purpose:
-        !
-        ! procp applies a sequence of matrix operations to the vector x and
-        ! stores the result in y  periodic boundary conditions
-        !
-        ! bd, bm1, bm2 are arrays containing roots of certian b polynomials
-        ! nd, nm1, nm2 are the lengths of the arrays bd, bm1, bm2 respectively
-        ! aa   array containing scalar multipliers of the vector x
-        ! na is the length of the array aa
-        ! x, y  the matrix operations are applied to x and the result is y
-        ! a, b, c  are arrays which contain the tridiagonal matrix
-        ! m  is the order of the matrix
-        ! d, u, w are working arrays
-        ! is  determines whether or not a change in sign is made
-        !
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         integer(ip), intent(in)  :: nd
         integer(ip), intent(in)  :: nm1
         integer(ip), intent(in)  :: nm2
@@ -1782,13 +1658,11 @@ contains
         complex(wp), intent(out) :: d(m)
         complex(wp), intent(out) :: u(m)
         complex(wp), intent(out) :: w(m)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         integer(ip) :: j, mm, mm2, id, ibr, m1, m2, ia, k
         real(wp)    :: rt
         complex(wp) :: den, ym, v, bh, am
-        !-----------------------------------------------
 
         y = x
         w = y
@@ -1818,9 +1692,8 @@ contains
             id = id - 1
 
             if (id == 0) ibr = 1
-            !
+
             ! begin solution to system
-            !
             bh = b(m) - rt
             ym = y(m)
             den = b(1) - rt
@@ -1898,63 +1771,57 @@ contains
 
     end subroutine procp
 
+    ! Purpose:
+    !
+    !     Finds the eigenvalues of a symmetric
+    !     tridiagonal matrix by the rational ql method.
+    !     This subroutine is a modification of the eispack subroutine tqlrat
+    !     algorithm 464, comm. acm 16, 689(1973) by reinsch.
+    !
+    !     on input-
+    !
+    !        n is the order of the matrix,
+    !
+    !        d contains the diagonal elements of the input matrix,
+    !
+    !        e2 contains the                subdiagonal elements of the
+    !          input matrix in its last n-1 positions.  e2(1) is arbitrary.
+    !
+    !      on output-
+    !
+    !        d contains the eigenvalues in ascending order.  if an
+    !          error exit is made, the eigenvalues are correct and
+    !          ordered for indices 1, 2, ...ierr-1, but may not be
+    !          the smallest eigenvalues,
+    !
+    !        e2 has been destroyed,
+    !
+    !        ierr is set to
+    !          zero       for normal return,
+    !          j          if the j-th eigenvalue has not been
+    !                     determined after 30 iterations.
+    !
+    !     questions and comments should be directed to b. s. garbow,
+    !     applied mathematics division, argonne national laboratory
+    !
+    !
+    !     eps is a machine dependent parameter specifying
+    !     the relative precision of floating point arithmetic.
+    !
+    !
     subroutine ctevls(self, diagonal, subdiagonal, error_flag)
-        !
-        ! Purpose:
-        !
-        !     this subroutine is a modification of the eispack subroutine tqlrat
-        !     algorithm 464, comm. acm 16, 689(1973) by reinsch.
-        !
-        !     this subroutine finds the eigenvalues of a symmetric
-        !     tridiagonal matrix by the rational ql method.
-        !
-        !     on input-
-        !
-        !        n is the order of the matrix,
-        !
-        !        d contains the diagonal elements of the input matrix,
-        !
-        !        e2 contains the                subdiagonal elements of the
-        !          input matrix in its last n-1 positions.  e2(1) is arbitrary.
-        !
-        !      on output-
-        !
-        !        d contains the eigenvalues in ascending order.  if an
-        !          error exit is made, the eigenvalues are correct and
-        !          ordered for indices 1, 2, ...ierr-1, but may not be
-        !          the smallest eigenvalues,
-        !
-        !        e2 has been destroyed,
-        !
-        !        ierr is set to
-        !          zero       for normal return,
-        !          j          if the j-th eigenvalue has not been
-        !                     determined after 30 iterations.
-        !
-        !     questions and comments should be directed to b. s. garbow,
-        !     applied mathematics division, argonne national laboratory
-        !
-        !
-        !     eps is a machine dependent parameter specifying
-        !     the relative precision of floating point arithmetic.
-        !
-        !
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         class(CbltriAux), intent(inout) :: self
         real(wp),         intent(inout) :: diagonal(:)
         real(wp),         intent(inout) :: subdiagonal(:)
         integer(ip),      intent(out)   :: error_flag
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         integer(ip) :: i, j, l, m, ii, l1, mml, nhalf, ntop
         real(wp)    :: b, c, f, g, h, p, r, s, dhold
-        !-----------------------------------------------
 
         associate( &
-            EPS => self%MACHINE_EPSILON, &
             n => size(diagonal), &
             d => diagonal, &
             e2 => subdiagonal &
@@ -1970,40 +1837,36 @@ contains
 
                 main_loop: do l = 1, n
                     j = 0
-                    h = EPS*(abs(d(l))+sqrt(e2(l)))
+                    h = MACHINE_EPSILON*(abs(d(l))+sqrt(e2(l)))
 
                     if (b <= h) then
                         b = h
                         c = b*b
                     end if
-                    !
+
                     ! look for small squared sub-diagonal element
-                    !
                     do m = l, n
                         if (e2(m) > c) cycle
                         exit
-                    !
+
                     ! 2(n) is always zero, so there is no exit
-                    !    through the bottom of the loop
-                    !
+                    ! through the bottom of the loop
                     end do
 
                     if_block: block
                         if (m /= l) then
                             loop_105: do
                                 if (j == 30) then
-                                    !
-                                    ! set error -- no convergence to an
-                                    !    eigenvalue after 30 iterations
-                                    !
+
+                                    ! set error  no convergence to an
+                                    ! eigenvalue after 30 iterations
                                     error_flag = l
                                     return
                                 end if
 
                                 j = j + 1
-                                !
+
                                 ! form shift
-                                !
                                 l1 = l + 1
                                 s = sqrt(e2(l))
                                 g = d(l)
@@ -2013,9 +1876,8 @@ contains
                                 h = g - d(l)
                                 d(l1:n) = d(l1:n) - h
                                 f = f + h
-                                !
+
                                 ! rational ql transformation
-                                !
                                 g = d(m)
 
                                 if (g == ZERO) g = b
@@ -2023,9 +1885,8 @@ contains
                                 h = g
                                 s = ZERO
                                 mml = m - l
-                                !
-                                ! for i=m-1 step -1 until l do --
-                                !
+
+                                ! for i=m-1 step -1 until l do
                                 do ii = 1, mml
                                     i = m - ii
                                     p = g*h
@@ -2040,9 +1901,8 @@ contains
 
                                 e2(l) = s*g
                                 d(l) = h
-                                !
+
                                 !  guard against underflowed h
-                                !
                                 if (h == ZERO .or. abs(e2(l)) <= abs(c/h)) exit if_block
 
                                 e2(l) = h*e2(l)
@@ -2053,13 +1913,11 @@ contains
                     end block if_block
 
                     p = d(l) + f
-                    !
+
                     ! order eigenvalues
-                    !
                     if (l /= 1) then
-                        !
+
                         ! for i=l step -1 until 2 do
-                        !
                         do ii = 2, l
                             i = l + 2 - ii
                             if (p >= d(i-1)) then
@@ -2090,15 +1948,3 @@ contains
     end subroutine ctevls
 
 end module module_cblktri
-!
-! REVISION HISTORY
-!
-! September 1973    Version 1
-! April     1976    Version 2
-! January   1978    Version 3
-! December  1979    Version 3.1
-! February  1985    Documentation upgrade
-! November  1988    Version 3.2, FORTRAN 77 changes
-! June      2004    Version 5.0, Fortran 90 changes
-! May       2016    Fortran 2008 changes
-!
