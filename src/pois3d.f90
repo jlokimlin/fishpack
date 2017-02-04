@@ -178,7 +178,7 @@
 !
 ! PRECISION              64-bit double precision
 !
-! REQUIRED files         type_FishpackWorkspace.f90, type_ComfAux.f90, type_FFTpack.f90
+! REQUIRED files         type_FishpackWorkspace.f90, type_ComfAux.f90, type_PeriodicFastFourierTransform.f90
 !
 ! STANDARD               Fortran 2008
 !
@@ -246,8 +246,8 @@ module module_pois3d
     use type_FishpackWorkspace, only: &
         Fish => FishpackWorkspace
 
-    use type_FFTpack, only: &
-        FFTpack
+    use type_PeriodicFastFourierTransform, only: &
+        PeriodicFastFourierTransform
 
     ! Explicit typing only
     implicit none
@@ -599,7 +599,7 @@ contains
         !-----------------------------------------------
         integer(ip)    :: lr, mr, nr, lrdel, i, mrdel, j, ifwrd, is, k
         real(wp)       :: scalx, dx, di, scaly, dy, dj
-        type(FFTpack)  :: fft
+        type(PeriodicFastFourierTransform)  :: fft
         !-----------------------------------------------
 
         lr = l

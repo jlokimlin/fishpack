@@ -7,7 +7,7 @@
 !     *                                                               *
 !     *                      all rights reserved                      *
 !     *                                                               *
-!     *                         Fishpack                              *
+!     *                           Fishpack                            *
 !     *                                                               *
 !     *                      A Package of Fortran                     *
 !     *                                                               *

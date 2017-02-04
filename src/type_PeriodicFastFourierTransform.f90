@@ -1,7 +1,4 @@
 !
-!     file fftpack_routines.f90
-!
-!
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
 !     *                  copyright (c) 2005 by UCAR                   *
@@ -34,19 +31,14 @@
 !     *                                                               *
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-!
-! LATEST REVISION
-! ---------------
-!     April 2016   Fortran 2008 changes
-!
 ! PURPOSE
-! -------
-!     this package consists of programs which perform fast fourier
+!
+!     This module consists of procedures which perform fast Fourier
 !     transforms for both complex and real periodic sequences and
 !     certain other symmetric sequences that are listed below.
 !
 ! USAGE
-! -----
+!
 !     1.   rffti     initialize  rfftf and rfftb
 !     2.   rfftf     forward transform of a real periodic sequence
 !     3.   rfftb     backward transform of a real coefficient array
@@ -74,57 +66,22 @@
 !     19.  cfftb     unnormalized inverse of cfftf
 !
 ! SPECIAL CONDITIONS
-! ------------------
-!     before calling routines ezfftb and ezfftf for the first time,
+!
+!     Before calling routines ezfftb and ezfftf for the first time,
 !     or before calling ezfftb and ezfftf with a different length,
 !     users must initialize by calling routine ezffti.
 !
-! I/O
-! ---
-!     None
-!
-! PRECISION
-! ---------
-!     64-bit precision float and 32-bit precision integer
-!
-! REQUIRED LIBRARY FILES
-! ----------------------
-!     None
-!
-! STANDARD
-! --------
-!     Fortran 2008
-!
 ! HISTORY
-! -------
+!
 !     * Developed at NCAR in boulder, colorado by paul n. swarztrauber
 !       of the scientific computing division.  Released on NCAR's public
 !       software libraries in January 1980.
 !     * Modified may 29, 1985 to increase efficiency.
-!     * Updated by Jon Lo Kim Lin in April 2016 to incorporate features
-!       of Fortran 2008
+!     * Updated in 2016 to incorporate features of Fortran 2008+
 !
 !
 ! **********************************************************************
 !
-!     subroutine rffti(n, wsave)
-!
-!     subroutine rffti initializes the array wsave which is used in
-!     both rfftf and rfftb. the prime factorization of n together with
-!     a tabulation of the trigonometric functions are computed and
-!     stored in wsave.
-!
-!     input parameter
-!
-!     n       the length of the sequence to be transformed.
-!
-!     output parameter
-!
-!     wsave   a work array which must be dimensioned at least 2*n+15.
-!             the same work array can be used for both rfftf and rfftb
-!             as long as n remains unchanged. different wsave arrays
-!             are required for different values of n. the contents of
-!             wsave must not be changed between calls of rfftf or rfftb.
 !
 ! **********************************************************************
 !
@@ -767,24 +724,6 @@
 !
 ! **********************************************************************
 !
-!     subroutine cffti(n, wsave)
-!
-!     subroutine cffti initializes the array wsave which is used in
-!     both cfftf and cfftb. the prime factorization of n together with
-!     a tabulation of the trigonometric functions are computed and
-!     stored in wsave.
-!
-!     input parameter
-!
-!     n       the length of the sequence to be transformed
-!
-!     output parameter
-!
-!     wsave   a work array which must be dimensioned at least 4*n+15
-!             the same work array can be used for both cfftf and cfftb
-!             as long as n remains unchanged. different wsave arrays
-!             are required for different values of n. the contents of
-!             wsave must not be changed between calls of cfftf or cfftb.
 !
 ! **********************************************************************
 !
@@ -833,85 +772,43 @@
 !             destroyed between calls of subroutine cfftf or cfftb
 !
 ! **********************************************************************
-!
-!     subroutine cfftb(n, c, wsave)
-!
-!     subroutine cfftb computes the backward complex discrete fourier
-!     transform (the fourier synthesis). equivalently , cfftb computes
-!     a complex periodic sequence from its fourier coefficients.
-!     the transform is defined below at output parameter c.
-!
-!     a call of cfftf followed by a call of cfftb will multiply the
-!     sequence by n.
-!
-!     the array wsave which is used by subroutine cfftb must be
-!     initialized by calling subroutine cffti(n, wsave).
-!
-!     input parameters
-!
-!
-!     n      the length of the complex sequence c. the method is
-!            more efficient when n is the product of small primes.
-!
-!     c      a complex array of length n which contains the sequence
-!
-!     wsave   a real work array which must be dimensioned at least 4n+15
-!             in the program that calls cfftb. the wsave array must be
-!             initialized by calling subroutine cffti(n, wsave) and a
-!             different wsave array must be used for each different
-!             value of n. this initialization does not have to be
-!             repeated so long as n remains unchanged thus subsequent
-!             transforms can be obtained faster than the first.
-!             the same wsave array can be used by cfftf and cfftb.
-!
-!     output parameters
-!
-!     c      for j=1, ..., n
-!
-!                c(j)=the sum from k=1, ..., n of
-!
-!                      c(k)*exp(i*(j-1)*(k-1)*2*pi/n)
-!
-!                            where i=sqrt(-1)
-!
-!     wsave   contains initialization calculations which must not be
-!             destroyed between calls of subroutine cfftf or cfftb
-!
-module fftpack_routines
+
+module type_PeriodicFastFourierTransform
 
     use fishpack_precision, only: &
         wp, & ! Working precision
         ip, & ! Integer precision
-        HALF_PI, PI, TWO_PI
+        PI, &
+        TWO_PI, &
+        HALF_PI
 
     ! Explicit typing only
-    implicit none
+    implicit None
 
     ! Everything is private unless stated otherwise
     private
-    public :: rffti
-    public :: rfftf
-    public :: rfftb
-    public :: ezffti
-    public :: ezfftf
-    public :: ezfftb
-    public :: sinti
-    public :: sint
-    public :: costi
-    public :: cost
-    public :: sinqi
-    public :: sinqf
-    public :: sinqb
-    public :: cosqi
-    public :: cosqf
-    public :: cosqb
-    public :: cffti
-    public :: cfftf
-    public :: cfftb
+    public :: PeriodicFastFourierTransform
+    public :: rffti ! initialize  rfftf and rfftb
+    public :: rfftf ! forward transform of a real periodic sequence
+    public :: rfftb ! backward transform of a real coefficient array
+    public :: ezffti !initialize ezfftf and ezfftb
+    public :: ezfftf ! a simplified real periodic forward transform
+    public :: ezfftb ! a simplified real periodic backward transform
+    public :: sinti ! initialize sint
+    public :: sint ! sine transform of a real odd sequence
+    public :: costi ! initialize cost
+    public :: cost ! cosine transform of a real even sequence
+    public :: sinqi ! initialize sinqf and sinqb
+    public :: sinqf ! forward sine transform with odd wave numbers
+    public :: sinqb ! unnormalized inverse of sinqf
+    public :: cosqi ! initialize cosqf and cosqb
+    public :: cosqf ! forward cosine transform with odd wave numbers
+    public :: cosqb ! unnormalized inverse of cosqf
+    public :: cffti ! initialize cfftf and cfftb
+    public :: cfftf ! forward transform of a complex periodic sequence
+    public :: cfftb ! unnormalized inverse of cfftf
 
-    !---------------------------------------------------------------------------------
     ! Parameters confined to the module
-    !---------------------------------------------------------------------------------
     real(wp), parameter :: ZERO = 0.0_wp
     real(wp), parameter :: HALF = 0.5_wp
     real(wp), parameter :: ONE = 1.0_wp
@@ -919,26 +816,52 @@ module fftpack_routines
     real(wp), parameter :: THREE = 3.0_wp
     real(wp), parameter :: FOUR = 4.0_wp
     real(wp), parameter :: FIVE = 5.0_wp
-    !---------------------------------------------------------------------------------
+    real(wp), parameter :: SQRT_2 = sqrt(TWO)
+    real(wp), parameter :: SQRT_3 = sqrt(THREE)
+    real(wp), parameter :: SQRT_5 = sqrt(FIVE)
+
+    type, public :: PeriodicFastFourierTransform
+    contains
+        ! Type-bound procedures
+        procedure, nopass, public :: rffti
+        procedure, nopass, public :: rfftf
+        procedure, nopass, public :: rfftb
+        procedure, nopass, public :: ezffti
+        procedure, nopass, public :: ezfftf
+        procedure, nopass, public :: ezfftb
+        procedure, nopass, public :: sinti
+        procedure, nopass, public :: sint
+        procedure, nopass, public :: costi
+        procedure, nopass, public :: cost
+        procedure, nopass, public :: sinqi
+        procedure, nopass, public :: sinqf
+        procedure, nopass, public :: sinqb
+        procedure, nopass, public :: cosqi
+        procedure, nopass, public :: cosqf
+        procedure, nopass, public :: cosqb
+        procedure, nopass, public :: cffti
+        procedure, nopass, public :: cfftf
+        procedure, nopass, public :: cfftb
+    end type PeriodicFastFourierTransform
 
 contains
 
     subroutine ezfftf(n, r, azero, a, b, wsave)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip), intent(in)  :: n
         real(wp),    intent(out) :: azero
         real(wp),    intent(in)  :: r(*)
         real(wp),    intent(out) :: a(*)
         real(wp),    intent(out) :: b(*)
         real(wp)                  :: wsave(*)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip) :: ns2, ns2m
-        real(wp) :: cf, cfm
-        !-----------------------------------------------
+        real(wp)    :: cf, cfm
+
         !
         if (3 > n) then
             if (n /= 2) then
@@ -969,22 +892,21 @@ contains
 
     end subroutine ezfftf
 
-
     subroutine ezfftb(n, r, azero, a, b, wsave)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip), intent(in) :: n
-        real(wp),    intent(in)    :: azero
+        real(wp), intent(in)    :: azero
         real(wp)                 :: r(*)
-        real(wp),    intent(in)  :: a(*)
-        real(wp),    intent(in)  :: b(*)
+        real(wp), intent(in)    :: a(*)
+        real(wp), intent(in)    :: b(*)
         real(wp)                 :: wsave(*)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip) :: ns2
-        !-----------------------------------------------
+
 
         if (3 > n) then
             if (n /= 2) then
@@ -1007,52 +929,57 @@ contains
 
     end subroutine ezfftb
 
+    subroutine ezffti(n, wsave)
 
-    pure subroutine ezffti(n, wsave)
-        !-----------------------------------------------
         ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip), intent(in)  :: n
-        real(wp),    intent(out) :: wsave(:)
-        !-----------------------------------------------
 
-        if (n /= 1) call ezfft1(n, wsave(2*n+1:), wsave(3*n+1:))
+        integer(ip) :: n
+        real(wp) :: wsave(*)
+
+
+        if (n /= 1) call real_periodic_initialization_lower_routine(n, wsave(2*n+1), wsave(3*n+1))
 
     end subroutine ezffti
 
-    pure subroutine ezfft1(n, wa, ifac)
-        !-----------------------------------------------
+    subroutine real_periodic_initialization_lower_routine(n, wa, ifac)
+
         ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip),  intent(in)  :: n
-        real(wp),     intent(out) :: ifac(:)
-        real(wp),     intent(out) :: wa(:)
-        !-----------------------------------------------
+
+        integer(ip),  intent(in)     :: n
+        real(wp),     intent(inout)  :: ifac(*)
+        real(wp),     intent(inout)  :: wa(*)
+
         ! Local variables
-        !-----------------------------------------------
-        integer(ip), parameter :: ntryh(*) = [4, 2, 3, 5]
+
+        integer(ip), parameter :: NTRYH(*) = [4, 2, 3, 5]
         integer(ip) :: nl, nf, j, ntry, nq, nr, i, is, nfm1
         integer(ip) :: l1, k1, iip, l2, ido, iipm, ii
         real(wp) :: argh, arg1, ch1, sh1, dch1, dsh1, temp
-        !-----------------------------------------------
 
+
+        ! Initialize
         ntry = 0
         nl = n
         nf = 0
         j = 0
 
         factorization_loop: do
+
             j = j + 1
+
             if (j <= 4) then
-                ntry = ntryh(j)
+                ntry = NTRYH(j)
             else
                 ntry = ntry + 2
             end if
 
             inner_loop: do
+
                 nq = nl/ntry
                 nr = nl - ntry*nq
+
                 if (nr /= 0) cycle factorization_loop
+
                 nf = nf + 1
                 ifac(nf+2) = ntry
                 nl = nq
@@ -1063,7 +990,9 @@ contains
                         ifac(3) = 2
                     end if
                 end if
+
                 if (nl /= 1) cycle inner_loop
+
                 exit inner_loop
             end do inner_loop
             exit factorization_loop
@@ -1094,7 +1023,7 @@ contains
                     i = is + 2
                     wa(i-1) = ch1
                     wa(i) = sh1
-                    if (5 <= ido) then
+                    if (ido >= 5) then
                         do ii = 5, ido, 2
                             i = i + 2
                             wa(i-1) = ch1*wa(i-3) - sh1*wa(i-2)
@@ -1107,20 +1036,20 @@ contains
             end do
         end if
 
-    end subroutine ezfft1
+    end subroutine real_periodic_initialization_lower_routine
 
-    pure subroutine costi(n, wsave)
-        !-----------------------------------------------
+    subroutine costi(n, wsave)
+
         ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip), intent(in)  :: n
-        real(wp),    intent(out) :: wsave(:)
-        !-----------------------------------------------
+
+        integer(ip), intent(in) :: n
+        real(wp)                 :: wsave(*)
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip)  :: nm1, np1, ns2, k, kc
         real(wp)     :: dt, fk
-        !-----------------------------------------------
+
 
         if (n > 3) then
             nm1 = n - 1
@@ -1136,24 +1065,25 @@ contains
                 wsave(kc) = TWO * cos(fk*dt)
             end do
 
-            call rffti(nm1, wsave(n+1:))
+            call rffti(nm1, wsave(n+1))
+
         end if
 
     end subroutine costi
 
     subroutine cost(n, x, wsave)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip), intent(in) :: n
         real(wp) :: x(*)
         real(wp) :: wsave(*)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip) :: nm1, np1, ns2, k, kc, modn, i
         real(wp) :: x1h, x1p3, tx2, c1, t1, t2, xim2, xi
-        !-----------------------------------------------
+
         !
         nm1 = n - 1
         np1 = n + 1
@@ -1208,18 +1138,18 @@ contains
 
     end subroutine cost
 
-    pure subroutine sinti(n, wsave)
-        !-----------------------------------------------
+    subroutine sinti(n, wsave)
+
         ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip), intent(in)  :: n
-        real(wp),    intent(out) :: wsave(:)
-        !-----------------------------------------------
+
+        integer(ip), intent(in) :: n
+        real(wp)                 :: wsave(*)
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip) :: ns2, np1, k
         real(wp)    :: dt
-        !-----------------------------------------------
+
 
         if (n > 1) then
             ns2 = n/2
@@ -1230,24 +1160,23 @@ contains
                 wsave(k) = TWO * sin(k*dt)
             end do
 
-            call rffti(np1, wsave(ns2+1:))
+            call rffti(np1, wsave(ns2+1))
         end if
 
     end subroutine sinti
 
-
     subroutine sint(n, x, wsave)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip) :: n
         real(wp) :: x(*)
         real(wp) :: wsave(*)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip) :: np1, iw1, iw2, iw3
-        !-----------------------------------------------
+
 
         np1 = n + 1
         iw1 = n/2 + 1
@@ -1258,25 +1187,22 @@ contains
 
     end subroutine sint
 
-
-
     subroutine sint1(n, war, was, xh, x, ifac)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip), intent(in)  :: n
         real(wp)              :: ifac(*)
         real(wp)              :: war(*)
         real(wp), intent(in) :: was(*)
         real(wp)              :: xh(*)
         real(wp)              :: x(*)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip)         :: i, np1, ns2, k, kc, modn
-        real(wp), parameter :: SQRT3 = sqrt(THREE) ! 1.73205080756888
         real(wp)            :: temp, t1, t2
-        !-----------------------------------------------
+
 
         xh(:n) = war(:n)
         war(:n) = x(:n)
@@ -1288,8 +1214,8 @@ contains
                 war(:n) = xh(:n)
                 return
             end if
-            temp = SQRT3*(xh(1)+xh(2))
-            xh(2) = SQRT3*(xh(1)-xh(2))
+            temp = SQRT_3*(xh(1)+xh(2))
+            xh(2) = SQRT_3*(xh(1)-xh(2))
             xh(1) = temp
             x(:n) = war(:n)
             war(:n) = xh(:n)
@@ -1312,7 +1238,7 @@ contains
 
         if (modn /= 0) x(ns2+2) = FOUR * xh(ns2+1)
 
-        call rfftf1(np1, x, xh, war, ifac)
+        call real_forward_lower_routine(np1, x, xh, war, ifac)
 
         xh(1) = HALF*x(1)
 
@@ -1328,72 +1254,67 @@ contains
 
     end subroutine sint1
 
-    pure subroutine cosqi(n, wsave)
-        !-----------------------------------------------
+    subroutine cosqi(n, wsave)
+
         ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip), intent(in)  :: n
-        real(wp),    intent(out) :: wsave(:)
-        !-----------------------------------------------
+
+        integer(ip) :: n
+        real(wp) :: wsave(*)
+
         ! Local variables
-        !-----------------------------------------------
-        integer(ip) :: k !! Counter
+
+        integer(ip) :: k ! Counter
         real(wp)    :: fk, dt
-        !-----------------------------------------------
 
-        dt = half_pi/n
+
+        dt = HALF_PI/n
+
         fk = ZERO
-
         do k = 1, n
             fk = fk + ONE
             wsave(k) = cos(fk*dt)
         end do
 
-        call rffti(n, wsave(n+1:))
+        call rffti(n, wsave(n+1))
 
     end subroutine cosqi
 
-
     subroutine cosqf(n, x, wsave)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip), intent(in)    :: n
-        real(wp),    intent(inout) :: x(:)
-        real(wp),    intent(inout) :: wsave(:)
-        !-----------------------------------------------
+
+        integer(ip), intent(in) :: n
+        real(wp)                 :: x(*)
+        real(wp)                 :: wsave(*)
+
         ! Local variables
-        !-----------------------------------------------
-        real(wp), parameter :: SQRT2 = sqrt(TWO) ! 1.4142135623731
-        real(wp)            :: tsqx
-        !-----------------------------------------------
+
+        real(wp) :: temp
 
 
         if (3 < n) then
-            if (n > 2) call cosqf1(n, x, wsave, wsave(n+1:))
-            tsqx = SQRT2*x(2)
-            x(2) = x(1) - tsqx
-            x(1) = x(1) + tsqx
+            if (n > 2) call cosqf1(n, x, wsave, wsave(n+1))
+            temp = SQRT_2*x(2)
+            x(2) = x(1) - temp
+            x(1) = x(1) + temp
         end if
 
     end subroutine cosqf
 
-
-
     subroutine cosqf1(n, x, w, xh)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip) :: n
-        real(wp) :: x(*)
-        real(wp), intent(in) :: w(*)
-        real(wp) :: xh(*)
-        !-----------------------------------------------
+
+        integer(ip), intent(in) :: n
+        real(wp)                 :: x(*)
+        real(wp),    intent(in) :: w(*)
+        real(wp)                 :: xh(*)
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip) :: ns2, np2, k, kc, modn, i
-        real(wp) :: xim1
-        !-----------------------------------------------
+        real(wp)    :: temp
+
 
         ns2 =(n + 1)/2
         np2 = n + 2
@@ -1419,56 +1340,56 @@ contains
         call rfftf(n, x, xh)
 
         do i = 3, n, 2
-            xim1 = x(i-1) - x(i)
+            temp = x(i-1) - x(i)
             x(i) = x(i-1) + x(i)
-            x(i-1) = xim1
+            x(i-1) = temp
         end do
 
     end subroutine cosqf1
 
     subroutine cosqb(n, x, wsave)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip), intent(in)    :: n
-        real(wp),    intent(inout) :: x(:)
-        real(wp),    intent(inout) :: wsave(:)
-        !-----------------------------------------------
+
+        integer(ip) :: n
+        real(wp) :: x(*)
+        real(wp) :: wsave(*)
+
         ! Local variables
-        !-----------------------------------------------
-        real(wp), parameter :: TWO_SQRT2 = TWO * sqrt(TWO) ! 2.82842712474619
-        real(wp)            :: x1
-        !-----------------------------------------------
+
+        real(wp), parameter :: TWO_SQRT_2 = TWO * sqrt(TWO) ! 2.82842712474619
+        real(wp)            :: temp
+
 
         if (3 > n) then
             if (n /= 2) then
                 x(1) = FOUR * x(1)
             else
-                x1 = FOUR * (x(1)+x(2))
-                x(2) = TWO_SQRT2*(x(1)-x(2))
-                x(1) = x1
+                temp = FOUR * (x(1)+x(2))
+                x(2) = TWO_SQRT_2*(x(1)-x(2))
+                x(1) = temp
             end if
         end if
 
-        call cosqb1(n, x, wsave, wsave(n+1:))
+        call cosqb1(n, x, wsave, wsave(n+1))
 
     end subroutine cosqb
 
 
     subroutine cosqb1(n, x, w, xh)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip)               :: n
         real(wp)              :: x(*)
         real(wp), intent(in) :: w(*)
         real(wp)              :: xh(*)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip) :: ns2, np2, i, modn, k, kc
-        real(wp) :: xim1
-        !-----------------------------------------------
+        real(wp)    :: xim1
+
 
         ns2 =(n + 1)/2
         np2 = n + 2
@@ -1505,66 +1426,73 @@ contains
 
     end subroutine cosqb1
 
-    pure subroutine sinqi(n, wsave)
-        !-----------------------------------------------
+    subroutine sinqi(n, wsave)
+
         ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip), intent(in)  :: n
-        real(wp),    intent(out) :: wsave(:)
-        !-----------------------------------------------
+
+        integer(ip) :: n
+        real(wp) :: wsave(*)
+
 
         call cosqi(n, wsave)
 
     end subroutine sinqi
 
     subroutine sinqf(n, x, wsave)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip), intent(in)    :: n
-        real(wp),    intent(inout) :: x(:)
-        real(wp),    intent(inout) :: wsave(:)
-        !-----------------------------------------------
+
+        integer(ip) :: n
+        real(wp) :: x(*)
+        real(wp) :: wsave(*)
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip) :: ns2, k, kc
-        real(wp)    :: xhold
-        !-----------------------------------------------
+        real(wp) :: xhold
+
 
         if (n /= 1) then
+
             ns2 = n/2
+
             do k = 1, ns2
                 kc = n - k
                 xhold = x(k)
                 x(k) = x(kc+1)
                 x(kc+1) = xhold
             end do
+
             call cosqf(n, x, wsave)
+
             x(2:n:2) = -x(2:n:2)
+
         end if
 
     end subroutine sinqf
 
     subroutine sinqb(n, x, wsave)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip), intent(in)    :: n
-        real(wp),    intent(inout) :: x(:)
-        real(wp),    intent(inout) :: wsave(:)
-        !-----------------------------------------------
+
+        integer(ip) :: n
+        real(wp) :: x(*)
+        real(wp) :: wsave(*)
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip) :: ns2, k, kc
         real(wp) :: xhold
-        !-----------------------------------------------
+
 
         if (n <= 1) then
             x(1) = FOUR * x(1)
         else
             ns2 = n/2
             x(2:n:2) = -x(2:n:2)
+
             call cosqb(n, x, wsave)
+
             do k = 1, ns2
                 kc = n - k
                 xhold = x(k)
@@ -1575,70 +1503,82 @@ contains
 
     end subroutine sinqb
 
+    ! Purpose:
+    !
+    ! Initializes the array wsave which is used in
+    ! both cfftf and cfftb. the prime factorization of n together with
+    ! a tabulation of the trigonometric functions are computed and
+    ! stored in wsave.
+    !
+    ! input parameter
+    !
+    !     n       the length of the sequence to be transformed
+    !
+    ! output parameter
+    !
+    !     wsave   a work array which must be dimensioned at least 4*n+15
+    !             the same work array can be used for both cfftf and cfftb
+    !             as long as n remains unchanged. different wsave arrays
+    !             are required for different values of n. the contents of
+    !             wsave must not be changed between calls of cfftf or cfftb.
+    !
+    pure subroutine cffti(n, wsave)
 
-    subroutine cffti(n, wsave)
-        !-----------------------------------------------
         ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip) :: n
-        real(wp) :: wsave(*)
-        !-----------------------------------------------
-        ! Dummy arguments
-        !-----------------------------------------------
+        integer(ip), intent(in)  :: n
+        real(wp),    intent(out) :: wsave(*)
+
+        ! Local variables
         integer(ip) :: iw1, iw2
-        !-----------------------------------------------
 
         if (n /= 1) then
             iw1 = 2*n + 1
             iw2 = iw1 + 2*n
-            call cffti1(n, wsave(iw1), wsave(iw2))
+            call complex_initialization_lower_routine(n, wsave(iw1), wsave(iw2))
         end if
 
     end subroutine cffti
 
+    pure subroutine complex_initialization_lower_routine(n, wa, ifac)
 
-    subroutine cffti1(n, wa, ifac)
-        !-----------------------------------------------
         ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip), intent(in)      :: n
-        real(wp), intent(inout) :: ifac(*)
-        real(wp), intent(inout) :: wa(*)
-        !-----------------------------------------------
-        ! Local variables
-        !-----------------------------------------------
-        integer(ip), parameter  :: ntryh(*) = [3, 4, 2, 5]
-        integer(ip)             :: nl, nf, j, ntry, nq, nr
-        integer(ip)             :: i, l1, k1, iip, ld, l2, ido
-        integer(ip)             :: idot, iipm, i1, ii
-        real(wp)            :: argh, fi, argld, arg
-        !-----------------------------------------------
+        integer(ip), intent(in)   :: n
+        real(wp),    intent(out)  :: ifac(*)
+        real(wp),    intent(out)  :: wa(*)
 
-        ntry = 0
-        nl = n
+        ! Local variables
+        integer(ip), parameter :: NTRYH(*) = [3, 4, 2, 5]
+        integer(ip)            :: ntest, nf, j, ntry, nq, nr
+        integer(ip)            :: i, l1, k1, iip, ld, l2, ido
+        integer(ip)            :: idot, iipm, i1, ii
+        real(wp)               :: argh, fi, argld, arg
+
+        ! Initialize
         nf = 0
+        ntest = n
+        ntry = 0
         j = 0
 
         factorization_loop: do
 
             j = j + 1
 
-            if (j - 4 <= 0) then
-                ntry = ntryh(j)
+            if (j <= 4) then
+                ntry = NTRYH(j)
             else
                 ntry = ntry + 2
             end if
 
             inner_loop: do
 
-                nq = nl/ntry
-                nr = nl - ntry*nq
+                nq = ntest/ntry
+                nr = ntest - ntry*nq
 
                 if (nr /= 0) cycle factorization_loop
 
                 nf = nf + 1
                 ifac(nf+2) = ntry
-                nl = nq
+                ntest = nq
 
                 if (ntry == 2) then
                     if (nf /= 1) then
@@ -1647,7 +1587,7 @@ contains
                     end if
                 end if
 
-                if (nl /= 1) cycle inner_loop
+                if (ntest /= 1) cycle inner_loop
                 exit inner_loop
             end do inner_loop
             exit factorization_loop
@@ -1689,47 +1629,82 @@ contains
             l1 = l2
         end do
 
-    end subroutine cffti1
+    end subroutine complex_initialization_lower_routine
 
-
-
+    ! Purpose:
+    !
+    !     Computes the backward complex discrete fourier
+    !     transform (the fourier synthesis). equivalently , cfftb computes
+    !     a complex periodic sequence from its fourier coefficients.
+    !     the transform is defined below at output parameter c.
+    !
+    !     a call of cfftf followed by a call of cfftb will multiply the
+    !     sequence by n.
+    !
+    !     the array wsave which is used by subroutine cfftb must be
+    !     initialized by calling subroutine cffti(n, wsave).
+    !
+    !     input parameters
+    !
+    !
+    !     n      the length of the complex sequence c. the method is
+    !            more efficient when n is the product of small primes.
+    !
+    !     c      a complex array of length n which contains the sequence
+    !
+    !     wsave   a real work array which must be dimensioned at least 4n+15
+    !             in the program that calls cfftb. the wsave array must be
+    !             initialized by calling subroutine cffti(n, wsave) and a
+    !             different wsave array must be used for each different
+    !             value of n. this initialization does not have to be
+    !             repeated so long as n remains unchanged thus subsequent
+    !             transforms can be obtained faster than the first.
+    !             the same wsave array can be used by cfftf and cfftb.
+    !
+    !     output parameters
+    !
+    !     c      for j=1, ..., n
+    !
+    !                c(j)=the sum from k=1, ..., n of
+    !
+    !                      c(k)*exp(i*(j-1)*(k-1)*2*pi/n)
+    !
+    !                            where i=sqrt(-1)
+    !
+    !     wsave   contains initialization calculations which must not be
+    !             destroyed between calls of subroutine cfftf or cfftb
+    !
     subroutine cfftb(n, c, wsave)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip) :: n
-        real(wp) :: c(*)
-        real(wp) :: wsave(*)
-        !-----------------------------------------------
-        ! Dummy arguments
-        !-----------------------------------------------
+        integer(ip), intent(in)    :: n
+        real(wp),    intent(inout) :: c(*)
+        real(wp),    intent(inout) :: wsave(*)
+
+        ! Local variables
         integer(ip) :: iw1, iw2
-        !-----------------------------------------------
 
         if (n /= 1) then
             iw1 = 2*n + 1
             iw2 = iw1 + 2*n
-            call cfftb1(n, c, wsave, wsave(iw1), wsave(iw2))
+            call complex_backward_lower_routine(n, c, wsave, wsave(iw1), wsave(iw2))
         end if
 
     end subroutine cfftb
 
+    subroutine complex_backward_lower_routine(n, c, ch, wa, ifac)
 
-    subroutine cfftb1(n, c, ch, wa, ifac)
-        !-----------------------------------------------
         ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip), intent(in) :: n
-        real(wp), intent(in) :: ifac(*)
-        real(wp) :: c(*)
+        integer(ip), intent(in)    :: n
+        real(wp),    intent(inout) :: c(*)
+        real(wp),    intent(in)    :: ifac(*)
         real(wp) :: ch(*)
         real(wp) :: wa(*)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         integer(ip) :: nf, na, l1, iw, k1, iip, l2, ido
         integer(ip) :: idot, idl1, ix2, ix3, ix4, nac, n2
-        !-----------------------------------------------
+
 
         nf = int(ifac(2), kind=ip)
         na = 0
@@ -1745,26 +1720,26 @@ contains
             select case (iip)
                 case (2)
                     if (na == 0) then
-                        call passb2(idot, l1, c, ch, wa(iw))
+                        call complex_backward_pass_2(idot, l1, c, ch, wa(iw))
                     else
-                        call passb2(idot, l1, ch, c, wa(iw))
+                        call complex_backward_pass_2(idot, l1, ch, c, wa(iw))
                     end if
                     na = 1 - na
                 case (3)
                     ix2 = iw + idot
                     if (na == 0) then
-                        call passb3(idot, l1, c, ch, wa(iw), wa(ix2))
+                        call complex_backward_pass_3(idot, l1, c, ch, wa(iw), wa(ix2))
                     else
-                        call passb3(idot, l1, ch, c, wa(iw), wa(ix2))
+                        call complex_backward_pass_3(idot, l1, ch, c, wa(iw), wa(ix2))
                     end if
                     na = 1 - na
                 case (4)
                     ix2 = iw + idot
                     ix3 = ix2 + idot
                     if (na == 0) then
-                        call passb4(idot, l1, c, ch, wa(iw), wa(ix2), wa(ix3))
+                        call complex_backward_pass_4(idot, l1, c, ch, wa(iw), wa(ix2), wa(ix3))
                     else
-                        call passb4(idot, l1, ch, c, wa(iw), wa(ix2), wa(ix3))
+                        call complex_backward_pass_4(idot, l1, ch, c, wa(iw), wa(ix2), wa(ix3))
                     end if
                     na = 1 - na
                 case (5)
@@ -1772,19 +1747,19 @@ contains
                     ix3 = ix2 + idot
                     ix4 = ix3 + idot
                     if (na == 0) then
-                        call passb5(idot, l1, c, ch, wa(iw), wa(ix2), &
+                        call complex_backward_pass_5(idot, l1, c, ch, wa(iw), wa(ix2), &
                             wa(ix3), wa(ix4))
                     else
-                        call passb5(idot, l1, ch, c, wa(iw), wa(ix2), &
+                        call complex_backward_pass_5(idot, l1, ch, c, wa(iw), wa(ix2), &
                             wa(ix3), wa(ix4))
                     end if
                     na = 1 - na
                 case default
                     if (na == 0) then
-                        call passb(nac, idot, iip, l1, idl1, c, c, c, ch, &
+                        call complex_backward_pass_n(nac, idot, iip, l1, idl1, c, c, c, ch, &
                             ch, wa(iw))
                     else
-                        call passb(nac, idot, iip, l1, idl1, ch, ch, ch, &
+                        call complex_backward_pass_n(nac, idot, iip, l1, idl1, ch, ch, ch, &
                             c, c, wa(iw))
                     end if
                     if (nac /= 0) then
@@ -1800,24 +1775,23 @@ contains
             c(:n2) = ch(:n2)
         end if
 
-    end subroutine cfftb1
+    end subroutine complex_backward_lower_routine
 
+    pure subroutine complex_backward_pass_2(ido, l1, cc, ch, wa1)
 
-    pure subroutine passb2(ido, l1, cc, ch, wa1)
-        !-----------------------------------------------
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip), intent(in) :: ido
         integer(ip), intent(in) :: l1
         real(wp), intent(in) :: cc(ido, 2, l1)
         real(wp), intent(out) :: ch(ido, l1, 2)
         real(wp), intent(in) :: wa1(1)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip) :: k, i
         real(wp) :: tr2, ti2
-        !-----------------------------------------------
+
 
         if(ido <= 2) then
             ch(1,:, 1) = cc(1, 1,:) + cc(1, 2,:)
@@ -1837,27 +1811,26 @@ contains
             end do
         end if
 
-    end subroutine passb2
+    end subroutine complex_backward_pass_2
 
+    pure subroutine complex_backward_pass_3(ido, l1, cc, ch, wa1, wa2)
 
-    pure subroutine passb3(ido, l1, cc, ch, wa1, wa2)
-        !-----------------------------------------------
         ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip), intent(in) :: ido
-        integer(ip), intent(in) :: l1
-        real(wp), intent(in) :: cc(ido, 3, l1)
-        real(wp), intent(out) :: ch(ido, l1, 3)
-        real(wp), intent(in) :: wa1(*)
-        real(wp), intent(in) :: wa2(*)
-        !-----------------------------------------------
+
+        integer(ip), intent(in)  :: ido
+        integer(ip), intent(in)  :: l1
+        real(wp),    intent(in)  :: cc(ido, 3, l1)
+        real(wp),    intent(out) :: ch(ido, l1, 3)
+        real(wp),    intent(in)  :: wa1(*)
+        real(wp),    intent(in)  :: wa2(*)
+
         ! Local variables
-        !-----------------------------------------------
-        integer(ip)             :: k, i
+
+        integer(ip)         :: k, i
         real(wp), parameter :: taur = -HALF
-        real(wp), parameter :: taui = sqrt(THREE)/2 ! 0.866025403784439
+        real(wp), parameter :: taui = SQRT_3/2 ! 0.866025403784439
         real(wp)            :: tr2, cr2, ti2, ci2, cr3, ci3, dr2, dr3, di2, di3
-        !-----------------------------------------------
+
 
         select case(ido)
             case (2)
@@ -1898,13 +1871,12 @@ contains
                 end do
         end select
 
-    end subroutine passb3
+    end subroutine complex_backward_pass_3
 
+    pure subroutine complex_backward_pass_4(ido, l1, cc, ch, wa1, wa2, wa3)
 
-    pure subroutine passb4(ido, l1, cc, ch, wa1, wa2, wa3)
-        !-----------------------------------------------
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip), intent(in) :: ido
         integer(ip), intent(in) :: l1
         real(wp), intent(in) :: cc(ido, 4, l1)
@@ -1912,13 +1884,13 @@ contains
         real(wp), intent(in) :: wa1(*)
         real(wp), intent(in) :: wa2(*)
         real(wp), intent(in) :: wa3(*)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip) :: k, i
         real(wp) :: ti1, ti2, tr4, ti3, tr1, tr2, ti4
         real(wp) :: tr3, cr3, ci3, cr2, cr4, ci2, ci4
-        !-----------------------------------------------
+
 
         select case(ido)
             case (2)
@@ -1969,13 +1941,12 @@ contains
                 end do
         end select
 
-    end subroutine passb4
+    end subroutine complex_backward_pass_4
 
+    pure subroutine complex_backward_pass_5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
 
-    pure subroutine passb5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
-        !-----------------------------------------------
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip), intent(in) :: ido
         integer(ip), intent(in) :: l1
         real(wp), intent(in) :: cc(ido, 5, l1)
@@ -1984,19 +1955,18 @@ contains
         real(wp), intent(in) :: wa2(*)
         real(wp), intent(in) :: wa3(*)
         real(wp), intent(in) :: wa4(*)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip) :: k, i
-        real(wp), parameter :: sqrt_5 = sqrt( FIVE)
-        real(wp), parameter :: tr11 = (sqrt_5 - ONE)/4 ! 0.309016994374947
-        real(wp), parameter :: ti11 = (sqrt(ONE/(FIVE + sqrt_5)))/2 ! 0.951056516295154
-        real(wp), parameter :: tr12 = (-ONE - sqrt_5)/4 ! -.809016994374947
-        real(wp), parameter :: ti12 = sqrt( FIVE/(TWO*(FIVE + sqrt_5 ))) ! 0.587785252292473
+        real(wp), parameter :: tr11 = (SQRT_5 - ONE)/4 ! 0.309016994374947
+        real(wp), parameter :: ti11 = (sqrt(ONE/(FIVE + SQRT_5)))/2 ! 0.951056516295154
+        real(wp), parameter :: tr12 = (-ONE - SQRT_5)/4 ! -.809016994374947
+        real(wp), parameter :: ti12 = sqrt( FIVE/(TWO*(FIVE + SQRT_5 ))) ! 0.587785252292473
         real(wp) ::  ti5, ti2, ti4, ti3, tr5, tr2, tr4
         real(wp) :: tr3, cr2, ci2, cr3, ci3, cr5, ci5, cr4, ci4, dr3, dr4, di3
         real(wp) :: di4, dr5, dr2, di5, di2
-        !-----------------------------------------------
+
 
         select case(ido)
             case (2)
@@ -2069,31 +2039,30 @@ contains
                 end do
         end select
 
-    end subroutine passb5
+    end subroutine complex_backward_pass_5
 
+    subroutine complex_backward_pass_n(nac, ido, iip, l1, idl1, cc, c1, c2, ch, ch2, wa)
 
-    subroutine passb(nac, ido, iip, l1, idl1, cc, c1, c2, ch, ch2, wa)
-        !-----------------------------------------------
         ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip), intent(out)   :: nac
-        integer(ip), intent(in)    :: ido
-        integer(ip), intent(in)    :: iip
-        integer(ip), intent(in)    :: l1
-        integer(ip), intent(in)    :: idl1
-        real(wp),    intent(inout) :: cc(ido, iip, l1)
-        real(wp),    intent(inout) :: c1(ido, l1, iip)
-        real(wp),    intent(inout) :: c2(idl1, iip)
-        real(wp),    intent(inout) :: ch(ido, l1, iip)
-        real(wp),    intent(inout) :: ch2(idl1, iip)
-        real(wp),    intent(in)    :: wa(*)
-        !-----------------------------------------------
+
+        integer(ip), intent(out) :: nac
+        integer(ip), intent(in) :: ido
+        integer(ip), intent(in) :: iip
+        integer(ip), intent(in) :: l1
+        integer(ip), intent(in) :: idl1
+        real(wp), intent(in) :: cc(ido, iip, l1)
+        real(wp), intent(out) :: c1(ido, l1, iip)
+        real(wp), intent(inout)  :: c2(idl1, iip)
+        real(wp), intent(inout)  :: ch(ido, l1, iip)
+        real(wp), intent(inout)  :: ch2(idl1, iip)
+        real(wp), intent(in) :: wa(*)
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip) :: idot, nt, iipp2, iipph, idp, j, jc, k
         integer(ip) :: i, idl, inc, l, lc, idlj, idij, idj
-        real(wp)    :: war, wai
-        !-----------------------------------------------
+        real(wp) :: war, wai
+
 
         idot = ido/2
         nt = iip*idl1
@@ -2183,44 +2152,44 @@ contains
             end if
         end if
 
-    end subroutine passb
+    end subroutine complex_backward_pass_n
 
     subroutine cfftf(n, c, wsave)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip), intent(in)     :: n
-        real(wp),    intent(inout)  :: c(*)
-        real(wp),    intent(inout)  :: wsave(*)
-        !-----------------------------------------------
+
+        integer(ip), intent(in)      :: n
+        real(wp),    intent(inout)   :: c(*)
+        real(wp),    intent(inout)   :: wsave(*)
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip) :: iw1, iw2
-        !-----------------------------------------------
+
 
         if (n /= 1) then
             iw1 = 2*n + 1
             iw2 = iw1 + 2*n
-            call cfftf1(n, c, wsave, wsave(iw1), wsave(iw2))
+            call complex_forward_lower_routine(n, c, wsave, wsave(iw1), wsave(iw2))
         end if
 
     end subroutine cfftf
 
-    subroutine cfftf1(n, c, ch, wa, ifac)
-        !-----------------------------------------------
+    subroutine complex_forward_lower_routine(n, c, ch, wa, ifac)
+
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip), intent(in)     :: n
-        real(wp),    intent(inout) :: c(*)
-        real(wp),    intent(inout) :: ch(*)
+        real(wp),    intent(inout)  :: c(*)
+        real(wp),    intent(inout)  :: ch(*)
         real(wp),    intent(in)     :: wa(*)
         real(wp),    intent(in)     :: ifac(*)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip) :: nf, na, l1, iw, k1, iip, l2, ido
         integer(ip) :: idot, idl1, ix2, ix3, ix4, nac, n2
-        !-----------------------------------------------
+
 
         nf = int(ifac(2), kind=ip)
         na = 0
@@ -2237,25 +2206,25 @@ contains
             select case (iip)
                 case (2)
                     if (na == 0) then
-                        call passf2(idot, l1, c, ch, wa(iw))
+                        call complex_forward_pass_2(idot, l1, c, ch, wa(iw))
                     else
-                        call passf2(idot, l1, ch, c, wa(iw))
+                        call complex_forward_pass_2(idot, l1, ch, c, wa(iw))
                     end if
                     na = 1 - na
                 case (3)
                     ix2 = iw + idot
                     if (na == 0) then
-                        call passf3(idot, l1, c, ch, wa(iw), wa(ix2))
+                        call complex_forward_pass_3(idot, l1, c, ch, wa(iw), wa(ix2))
                     else
-                        call passf3(idot, l1, ch, c, wa(iw), wa(ix2))
+                        call complex_forward_pass_3(idot, l1, ch, c, wa(iw), wa(ix2))
                     end if
                     na = 1 - na
                 case (4)
                     ix3 = ix2 + idot
                     if (na == 0) then
-                        call passf4(idot, l1, c, ch, wa(iw), wa(ix2), wa(ix3))
+                        call complex_forward_pass_4(idot, l1, c, ch, wa(iw), wa(ix2), wa(ix3))
                     else
-                        call passf4(idot, l1, ch, c, wa(iw), wa(ix2), wa(ix3))
+                        call complex_forward_pass_4(idot, l1, ch, c, wa(iw), wa(ix2), wa(ix3))
                     end if
                     na = 1 - na
                 case (5)
@@ -2263,16 +2232,16 @@ contains
                     ix3 = ix2 + idot
                     ix4 = ix3 + idot
                     if (na == 0) then
-                        call passf5(idot, l1, c, ch, wa(iw), wa(ix2), wa(ix3), wa(ix4))
+                        call complex_forward_pass_5(idot, l1, c, ch, wa(iw), wa(ix2), wa(ix3), wa(ix4))
                     else
-                        call passf5(idot, l1, ch, c, wa(iw), wa(ix2), wa(ix3), wa(ix4))
+                        call complex_forward_pass_5(idot, l1, ch, c, wa(iw), wa(ix2), wa(ix3), wa(ix4))
                     end if
                     na = 1 - na
                 case default
                     if (na == 0) then
-                        call passf(nac, idot, iip, l1, idl1, c, c, c, ch, ch, wa(iw))
+                        call complex_forward_pass_n(nac, idot, iip, l1, idl1, c, c, c, ch, ch, wa(iw))
                     else
-                        call passf(nac, idot, iip, l1, idl1, ch, ch, ch, c, c, wa(iw))
+                        call complex_forward_pass_n(nac, idot, iip, l1, idl1, ch, ch, ch, c, c, wa(iw))
                     end if
                     if (nac /= 0) na = 1 - na
             end select
@@ -2285,24 +2254,24 @@ contains
             c(:n2) = ch(:n2)
         end if
 
-    end subroutine cfftf1
+    end subroutine complex_forward_lower_routine
 
 
-    pure subroutine passf2(ido, l1, cc, ch, wa1)
-        !-----------------------------------------------
+    pure subroutine complex_forward_pass_2(ido, l1, cc, ch, wa1)
+
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip), intent(in) :: ido
         integer(ip), intent(in) :: l1
         real(wp), intent(in) :: cc(ido, 2, l1)
         real(wp), intent(out) :: ch(ido, l1, 2)
         real(wp), intent(in) :: wa1(*)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip) :: k, i
         real(wp) :: tr2, ti2
-        !-----------------------------------------------
+
 
         if(ido <= 2) then
             ch(1,:, 1) = cc(1, 1,:) + cc(1, 2,:)
@@ -2322,27 +2291,27 @@ contains
             end do
         end if
 
-    end subroutine passf2
+    end subroutine complex_forward_pass_2
 
 
-    pure subroutine passf3(ido, l1, cc, ch, wa1, wa2)
-        !-----------------------------------------------
+    pure subroutine complex_forward_pass_3(ido, l1, cc, ch, wa1, wa2)
+
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip), intent(in) :: ido
         integer(ip), intent(in) :: l1
         real(wp), intent(in) :: cc(ido, 3, l1)
         real(wp), intent(out) :: ch(ido, l1, 3)
         real(wp), intent(in) :: wa1(*)
         real(wp), intent(in) :: wa2(*)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip) :: k, i
         real(wp), parameter :: taur = -HALF
         real(wp), parameter :: taui = -sqrt(THREE)/2 !  - 0.866025403784439
         real(wp) :: tr2, cr2, ti2, ci2, cr3, ci3, dr2, dr3, di2, di3
-        !-----------------------------------------------
+
 
         select case(ido)
             case (2)
@@ -2383,13 +2352,12 @@ contains
                 end do
         end select
 
-    end subroutine passf3
+    end subroutine complex_forward_pass_3
 
+    pure subroutine complex_forward_pass_4(ido, l1, cc, ch, wa1, wa2, wa3)
 
-    pure subroutine passf4(ido, l1, cc, ch, wa1, wa2, wa3)
-        !-----------------------------------------------
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip), intent(in) :: ido
         integer(ip), intent(in) :: l1
         real(wp), intent(in) :: cc(ido, 4, l1)
@@ -2397,13 +2365,13 @@ contains
         real(wp), intent(in) :: wa1(*)
         real(wp), intent(in) :: wa2(*)
         real(wp), intent(in) :: wa3(*)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip) :: k, i
         real(wp) :: ti1, ti2, tr4, ti3, tr1, tr2, ti4
         real(wp) :: tr3, cr3, ci3, cr2, cr4, ci2, ci4
-        !-----------------------------------------------
+
 
         select case(ido)
             case (2)
@@ -2454,13 +2422,12 @@ contains
                 end do
         end select
 
-    end subroutine passf4
+    end subroutine complex_forward_pass_4
 
+    pure subroutine complex_forward_pass_5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
 
-    pure subroutine passf5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
-        !-----------------------------------------------
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip), intent(in) :: ido
         integer(ip), intent(in) :: l1
         real(wp), intent(in) :: cc(ido, 5, l1)
@@ -2469,19 +2436,18 @@ contains
         real(wp), intent(in) :: wa2(*)
         real(wp), intent(in) :: wa3(*)
         real(wp), intent(in) :: wa4(*)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip) :: k, i
         real(wp) :: ti5, ti2, ti4, ti3, tr5, tr2, tr4
         real(wp) :: tr3, cr2, ci2, cr3, ci3, cr5, ci5, cr4, ci4, dr3, dr4, di3
         real(wp) :: di4, dr5, dr2, di5, di2
-        real(wp), parameter :: sqrt_5 = sqrt(FIVE)
-        real(wp), parameter :: tr11 = (sqrt_5 - ONE)/4 ! 0.309016994374947
-        real(wp), parameter :: ti11 = -sqrt((FIVE + sqrt_5)/2)/2 ! -.951056516295154
-        real(wp), parameter :: tr12 = (-ONE - sqrt_5)/4 ! -.809016994374947
-        real(wp), parameter :: ti12 = -sqrt(FIVE/(TWO * (FIVE + sqrt_5)) ) ! -0.587785252292473
-        !-----------------------------------------------
+        real(wp), parameter :: tr11 = (SQRT_5 - ONE)/4 ! 0.309016994374947
+        real(wp), parameter :: ti11 = -sqrt((FIVE + SQRT_5)/2)/2 ! -.951056516295154
+        real(wp), parameter :: tr12 = (-ONE - SQRT_5)/4 ! -.809016994374947
+        real(wp), parameter :: ti12 = -sqrt(FIVE/(TWO * (FIVE + SQRT_5)) ) ! -0.587785252292473
+
 
         select case(ido)
             case (2)
@@ -2554,32 +2520,31 @@ contains
                 end do
         end select
 
-    end subroutine passf5
+    end subroutine complex_forward_pass_5
 
+    subroutine complex_forward_pass_n(nac, ido, iip, l1, idl1, cc, c1, c2, ch, ch2, wa)
 
-    subroutine passf(nac, ido, iip, l1, idl1, cc, c1, c2, ch, ch2, wa)
-        !-----------------------------------------------
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip), intent(out)    :: nac
         integer(ip), intent(in)     :: ido
         integer(ip), intent(in)     :: iip
         integer(ip), intent(in)     :: l1
         integer(ip), intent(in)     :: idl1
-        real(wp),    intent(inout) :: cc(ido, iip, l1)
-        real(wp),    intent(inout) :: c1(ido, l1, iip)
-        real(wp),    intent(inout) :: c2(idl1, iip)
-        real(wp),    intent(inout) :: ch(ido, l1, iip)
-        real(wp),    intent(inout) :: ch2(idl1, iip)
+        real(wp),    intent(inout)  :: cc(ido, iip, l1)
+        real(wp),    intent(inout)  :: c1(ido, l1, iip)
+        real(wp),    intent(inout)  :: c2(idl1, iip)
+        real(wp),    intent(inout)  :: ch(ido, l1, iip)
+        real(wp),    intent(inout)  :: ch2(idl1, iip)
         real(wp),    intent(in)     :: wa(*)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip) :: idot, nt, iipp2, iipph, idp, j, jc
         integer(ip) :: k, i, idl, inc, l, lc
         integer(ip) :: idlj, idij, idj
         real(wp)    :: war, wai
-        !-----------------------------------------------
+
 
         idot = ido/2
         nt = iip*idl1
@@ -2672,38 +2637,55 @@ contains
             end if
         end if
 
-    end subroutine passf
+    end subroutine complex_forward_pass_n
 
+    !     subroutine rffti(n, wsave)
+    !
+    ! Purpose:
+    !
+    !     Initializes the array wsave which is used in
+    !     both rfftf and rfftb. the prime factorization of n together with
+    !     a tabulation of the trigonometric functions are computed and
+    !     stored in wsave.
+    !
+    !     input parameter
+    !
+    !     n       the length of the sequence to be transformed.
+    !
+    !     output parameter
+    !
+    !     wsave   a work array which must be dimensioned at least 2*n+15.
+    !             the same work array can be used for both rfftf and rfftb
+    !             as long as n remains unchanged. different wsave arrays
+    !             are required for different values of n. the contents of
+    !             wsave must not be changed between calls of rfftf or rfftb.
+    !
     pure subroutine rffti(n, wsave)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         integer(ip), intent(in)  :: n
-        real(wp),    intent(out) :: wsave(:)
-        !-----------------------------------------------
+        real(wp),    intent(out) :: wsave(*)
 
         if (n /= 1) then
-            call rffti1(n, wsave(n+1:), wsave(2*n+1:))
+            call real_initialization_lower_routine(n, wsave(n+1), wsave(2*n+1))
         end if
 
     end subroutine rffti
 
-    pure subroutine rffti1(n, wa, ifac)
-        !-----------------------------------------------
-        ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip), intent(in)  :: n
-        real(wp),    intent(out) :: ifac(:)
-        real(wp),    intent(out) :: wa(:)
-        !-----------------------------------------------
-        ! Local variables
-        !-----------------------------------------------
-        integer, parameter :: ntryh(*) = [4, 2, 3, 5]
-        integer(ip) :: nl, nf, j, ntry, nq, nr, i, is, nfm1, l1, k1, iip
-        integer(ip) :: ld, l2, ido, iipm, ii
-        real(wp) :: argh, argld, fi, arg
-        !-----------------------------------------------
+    pure subroutine real_initialization_lower_routine(n, wa, ifac)
 
+        ! Dummy arguments
+        integer(ip),  intent(in)  :: n
+        real(wp),     intent(out) :: ifac(*)
+        real(wp),     intent(out) :: wa(*)
+
+        ! Local variables
+        integer, parameter :: NTRYH(*) = [4, 2, 3, 5]
+        integer(ip)        :: nl, nf, j, ntry, nq, nr, i, is, nfm1, l1, k1, iip
+        integer(ip)        :: ld, l2, ido, iipm, ii
+        real(wp)           :: argh, argld, fi, arg
+
+        ! Initialize values
         ntry = 0
         nl = n
         nf = 0
@@ -2713,8 +2695,8 @@ contains
 
             j = j + 1
 
-            if (j - 4 <= 0) then
-                ntry = ntryh(j)
+            if (j <= 4) then
+                ntry = NTRYH(j)
             else
                 ntry = ntry + 2
             end if
@@ -2776,38 +2758,38 @@ contains
             end do
         end if
 
-    end subroutine rffti1
+    end subroutine real_initialization_lower_routine
 
     subroutine rfftb(n, r, wsave)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip), intent(in)    :: n
-        real(wp),    intent(inout) :: r(*)
-        real(wp),    intent(inout) :: wsave(*)
-        !-----------------------------------------------
+
+        integer(ip) :: n
+        real(wp) :: r(*)
+        real(wp) :: wsave(*)
+
 
         if (n /= 1) then
-            call rfftb1(n, r, wsave, wsave(n+1), wsave(2*n+1))
+            call real_backward_lower_routine(n, r, wsave, wsave(n+1), wsave(2*n+1))
         end if
 
     end subroutine rfftb
 
-    subroutine rfftb1(n, c, ch, wa, ifac)
-        !-----------------------------------------------
+    subroutine real_backward_lower_routine(n, c, ch, wa, ifac)
+
         ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip), intent(in)    :: n
-        real(wp),    intent(inout) :: c(*)
-        real(wp),    intent(inout) :: ch(*)
-        real(wp),    intent(inout) :: wa(*)
-        real(wp),    intent(in)    :: ifac(*)
-        !-----------------------------------------------
+
+        integer(ip),  intent(in) :: n
+        real(wp), intent(in) :: ifac(*)
+        real(wp)              :: c(*)
+        real(wp)              :: ch(*)
+        real(wp)              :: wa(*)
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip) :: nf, na, l1, iw, k1, iip
         integer(ip) :: l2, ido, idl1, ix2, ix3, ix4
-        !-----------------------------------------------
+
 
         nf = int(ifac(2), kind=ip)
         na = 0
@@ -2825,24 +2807,24 @@ contains
                     ix2 = iw + ido
                     ix3 = ix2 + ido
                     if (na == 0) then
-                        call radb4(ido, l1, c, ch, wa(iw), wa(ix2), wa(ix3))
+                        call real_backward_pass_4(ido, l1, c, ch, wa(iw), wa(ix2), wa(ix3))
                     else
-                        call radb4(ido, l1, ch, c, wa(iw), wa(ix2), wa(ix3))
+                        call real_backward_pass_4(ido, l1, ch, c, wa(iw), wa(ix2), wa(ix3))
                     end if
                     na = 1 - na
                 case (2)
                     if (na == 0) then
-                        call radb2(ido, l1, c, ch, wa(iw))
+                        call real_backward_pass_2(ido, l1, c, ch, wa(iw))
                     else
-                        call radb2(ido, l1, ch, c, wa(iw))
+                        call real_backward_pass_2(ido, l1, ch, c, wa(iw))
                     end if
                     na = 1 - na
                 case (3)
                     ix2 = iw + ido
                     if (na == 0) then
-                        call radb3(ido, l1, c, ch, wa(iw), wa(ix2))
+                        call real_backward_pass_3(ido, l1, c, ch, wa(iw), wa(ix2))
                     else
-                        call radb3(ido, l1, ch, c, wa(iw), wa(ix2))
+                        call real_backward_pass_3(ido, l1, ch, c, wa(iw), wa(ix2))
                     end if
                     na = 1 - na
                 case (5)
@@ -2850,16 +2832,18 @@ contains
                     ix3 = ix2 + ido
                     ix4 = ix3 + ido
                     if (na == 0) then
-                        call radb5(ido, l1, c, ch, wa(iw), wa(ix2), wa(ix3), wa(ix4))
+                        call real_backward_pass_5(ido, l1, c, ch, wa(iw), wa(ix2), wa( &
+                            ix3), wa(ix4))
                     else
-                        call radb5(ido, l1, ch, c, wa(iw), wa(ix2), wa(ix3), wa(ix4))
+                        call real_backward_pass_5(ido, l1, ch, c, wa(iw), wa(ix2), wa( &
+                            ix3), wa(ix4))
                     end if
                     na = 1 - na
                 case default
                     if (na == 0) then
-                        call radbg(ido, iip, l1, idl1, c, c, c, ch, ch, wa(iw))
+                        call real_backward_pass_n(ido, iip, l1, idl1, c, c, c, ch, ch, wa(iw))
                     else
-                        call radbg(ido, iip, l1, idl1, ch, ch, ch, c, c, wa(iw))
+                        call real_backward_pass_n(ido, iip, l1, idl1, ch, ch, ch, c, c, wa(iw))
                     end if
 
                     if (ido == 1) na = 1 - na
@@ -2871,24 +2855,23 @@ contains
 
         if (na /= 0) c(:n) = ch(:n)
 
-    end subroutine rfftb1
+    end subroutine real_backward_lower_routine
 
+    pure subroutine real_backward_pass_2(ido, l1, cc, ch, wa1)
 
-    pure subroutine radb2(ido, l1, cc, ch, wa1)
-        !-----------------------------------------------
         ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip), intent(in)  :: ido
-        integer(ip), intent(in)  :: l1
-        real(wp),    intent(in)  :: cc(ido, 2, l1)
-        real(wp),    intent(out) :: ch(ido, l1, 2)
-        real(wp),    intent(in)  :: wa1(*)
-        !-----------------------------------------------
+
+        integer(ip), intent(in) :: ido
+        integer(ip), intent(in) :: l1
+        real(wp), intent(in) :: cc(ido, 2, l1)
+        real(wp), intent(out) :: ch(ido, l1, 2)
+        real(wp), intent(in) :: wa1(*)
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip) :: k, idp2, i, ic
         real(wp) :: tr2, ti2
-        !-----------------------------------------------
+
 
         ch(1,:, 1) = cc(1, 1,:) + cc(ido, 2,:)
         ch(1,:, 2) = cc(1, 1,:) - cc(ido, 2,:)
@@ -2907,35 +2890,34 @@ contains
                         ch(i, k, 2) = wa1(i-2)*ti2 + wa1(i-1)*tr2
                     end do
                 end do
-                if (mod(ido, 2) == 1) return
+                if (mod(ido, 2) == 1) then
+                    return
+                end if
             end if
-
             ch(ido,:, 1) = cc(ido, 1,:) + cc(ido, 1,:)
             ch(ido,:, 2) = -(cc(1, 2,:)+cc(1, 2,:))
-
         end if
 
-    end subroutine radb2
+    end subroutine real_backward_pass_2
 
+    pure subroutine real_backward_pass_3(ido, l1, cc, ch, wa1, wa2)
 
-    pure subroutine radb3(ido, l1, cc, ch, wa1, wa2)
-        !-----------------------------------------------
         ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip), intent(in)  :: ido
-        integer(ip), intent(in)  :: l1
-        real(wp),    intent(in)  :: cc(ido, 3, l1)
-        real(wp),    intent(out) :: ch(ido, l1, 3)
-        real(wp),    intent(in)  :: wa1(*)
-        real(wp),    intent(in)  :: wa2(*)
-        !-----------------------------------------------
+
+        integer(ip), intent(in) :: ido
+        integer(ip), intent(in) :: l1
+        real(wp), intent(in) :: cc(ido, 3, l1)
+        real(wp), intent(out) :: ch(ido, l1, 3)
+        real(wp), intent(in) :: wa1(*)
+        real(wp), intent(in) :: wa2(*)
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip) :: k, idp2, i, ic
         real(wp), parameter :: taur = -HALF
         real(wp), parameter :: taui = sqrt(THREE)/TWO ! 0.866025403784439
         real(wp)            :: tr2, cr2, ci3, ti2, ci2, cr3, dr2, dr3, di2, di3
-        !-----------------------------------------------
+
 
         do k = 1, l1
             tr2 = cc(ido, 2, k) + cc(ido, 2, k)
@@ -2971,13 +2953,12 @@ contains
             end do
         end if
 
-    end subroutine radb3
+    end subroutine real_backward_pass_3
 
+    pure subroutine real_backward_pass_4(ido, l1, cc, ch, wa1, wa2, wa3)
 
-    pure subroutine radb4(ido, l1, cc, ch, wa1, wa2, wa3)
-        !-----------------------------------------------
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip), intent(in) :: ido
         integer(ip), intent(in) :: l1
         real(wp), intent(in) :: cc(ido, 4, l1)
@@ -2985,14 +2966,14 @@ contains
         real(wp), intent(in) :: wa1(*)
         real(wp), intent(in) :: wa2(*)
         real(wp), intent(in) :: wa3(*)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
-        integer(ip)             :: k, idp2, i, ic
-        real(wp), parameter :: sqrt2 = sqrt(TWO) ! 1.414213562373095
+
+        integer(ip)         :: k, idp2, i, ic
+        real(wp), parameter :: SQRT_2 = sqrt(TWO) ! 1.414213562373095
         real(wp)            :: tr1, tr2, tr3, tr4, ti1, ti2, ti3, ti4, cr3, ci3
         real(wp)            :: cr2, cr4, ci2, ci4
-        !-----------------------------------------------
+
 
         do k = 1, l1
             tr1 = cc(1, 1, k) - cc(ido, 4, k)
@@ -3005,7 +2986,7 @@ contains
             ch(1, k, 4) = tr1 + tr4
         end do
 
-        if (ido >= 2) then
+        if (2 <= ido) then
             if (ido /= 2) then
                 idp2 = ido + 2
                 do k = 1, l1
@@ -3045,19 +3026,18 @@ contains
                 tr1 = cc(ido, 1, k) - cc(ido, 3, k)
                 tr2 = cc(ido, 1, k) + cc(ido, 3, k)
                 ch(ido, k, 1) = tr2 + tr2
-                ch(ido, k, 2) = sqrt2*(tr1 - ti1)
+                ch(ido, k, 2) = SQRT_2*(tr1 - ti1)
                 ch(ido, k, 3) = ti2 + ti2
-                ch(ido, k, 4) = -sqrt2*(tr1 + ti1)
+                ch(ido, k, 4) = -SQRT_2*(tr1 + ti1)
             end do
         end if
 
-    end subroutine radb4
+    end subroutine real_backward_pass_4
 
+    pure subroutine real_backward_pass_5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
 
-    pure subroutine radb5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
-        !-----------------------------------------------
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip), intent(in) :: ido
         integer(ip), intent(in) :: l1
         real(wp), intent(in) :: cc(ido, 5, l1)
@@ -3066,19 +3046,18 @@ contains
         real(wp), intent(in) :: wa2(*)
         real(wp), intent(in) :: wa3(*)
         real(wp), intent(in) :: wa4(*)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip) :: k, idp2, i, ic
         real(wp) :: ti5, ti4, tr2, tr3, cr2, cr3, ci5
         real(wp) :: ci4, ti2, ti3, tr5, tr4, ci2, ci3, cr5, cr4, dr3, dr4, di3
         real(wp) :: di4, dr5, dr2, di5, di2
-        real(wp), parameter :: sqrt_5 = sqrt(FIVE)
-        real(wp), parameter :: tr11 = (sqrt_5 - ONE)/4 ! 0.309016994374947
-        real(wp), parameter :: ti11 = sqrt((FIVE + sqrt_5)/2)/2 ! 0.951056516295154
-        real(wp), parameter :: tr12 = (-ONE - sqrt_5)/4 ! -.809016994374947
-        real(wp), parameter :: ti12 = sqrt(FIVE/(TWO * (FIVE + sqrt_5)) ) ! 0.587785252292473
-        !-----------------------------------------------
+        real(wp), parameter :: tr11 = (SQRT_5 - ONE)/4 ! 0.309016994374947
+        real(wp), parameter :: ti11 = sqrt((FIVE + SQRT_5)/2)/2 ! 0.951056516295154
+        real(wp), parameter :: tr12 = (-ONE - SQRT_5)/4 ! -.809016994374947
+        real(wp), parameter :: ti12 = sqrt(FIVE/(TWO * (FIVE + SQRT_5)) ) ! 0.587785252292473
+
 
 
         do k = 1, l1
@@ -3140,29 +3119,28 @@ contains
             end do
         end if
 
-    end subroutine radb5
+    end subroutine real_backward_pass_5
 
+    subroutine real_backward_pass_n(ido, iip, l1, idl1, cc, c1, c2, ch, ch2, wa)
 
-    subroutine radbg(ido, iip, l1, idl1, cc, c1, c2, ch, ch2, wa)
-        !-----------------------------------------------
         ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip), intent(in)    :: ido
-        integer(ip), intent(in)    :: iip
-        integer(ip), intent(in)    :: l1
-        integer(ip), intent(in)    :: idl1
-        real(wp),    intent(in)    :: cc(ido, iip, l1)
-        real(wp),    intent(inout) :: c1(ido, l1, iip)
-        real(wp),    intent(inout) :: c2(idl1, iip)
-        real(wp),    intent(inout) :: ch(ido, l1, iip)
-        real(wp),    intent(inout) :: ch2(idl1, iip)
-        real(wp),    intent(in)    :: wa(*)
-        !-----------------------------------------------
+
+        integer(ip), intent(in) :: ido
+        integer(ip), intent(in) :: iip
+        integer(ip), intent(in) :: l1
+        integer(ip), intent(in) :: idl1
+        real(wp), intent(in) :: cc(ido, iip, l1)
+        real(wp), intent(inout)  :: c1(ido, l1, iip)
+        real(wp), intent(inout)  :: c2(idl1, iip)
+        real(wp), intent(inout)  :: ch(ido, l1, iip)
+        real(wp), intent(inout)  :: ch2(idl1, iip)
+        real(wp), intent(in) :: wa(*)
+
         ! Local variables
-        !-----------------------------------------------
+
         integer:: idp2, nbd, iipp2, iipph, k, i, j, jc, j2, l, lc, is, idij
         real(wp) :: arg, dcp, dsp, ar1, ai1, ar1h, dc2, ds2, ar2, ai2, ar2h
-        !-----------------------------------------------
+
 
         arg = TWO_PI/iip
         dcp = cos(arg)
@@ -3292,40 +3270,38 @@ contains
             end if
         end if
 
-    end subroutine radbg
-
+    end subroutine real_backward_pass_n
 
     subroutine rfftf(n, r, wsave)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip) :: n
         real(wp) :: r(*)
         real(wp) :: wsave(*)
-        !-----------------------------------------------
+
 
         if (n /= 1) then
-            call rfftf1(n, r, wsave, wsave(n+1), wsave(2*n+1))
+            call real_forward_lower_routine(n, r, wsave, wsave(n+1), wsave(2*n+1))
         end if
 
     end subroutine rfftf
 
+    subroutine real_forward_lower_routine(n, c, ch, wa, ifac)
 
-    subroutine rfftf1(n, c, ch, wa, ifac)
-        !-----------------------------------------------
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip),  intent(in) :: n
         real(wp), intent(in) :: ifac(*)
         real(wp)              :: c(*)
         real(wp)              :: ch(*)
         real(wp)              :: wa(*)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip) :: nf, na, l2, iw, k1, kh
         integer(ip) :: iip, l1, ido, idl1, ix2, ix3, ix4
-        !-----------------------------------------------
+
 
         nf = int(ifac(2), kind=ip)
         na = 1
@@ -3344,43 +3320,43 @@ contains
             select case (iip)
                 case (2)
                     if (na == 0) then
-                        call radf2(ido, l1, c, ch, wa(iw))
+                        call real_forward_pass_2(ido, l1, c, ch, wa(iw))
                     else
-                        call radf2(ido, l1, ch, c, wa(iw))
+                        call real_forward_pass_2(ido, l1, ch, c, wa(iw))
                     end if
                 case (3)
                     ix2 = iw + ido
                     if (na == 0) then
-                        call radf3(ido, l1, c, ch, wa(iw), wa(ix2))
+                        call real_forward_pass_3(ido, l1, c, ch, wa(iw), wa(ix2))
                     else
-                        call radf3(ido, l1, ch, c, wa(iw), wa(ix2))
+                        call real_forward_pass_3(ido, l1, ch, c, wa(iw), wa(ix2))
                     end if
                 case (4)
                     ix2 = iw + ido
                     ix3 = ix2 + ido
                     if (na == 0) then
-                        call radf4(ido, l1, c, ch, wa(iw), wa(ix2), wa(ix3))
+                        call real_forward_pass_4(ido, l1, c, ch, wa(iw), wa(ix2), wa(ix3))
                     else
-                        call radf4(ido, l1, ch, c, wa(iw), wa(ix2), wa(ix3))
+                        call real_forward_pass_4(ido, l1, ch, c, wa(iw), wa(ix2), wa(ix3))
                     end if
                 case (5)
                     ix2 = iw + ido
                     ix3 = ix2 + ido
                     ix4 = ix3 + ido
                     if (na == 0) then
-                        call radf5(ido, l1, c, ch, wa(iw), wa(ix2), wa(ix3), wa(ix4))
+                        call real_forward_pass_5(ido, l1, c, ch, wa(iw), wa(ix2), wa(ix3), wa(ix4))
                     else
-                        call radf5(ido, l1, ch, c, wa(iw), wa(ix2), wa(ix3), wa(ix4))
+                        call real_forward_pass_5(ido, l1, ch, c, wa(iw), wa(ix2), wa(ix3), wa(ix4))
                     end if
                 case default
                     if(ido == 1) then
                         na = 1 - na
                     end if
                     if (na == 0) then
-                        call radfg(ido, iip, l1, idl1, c, c, c, ch, ch, wa(iw))
+                        call real_forward_pass_n(ido, iip, l1, idl1, c, c, c, ch, ch, wa(iw))
                         na = 1
                     else
-                        call radfg(ido, iip, l1, idl1, ch, ch, ch, c, c, wa(iw))
+                        call real_forward_pass_n(ido, iip, l1, idl1, ch, ch, ch, c, c, wa(iw))
                         na = 0
                     end if
             end select
@@ -3389,25 +3365,23 @@ contains
 
         if (na /= 1) c(:n) = ch(:n)
 
+    end subroutine real_forward_lower_routine
 
-    end subroutine rfftf1
+    pure subroutine real_forward_pass_2(ido, l1, cc, ch, wa1)
 
-
-    pure subroutine radf2(ido, l1, cc, ch, wa1)
-        !-----------------------------------------------
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip), intent(in) :: ido
         integer(ip), intent(in) :: l1
         real(wp), intent(in) :: cc(ido, l1, 2)
         real(wp), intent(out) :: ch(ido, 2, l1)
         real(wp), intent(in) :: wa1(*)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip) :: k, idp2, i, ic
         real(wp) :: tr2, ti2
-        !-----------------------------------------------
+
 
         ch(1, 1,:) = cc(1,:, 1) + cc(1,:, 2)
         ch(ido, 2,:) = cc(1,:, 1) - cc(1,:, 2)
@@ -3434,27 +3408,26 @@ contains
             ch(ido, 1,:) = cc(ido,:, 1)
         end if
 
-    end subroutine radf2
+    end subroutine real_forward_pass_2
 
+    pure subroutine real_forward_pass_3(ido, l1, cc, ch, wa1, wa2)
 
-    pure subroutine radf3(ido, l1, cc, ch, wa1, wa2)
-        !-----------------------------------------------
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip), intent(in) :: ido
         integer(ip), intent(in) :: l1
         real(wp), intent(in) :: cc(ido, l1, 3)
         real(wp), intent(out) :: ch(ido, 3, l1)
         real(wp), intent(in) :: wa1(*)
         real(wp), intent(in) :: wa2(*)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip)         :: k, idp2, i, ic
         real(wp), parameter :: taur = -HALF
         real(wp), parameter :: taui = sqrt(THREE)/TWO ! 0.866025403784439
         real(wp)            :: cr2, dr2, di2, dr3, di3, ci2, tr2, ti2, tr3, ti3
-        !-----------------------------------------------
+
 
         do k = 1, l1
             cr2 = cc(1, k, 2) + cc(1, k, 3)
@@ -3488,13 +3461,12 @@ contains
             end do
         end if
 
-    end subroutine radf3
+    end subroutine real_forward_pass_3
 
+    subroutine real_forward_pass_4(ido, l1, cc, ch, wa1, wa2, wa3)
 
-    subroutine radf4(ido, l1, cc, ch, wa1, wa2, wa3)
-        !-----------------------------------------------
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip),  intent(in)  :: ido
         integer(ip),  intent(in)  :: l1
         real(wp), intent(in)  :: cc(ido, l1, 4)
@@ -3502,15 +3474,15 @@ contains
         real(wp), intent(in)  :: wa1(*)
         real(wp), intent(in)  :: wa2(*)
         real(wp), intent(in)  :: wa3(*)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip) :: k, idp2, i, ic
         real(wp) :: tr1, tr2, cr2, ci2, cr3, ci3
         real(wp) :: cr4, ci4, tr4, ti1
         real(wp) :: ti4, ti2, ti3, tr3
-        real(wp), parameter :: one_over_sqrt2 = ONE/sqrt(TWO) ! 0.7071067811865475
-        !-----------------------------------------------
+        real(wp), parameter :: ONE_OVER_SQRT_2 = ONE/SQRT_2
+
 
         do k = 1, l1
             tr1 = cc(1, k, 2) + cc(1, k, 4)
@@ -3556,8 +3528,8 @@ contains
                 end if
             end if
             do k = 1, l1
-                ti1 = -one_over_sqrt2*(cc(ido, k, 2)+cc(ido, k, 4))
-                tr1 = one_over_sqrt2*(cc(ido, k, 2)-cc(ido, k, 4))
+                ti1 = -ONE_OVER_SQRT_2*(cc(ido, k, 2)+cc(ido, k, 4))
+                tr1 = ONE_OVER_SQRT_2*(cc(ido, k, 2)-cc(ido, k, 4))
                 ch(ido, 1, k) = tr1 + cc(ido, k, 1)
                 ch(ido, 3, k) = cc(ido, k, 1) - tr1
                 ch(1, 2, k) = ti1 - cc(ido, k, 3)
@@ -3565,13 +3537,12 @@ contains
             end do
         end if
 
-    end subroutine radf4
+    end subroutine real_forward_pass_4
 
+    subroutine real_forward_pass_5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
 
-    subroutine radf5(ido, l1, cc, ch, wa1, wa2, wa3, wa4)
-        !-----------------------------------------------
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip),  intent(in)  :: ido
         integer(ip),  intent(in)  :: l1
         real(wp), intent(in)  :: cc(ido, l1, 5)
@@ -3580,19 +3551,18 @@ contains
         real(wp), intent(in)  :: wa2(*)
         real(wp), intent(in)  :: wa3(*)
         real(wp), intent(in)  :: wa4(*)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip) :: k, idp2, i, ic
         real(wp) :: cr2, ci5, cr3, ci4, dr2, di2, dr3
         real(wp) :: di3, dr4, di4, dr5, di5, cr5, ci2, cr4, ci3, tr2, ti2, tr3
         real(wp) :: ti3, tr5, ti5, tr4, ti4
-        real(wp), parameter :: sqrt_5 = sqrt(FIVE)
-        real(wp), parameter :: tr11 = (sqrt_5 - ONE)/4 ! 0.309016994374947
-        real(wp), parameter :: ti11 = sqrt((FIVE + sqrt_5)/2)/2 ! 0.951056516295154
-        real(wp), parameter :: tr12 = (-ONE - sqrt_5)/4 ! -.809016994374947
-        real(wp), parameter :: ti12 = sqrt(FIVE/(TWO * (FIVE + sqrt_5)) ) ! 0.587785252292473
-        !-----------------------------------------------
+        real(wp), parameter :: tr11 = (SQRT_5 - ONE)/4
+        real(wp), parameter :: ti11 = sqrt((FIVE + SQRT_5)/2)/2
+        real(wp), parameter :: tr12 = (-ONE - SQRT_5)/4
+        real(wp), parameter :: ti12 = sqrt(FIVE/(TWO * (FIVE + SQRT_5)))
+
 
         do k = 1, l1
             cr2 = cc(1, k, 5) + cc(1, k, 2)
@@ -3649,32 +3619,30 @@ contains
             end do
         end if
 
-    end subroutine radf5
+    end subroutine real_forward_pass_5
 
+    subroutine real_forward_pass_n(ido, iip, l1, idl1, cc, c1, c2, ch, ch2, wa)
 
-
-    subroutine radfg(ido, iip, l1, idl1, cc, c1, c2, ch, ch2, wa)
-        !-----------------------------------------------
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip), intent(in)      :: ido
         integer(ip), intent(in)      :: iip
         integer(ip), intent(in)      :: l1
         integer(ip), intent(in)      :: idl1
         real(wp), intent(out)    :: cc(ido, iip, l1)
-        real(wp), intent(inout) :: c1(ido, l1, iip)
-        real(wp), intent(inout) :: c2(idl1, iip)
-        real(wp), intent(inout) :: ch(ido, l1, iip)
-        real(wp), intent(inout) :: ch2(idl1, iip)
+        real(wp), intent(inout)  :: c1(ido, l1, iip)
+        real(wp), intent(inout)  :: c2(idl1, iip)
+        real(wp), intent(inout)  :: ch(ido, l1, iip)
+        real(wp), intent(inout)  :: ch2(idl1, iip)
         real(wp), intent(in)     :: wa(*)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip)         :: iipph, iipp2, idp2, nbd, j
         integer(ip)         :: k, is, idij, i, jc, l, lc
         real(wp)            :: arg, dcp, dsp, ar1, ai1
         real(wp)            :: ar1h, dc2, ds2, ar2, ai2, ar2h
-        !-----------------------------------------------
+
 
         arg = TWO_PI/iip
         dcp = cos(arg)
@@ -3773,46 +3741,58 @@ contains
 
         if(ido /= 1) then
             if (l1 <= nbd) then
-                cc(2:ido-1:2, 3:iipph*2-1:2,:) = reshape(source = ch(2:ido-1:2,:, &
-                    2:iipph)+ch(2:ido-1:2,:, iipp2-2:iipp2-iipph:(-1)), shape = [(ido &
-                    -1)/2, iipph-1, l1], order = [1, 3, 2])
-                cc(idp2-4:idp2-1-ido:(-2), 2:(iipph-1)*2:2,:) = reshape(source = &
-                    ch(2:ido-1:2,:, 2:iipph)-ch(2:ido-1:2,:, iipp2-2:iipp2-iipph:(-1)) &
-                    , shape = [(ido-1)/2, iipph-1, l1], order = [1, 3, 2])
-                cc(3:ido:2, 3:iipph*2-1:2,:) = reshape(source = ch(3:ido:2,:, 2: &
-                    iipph)+ch(3:ido:2,:, iipp2-2:iipp2-iipph:(-1)), shape = [(ido-1)/ &
-                    2, iipph-1, l1], order = [1, 3, 2])
-                cc(idp2-3:idp2-ido:(-2), 2:(iipph-1)*2:2,:) = reshape(source = ch &
-                    (3:ido:2,:, iipp2-2:iipp2-iipph:(-1))-ch(3:ido:2,:, 2:iipph), shape &
-                    = [(ido-1)/2, iipph-1, l1], order = [1, 3, 2])
+                cc(2:ido-1:2, 3:iipph*2-1:2,:) = &
+                    reshape( &
+                    source = ch(2:ido-1:2,:,2:iipph)+ch(2:ido-1:2,:, iipp2-2:iipp2-iipph:(-1)), &
+                    shape = [(ido-1)/2, iipph-1, l1], &
+                    order = [1, 3, 2] &
+                    )
+                cc(idp2-4:idp2-1-ido:(-2), 2:(iipph-1)*2:2,:) = &
+                    reshape( &
+                    source = ch(2:ido-1:2,:, 2:iipph)-ch(2:ido-1:2,:, iipp2-2:iipp2-iipph:(-1)), &
+                    shape = [(ido-1)/2, iipph-1, l1], &
+                    order = [1, 3, 2] &
+                    )
+                cc(3:ido:2, 3:iipph*2-1:2,:) = &
+                    reshape(&
+                    source = ch(3:ido:2,:,2:iipph)+ch(3:ido:2,:,iipp2-2:iipp2-iipph:(-1)), &
+                    shape = [(ido-1)/2, iipph-1, l1], &
+                    order = [1, 3, 2] &
+                    )
+                cc(idp2-3:idp2-ido:(-2), 2:(iipph-1)*2:2,:) = &
+                    reshape(&
+                    source = ch(3:ido:2,:, iipp2-2:iipp2-iipph:(-1))-ch(3:ido:2,:, 2:iipph), &
+                    shape = [(ido-1)/2, iipph-1, l1], &
+                    order = [1, 3, 2] &
+                    )
             else
-                cc(2:ido-1:2, 3:iipph*2-1:2,:) = reshape(source = ch(2:ido-1:2,:, 2: &
-                    iipph)+ch(2:ido-1:2,:, iipp2-2:iipp2-iipph:(-1)), shape = [(ido-1)/2 &
-                    , iipph-1, l1], order = [1, 3, 2])
-                cc(idp2-4:idp2-1-ido:(-2), 2:(iipph-1)*2:2,:) = reshape(source = ch( &
-                    2:ido-1:2,:, 2:iipph)-ch(2:ido-1:2,:, iipp2-2:iipp2-iipph:(-1)), shape &
-                    = [(ido-1)/2, iipph-1, l1], order = [1, 3, 2])
-                cc(3:ido:2, 3:iipph*2-1:2,:) = reshape(source = ch(3:ido:2,:, 2:iipph) &
-                    +ch(3:ido:2,:, iipp2-2:iipp2-iipph:(-1)), shape = [(ido-1)/2, iipph-1 &
-                    , l1], order = [1, 3, 2])
-                cc(idp2-3:idp2-ido:(-2), 2:(iipph-1)*2:2,:) = reshape(source = ch(3: &
-                    ido:2,:, iipp2-2:iipp2-iipph:(-1))-ch(3:ido:2,:, 2:iipph), shape = [( &
-                    ido-1)/2, iipph-1, l1], order = [1, 3, 2])
+                cc(2:ido-1:2, 3:iipph*2-1:2,:) = &
+                    reshape( &
+                    source = ch(2:ido-1:2,:, 2:iipph)+ch(2:ido-1:2,:, iipp2-2:iipp2-iipph:(-1)), &
+                    shape = [(ido-1)/2, iipph-1, l1], &
+                    order = [1, 3, 2] &
+                    )
+                cc(idp2-4:idp2-1-ido:(-2), 2:(iipph-1)*2:2,:) = &
+                    reshape( &
+                    source = ch(2:ido-1:2,:, 2:iipph)-ch(2:ido-1:2,:, iipp2-2:iipp2-iipph:(-1)), &
+                    shape = [(ido-1)/2, iipph-1, l1], &
+                    order = [1, 3, 2] &
+                    )
+                cc(3:ido:2, 3:iipph*2-1:2,:) = &
+                    reshape( &
+                    source = ch(3:ido:2,:, 2:iipph)+ch(3:ido:2,:, iipp2-2:iipp2-iipph:(-1)), &
+                    shape = [(ido-1)/2, iipph-1, l1], &
+                    order = [1, 3, 2] &
+                    )
+                cc(idp2-3:idp2-ido:(-2), 2:(iipph-1)*2:2,:) = &
+                    reshape( &
+                    source = ch(3:ido:2,:,iipp2-2:iipp2-iipph:(-1))-ch(3:ido:2,:, 2:iipph), &
+                    shape = [(ido-1)/2, iipph-1, l1], &
+                    order = [1, 3, 2] &
+                    )
             end if
         end if
 
-    end subroutine radfg
+    end subroutine real_forward_pass_n
 
-end module fftpack_routines
-!
-! REVISION HISTORY
-!
-! September 1973    Version 1
-! April     1976    Version 2
-! January   1978    Version 3
-! December  1979    Version 3.1
-! February  1985    Documentation upgrade
-! November  1988    Version 3.2, FORTRAN 77 changes
-! June      2004    Fortran 90 updates
-! April     2016    Fortran 2008 changes
-!
+end module type_PeriodicFastFourierTransform

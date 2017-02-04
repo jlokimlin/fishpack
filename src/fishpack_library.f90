@@ -80,6 +80,28 @@ module fishpack_library
     use type_MacGrid, only: &
         MacGrid
 
+    use type_PeriodicFastFourierTransform, only: &
+        PeriodicFastFourierTransform, &
+        rffti, & ! initialize  rfftf and rfftb
+        rfftf, & ! forward transform of a real periodic sequence
+        rfftb, & ! backward transform of a real coefficient array
+        ezffti, & !initialize ezfftf and ezfftb
+        ezfftf, & ! a simplified real periodic forward transform
+        ezfftb, & ! a simplified real periodic backward transform
+        sinti, & ! initialize sint
+        sint, & ! sine transform of a real odd sequence
+        costi, & ! initialize cost
+        cost, & ! cosine transform of a real even sequence
+        sinqi, & ! initialize sinqf and sinqb
+        sinqf, & ! forward sine transform with odd wave numbers
+        sinqb, & ! unnormalized inverse of sinqf
+        cosqi, & ! initialize cosqf and cosqb
+        cosqf, & ! forward cosine transform with odd wave numbers
+        cosqb, & ! unnormalized inverse of cosqf
+        cffti, & ! initialize cfftf and cfftb
+        cfftf, & ! forward transform of a complex periodic sequence
+        cfftb ! unnormalized inverse of cfftf
+
     ! Explicit typing only
     implicit none
 

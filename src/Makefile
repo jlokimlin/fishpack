@@ -12,15 +12,8 @@ fishpack_precision.f90
 	$(FC) $(FFLAGS) -c fishpack_precision.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
-fftpack_routines.o: \
-fishpack_precision.o \
-fftpack_routines.f90
-	$(FC) $(FFLAGS) -c fftpack_routines.f90 $(LINKS) \
-	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
-
 type_FishpackWorkspace.o: \
 fishpack_precision.o \
-fftpack_routines.o \
 type_FishpackWorkspace.f90
 	$(FC) $(FFLAGS) -c type_FishpackWorkspace.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
@@ -68,10 +61,10 @@ type_GenbunAux.f90
 	$(FC) $(FFLAGS) -c type_GenbunAux.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
-type_FFTpack.o: \
+type_PeriodicFastFourierTransform.o: \
 fishpack_precision.o \
-type_FFTpack.f90
-	$(FC) $(FFLAGS) -c type_FFTpack.f90 $(LINKS) \
+type_PeriodicFastFourierTransform.f90
+	$(FC) $(FFLAGS) -c type_PeriodicFastFourierTransform.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 genbun.o: \
@@ -93,7 +86,7 @@ poistg.f90
 pois3d.o: \
 fishpack_precision.o \
 type_FishpackWorkspace.o \
-type_FFTpack.o \
+type_PeriodicFastFourierTransform.o \
 pois3d.f90
 	$(FC) $(FFLAGS) -c pois3d.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
@@ -337,6 +330,7 @@ type_FishpackGrid.o \
 type_CenteredGrid.o\
 type_StaggeredGrid.o\
 type_MacGrid.o\
+type_PeriodicFastFourierTransform.o\
 fishpack_library.f90
 	$(FC) $(FFLAGS) -c fishpack_library.f90 $(LINKS)\
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
