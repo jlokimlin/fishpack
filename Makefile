@@ -1,16 +1,16 @@
 
 include make.inc
 
-EX_DIR = procedural_examples
+EX_DIR = examples
 
-all: clean lib procedural_examples
+all: clean lib examples
 
 lib: 
 	mkdir -p ./lib
 	mkdir -p ./objs
 	( cd ./src; $(MAKE) clean; $(MAKE) all )
 
-procedural_examples:
+examples:
 	( cd ./$(EX_DIR); $(MAKE) clean; $(MAKE) run )
 
 install:
@@ -20,4 +20,4 @@ install:
 clean: 
 	( cd ./src; $(MAKE) clean; cd ../$(EX_DIR); $(MAKE) clean )
 
-.PHONY: all lib procedural_examples install
+.PHONY: all lib examples install
