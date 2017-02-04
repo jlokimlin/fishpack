@@ -52,9 +52,9 @@ module type_FishpackWorkspace
 
     type, public :: FishpackWorkspace
         ! Type components
-        real(wp),    allocatable :: real_workspace(:)
-        complex(wp), allocatable :: complex_workspace(:)
-        integer(ip), allocatable :: workspace_indices(:)
+        real(wp),         allocatable :: real_workspace(:)
+        complex(wp),      allocatable :: complex_workspace(:)
+        integer(ip),      allocatable :: workspace_indices(:)
     contains
         ! Type-bound procedures
         procedure, public :: create => create_fishpack_workspace
@@ -63,10 +63,38 @@ module type_FishpackWorkspace
         procedure, public, nopass :: compute_genbun_workspace_lengths
         procedure, public :: initialize_staggered_workspace
         procedure, public :: initialize_centered_workspace
-        procedure, public :: initialize_blktri_workspace
     end type FishpackWorkspace
 
+    ! Declare user-defined constructor
+    interface FishpackWorkspace
+        module procedure fishpack_workspace_constructor
+    end interface
+
 contains
+
+    function fishpack_workspace_constructor(irwk, icwk, iiwk) &
+        result (return_value)
+
+        ! Dummy arguments
+        integer(ip),              intent(in)    :: irwk ! required real work space length
+        integer(ip),              intent(in)    :: icwk ! required integer work space length
+        integer(ip), optional,    intent(in)    :: iiwk
+        type(FishpackWorkspace)                 :: return_value
+
+        ! Local variables
+        integer(ip) :: iiwk_op
+
+        ! Address optional argument
+        if (present(iiwk)) then
+            iiwk_op = iiwk
+        else
+            iiwk_op = -1
+        end if
+
+        ! Initialize workspace
+        call return_value%create(irwk, icwk, iiwk_op)
+
+    end function fishpack_workspace_constructor
 
     subroutine create_fishpack_workspace(self, irwk, icwk, iiwk)
 
@@ -170,27 +198,6 @@ contains
         call self%create(irwk, icwk)
 
     end subroutine initialize_centered_workspace
-
-    subroutine initialize_blktri_workspace(self, n, m)
-
-        ! Dummy arguments
-        class(FishpackWorkspace), intent(inout) :: self
-        integer(ip),              intent(in)    :: n
-        integer(ip),              intent(in)    :: m
-
-        ! Local variables
-        integer(ip) :: irwk, icwk
-
-        ! Ensure that object is usable
-        call self%destroy()
-
-        ! compute and allocate real and complex required work space
-        call self%compute_blktri_workspace_lengths(n, m, irwk, icwk)
-
-        ! Allocate memory
-        call self%create(irwk, icwk)
-
-    end subroutine initialize_blktri_workspace
 
     ! Purpose:
     !

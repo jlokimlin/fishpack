@@ -385,7 +385,7 @@ contains
                 loop_108: do
                     if (nperod /= 4) then
 
-                        call poistg_lower_routine(np, n, m, w(iwba:), w(iwbb:), w(iwbc:), idimy, y, &
+                        call solve_poisson_staggered_grid(np, n, m, w(iwba:), w(iwbb:), w(iwbc:), idimy, y, &
                             w, w(iwb2:), w(iwb3:), w(iww1:), w(iww2:), w(iww3:), &
                             w(iwd:), w(iwtcos:), w(iwp:))
 
@@ -517,7 +517,7 @@ contains
 
     end function get_workspace_indices
 
-    subroutine poistg_lower_routine(nperod, n, m, a, bb, c, idimq, q, b, b2, b3, w, &
+    subroutine solve_poisson_staggered_grid(nperod, n, m, a, bb, c, idimq, q, b, b2, b3, w, &
         w2, w3, d, tcos, p)
         !
         ! Purpose:
@@ -1120,7 +1120,7 @@ contains
 
         end associate
 
-    end subroutine poistg_lower_routine
+    end subroutine solve_poisson_staggered_grid
 
 end module module_poistg
 !
