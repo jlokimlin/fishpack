@@ -1,6 +1,4 @@
 !
-!     file cmgnbn.f90
-!
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
 !     *                  copyright (c) 2005 by UCAR                   *
@@ -33,191 +31,7 @@
 !     *                                                               *
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-!     SUBROUTINE cmgnbn(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
-!
-!
-! DIMENSION OF           a(m), b(m), c(m), y(idimy, n)
-! ARGUMENTS
-!
-! LATEST REVISION        May 2016
-!
-! PURPOSE                The name of this package is a mnemonic for the
-!                        complex generalized Buneman algorithm.
-!                        it solves the complex linear system of equation
-!
-!                        a(i)*x(i-1, j) + b(i)*x(i, j) + c(i)*x(i+1, j)
-!                        + x(i, j-1) - TWO * x(i, j) + x(i, j+1) = y(i, j)
-!
-!                        for i = 1, 2, ..., m  and  j = 1, 2, ..., n.
-!
-!                        indices i+1 and i-1 are evaluated modulo m,
-!                        i.e., x(0, j) = x(m, j) and x(m+1, j) = x(1, j),
-!                        and x(i, 0) may equal 0, x(i, 2), or x(i, n),
-!                        and x(i, n+1) may equal 0, x(i, n-1), or x(i, 1)
-!                        depending on an input parameter.
-!
-! USAGE                  call cmgnbn (nperod, n, mperod, m, a, b, c, idimy, y,
-!                                     ierror)
-!
-! ARGUMENTS
-!
-! ON INPUT               nperod
-!
-!                          indicates the values that x(i, 0) and
-!                          x(i, n+1) are assumed to have.
-!
-!                          = 0  if x(i, 0) = x(i, n) and x(i, n+1) =
-!                               x(i, 1).
-!                          = 1  if x(i, 0) = x(i, n+1) = 0  .
-!                          = 2  if x(i, 0) = 0 and x(i, n+1) = x(i, n-1).
-!                          = 3  if x(i, 0) = x(i, 2) and x(i, n+1) =
-!                               x(i, n-1).
-!                          = 4  if x(i, 0) = x(i, 2) and x(i, n+1) = 0.
-!
-!                        n
-!                          the number of unknowns in the j-direction.
-!                          n must be greater than 2.
-!
-!                        mperod
-!                          = 0 if a(1) and c(m) are not zero
-!                          = 1 if a(1) = c(m) = 0
-!
-!                        m
-!                          the number of unknowns in the i-direction.
-!                          n must be greater than 2.
-!
-!                        a, b, c
-!                          one-dimensional complex arrays of length m
-!                          that specify the coefficients in the linear
-!                          equations given above.  if mperod = 0
-!                          the array elements must not depend upon
-!                          the index i, but must be constant.
-!                          specifically, the subroutine checks the
-!                          following condition .
-!
-!                            a(i) = c(1)
-!                            c(i) = c(1)
-!                            b(i) = b(1)
-!
-!                          for i=1, 2, ..., m.
-!
-!                        idimy
-!                          the row (or first) dimension of the
-!                          two-dimensional array y as it appears
-!                          in the program calling cmgnbn.
-!                          this parameter is used to specify the
-!                          variable dimension of y.
-!                          idimy must be at least m.
-!
-!                        y
-!                          a two-dimensional complex array that
-!                          specifies the values of the right side
-!                          of the linear system of equations given
-!                          above.
-!                          y must be dimensioned at least m*n.
-!
-!
-!  ON OUTPUT             y
-!
-!                          contains the solution x.
-!
-!                        ierror
-!                          an error flag which indicates invalid
-!                          input parameters  except for number
-!                          zero, a solution is not attempted.
-!
-!                          = 0  no error.
-!                          = 1  m <= 2  .
-!                          = 2  n <= 2
-!                          = 3  idimy < m
-!                          = 4  nperod < 0 or nperod > 4
-!                          = 5  mperod < 0 or mperod > 1
-!                          = 6  a(i) /= c(1) or c(i) /= c(1) or
-!                               b(i) /= b(1) for
-!                               some i=1, 2, ..., m.
-!                          = 7  a(1) /= 0 or c(m) /= 0 and
-!                                 mperod = 1
-!                          = 20 if the dynamic allocation of real and
-!                               complex work space required for solution
-!                               fails (for example if n, m are too large
-!                               for your computer)
-!
-! SPECIAL CONDITONS      None
-!
-! I/O                    None
-!
-! PRECISION              64-bit double precision
-!
-! REQUIRED LIBRARY       type_ComfAux.f90, type_FishpackWorkspace.f90
-! FILES
-!
-! STANDARD               Fortran 2008
-!
-! HISTORY                Written in 1979 by Roland Sweet of NCAR'S
-!                        scientific computing division. Made available
-!                        on NCAR's public libraries in January, 1980.
-!                        Revised in June 2004 by John Adams using
-!                        Fortran 90 dynamically allocated work space.
-!
-! ALGORITHM              The linear system is solved by a cyclic
-!                        reduction algorithm described in the
-!                        reference below.
-!
-! REFERENCES             Sweet, R., 'A cyclic reduction algorithm for
-!                        solving block tridiagonal systems of arbitrary
-!                        dimensions, ' SIAM J. on Numer. Anal.,
-!                          14(Sept., 1977), pp. 706-720.
-!
-! ACCURACY               this test was performed on a platform with
-!                        64 bit floating point arithmetic.
-!                        a uniform random number generator was used
-!                        to create a solution array x for the system
-!                        given in the 'purpose' description above
-!                        with
-!                          a(i) = c(i) = -HALF * b(i) = 1, i=1, 2, ..., m
-!
-!                        and, when mperod = 1
-!
-!                          a(1) = c(m) = 0
-!                          a(m) = c(1) = 2.
-!
-!                        the solution x was substituted into the
-!                        given system  and a right side y was
-!                        computed.  using this array y, subroutine
-!                        cmgnbn was called to produce approximate
-!                        solution z.  then relative error
-!                          e = max(abs(z(i, j)-x(i, j)))/
-!                              max(abs(x(i, j)))
-!                        was computed, where the two maxima are taken
-!                        over i=1, 2, ..., m and j=1, ..., n.
-!
-!                        the value of e is given in the table
-!                        below for some typical values of m and n.
-!
-!                   m (=n)    mperod    nperod       e
-!                   ------    ------    ------     ------
-!
-!                     31        0         0        1.e-12
-!                     31        1         1        4.e-13
-!                     31        1         3        2.e-12
-!                     32        0         0        7.e-14
-!                     32        1         1        5.e-13
-!                     32        1         3        2.e-13
-!                     33        0         0        6.e-13
-!                     33        1         1        5.e-13
-!                     33        1         3        3.e-12
-!                     63        0         0        5.e-12
-!                     63        1         1        6.e-13
-!                     63        1         3        1.e-11
-!                     64        0         0        1.e-13
-!                     64        1         1        3.e-12
-!                     64        1         3        3.e-13
-!                     65        0         0        2.e-12
-!                     65        1         1        5.e-13
-!                     65        1         3        1.e-11
-!
-!
-module module_cmgnbn
+module complex_linear_systems_solver
 
     use fishpack_precision, only: &
         wp, & ! Working precision
@@ -225,7 +39,7 @@ module module_cmgnbn
         PI
 
     use type_FishpackWorkspace, only: &
-        Fish => FishpackWorkspace
+        FishpackWorkspace
 
     ! Explicit typing only
     implicit none
@@ -234,9 +48,7 @@ module module_cmgnbn
     private
     public :: cmgnbn
 
-    !---------------------------------------------------------------
     ! Parameters confined to the module
-    !---------------------------------------------------------------
     real(wp),    parameter :: ZERO = 0.0_wp
     real(wp),    parameter :: HALF = 0.5_wp
     real(wp),    parameter :: ONE = 1.0_wp
@@ -244,14 +56,183 @@ module module_cmgnbn
     real(wp),    parameter :: THREE = 3.0_wp
     real(wp),    parameter :: FOUR = 4.0_wp
     integer(ip), parameter :: IIWK = 11 ! Size of workspace_indices
-    !---------------------------------------------------------------
 
 contains
-
+    !
+    !     SUBROUTINE cmgnbn(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
+    !
+    !
+    ! DIMENSION OF           a(m), b(m), c(m), y(idimy, n)
+    ! ARGUMENTS
+    !
+    ! PURPOSE                The name of this package is a mnemonic for the
+    !                        complex generalized Buneman algorithm.
+    !                        it solves the complex linear system of equation
+    !
+    !                        a(i)*x(i-1, j) + b(i)*x(i, j) + c(i)*x(i+1, j)
+    !                        + x(i, j-1) - TWO * x(i, j) + x(i, j+1) = y(i, j)
+    !
+    !                        for i = 1, 2, ..., m  and  j = 1, 2, ..., n.
+    !
+    !                        indices i+1 and i-1 are evaluated modulo m,
+    !                        i.e., x(0, j) = x(m, j) and x(m+1, j) = x(1, j),
+    !                        and x(i, 0) may equal 0, x(i, 2), or x(i, n),
+    !                        and x(i, n+1) may equal 0, x(i, n-1), or x(i, 1)
+    !                        depending on an input parameter.
+    !
+    ! USAGE                  call cmgnbn (nperod, n, mperod, m, a, b, c, idimy, y,
+    !                                     ierror)
+    !
+    ! ARGUMENTS
+    !
+    ! ON INPUT               nperod
+    !
+    !                          indicates the values that x(i, 0) and
+    !                          x(i, n+1) are assumed to have.
+    !
+    !                          = 0  if x(i, 0) = x(i, n) and x(i, n+1) =
+    !                               x(i, 1).
+    !                          = 1  if x(i, 0) = x(i, n+1) = 0  .
+    !                          = 2  if x(i, 0) = 0 and x(i, n+1) = x(i, n-1).
+    !                          = 3  if x(i, 0) = x(i, 2) and x(i, n+1) =
+    !                               x(i, n-1).
+    !                          = 4  if x(i, 0) = x(i, 2) and x(i, n+1) = 0.
+    !
+    !                        n
+    !                          the number of unknowns in the j-direction.
+    !                          n must be greater than 2.
+    !
+    !                        mperod
+    !                          = 0 if a(1) and c(m) are not zero
+    !                          = 1 if a(1) = c(m) = 0
+    !
+    !                        m
+    !                          the number of unknowns in the i-direction.
+    !                          n must be greater than 2.
+    !
+    !                        a, b, c
+    !                          one-dimensional complex arrays of length m
+    !                          that specify the coefficients in the linear
+    !                          equations given above.  if mperod = 0
+    !                          the array elements must not depend upon
+    !                          the index i, but must be constant.
+    !                          specifically, the subroutine checks the
+    !                          following condition .
+    !
+    !                            a(i) = c(1)
+    !                            c(i) = c(1)
+    !                            b(i) = b(1)
+    !
+    !                          for i=1, 2, ..., m.
+    !
+    !                        idimy
+    !                          the row (or first) dimension of the
+    !                          two-dimensional array y as it appears
+    !                          in the program calling cmgnbn.
+    !                          this parameter is used to specify the
+    !                          variable dimension of y.
+    !                          idimy must be at least m.
+    !
+    !                        y
+    !                          a two-dimensional complex array that
+    !                          specifies the values of the right side
+    !                          of the linear system of equations given
+    !                          above.
+    !                          y must be dimensioned at least m*n.
+    !
+    !
+    !  ON OUTPUT             y
+    !
+    !                          contains the solution x.
+    !
+    !                        ierror
+    !                          an error flag which indicates invalid
+    !                          input parameters  except for number
+    !                          zero, a solution is not attempted.
+    !
+    !                          = 0  no error.
+    !                          = 1  m <= 2  .
+    !                          = 2  n <= 2
+    !                          = 3  idimy < m
+    !                          = 4  nperod < 0 or nperod > 4
+    !                          = 5  mperod < 0 or mperod > 1
+    !                          = 6  a(i) /= c(1) or c(i) /= c(1) or
+    !                               b(i) /= b(1) for
+    !                               some i=1, 2, ..., m.
+    !                          = 7  a(1) /= 0 or c(m) /= 0 and
+    !                                 mperod = 1
+    !                          = 20 if the dynamic allocation of real and
+    !                               complex work space required for solution
+    !                               fails (for example if n, m are too large
+    !                               for your computer)
+    !
+    ! HISTORY                Written in 1979 by Roland Sweet of NCAR'S
+    !                        scientific computing division. Made available
+    !                        on NCAR's public libraries in January, 1980.
+    !                        Revised in June 2004 by John Adams using
+    !                        Fortran 90 dynamically allocated workspace.
+    !
+    ! ALGORITHM              The linear system is solved by a cyclic
+    !                        reduction algorithm described in the
+    !                        reference below.
+    !
+    ! REFERENCES             Sweet, R., 'A cyclic reduction algorithm for
+    !                        solving block tridiagonal systems of arbitrary
+    !                        dimensions, ' SIAM J. on Numer. Anal.,
+    !                          14(Sept., 1977), pp. 706-720.
+    !
+    ! ACCURACY               this test was performed on a platform with
+    !                        64 bit floating point arithmetic.
+    !                        a uniform random number generator was used
+    !                        to create a solution array x for the system
+    !                        given in the 'purpose' description above
+    !                        with
+    !                          a(i) = c(i) = -0.5 * b(i) = 1, i=1, 2, ..., m
+    !
+    !                        and, when mperod = 1
+    !
+    !                          a(1) = c(m) = 0
+    !                          a(m) = c(1) = 2.
+    !
+    !                        the solution x was substituted into the
+    !                        given system  and a right side y was
+    !                        computed.  using this array y, subroutine
+    !                        cmgnbn was called to produce approximate
+    !                        solution z.  then relative error
+    !                          e = max(abs(z(i, j)-x(i, j)))/
+    !                              max(abs(x(i, j)))
+    !                        was computed, where the two maxima are taken
+    !                        over i=1, 2, ..., m and j=1, ..., n.
+    !
+    !                        the value of e is given in the table
+    !                        below for some typical values of m and n.
+    !
+    !                   m (=n)    mperod    nperod       e
+    !                   ------    ------    ------     ------
+    !
+    !                     31        0         0        1.e-12
+    !                     31        1         1        4.e-13
+    !                     31        1         3        2.e-12
+    !                     32        0         0        7.e-14
+    !                     32        1         1        5.e-13
+    !                     32        1         3        2.e-13
+    !                     33        0         0        6.e-13
+    !                     33        1         1        5.e-13
+    !                     33        1         3        3.e-12
+    !                     63        0         0        5.e-12
+    !                     63        1         1        6.e-13
+    !                     63        1         3        1.e-11
+    !                     64        0         0        1.e-13
+    !                     64        1         1        3.e-12
+    !                     64        1         3        3.e-13
+    !                     65        0         0        2.e-12
+    !                     65        1         1        5.e-13
+    !                     65        1         3        1.e-11
+    !
+    !
     subroutine cmgnbn(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         integer(ip), intent(in)     :: nperod
         integer(ip), intent(in)     :: n
         integer(ip), intent(in)     :: mperod
@@ -262,11 +243,9 @@ contains
         complex(wp), intent(in)     :: b(:)
         complex(wp), intent(in)     :: c(:)
         complex(wp), intent(inout)  :: y(:,:)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
-        type(Fish) :: workspace
-        !-----------------------------------------------
+        type(FishpackWorkspace) :: workspace
 
         ! Check input arguments
         call check_input_arguments(nperod, n, mperod, m, a, b, c, idimy, ierror)
@@ -282,7 +261,7 @@ contains
             cxw => workspace%complex_workspace, &
             indx => workspace%workspace_indices &
             )
-            call cmgnbnn(nperod, n, mperod, m, a, b, c, idimy, y, cxw, indx)
+            call cmgnbn_lower_routine(nperod, n, mperod, m, a, b, c, idimy, y, cxw, indx)
         end associate
 
         ! Release memory
@@ -291,9 +270,8 @@ contains
     end subroutine cmgnbn
 
     pure subroutine check_input_arguments(nperod, n, mperod, m, a, b, c, idimy, ierror)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         integer(ip), intent(in)     :: nperod
         integer(ip), intent(in)     :: n
         integer(ip), intent(in)     :: mperod
@@ -303,7 +281,6 @@ contains
         complex(wp), intent(in)     :: a(:)
         complex(wp), intent(in)     :: b(:)
         complex(wp), intent(in)     :: c(:)
-        !-----------------------------------------------
 
         if (3 > m) then
             ierror = 1
@@ -337,17 +314,14 @@ contains
     end subroutine check_input_arguments
 
     subroutine initialize_workspace(n, m, workspace)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip), intent(in)  :: n
-        integer(ip), intent(in)  :: m
-        class(Fish), intent(out) :: workspace
-        !-----------------------------------------------
+        integer(ip),              intent(in)  :: n
+        integer(ip),              intent(in)  :: m
+        class(FishpackWorkspace), intent(out) :: workspace
+
         ! Local variables
-        !-----------------------------------------------
         integer(ip) :: irwk, icwk, j
-        !-----------------------------------------------
 
         ! Compute required workspace sizes
         irwk = 0
@@ -359,21 +333,17 @@ contains
         ! Compute workspace indices
         associate( indx => workspace%workspace_indices )
             indx(1) = m + 1
-
             do j = 1, IIWK - 2
                 indx(j + 1) = indx(j) + m
             end do
-
             indx(IIWK) = indx(IIWK-1) + 4*n
-
         end associate
 
     end subroutine initialize_workspace
 
-    subroutine cmgnbnn(nperod, n, mperod, m, a, b, c, idimy, y, w, workspace_indices)
-        !-----------------------------------------------
+    subroutine cmgnbn_lower_routine(nperod, n, mperod, m, a, b, c, idimy, y, w, workspace_indices)
+
         ! Dummy arguments
-        !-----------------------------------------------
         integer(ip), intent(in)     :: nperod
         integer(ip), intent(in)     :: n
         integer(ip), intent(in)     :: mperod
@@ -385,13 +355,11 @@ contains
         complex(wp), intent(inout)  :: y(:,:)
         complex(wp), intent(out)    :: w(:)
         integer(ip), intent(in)     :: workspace_indices(:)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         integer(ip) :: i, k, j, mp, np, ipstor
         integer(ip) :: irev, mh, mhm1, modd, nby2, mskip
         complex(wp) :: temp_save
-        !-----------------------------------------------
 
         associate( &
             iwba => workspace_indices(1), &
@@ -559,19 +527,19 @@ contains
 
 end associate
 
-end subroutine cmgnbnn
+end subroutine cmgnbn_lower_routine
 
+! Purpose:
+!
+!     To solve poisson's equation for dirichlet boundary
+!     conditions.
+!
+!     istag = 1 if the last diagonal block is the matrix a.
+!     istag = 2 if the last diagonal block is the matrix a+i.
+!
 subroutine solve_poisson_dirichlet(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
-    !
-    !     subroutine to solve poisson's equation for dirichlet boundary
-    !     conditions.
-    !
-    !     istag = 1 if the last diagonal block is the matrix a.
-    !     istag = 2 if the last diagonal block is the matrix a+i.
-    !
-    !-----------------------------------------------
+
     ! Dummy arguments
-    !-----------------------------------------------
     integer(ip), intent(in)     :: mr
     integer(ip), intent(in)     :: nr
     integer(ip), intent(in)     :: istag
@@ -585,15 +553,13 @@ subroutine solve_poisson_dirichlet(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d,
     complex(wp), intent(inout) :: d(mr)
     complex(wp), intent(inout) :: tcos(mr)
     complex(wp), intent(inout) :: p(nr*4)
-    !-----------------------------------------------
+
     ! Local variables
-    !-----------------------------------------------
     integer(ip) :: m, n, iip, ipstor, jsh, kr, irreg, jstsav, i, lr, nun
     integer(ip) :: jst, jsp, l, nodd, j, jm1, jp1, jm2, jp2, jm3, jp3, noddpr
     integer(ip) :: krpi, ideg, jdeg
     real(wp)    :: fi
     complex(wp) :: t
-    !-----------------------------------------------
 
     m = mr
     n = nr
@@ -617,7 +583,7 @@ subroutine solve_poisson_dirichlet(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d,
     end select
 
     b(:m) = q(:m, 1)
-    call cmptrx(1, 0, m, ba, bb, bc, b, tcos, d, w)
+    call solve_linear_system(1, 0, m, ba, bb, bc, b, tcos, d, w)
     q(:m, 1) = b(:m)
     goto 183
 106 continue
@@ -643,7 +609,7 @@ subroutine solve_poisson_dirichlet(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d,
             if (irreg /= 1) jsp = jsp - l
     end select
 
-    call cmpcsg(jst, 1, HALF, ZERO, tcos)
+    call generate_cosines(jst, 1, HALF, ZERO, tcos)
 
     if (l <= jsp) then
         do j = l, jsp, l
@@ -663,7 +629,7 @@ subroutine solve_poisson_dirichlet(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d,
                     q(i, j) = t
                 end do
             end if
-            call cmptrx(jst, 0, m, ba, bb, bc, b, tcos, d, w)
+            call solve_linear_system(jst, 0, m, ba, bb, bc, b, tcos, d, w)
             q(:m, j) = q(:m, j) + b(:m)
         end do
     end if
@@ -714,7 +680,7 @@ subroutine solve_poisson_dirichlet(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d,
 
     q(:m, j) = HALF * (q(:m, j)-q(:m, jm1)-q(:m, jp1))
 130 continue
-    call cmptrx(jst, 0, m, ba, bb, bc, b, tcos, d, w)
+    call solve_linear_system(jst, 0, m, ba, bb, bc, b, tcos, d, w)
     iip = iip + m
     ipstor = max(ipstor, iip + m)
     p(iip+1:m+iip) = q(:m, j) + b(:m)
@@ -725,11 +691,11 @@ subroutine solve_poisson_dirichlet(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d,
             tcos(krpi) = tcos(i)
         end do
     else
-        call cmpcsg(lr, jstsav, ZERO, fi, tcos(jst+1))
-        call cmpmrg(tcos, 0, jst, jst, lr, kr)
+        call generate_cosines(lr, jstsav, ZERO, fi, tcos(jst+1))
+        call merge_tcos(tcos, 0, jst, jst, lr, kr)
     end if
-    call cmpcsg(kr, jstsav, ZERO, fi, tcos)
-    call cmptrx(kr, kr, m, ba, bb, bc, b, tcos, d, w)
+    call generate_cosines(kr, jstsav, ZERO, fi, tcos)
+    call solve_linear_system(kr, kr, m, ba, bb, bc, b, tcos, d, w)
     q(:m, j) = q(:m, jm2) + b(:m) + p(iip+1:m+iip)
     lr = kr
     kr = kr + l
@@ -750,8 +716,8 @@ case (2)
             ideg = jst
             kr = l
         case (2)
-            call cmpcsg(kr, jstsav, ZERO, fi, tcos)
-            call cmpcsg(lr, jstsav, ZERO, fi, tcos(kr+1))
+            call generate_cosines(kr, jstsav, ZERO, fi, tcos)
+            call generate_cosines(lr, jstsav, ZERO, fi, tcos(kr+1))
             ideg = kr
             kr = kr + jst
     end select
@@ -777,7 +743,7 @@ case (2)
         end select
     end if
 
-    call cmptrx(ideg, lr, m, ba, bb, bc, b, tcos, d, w)
+    call solve_linear_system(ideg, lr, m, ba, bb, bc, b, tcos, d, w)
     q(:m, j) = q(:m, j) + b(:m)
 end select
 152 continue
@@ -793,16 +759,16 @@ end select
     b(:m) = q(:m, j)
     select case (irreg)
         case default
-            call cmpcsg(jst, 1, HALF, ZERO, tcos)
+            call generate_cosines(jst, 1, HALF, ZERO, tcos)
             ideg = jst
         case (2)
             kr = lr + jst
-            call cmpcsg(kr, jstsav, ZERO, fi, tcos)
-            call cmpcsg(lr, jstsav, ZERO, fi, tcos(kr+1))
+            call generate_cosines(kr, jstsav, ZERO, fi, tcos)
+            call generate_cosines(lr, jstsav, ZERO, fi, tcos(kr+1))
             ideg = kr
     end select
 
-    call cmptrx(ideg, lr, m, ba, bb, bc, b, tcos, d, w)
+    call solve_linear_system(ideg, lr, m, ba, bb, bc, b, tcos, d, w)
     jm1 = j - jsh
     jp1 = j + jsh
     select case (irreg)
@@ -843,19 +809,19 @@ end select
         b(:m) = q(:m, j) + q(:m, jm2) + q(:m, jp2)
     end if
 170 continue
-    call cmpcsg(jst, 1, HALF, ZERO, tcos)
+    call generate_cosines(jst, 1, HALF, ZERO, tcos)
     ideg = jst
     jdeg = 0
     goto 172
 171 continue
     if (j + l > n) lr = lr - jst
     kr = jst + lr
-    call cmpcsg(kr, jstsav, ZERO, fi, tcos)
-    call cmpcsg(lr, jstsav, ZERO, fi, tcos(kr+1))
+    call generate_cosines(kr, jstsav, ZERO, fi, tcos)
+    call generate_cosines(lr, jstsav, ZERO, fi, tcos(kr+1))
     ideg = kr
     jdeg = lr
 172 continue
-    call cmptrx(ideg, jdeg, m, ba, bb, bc, b, tcos, d, w)
+    call solve_linear_system(ideg, jdeg, m, ba, bb, bc, b, tcos, d, w)
     if (jst <= 1) then
         q(:m, j) = b(:m)
     else
@@ -900,9 +866,9 @@ subroutine solve_poisson_neumann(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2,
     !     mixbnd = 2 if have neumann boundary conditions at bottom and
     !     dirichlet condition at top.  (for this case, must have istag = 1.)
     !
-    !-----------------------------------------------
+
     ! Dummy arguments
-    !-----------------------------------------------
+
     integer(ip), intent(in) :: m
     integer(ip), intent(in) :: n
     integer(ip), intent(in) :: istag
@@ -921,9 +887,9 @@ subroutine solve_poisson_neumann(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2,
     complex(wp) :: d(m)
     complex(wp) :: tcos(m)
     complex(wp), intent(inout) :: p(n*4)
-    !-----------------------------------------------
+
     ! Local variables
-    !-----------------------------------------------
+
     integer(ip) :: k(4)
     integer(ip) :: mr, iip
     integer(ip) :: ipstor, i2r, jr, nr, nlast, kr
@@ -931,7 +897,7 @@ subroutine solve_poisson_neumann(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2,
     integer(ip) :: jm2, jm3, nrodpr, ii, i1, i2, jr2, nlastp, jstep
     real(wp)    :: fistag, fnum, fden
     complex(wp) :: fi, t
-    !-----------------------------------------------
+
 
     associate( &
         k1 => k(1), &
@@ -982,7 +948,7 @@ subroutine solve_poisson_neumann(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2,
 
     jstop = nlast - jr
     if (nrod == 0) jstop = jstop - i2r
-    call cmpcsg(i2r, 1, HALF, ZERO, tcos)
+    call generate_cosines(i2r, 1, HALF, ZERO, tcos)
     i2rby2 = i2r/2
     if (jstop < jstart) then
         j = jr
@@ -1010,7 +976,7 @@ subroutine solve_poisson_neumann(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2,
                     b(i) = fi + q(i, j) - q(i, jm3) - q(i, jp3)
                 end do
             end if
-            call cmptrx(i2r, 0, mr, a, bb, c, b, tcos, d, w)
+            call solve_linear_system(i2r, 0, mr, a, bb, c, b, tcos, d, w)
             q(:mr, j) = q(:mr, j) + b(:mr)
         !
         !     end of reduction for regular unknowns.
@@ -1041,13 +1007,13 @@ subroutine solve_poisson_neumann(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2,
                 q(:mr, j) = q(:mr, j) - q(:mr, jm1) + q(:mr, jm2)
             end if
             if (lr /= 0) then
-                call cmpcsg(lr, 1, HALF, fden, tcos(kr+1))
+                call generate_cosines(lr, 1, HALF, fden, tcos(kr+1))
             else
                 b(:mr) = fistag*b(:mr)
             end if
         end if
-        call cmpcsg(kr, 1, HALF, fden, tcos)
-        call cmptrx(kr, lr, mr, a, bb, c, b, tcos, d, w)
+        call generate_cosines(kr, 1, HALF, fden, tcos)
+        call solve_linear_system(kr, lr, mr, a, bb, c, b, tcos, d, w)
         q(:mr, j) = q(:mr, j) + b(:mr)
         kr = kr + i2r
     else
@@ -1055,7 +1021,7 @@ subroutine solve_poisson_neumann(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2,
         jp2 = j + i2r
         if (i2r == 1) then
             b(:mr) = q(:mr, j)
-            call cmptrx(1, 0, mr, a, bb, c, b, tcos, d, w)
+            call solve_linear_system(1, 0, mr, a, bb, c, b, tcos, d, w)
             iip = 0
             ipstor = mr
             select case (istag)
@@ -1064,7 +1030,7 @@ subroutine solve_poisson_neumann(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2,
                     b(:mr) = b(:mr) + q(:mr, n)
                     tcos(1) = cmplx(ONE, ZERO, kind=wp)
                     tcos(2) = ZERO
-                    call cmptrx(1, 1, mr, a, bb, c, b, tcos, d, w)
+                    call solve_linear_system(1, 1, mr, a, bb, c, b, tcos, d, w)
                     q(:mr, j) = q(:mr, jm2) + p(:mr) + b(:mr)
                     goto 150
                 case (1)
@@ -1079,21 +1045,21 @@ subroutine solve_poisson_neumann(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2,
         else
             b(:mr) = b(:mr) + q(:mr, jp2) - q(:mr, jp1)
         end if
-        call cmptrx(i2r, 0, mr, a, bb, c, b, tcos, d, w)
+        call solve_linear_system(i2r, 0, mr, a, bb, c, b, tcos, d, w)
         iip = iip + mr
         ipstor = max(ipstor, iip + mr)
         p(iip+1:mr+iip) = b(:mr) + HALF * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
         b(:mr) = p(iip+1:mr+iip) + q(:mr, jp2)
         if (lr /= 0) then
-            call cmpcsg(lr, 1, HALF, fden, tcos(i2r+1))
-            call cmpmrg(tcos, 0, i2r, i2r, lr, kr)
+            call generate_cosines(lr, 1, HALF, fden, tcos(i2r+1))
+            call merge_tcos(tcos, 0, i2r, i2r, lr, kr)
         else
             do i = 1, i2r
                 ii = kr + i
                 tcos(ii) = tcos(i)
             end do
         end if
-        call cmpcsg(kr, 1, HALF, fden, tcos)
+        call generate_cosines(kr, 1, HALF, fden, tcos)
         if (lr == 0) then
             select case (istag)
                 case (1)
@@ -1103,7 +1069,7 @@ subroutine solve_poisson_neumann(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2,
             end select
         end if
 145 continue
-    call cmptrx(kr, kr, mr, a, bb, c, b, tcos, d, w)
+    call solve_linear_system(kr, kr, mr, a, bb, c, b, tcos, d, w)
     goto 148
 146 continue
     b(:mr) = fistag*b(:mr)
@@ -1145,18 +1111,18 @@ goto 104
 156     continue
         b(:mr) = q(:mr, 2)
         tcos(1) = ZERO
-        call cmptrx(1, 0, mr, a, bb, c, b, tcos, d, w)
+        call solve_linear_system(1, 0, mr, a, bb, c, b, tcos, d, w)
         q(:mr, 2) = b(:mr)
         b(:mr) = FOUR*b(:mr) + q(:mr, 1) + TWO * q(:mr, 3)
         tcos(1) = cmplx(-TWO, ZERO, kind=wp)
         tcos(2) = cmplx(TWO, ZERO, kind=wp)
         i1 = 2
         i2 = 0
-        call cmptrx(i1, i2, mr, a, bb, c, b, tcos, d, w)
+        call solve_linear_system(i1, i2, mr, a, bb, c, b, tcos, d, w)
         q(:mr, 2) = q(:mr, 2) + b(:mr)
         b(:mr) = q(:mr, 1) + TWO * q(:mr, 2)
         tcos(1) = ZERO
-        call cmptrx(1, 0, mr, a, bb, c, b, tcos, d, w)
+        call solve_linear_system(1, 0, mr, a, bb, c, b, tcos, d, w)
         q(:mr, 1) = b(:mr)
         jr = 1
         i2r = 0
@@ -1174,18 +1140,18 @@ goto 104
 162 continue
     b(:mr) = q(:mr, j) + HALF * q(:mr, 1) - q(:mr, jm1) + q(:mr, nlast) - &
         q(:mr, jm2)
-    call cmpcsg(jr, 1, HALF, ZERO, tcos)
-    call cmptrx(jr, 0, mr, a, bb, c, b, tcos, d, w)
+    call generate_cosines(jr, 1, HALF, ZERO, tcos)
+    call solve_linear_system(jr, 0, mr, a, bb, c, b, tcos, d, w)
     q(:mr, j) = HALF * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1)) + b(:mr)
     b(:mr) = q(:mr, 1) + TWO * q(:mr, nlast) + FOUR*q(:mr, j)
     jr2 = 2*jr
-    call cmpcsg(jr, 1, ZERO, ZERO, tcos)
+    call generate_cosines(jr, 1, ZERO, ZERO, tcos)
     tcos(jr+1:jr*2) = -tcos(jr:1:(-1))
-    call cmptrx(jr2, 0, mr, a, bb, c, b, tcos, d, w)
+    call solve_linear_system(jr2, 0, mr, a, bb, c, b, tcos, d, w)
     q(:mr, j) = q(:mr, j) + b(:mr)
     b(:mr) = q(:mr, 1) + TWO * q(:mr, j)
-    call cmpcsg(jr, 1, HALF, ZERO, tcos)
-    call cmptrx(jr, 0, mr, a, bb, c, b, tcos, d, w)
+    call generate_cosines(jr, 1, HALF, ZERO, tcos)
+    call solve_linear_system(jr, 0, mr, a, bb, c, b, tcos, d, w)
     q(:mr, 1) = HALF * q(:mr, 1) - q(:mr, jm1) + b(:mr)
     goto 194
 !
@@ -1218,30 +1184,30 @@ goto 104
     k2 = kr + jr
     tcos(k1+1) = cmplx(-TWO, ZERO, kind=wp)
     k4 = k1 + 3 - istag
-    call cmpcsg(k2 + istag - 2, 1, ZERO, fnum, tcos(k4))
+    call generate_cosines(k2 + istag - 2, 1, ZERO, fnum, tcos(k4))
     k4 = k1 + k2 + 1
-    call cmpcsg(jr - 1, 1, ZERO, ONE, tcos(k4))
-    call cmpmrg(tcos, k1, k2, k1 + k2, jr - 1, 0)
+    call generate_cosines(jr - 1, 1, ZERO, ONE, tcos(k4))
+    call merge_tcos(tcos, k1, k2, k1 + k2, jr - 1, 0)
     k3 = k1 + k2 + lr
-    call cmpcsg(jr, 1, HALF, ZERO, tcos(k3+1))
+    call generate_cosines(jr, 1, HALF, ZERO, tcos(k3+1))
     k4 = k3 + jr + 1
-    call cmpcsg(kr, 1, HALF, fden, tcos(k4))
-    call cmpmrg(tcos, k3, jr, k3 + jr, kr, k1)
+    call generate_cosines(kr, 1, HALF, fden, tcos(k4))
+    call merge_tcos(tcos, k3, jr, k3 + jr, kr, k1)
     if (lr /= 0) then
-        call cmpcsg(lr, 1, HALF, fden, tcos(k4))
-        call cmpmrg(tcos, k3, jr, k3 + jr, lr, k3 - lr)
-        call cmpcsg(kr, 1, HALF, fden, tcos(k4))
+        call generate_cosines(lr, 1, HALF, fden, tcos(k4))
+        call merge_tcos(tcos, k3, jr, k3 + jr, lr, k3 - lr)
+        call generate_cosines(kr, 1, HALF, fden, tcos(k4))
     end if
     k3 = kr
     k4 = kr
-    call cmptr3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
+    call solve_tridiagonal_system(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
     b(:mr) = b(:mr) + b2(:mr) + b3(:mr)
     tcos(1) = cmplx(TWO, ZERO, kind=wp)
-    call cmptrx(1, 0, mr, a, bb, c, b, tcos, d, w)
+    call solve_linear_system(1, 0, mr, a, bb, c, b, tcos, d, w)
     q(:mr, j) = q(:mr, j) + b(:mr)
     b(:mr) = q(:mr, 1) + TWO * q(:mr, j)
-    call cmpcsg(jr, 1, HALF, ZERO, tcos)
-    call cmptrx(jr, 0, mr, a, bb, c, b, tcos, d, w)
+    call generate_cosines(jr, 1, HALF, ZERO, tcos)
+    call solve_linear_system(jr, 0, mr, a, bb, c, b, tcos, d, w)
     if (jr == 1) then
         q(:mr, 1) = b(:mr)
         goto 194
@@ -1255,12 +1221,12 @@ if (n == 2) then
     !
     b(:mr) = q(:mr, 1)
     tcos(1) = ZERO
-    call cmptrx(1, 0, mr, a, bb, c, b, tcos, d, w)
+    call solve_linear_system(1, 0, mr, a, bb, c, b, tcos, d, w)
     q(:mr, 1) = b(:mr)
     b(:mr) = TWO * (q(:mr, 2)+b(:mr))*fistag
     tcos(1) = cmplx((-fistag), ZERO, kind=wp)
     tcos(2) = cmplx(TWO, ZERO, kind=wp)
-    call cmptrx(2, 0, mr, a, bb, c, b, tcos, d, w)
+    call solve_linear_system(2, 0, mr, a, bb, c, b, tcos, d, w)
     q(:mr, 1) = q(:mr, 1) + b(:mr)
     jr = 1
     i2r = 0
@@ -1273,20 +1239,20 @@ b2(:mr) = TWO * (q(:mr, 1)+q(:mr, nlast))
 k1 = kr + jr - 1
 tcos(k1+1) = cmplx(-TWO, ZERO, kind=wp)
 k4 = k1 + 3 - istag
-call cmpcsg(kr + istag - 2, 1, ZERO, fnum, tcos(k4))
+call generate_cosines(kr + istag - 2, 1, ZERO, fnum, tcos(k4))
 k4 = k1 + kr + 1
-call cmpcsg(jr - 1, 1, ZERO, ONE, tcos(k4))
-call cmpmrg(tcos, k1, kr, k1 + kr, jr - 1, 0)
-call cmpcsg(kr, 1, HALF, fden, tcos(k1+1))
+call generate_cosines(jr - 1, 1, ZERO, ONE, tcos(k4))
+call merge_tcos(tcos, k1, kr, k1 + kr, jr - 1, 0)
+call generate_cosines(kr, 1, HALF, fden, tcos(k1+1))
 k2 = kr
 k4 = k1 + k2 + 1
-call cmpcsg(lr, 1, HALF, fden, tcos(k4))
+call generate_cosines(lr, 1, HALF, fden, tcos(k4))
 k3 = lr
 k4 = 0
-call cmptr3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
+call solve_tridiagonal_system(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
 b(:mr) = b(:mr) + b2(:mr)
 tcos(1) = cmplx(TWO, ZERO, kind=wp)
-call cmptrx(1, 0, mr, a, bb, c, b, tcos, d, w)
+call solve_linear_system(1, 0, mr, a, bb, c, b, tcos, d, w)
 q(:mr, 1) = q(:mr, 1) + b(:mr)
 goto 194
 192 continue
@@ -1307,12 +1273,12 @@ goto 194
             q(:mr, nlast) = q(:mr, nlast) - q(:mr, jm2)
         end if
     end if
-    call cmpcsg(kr, 1, HALF, fden, tcos)
-    call cmpcsg(lr, 1, HALF, fden, tcos(kr+1))
+    call generate_cosines(kr, 1, HALF, fden, tcos)
+    call generate_cosines(lr, 1, HALF, fden, tcos(kr+1))
     if (lr == 0) then
         b(:mr) = fistag*b(:mr)
     end if
-    call cmptrx(kr, lr, mr, a, bb, c, b, tcos, d, w)
+    call solve_linear_system(kr, lr, mr, a, bb, c, b, tcos, d, w)
     q(:mr, nlast) = q(:mr, nlast) + b(:mr)
     nlastp = nlast
 206 continue
@@ -1336,7 +1302,7 @@ goto 194
         jstop = nlast - jr
     end if
     lr = kr - jr
-    call cmpcsg(jr, 1, HALF, ZERO, tcos)
+    call generate_cosines(jr, 1, HALF, ZERO, tcos)
     do j = jstart, jstop, jstep
         jm2 = j - jr
         jp2 = j + jr
@@ -1352,7 +1318,7 @@ goto 194
             jp1 = j + i2r
             q(:mr, j) = HALF * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
         end if
-        call cmptrx(jr, 0, mr, a, bb, c, b, tcos, d, w)
+        call solve_linear_system(jr, 0, mr, a, bb, c, b, tcos, d, w)
         q(:mr, j) = q(:mr, j) + b(:mr)
     end do
     nrod = 1
@@ -1366,16 +1332,13 @@ end associate
 
 end subroutine solve_poisson_neumann
 
+! Purpose:
+!
+! To solve poisson equation with periodic boundary conditions.
+!
 subroutine solve_poisson_periodic(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
-    !
-    ! Purpose:
-    !
-    !     subroutine to solve poisson equation with periodic boundary
-    !     conditions.
-    !
-    !-----------------------------------------------
+
     ! Dummy arguments
-    !-----------------------------------------------
     integer(ip), intent(in) :: m
     integer(ip), intent(in) :: n
     integer(ip), intent(in) :: idimq
@@ -1392,13 +1355,11 @@ subroutine solve_poisson_periodic(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3
     complex(wp) :: d(*)
     complex(wp) :: tcos(*)
     complex(wp) :: p(n*4)
-    !-----------------------------------------------
+
     ! Local variables
-    !-----------------------------------------------
     integer(ip) :: mr, nr, nrm1, j, nrmj, nrpj, i, lh
     real(wp)    :: ipstor
     complex(wp) :: s, t
-    !-----------------------------------------------
 
     mr = m
     nr = (n + 1)/2
@@ -1504,44 +1465,41 @@ subroutine solve_poisson_periodic(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3
 
 end subroutine solve_poisson_periodic
 
-pure subroutine cmpcsg(n, ijump, fnum, fden, a)
-    !
-    ! Purpose:
-    !
-    !     this subroutine computes required cosine values in ascending
-    !     order.  when ijump > 1 the routine computes values
-    !
-    !        2*cos(j*pi/l) , j=1, 2, ..., l and j /= 0(mod n/ijump+1)
-    !
-    !     where l = ijump*(n/ijump+1).
-    !
-    !
-    !     when ijump = 1 it computes
-    !
-    !            2*cos((j-fnum)*pi/(n+fden)) ,  j=1, 2, ... , n
-    !
-    !     where
-    !        fnum = 0.5, fden = 0.0, for regular reduction values
-    !        fnum = 0.0, fden = 1.0, for b-r and c-r when istag = 1
-    !        fnum = 0.0, fden = 0.5, for b-r and c-r when istag = 2
-    !        fnum = 0.5, fden = 0.5, for b-r and c-r when istag = 2
-    !                                in solve_poisson_neumann only.
-    !
-    !
-    !-----------------------------------------------
+! Purpose:
+!
+! Computes required cosine values in ascending
+! order. When ijump > 1 the routine computes values
+!
+! 2*cos(j*pi/l) , j=1, 2, ..., l and j /= 0(mod n/ijump+1)
+!
+! where l = ijump*(n/ijump+1).
+!
+!
+! when ijump = 1 it computes
+!
+! 2*cos((j-fnum)*pi/(n+fden)) ,  j=1, 2, ... , n
+!
+! where
+!
+!        fnum = 0.5, fden = 0.0, for regular reduction values
+!        fnum = 0.0, fden = 1.0, for b-r and c-r when istag = 1
+!        fnum = 0.0, fden = 0.5, for b-r and c-r when istag = 2
+!        fnum = 0.5, fden = 0.5, for b-r and c-r when istag = 2
+!                                in solve_poisson_neumann only.
+!
+!
+pure subroutine generate_cosines(n, ijump, fnum, fden, a)
+
     ! Dummy arguments
-    !-----------------------------------------------
     integer(ip), intent(in)  :: n
     integer(ip), intent(in)  :: ijump
     real(wp),    intent(in)  :: fnum
     real(wp),    intent(in)  :: fden
     complex(wp), intent(out) :: a(*)
-    !-----------------------------------------------
+
     ! Local variables
-    !-----------------------------------------------
     integer(ip)         :: k3, k4, k, k1, k5, i, k2, np1
     real(wp)            :: pibyn, x, y
-    !-----------------------------------------------
 
     if (n /= 0) then
         if (ijump /= 1) then
@@ -1567,33 +1525,28 @@ pure subroutine cmpcsg(n, ijump, fnum, fden, a)
         end if
     end if
 
-end subroutine cmpcsg
+end subroutine generate_cosines
 
-subroutine cmpmrg(tcos, i1, m1, i2, m2, i3)
-    !
-    ! Purpose:
-    !
-    !     this subroutine merges two ascending strings of numbers in the
-    !     array tcos.  the first string is of length m1 and starts at
-    !     tcos(i1+1).  the second string is of length m2 and starts at
-    !     tcos(i2+1).  the merged string goes into tcos(i3+1).
-    !
-    !
-    !-----------------------------------------------
+! Purpose:
+!
+! Merges two ascending strings of numbers in the
+! array tcos.  The first string is of length m1 and starts at
+! tcos(i1+1).  The second string is of length m2 and starts at
+! tcos(i2+1).  The merged string goes into tcos(i3+1).
+!
+subroutine merge_tcos(tcos, i1, m1, i2, m2, i3)
+
     ! Dummy arguments
-    !-----------------------------------------------
     integer(ip), intent(in)     :: i1
     integer(ip), intent(in)     :: m1
     integer(ip), intent(in)     :: i2
     integer(ip), intent(in)     :: m2
     integer(ip), intent(in)     :: i3
     complex(wp), intent(inout) :: tcos(*)
-    !-----------------------------------------------
+
     ! Local variables
-    !-----------------------------------------------
     integer(ip) :: j11, j3, j1, j2, j, l, k, m
     complex(wp) :: x, y
-    !-----------------------------------------------
 
     j1 = 1
     j2 = 1
@@ -1601,7 +1554,7 @@ subroutine cmpmrg(tcos, i1, m1, i2, m2, i3)
 
     if_construct: if (m1 /= 0) then
         if (m2 /= 0) then
-            loop_101: do
+            outer_loop: do
                 j11 = j1
                 j3 = max(m1, j11)
                 block_construct: block
@@ -1619,8 +1572,8 @@ subroutine cmpmrg(tcos, i1, m1, i2, m2, i3)
                 end block block_construct
                 tcos(j) = y
                 j2 = j2 + 1
-                if (j2 > m2) exit loop_101
-            end do loop_101
+                if (j2 > m2) exit outer_loop
+            end do outer_loop
             if (j1 > m1) return
         end if
         k = j - j1 + 1
@@ -1641,17 +1594,17 @@ subroutine cmpmrg(tcos, i1, m1, i2, m2, i3)
     end do
 
 
-end subroutine cmpmrg
+end subroutine merge_tcos
 
-subroutine cmptrx(idegbr, idegcr, m, a, b, c, y, tcos, d, w)
-    !
-    !     Subroutine to solve a system of linear equations where the
-    !     coefficient matrix is a rational function in the matrix given by
-    !     tridiagonal  ( . . . , a(i), b(i), c(i), . . . ).
-    !
-    !-----------------------------------------------
+! Purpose:
+!
+! To solve a system of linear equations where the
+! coefficient matrix is a rational function in the matrix given by
+! tridiagonal  ( . . . , a(i), b(i), c(i), . . . ).
+!
+subroutine solve_linear_system(idegbr, idegcr, m, a, b, c, y, tcos, d, w)
+
     ! Dummy arguments
-    !-----------------------------------------------
     integer(ip), intent(in)     :: idegbr
     integer(ip), intent(in)     :: idegcr
     integer(ip), intent(in)     :: m
@@ -1662,12 +1615,10 @@ subroutine cmptrx(idegbr, idegcr, m, a, b, c, y, tcos, d, w)
     complex(wp), intent(in)     :: tcos(*)
     complex(wp), intent(out)    :: d(m)
     complex(wp), intent(out)    :: w(m)
-    !-----------------------------------------------
+
     ! Local variables
-    !-----------------------------------------------
     integer(ip) :: mm1, ifb, ifc, l, lint, k, i, iip
     complex(wp) :: x, xx, z
-    !-----------------------------------------------
 
     mm1 = m - 1
     ifb = idegbr + 1
@@ -1714,12 +1665,11 @@ subroutine cmptrx(idegbr, idegcr, m, a, b, c, y, tcos, d, w)
         l = (lint*ifb)/ifc
     end do
 
-end subroutine cmptrx
+end subroutine solve_linear_system
 
-subroutine cmptr3(m, a, b, c, k, y1, y2, y3, tcos, d, w1, w2, w3)
-    !-----------------------------------------------
+subroutine solve_tridiagonal_system(m, a, b, c, k, y1, y2, y3, tcos, d, w1, w2, w3)
+
     ! Dummy arguments
-    !-----------------------------------------------
     integer(ip), intent(in)     :: m
     integer(ip), intent(in)     :: k(4)
     complex(wp), intent(in)     :: a(m)
@@ -1733,18 +1683,14 @@ subroutine cmptr3(m, a, b, c, k, y1, y2, y3, tcos, d, w1, w2, w3)
     complex(wp), intent(out)    :: w1(m)
     complex(wp), intent(out)    :: w2(m)
     complex(wp), intent(out)    :: w3(m)
-    !-----------------------------------------------
+
     ! Local variables
-    !-----------------------------------------------
     integer(ip) :: mm1, k1, k2, k3, k4
     integer(ip) :: if1, if2, if3, if4, k2k3k4, l1, l2
     integer(ip) :: l3, lint1, lint2, lint3
     integer(ip) :: kint1, kint2, kint3, n, i, iip
     complex(wp) :: x, xx, z
-    !-----------------------------------------------
-    !
-    !     subroutine to solve tridiagonal systems
-    !
+
     mm1 = m - 1
     k1 = k(1)
     k2 = k(2)
@@ -1824,9 +1770,9 @@ subroutine cmptr3(m, a, b, c, k, y1, y2, y3, tcos, d, w1, w2, w3)
         l3 = (lint3*if1)/if4
     end do
 
-end subroutine cmptr3
+end subroutine solve_tridiagonal_system
 
-end module module_cmgnbn
+end module complex_linear_systems_solver
 !
 ! REVISION HISTORY
 !

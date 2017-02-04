@@ -16,7 +16,7 @@ module fishpack_library
 
     use complex_block_tridiagonal_linear_systems_solver, only: cblktri
 
-    use module_cmgnbn, only: cmgnbn
+    use complex_linear_systems_solver, only: cmgnbn
 
     use module_genbun, only: genbun
 
