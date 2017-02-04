@@ -31,7 +31,7 @@
 !     *                                                               *
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-module module_cblktri
+module complex_block_tridiagonal_linear_systems_solver
 
     use fishpack_precision, only: &
         wp, & ! Working precision
@@ -61,7 +61,7 @@ module module_cblktri
     real(wp), parameter :: ONE = 1.0_wp
     real(wp), parameter :: TWO = 2.0_wp
 
-    type, public, extends(ComfAux) :: CbltriAux
+    type, private, extends(ComfAux) :: CbltriAux
         ! Type components
         integer(ip) :: indices(6), nl
         integer(ip) :: npp, k, nm, ncmplx, ik
@@ -314,7 +314,7 @@ contains
             nm = n
             m2 = 2*m
 
-            ! Check validity of input arguments
+            ! Check input arguments
             if (m < 5) then
                 ierror = 1
                 return
@@ -348,14 +348,15 @@ contains
             nl = nl - 1
             iwah = (k - 2)*ik + k + 6
 
-            if (npp /= 0) then
-                iw1 = iwah
-                iwbh = iw1 + nm
-            else
-                iwbh = iwah + 2*nm
-                iw1 = iwbh
-                nm = nm - 1
-            end if
+            select case (npp)
+                case(0)
+                    iwbh = iwah + 2*nm
+                    iw1 = iwbh
+                    nm = nm - 1
+                case default
+                    iw1 = iwah
+                    iwbh = iw1 + nm
+            end select
 
             iw2 = iw1 + m
             iw3 = iw2 + m
@@ -426,24 +427,24 @@ contains
 
         ! Dummy arguments
         class(CbltriAux), intent(inout) :: self
-        integer(ip), intent(in)     :: n
-        integer(ip), intent(in)     :: m
-        integer(ip), intent(in)     :: idimy
-        real(wp),    intent(in)     :: an(:)
-        real(wp),    intent(in)     :: cn(:)
-        complex(wp), intent(in)     :: am(:)
-        complex(wp), intent(in)     :: bm(:)
-        complex(wp), intent(in)     :: cm(:)
-        real(wp),    intent(out)    :: b(*)
-        complex(wp), intent(inout) :: y(idimy,n)
-        complex(wp), intent(out)    :: bc(*)
-        complex(wp), intent(out)    :: w1(*)
-        complex(wp), intent(out)    :: w2(*)
-        complex(wp), intent(out)    :: w3(*)
-        complex(wp), intent(out)    :: wd(*)
-        complex(wp), intent(out)    :: ww(*)
-        complex(wp), intent(out)    :: wu(*)
-        external :: prdct, cprdct
+        integer(ip),      intent(in)    :: n
+        integer(ip),      intent(in)    :: m
+        integer(ip),      intent(in)    :: idimy
+        real(wp),         intent(in)    :: an(:)
+        real(wp),         intent(in)    :: cn(:)
+        complex(wp),      intent(in)    :: am(:)
+        complex(wp),      intent(in)    :: bm(:)
+        complex(wp),      intent(in)    :: cm(:)
+        real(wp),         intent(out)   :: b(*)
+        complex(wp),      intent(inout) :: y(idimy,n)
+        complex(wp),      intent(out)   :: bc(*)
+        complex(wp),      intent(out)   :: w1(*)
+        complex(wp),      intent(out)   :: w2(*)
+        complex(wp),      intent(out)   :: w3(*)
+        complex(wp),      intent(out)   :: wd(*)
+        complex(wp),      intent(out)   :: ww(*)
+        complex(wp),      intent(out)   :: wu(*)
+        external                        :: prdct, cprdct
 
         ! Local variables
         integer(ip) :: kdo, l, ir, i2, i1, i3, i4, irm1, im2, nm2, im3, nm3
@@ -1942,9 +1943,8 @@ contains
                     d(ntop+1) = dhold
                 end do
             end if
-
         end associate
 
     end subroutine ctevls
 
-end module module_cblktri
+end module complex_block_tridiagonal_linear_systems_solver

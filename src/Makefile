@@ -47,12 +47,12 @@ real_block_tridiagonal_linear_systems_solver.f90
 	$(FC) $(FFLAGS) -c real_block_tridiagonal_linear_systems_solver.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
-cblktri.o: \
+complex_block_tridiagonal_linear_systems_solver.o: \
 fishpack_precision.o \
 type_FishpackWorkspace.o \
 type_ComfAux.o \
-cblktri.f90
-	$(FC) $(FFLAGS) -c cblktri.f90 $(LINKS) \
+complex_block_tridiagonal_linear_systems_solver.f90
+	$(FC) $(FFLAGS) -c complex_block_tridiagonal_linear_systems_solver.f90 $(LINKS) \
 	-o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 cmgnbn.o: \
@@ -299,7 +299,7 @@ type_TridiagonalSolver.f90
 type_FishpackSolver.o: \
 fishpack_precision.o \
 real_block_tridiagonal_linear_systems_solver.o \
-cblktri.o\
+complex_block_tridiagonal_linear_systems_solver.o\
 cmgnbn.o\
 genbun.o\
 pois3d.o\
@@ -316,7 +316,7 @@ type_FishpackSolver.f90
 fishpack_library.o: \
 fishpack_precision.o \
 real_block_tridiagonal_linear_systems_solver.o \
-cblktri.o\
+complex_block_tridiagonal_linear_systems_solver.o\
 cmgnbn.o\
 genbun.o\
 pois3d.o\

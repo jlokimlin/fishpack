@@ -14,7 +14,7 @@ module fishpack_library
     use real_block_tridiagonal_linear_systems_solver, &
         only: blktri
 
-    use module_cblktri, only: cblktri
+    use complex_block_tridiagonal_linear_systems_solver, only: cblktri
 
     use module_cmgnbn, only: cmgnbn
 
