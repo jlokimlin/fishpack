@@ -80,12 +80,9 @@ module type_CyclicReductionUtility
 
     ! Parameters confined to the module
     real(wp), parameter :: ZERO = 0.0_wp
-    real(wp), parameter :: ONE = 1.0_wp
     real(wp), parameter :: TWO = 2.0_wp
 
 contains
-
-    pure subroutine generate_cosines(n, ijump, fnum, fden, a)
 
         !
         ! Purpose:
@@ -109,10 +106,9 @@ contains
         !        fnum = 0.5, fden = 0.5, for b-r and c-r when istag = 2
         !                                in poisn2 only.
         !
-        !
+    pure subroutine generate_cosines(n, ijump, fnum, fden, a)
 
         ! Dummy arguments
-
         integer(ip), intent(in)  :: n
         integer(ip), intent(in)  :: ijump
         real(wp),    intent(in)  :: fnum
@@ -120,10 +116,8 @@ contains
         real(wp),    intent(out) :: a(:)
 
         ! Local variables
-
         integer(ip) :: k3, k4, k, k1, k5, i, k2, np1
         real(wp)    :: pibyn, x, y
-
 
         if (n == 0) return
 
@@ -182,19 +176,19 @@ contains
         real(wp),    intent(inout)  :: w(:)
 
         ! Local variables
-        integer(ip) :: ifb, ifc, l, lint, k, i
+        integer(ip) :: ifb, ifc, j, lint, k, i
         real(wp)    :: x, xx, temp
 
         ifb = idegbr + 1
         ifc = idegcr + 1
-        l = ifb/ifc
+        j = ifb/ifc
         lint = 1
 
         outer_loop: do k = 1, idegbr
 
             x = tcos(k)
 
-            if (k == l) then
+            if (k == j) then
                 i = idegbr + lint
                 xx = x - tcos(i)
                 w = y
@@ -223,11 +217,11 @@ contains
                 y(i) = y(i) - d(i) * y(i + 1)
             end do
 
-            if (k /= l) cycle outer_loop
+            if (k /= j) cycle outer_loop
 
             y = y + w
             lint = lint + 1
-            l = (lint*ifb)/ifc
+            j = (lint*ifb)/ifc
 
         end do outer_loop
 
@@ -260,9 +254,8 @@ contains
 
         ! Local variables
         integer(ip) :: mm1, k1, k2, k3, k4, if1, if2, if3, if4, k2k3k4, l1, l2
-        integer(ip) :: l3, lint1, lint2, lint3, kint1, kint2, kint3, n, i, ipp
-        real(wp)    :: x, z, xx
-
+        integer(ip) :: l3, lint1, lint2, lint3, kint1, kint2, kint3, n, i
+        real(wp)    :: x, temp, xx
 
         mm1 = m - 1
         k1 = k(1)
@@ -297,24 +290,24 @@ contains
                 if (n == l3) w3 = y3
             end if
 
-            z = ONE/(b(1)-x)
-            d(1) = c(1)*z
-            y1(1) = y1(1)*z
-            y2(1) = y2(1)*z
-            y3(1) = y3(1)*z
+            temp = b(1) - x
+            d(1) = c(1)/temp
+            y1(1) = y1(1)/temp
+            y2(1) = y2(1)/temp
+            y3(1) = y3(1)/temp
 
             do i = 2, m
-                z = ONE/(b(i)-x-a(i)*d(i-1))
-                d(i) = c(i)*z
-                y1(i) = (y1(i)-a(i)*y1(i-1))*z
-                y2(i) = (y2(i)-a(i)*y2(i-1))*z
-                y3(i) = (y3(i)-a(i)*y3(i-1))*z
+                temp = b(i)-x-a(i)*d(i-1)
+                d(i) = c(i)/temp
+                y1(i) = (y1(i)-a(i)*y1(i-1))/temp
+                y2(i) = (y2(i)-a(i)*y2(i-1))/temp
+                y3(i) = (y3(i)-a(i)*y3(i-1))/temp
             end do
 
-            do ipp = 1, mm1
-                y1(m-ipp) = y1(m-ipp) - d(m-ipp)*y1(m+1-ipp)
-                y2(m-ipp) = y2(m-ipp) - d(m-ipp)*y2(m+1-ipp)
-                y3(m-ipp) = y3(m-ipp) - d(m-ipp)*y3(m+1-ipp)
+            do i = m - 1, 1, -1
+                y1(i) = y1(i) - d(i) * y1(i + 1)
+                y2(i) = y2(i) - d(i) * y2(i + 1)
+                y3(i) = y3(i) - d(i) * y3(i + 1)
             end do
 
             if (k2k3k4 == 0) cycle outer_loop

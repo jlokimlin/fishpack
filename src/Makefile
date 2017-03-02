@@ -48,10 +48,10 @@ complex_linear_systems_solver.f90
 	$(FC) $(FFLAGS) -c complex_linear_systems_solver.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
-type_GenbunAux.o: \
+type_CyclicReductionUtility.o: \
 fishpack_precision.o \
-type_GenbunAux.f90
-	$(FC) $(FFLAGS) -c type_GenbunAux.f90 $(LINKS) \
+type_CyclicReductionUtility.f90
+	$(FC) $(FFLAGS) -c type_CyclicReductionUtility.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 type_PeriodicFastFourierTransform.o: \
@@ -63,7 +63,7 @@ type_PeriodicFastFourierTransform.f90
 genbun.o: \
 fishpack_precision.o \
 type_FishpackWorkspace.o \
-type_GenbunAux.o \
+type_CyclicReductionUtility.o \
 genbun.f90
 	$(FC) $(FFLAGS) -c genbun.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
@@ -71,7 +71,7 @@ genbun.f90
 poistg.o: \
 fishpack_precision.o \
 type_FishpackWorkspace.o \
-type_GenbunAux.o \
+type_CyclicReductionUtility.o \
 poistg.f90
 	$(FC) $(FFLAGS) -c poistg.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
