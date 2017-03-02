@@ -40,8 +40,8 @@ module real_block_tridiagonal_linear_systems_solver
     use type_FishpackWorkspace, only: &
         FishpackWorkspace
 
-    use type_BlktriAux, only: &
-        BlktriAux
+    use type_GeneralizedCyclicReductionUtility, only: &
+        GeneralizedCyclicReductionUtility
 
     ! Explicit typing only
     implicit none
@@ -276,7 +276,7 @@ contains
         class(FishpackWorkspace), intent(inout) :: workspace
 
         ! Local variables
-        type(BlktriAux), save :: blktri_aux
+        type(GeneralizedCyclicReductionUtility), save :: blktri_aux
 
         ! Check input arguments
         call blktri_aux%check_input_arguments(n, m, idimy, ierror)

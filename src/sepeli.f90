@@ -447,7 +447,7 @@
 !
 ! PRECISION              Set by the instrinsic module ISO_Fortran_env to 64-bit double precision
 !
-! REQUIRED FILES         blktri.f90, type_ComfAux.f90, type_SepAux.f90, type_FishpackWorkspace.f90
+! REQUIRED FILES         blktri.f90, type_SepAux.f90, type_FishpackWorkspace.f90
 !
 ! STANDARD               Fortran 2008
 !
@@ -508,8 +508,8 @@ module module_sepeli
     use type_FishpackWorkspace, only: &
         FishpackWorkspace
 
-    use type_BlktriAux, only: &
-        BlktriAux
+    use type_GeneralizedCyclicReductionUtility, only: &
+        GeneralizedCyclicReductionUtility
 
     use type_SepAux, only: &
         SepAux, &
@@ -526,7 +526,7 @@ module module_sepeli
         !---------------------------------------------------------------
         ! Type components
         !---------------------------------------------------------------
-        type(BlktriAux), private :: blktri_aux
+        type(GeneralizedCyclicReductionUtility), private :: blktri_aux
         !---------------------------------------------------------------
     contains
         !---------------------------------------------------------------

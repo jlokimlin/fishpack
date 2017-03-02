@@ -38,12 +38,12 @@ module complex_block_tridiagonal_linear_systems_solver
         ip, & ! Integer precision
         MACHINE_EPSILON
 
-    use type_ComfAux, only: &
+    use type_GeneralizedCyclicReductionUtility, only: &
         psgf, &
         ppspf, &
         ppsgf, &
-        ComfAux, &
-        comf_interface
+        comf_interface, &
+        GeneralizedCyclicReductionUtility
 
     use type_FishpackWorkspace, only: &
         FishpackWorkspace
@@ -61,26 +61,23 @@ module complex_block_tridiagonal_linear_systems_solver
     real(wp), parameter :: ONE = 1.0_wp
     real(wp), parameter :: TWO = 2.0_wp
 
-    type, private, extends(ComfAux) :: CbltriAux
-        ! Type components
-        integer(ip) :: indices(6), nl
-        integer(ip) :: npp, k, nm, ncmplx, ik
-        real(wp)    :: cnv
+    type, private, extends(GeneralizedCyclicReductionUtility) :: ComplexGeneralizedCyclicReductionUtility
     contains
-        ! Type-bound procedures
+        ! Public type-bound procedures
         procedure, public  :: cblktri_lower_routine
-        procedure, private :: cbsrh
-        procedure, private :: compute_roots_of_b_polynomials
-        procedure, private :: compute_eigenvalues
-        procedure, private :: ctevls
-        procedure, private :: compute_index_a_coeff
-        procedure, private :: compute_index_b_coeff
-        procedure, private :: compute_index_c_coeff
-    end type CbltriAux
+        ! Private type-bound procedures
+        procedure, private :: cblktri_bsrh
+        procedure, private :: cblktri_compute_roots_of_b_polynomials
+        procedure, private :: cblktri_compute_eigenvalues
+        procedure, private :: cblktri_tevls
+        procedure, private :: cblktri_compute_index_a_coeff
+        procedure, private :: cblktri_compute_index_b_coeff
+        procedure, private :: cblktri_compute_index_c_coeff
+    end type ComplexGeneralizedCyclicReductionUtility
 
 contains
 
-    ! PURPOSE                cblktr solves a system of linear equations
+    ! PURPOSE                cblktri solves a system of linear equations
     !                        of the form
     !
     !                        an(j)*x(i, j-1) + am(i)*x(i-1, j) +
@@ -103,7 +100,7 @@ contains
     !                        cblktri is a complex version of package
     !                        blktri on ulib.
     !
-    ! USAGE                  call cblktr(iflg, np, n, an, bn, cn, mp, m, am, bm,
+    ! USAGE                  call cblktri(iflg, np, n, an, bn, cn, mp, m, am, bm,
     !                                     cm, idimy, y, ierror, w)
     !
     !
@@ -169,7 +166,7 @@ contains
     !                        idimy
     !                          the row (or first) dimension of the
     !                          two-dimensional array y as it appears
-    !                          in the program calling cblktr.
+    !                          in the program calling cblktri.
     !                          this parameter is used to specify the
     !                          variable dimension of y.
     !                          idimy must be at least m.
@@ -218,7 +215,7 @@ contains
     !                        = 1  m < 5
     !                        = 2  n < 5
     !                        = 3  idimy < m.
-    !                        = 4  cblktr failed while computing results
+    !                        = 4  cblktri failed while computing results
     !                             that depend on the coefficient arrays
     !                             an, bn, cn.  check these arrays.
     !                        = 5  an(j)*cn(j-1) is less than 0 for some j.
@@ -296,18 +293,18 @@ contains
         class(FishpackWorkspace), intent(inout) :: w
 
         ! Local variables
-        type(CbltriAux) :: self
-        integer(ip)     :: m2, nh, nl, iwah, iw1, iwbh
-        integer(ip)     :: iw2, iw3, iwd, iww, iwu
-        integer(ip)     :: irwk, icwk
+        type(ComplexGeneralizedCyclicReductionUtility) :: util
+        integer(ip)  :: m2, nh, nl, iwah, iw1, iwbh
+        integer(ip)  :: iw2, iw3, iwd, iww, iwu
+        integer(ip)  :: irwk, icwk
 
         common_variables: associate( &
-            npp => self%npp, &
-            k => self%k, &
-            nm => self%nm, &
-            ncmplx=> self%ncmplx, &
-            ik => self%ik, &
-            cnv => self%cnv &
+            npp => util%npp, &
+            k => util%k, &
+            nm => util%nm, &
+            ncmplx=> util%ncmplx, &
+            ik => util%ik, &
+            cnv => util%cnv &
             )
 
             ! Test m and n for the proper form
@@ -383,7 +380,7 @@ contains
                         cxw => w%complex_workspace &
                         )
                         ! Compute roots of b polynomials
-                        call self%compute_roots_of_b_polynomials(ierror, an, bn, cn, rew, cxw, rew(iwah:), rew(iwbh:))
+                        call util%cblktri_compute_roots_of_b_polynomials(ierror, an, bn, cn, rew, cxw, rew(iwah:), rew(iwbh:))
                     end associate
                 case default
                     ! Solve system
@@ -393,12 +390,12 @@ contains
                         )
                         select case (mp)
                             case (0)
-                                call self%cblktri_lower_routine(nl, an, cn, m, am, bm, cm, &
+                                call util%cblktri_lower_routine(nl, an, cn, m, am, bm, cm, &
                                     idimy, y, rew, cxw, &
                                     cxw(iw1), cxw(iw2), cxw(iw3), cxw(iwd), cxw(iww), &
                                     cxw(iwu), procp, cprocp)
                             case default
-                                call self%cblktri_lower_routine(nl, an, cn, m, am, bm, cm, &
+                                call util%cblktri_lower_routine(nl, an, cn, m, am, bm, cm, &
                                     idimy, y, rew, cxw, &
                                     cxw(iw1), cxw(iw2), cxw(iw3), cxw(iwd), cxw(iww), &
                                     cxw(iwu), proc, cproc)
@@ -426,7 +423,7 @@ contains
         w1, w2, w3, wd, ww, wu, prdct, cprdct)
 
         ! Dummy arguments
-        class(CbltriAux), intent(inout) :: self
+        class(ComplexGeneralizedCyclicReductionUtility), intent(inout) :: self
         integer(ip),      intent(in)    :: n
         integer(ip),      intent(in)    :: m
         integer(ip),      intent(in)    :: idimy
@@ -471,9 +468,9 @@ contains
                 i3 = i2 + i1
                 i4 = i2 + i2
                 irm1 = ir - 1
-                call self%compute_index_b_coeff(i2, ir, im2, nm2)
-                call self%compute_index_b_coeff(i1, irm1, im3, nm3)
-                call self%compute_index_b_coeff(i3, irm1, im1, nm1)
+                call self%cblktri_compute_index_b_coeff(i2, ir, im2, nm2)
+                call self%cblktri_compute_index_b_coeff(i1, irm1, im3, nm3)
+                call self%cblktri_compute_index_b_coeff(i3, irm1, im1, nm1)
                 call prdct(nm2, b(im2), nm3, b(im3), nm1, b(im1), 0, dummy_variable, &
                     y(1,i2), w3, m, am, bm, cm, wd, ww, wu)
                 iif = 2**k
@@ -482,13 +479,13 @@ contains
                     ipi1 = i + i1
                     ipi2 = i + i2
                     ipi3 = i + i3
-                    call self%compute_index_c_coeff(i, ir, idxc, nc)
+                    call self%cblktri_compute_index_c_coeff(i, ir, idxc, nc)
                     if (iif <= i) cycle
-                    call self%compute_index_a_coeff(i, ir, idxa, na)
-                    call self%compute_index_b_coeff(i - i1, irm1, im1, nm1)
-                    call self%compute_index_b_coeff(ipi2, ir, ip2, np2)
-                    call self%compute_index_b_coeff(ipi1, irm1, ip1, np1)
-                    call self%compute_index_b_coeff(ipi3, irm1, ip3, np3)
+                    call self%cblktri_compute_index_a_coeff(i, ir, idxa, na)
+                    call self%cblktri_compute_index_b_coeff(i - i1, irm1, im1, nm1)
+                    call self%cblktri_compute_index_b_coeff(ipi2, ir, ip2, np2)
+                    call self%cblktri_compute_index_b_coeff(ipi1, irm1, ip1, np1)
+                    call self%cblktri_compute_index_b_coeff(ipi3, irm1, ip3, np3)
                     call prdct(nm1, b(im1), 0, dummy_variable, 0, dummy_variable, na, an(idxa), w3, &
                         w1, m, am, bm, cm, wd, ww, wu)
                     if (ipi2 > nm) then
@@ -508,9 +505,9 @@ contains
                 iif = 2**k
                 i = iif/2
                 i1 = i/2
-                call self%compute_index_b_coeff(i - i1, k - 2, im1, nm1)
-                call self%compute_index_b_coeff(i + i1, k - 2, ip1, np1)
-                call self%compute_index_b_coeff(i, k - 1, iz, nz)
+                call self%cblktri_compute_index_b_coeff(i - i1, k - 2, im1, nm1)
+                call self%cblktri_compute_index_b_coeff(i + i1, k - 2, ip1, np1)
+                call self%cblktri_compute_index_b_coeff(i, k - 1, iz, nz)
                 call prdct(nz, b(iz), nm1, b(im1), np1, b(ip1), 0, dummy_variable, &
                     y(1, i), w1, m, am, bm, cm, wd, ww, wu)
 
@@ -523,10 +520,10 @@ contains
                     i2 = 2**ir
                     i1 = i2/2
                     i = i2
-                    call self%compute_index_c_coeff(i, ir, idxc, nc)
-                    call self%compute_index_b_coeff(i, ir, iz, nz)
-                    call self%compute_index_b_coeff(i - i1, ir - 1, im1, nm1)
-                    call self%compute_index_b_coeff(i + i1, ir - 1, ip1, np1)
+                    call self%cblktri_compute_index_c_coeff(i, ir, idxc, nc)
+                    call self%cblktri_compute_index_b_coeff(i, ir, iz, nz)
+                    call self%cblktri_compute_index_b_coeff(i - i1, ir - 1, im1, nm1)
+                    call self%cblktri_compute_index_b_coeff(i + i1, ir - 1, ip1, np1)
                     call prdct(np1, b(ip1), 0, dummy_variable, 0, dummy_variable, nc, cn(idxc), w1, &
                         w1, m, am, bm, cm, wd, ww, wu)
                     w1(:m) = y(:m, i) + w1(:m)
@@ -547,10 +544,10 @@ contains
 
                         if (i > nm) cycle loop_118
 
-                        call self%compute_index_a_coeff(i, ir, idxa, na)
-                        call self%compute_index_b_coeff(i, ir, iz, nz)
-                        call self%compute_index_b_coeff(i - i1, ir - 1, im1, nm1)
-                        call self%compute_index_b_coeff(i + i1, ir - 1, ip1, np1)
+                        call self%cblktri_compute_index_a_coeff(i, ir, idxa, na)
+                        call self%cblktri_compute_index_b_coeff(i, ir, iz, nz)
+                        call self%cblktri_compute_index_b_coeff(i - i1, ir - 1, im1, nm1)
+                        call self%cblktri_compute_index_b_coeff(i + i1, ir - 1, ip1, np1)
                         call prdct(nm1, b(im1), 0, dummy_variable, 0, dummy_variable, na, an(idxa), w2 &
                             , w2, m, am, bm, cm, wd, ww, wu)
                         w2(:m) = y(:m, i) + w2(:m)
@@ -563,8 +560,8 @@ contains
 
                 y(:m, nm+1) = y(:m, nm+1) - cn(nm+1)*w1(:m) - an(nm+1)*w2(:m)
 
-                call self%compute_index_b_coeff(iif/2, k - 1, im1, nm1)
-                call self%compute_index_b_coeff(iif, k - 1, iip, np)
+                call self%cblktri_compute_index_b_coeff(iif/2, k - 1, im1, nm1)
+                call self%cblktri_compute_index_b_coeff(iif, k - 1, iip, np)
 
                 select case (ncmplx)
                     case (0)
@@ -586,10 +583,10 @@ contains
                     i4 = i2 + i2
                     i1 = i2/2
                     i = i4
-                    call self%compute_index_a_coeff(i, ir, idxa, na)
-                    call self%compute_index_b_coeff(i - i2, ir, im2, nm2)
-                    call self%compute_index_b_coeff(i - i2 - i1, ir - 1, im3, nm3)
-                    call self%compute_index_b_coeff(i - i1, ir - 1, im1, nm1)
+                    call self%cblktri_compute_index_a_coeff(i, ir, idxa, na)
+                    call self%cblktri_compute_index_b_coeff(i - i2, ir, im2, nm2)
+                    call self%cblktri_compute_index_b_coeff(i - i2 - i1, ir - 1, im3, nm3)
+                    call self%cblktri_compute_index_b_coeff(i - i1, ir - 1, im1, nm1)
                     call prdct(nm2, b(im2), nm3, b(im3), nm1, b(im1), 0, dummy_variable, &
                         w1, w1, m, am, bm, cm, wd, ww, wu)
                     call prdct(nm1, b(im1), 0, dummy_variable, 0, dummy_variable, na, an(idxa), w1, &
@@ -615,10 +612,10 @@ contains
                             cycle  loop_131
                         end if
 
-                        call self%compute_index_c_coeff(i, ir, idxc, nc)
-                        call self%compute_index_b_coeff(ipi2, ir, ip2, np2)
-                        call self%compute_index_b_coeff(ipi1, irm1, ip1, np1)
-                        call self%compute_index_b_coeff(ipi3, irm1, ip3, np3)
+                        call self%cblktri_compute_index_c_coeff(i, ir, idxc, nc)
+                        call self%cblktri_compute_index_b_coeff(ipi2, ir, ip2, np2)
+                        call self%cblktri_compute_index_b_coeff(ipi1, irm1, ip1, np1)
+                        call self%cblktri_compute_index_b_coeff(ipi3, irm1, ip3, np3)
                         call prdct(np2, b(ip2), np1, b(ip1), np3, b(ip3), 0, dummy_variable, &
                             w2, w2, m, am, bm, cm, wd, ww, wu)
                         call prdct(np1, b(ip1), 0, dummy_variable, 0, dummy_variable, nc, cn(idxc), w2, &
@@ -645,11 +642,11 @@ contains
                     imi2 = i - i2
                     ipi1 = i + i1
                     ipi2 = i + i2
-                    call self%compute_index_a_coeff(i, ir, idxa, na)
-                    call self%compute_index_c_coeff(i, ir, idxc, nc)
-                    call self%compute_index_b_coeff(i, ir, iz, nz)
-                    call self%compute_index_b_coeff(imi1, irm1, im1, nm1)
-                    call self%compute_index_b_coeff(ipi1, irm1, ip1, np1)
+                    call self%cblktri_compute_index_a_coeff(i, ir, idxa, na)
+                    call self%cblktri_compute_index_c_coeff(i, ir, idxc, nc)
+                    call self%cblktri_compute_index_b_coeff(i, ir, iz, nz)
+                    call self%cblktri_compute_index_b_coeff(imi1, irm1, im1, nm1)
+                    call self%cblktri_compute_index_b_coeff(ipi1, irm1, ip1, np1)
 
                     if (i <= i2) then
                         w1(:m) = ZERO
@@ -674,11 +671,11 @@ contains
 
     end subroutine cblktri_lower_routine
 
-    function cbsrh(self, xll, xrr, iz, c, a, bh, f, sgn) &
+    function cblktri_bsrh(self, xll, xrr, iz, c, a, bh, f, sgn) &
         result(return_value)
 
         ! Dummy arguments
-        class(CbltriAux), intent(inout) :: self
+        class(ComplexGeneralizedCyclicReductionUtility), intent(inout) :: self
         integer(ip)                     :: iz
         real(wp),         intent(in)    :: xll
         real(wp),         intent(in)    :: xrr
@@ -739,19 +736,19 @@ contains
 
         end associate common_variables
 
-    end function cbsrh
+    end function cblktri_bsrh
 
     ! Purpose:
     !
     ! Computes the roots of the b polynomials using subroutine
-    ! ctevls which is a modification the eispack program tqlrat.
-    ! ierror is set to 4 if either ctevls fails or if a(j+1)*c(j) is
+    ! cblktri_tevls which is a modification the eispack program tqlrat.
+    ! ierror is set to 4 if either cblktri_tevls fails or if a(j+1)*c(j) is
     ! less than zero for some j.  ah, bh are temporary work arrays.
     !
-    subroutine compute_roots_of_b_polynomials(self, ierror, an, bn, cn, b, bc, ah, bh)
+    subroutine cblktri_compute_roots_of_b_polynomials(self, ierror, an, bn, cn, b, bc, ah, bh)
 
         ! Dummy arguments
-        class(CbltriAux), intent(inout) :: self
+        class(ComplexGeneralizedCyclicReductionUtility), intent(inout) :: self
         integer(ip),      intent(out)   :: ierror
         real(wp),         intent(in)    :: an(:)
         real(wp),         intent(in)    :: bn(:)
@@ -802,7 +799,7 @@ contains
 
                 do i = i4, ifd, i4
 
-                    call self%compute_index_b_coeff(i, l, ib, nb)
+                    call self%cblktri_compute_index_b_coeff(i, l, ib, nb)
 
                     if (nb <= 0) cycle outer_loop
 
@@ -812,7 +809,7 @@ contains
                     bh(:jf-js+1) = bn(js:jf)
                     ah(:jf-js+1) = b(js:jf)
 
-                    call self%ctevls(bh(1:nb), ah(1:nb), ierror)
+                    call self%cblktri_tevls(bh(1:nb), ah(1:nb), ierror)
 
                     if (ierror /= 0) then
                         ierror = 4
@@ -848,15 +845,15 @@ contains
                     ah(j) = -bn(l1)
                 end do
 
-                call self%ctevls(ah(1:nb), bh(1:nb), ierror)
+                call self%cblktri_tevls(ah(1:nb), bh(1:nb), ierror)
 
                 if (ierror /= 0) then
                     ierror = 4
                     return
                 end if
 
-                call self%compute_index_b_coeff(iif, k - 1, j2, lh)
-                call self%compute_index_b_coeff(iif/2, k - 1, j1, lh)
+                call self%cblktri_compute_index_b_coeff(iif, k - 1, j2, lh)
+                call self%cblktri_compute_index_b_coeff(iif/2, k - 1, j1, lh)
 
                 j2 = j2 + 1
                 lh = j2
@@ -883,7 +880,7 @@ contains
 
                 b(lh) = b(n2m2+1)
 
-                call self%compute_index_b_coeff(iif, k - 1, j1, j2)
+                call self%cblktri_compute_index_b_coeff(iif, k - 1, j1, j2)
 
                 j2 = j1 + nmp + nmp
 
@@ -899,7 +896,7 @@ contains
                     bh_arg(1:) => b(j2:)
 
                     ! Call solver
-                    call self%compute_eigenvalues(nm + 1, ierror, an, cn, cbp_arg, bp_arg, bh_arg)
+                    call self%cblktri_compute_eigenvalues(nm + 1, ierror, an, cn, cbp_arg, bp_arg, bh_arg)
 
                     ! Terminate association
                     nullify(bh_arg)
@@ -908,7 +905,7 @@ contains
 
         end associate common_variables
 
-    end subroutine compute_roots_of_b_polynomials
+    end subroutine cblktri_compute_roots_of_b_polynomials
 
     ! Purpose:
     !
@@ -1190,10 +1187,10 @@ contains
 
     end subroutine cprocp
 
-    subroutine compute_index_a_coeff(self, i, ir, idxa, na)
+    subroutine cblktri_compute_index_a_coeff(self, i, ir, idxa, na)
 
         ! Dummy arguments
-        class(CbltriAux), intent(inout) :: self
+        class(ComplexGeneralizedCyclicReductionUtility), intent(inout) :: self
         integer(ip),      intent(in)    :: i
         integer(ip),      intent(in)    :: ir
         integer(ip),      intent(out)   :: idxa
@@ -1205,12 +1202,12 @@ contains
             if (i > nm) na = 0
         end associate
 
-    end subroutine compute_index_a_coeff
+    end subroutine cblktri_compute_index_a_coeff
 
-    subroutine compute_index_b_coeff(self, i, ir, idx, idp)
+    subroutine cblktri_compute_index_b_coeff(self, i, ir, idx, idp)
 
         ! Dummy arguments
-        class(CbltriAux), intent(inout) :: self
+        class(ComplexGeneralizedCyclicReductionUtility), intent(inout) :: self
         integer(ip), intent(in) :: i
         integer(ip), intent(in) :: ir
         integer(ip), intent(out) :: idx
@@ -1256,12 +1253,12 @@ contains
 
         end associate common_variables
 
-    end subroutine compute_index_b_coeff
+    end subroutine cblktri_compute_index_b_coeff
 
-    subroutine compute_index_c_coeff(self, i, ir, idxc, nc)
+    subroutine cblktri_compute_index_c_coeff(self, i, ir, idxc, nc)
 
         ! Dummy arguments
-        class(CbltriAux), intent(inout) :: self
+        class(ComplexGeneralizedCyclicReductionUtility), intent(inout) :: self
         integer(ip),      intent(in)    :: i
         integer(ip),      intent(in)    :: ir
         integer(ip),      intent(out)   :: idxc
@@ -1273,7 +1270,7 @@ contains
             if (idxc + nc - 1 > nm) nc = 0
         end associate
 
-    end subroutine compute_index_c_coeff
+    end subroutine cblktri_compute_index_c_coeff
 
     ! Purpose:
     !
@@ -1285,10 +1282,10 @@ contains
     ! cbp is the same as bp except type complex
     ! bh is used to temporarily store the roots of the b hat polynomial
     ! which enters through bp
-    subroutine compute_eigenvalues(self, n, ierror, a, c, cbp, bp, bh)
+    subroutine cblktri_compute_eigenvalues(self, n, ierror, a, c, cbp, bp, bh)
 
         ! Dummy arguments
-        class(CbltriAux), intent(inout) :: self
+        class(ComplexGeneralizedCyclicReductionUtility), intent(inout) :: self
         integer(ip),      intent(in)    :: n
         integer(ip),      intent(out)   :: ierror
         real(wp),         intent(in)    :: a(:)
@@ -1345,7 +1342,7 @@ contains
                         r4 = psgf(xl, iz, c, a, bh)
                     end do
                     sgn = -ONE
-                    temp = self%cbsrh(xl, bh(1), iz, c, a, bh, psgf, sgn)
+                    temp = self%cblktri_bsrh(xl, bh(1), iz, c, a, bh, psgf, sgn)
                     cbp(1) = cmplx(temp, ZERO, kind=wp)
                     iis = 2
                 end block block_110
@@ -1366,7 +1363,7 @@ contains
                         r5 = psgf(xr, iz, c, a, bh)
                     end do
                     sgn = ONE
-                    temp = self%cbsrh(bh(iz), xr, iz, c, a, bh, psgf, sgn)
+                    temp = self%cblktri_bsrh(bh(iz), xr, iz, c, a, bh, psgf, sgn)
                     cbp(iz) = cmplx(temp, ZERO, kind=wp)
                     iif = iz - 2
                 end block block_115
@@ -1375,7 +1372,7 @@ contains
                     xl = bh(ig)
                     xr = bh(ig+1)
                     sgn = -1.
-                    xm = self%cbsrh(xl, xr, iz, c, a, bh, ppspf, sgn)
+                    xm = self%cblktri_bsrh(xl, xr, iz, c, a, bh, ppspf, sgn)
                     psg = psgf(xm, iz, c, a, bh)
 
                     if_block: block
@@ -1384,9 +1381,9 @@ contains
                             if (r6 > ZERO) exit if_block
                             if (r6 /= ZERO) then
                                 sgn = ONE
-                                cbp(ig) = cmplx(self%cbsrh(bh(ig), xm, iz, c, a, bh, psgf, sgn), ZERO, kind=wp)
+                                cbp(ig) = cmplx(self%cblktri_bsrh(bh(ig), xm, iz, c, a, bh, psgf, sgn), ZERO, kind=wp)
                                 sgn = -ONE
-                                cbp(ig+1) = cmplx(self%cbsrh(xm, bh(ig+1), iz, c, a, bh, psgf, sgn), ZERO, kind=wp)
+                                cbp(ig+1) = cmplx(self%cblktri_bsrh(xm, bh(ig+1), iz, c, a, bh, psgf, sgn), ZERO, kind=wp)
                                 cycle main_loop
 
                             !     case of a multiple zero
@@ -1495,7 +1492,7 @@ contains
 
         end associate common_variables
 
-    end subroutine compute_eigenvalues
+    end subroutine cblktri_compute_eigenvalues
 
     ! Purpose:
     !
@@ -1810,10 +1807,10 @@ contains
     !     the relative precision of floating point arithmetic.
     !
     !
-    subroutine ctevls(self, diagonal, subdiagonal, error_flag)
+    subroutine cblktri_tevls(self, diagonal, subdiagonal, error_flag)
 
         ! Dummy arguments
-        class(CbltriAux), intent(inout) :: self
+        class(ComplexGeneralizedCyclicReductionUtility), intent(inout) :: self
         real(wp),         intent(inout) :: diagonal(:)
         real(wp),         intent(inout) :: subdiagonal(:)
         integer(ip),      intent(out)   :: error_flag
@@ -1945,6 +1942,6 @@ contains
             end if
         end associate
 
-    end subroutine ctevls
+    end subroutine cblktri_tevls
 
 end module complex_block_tridiagonal_linear_systems_solver

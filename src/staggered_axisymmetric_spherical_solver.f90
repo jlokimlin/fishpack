@@ -438,7 +438,7 @@
 !
 ! PRECISION              64-bit double precision
 !
-! REQUIRED LIBRARY       type_FishpackWorkspace.f90, blktri.f90, type_ComfAux.f90
+! REQUIRED LIBRARY       type_FishpackWorkspace.f90, blktri.f90
 ! FILES
 !
 ! HISTORY                * Written by Roland Sweet at NCAR in 1977.
@@ -728,7 +728,7 @@ contains
         !-----------------------------------------------
         integer(ip)     :: i, j, isw, nb
         real(wp)        :: dth, dthsq, dr, x, y, a2, a1, a3
-        type(BlktriAux) :: aux
+        type(GeneralizedCyclicReductionUtility) :: aux
         !-----------------------------------------------
 
         dth = (b - a)/m

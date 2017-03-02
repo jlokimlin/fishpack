@@ -711,7 +711,7 @@ contains
         real(wp)              :: rs2, rf2, rsq, xp, yph, xps
         real(wp), parameter   :: FOUR = 4.0_wp
         real(wp), parameter   :: SIX = 6.0_wp
-        type(BlktriAux)       :: blktri_aux
+        type(GeneralizedCyclicReductionUtility)       :: blktri_aux
 
 
         mp1 = m + 1

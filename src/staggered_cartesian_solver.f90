@@ -261,7 +261,7 @@
 !
 ! PRECISION              64-bit double precision
 !
-! REQUIRED LIBRARY       type_FishpackWorkspace.f90, type_ComfAux.f90, genbun.f90, type_GenbunAux.f9090, poistg.f90
+! REQUIRED LIBRARY       type_FishpackWorkspace.f90, genbun.f90, type_CyclicReductionUtility.f9090, poistg.f90
 ! FILES
 !
 ! LANGUAGE               Fortran

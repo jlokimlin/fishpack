@@ -18,24 +18,17 @@ type_FishpackWorkspace.f90
 	$(FC) $(FFLAGS) -c type_FishpackWorkspace.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
-type_ComfAux.o: \
-fishpack_precision.o \
-type_ComfAux.f90
-	$(FC) $(FFLAGS) -c type_ComfAux.f90 $(LINKS) \
-	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
-
-type_BlktriAux.o: \
+type_GeneralizedCyclicReductionUtility.o: \
 fishpack_precision.o \
 type_FishpackWorkspace.o \
-type_ComfAux.o \
-type_BlktriAux.f90
-	$(FC) $(FFLAGS) -c type_BlktriAux.f90 $(LINKS) \
+type_GeneralizedCyclicReductionUtility.f90
+	$(FC) $(FFLAGS) -c type_GeneralizedCyclicReductionUtility.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 real_block_tridiagonal_linear_systems_solver.o: \
 fishpack_precision.o \
 type_FishpackWorkspace.o \
-type_BlktriAux.o \
+type_GeneralizedCyclicReductionUtility.o \
 real_block_tridiagonal_linear_systems_solver.f90
 	$(FC) $(FFLAGS) -c real_block_tridiagonal_linear_systems_solver.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
@@ -43,7 +36,7 @@ real_block_tridiagonal_linear_systems_solver.f90
 complex_block_tridiagonal_linear_systems_solver.o: \
 fishpack_precision.o \
 type_FishpackWorkspace.o \
-type_ComfAux.o \
+type_GeneralizedCyclicReductionUtility.o \
 complex_block_tridiagonal_linear_systems_solver.f90
 	$(FC) $(FFLAGS) -c complex_block_tridiagonal_linear_systems_solver.f90 $(LINKS) \
 	-o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
@@ -108,7 +101,7 @@ fishpack_precision.o \
 type_FishpackWorkspace.o \
 genbun.o \
 poistg.o \
-type_BlktriAux.o \
+type_GeneralizedCyclicReductionUtility.o \
 staggered_helmholtz_solvers.f90
 	$(FC) $(FFLAGS) -c staggered_helmholtz_solvers.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
@@ -148,7 +141,7 @@ fishpack_precision.o \
 type_FishpackWorkspace.o \
 genbun.o \
 poistg.o \
-type_BlktriAux.o \
+type_GeneralizedCyclicReductionUtility.o \
 centered_helmholtz_solvers.f90
 	$(FC) $(FFLAGS) -c centered_helmholtz_solvers.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
@@ -192,7 +185,7 @@ type_SepAux.f90
 sepeli.o: \
 fishpack_precision.o \
 type_FishpackWorkspace.o\
-type_BlktriAux.o \
+type_GeneralizedCyclicReductionUtility.o \
 type_SepAux.o \
 sepeli.f90
 	$(FC) $(FFLAGS) -c sepeli.f90 $(LINKS) \

@@ -350,7 +350,7 @@
 !
 ! PRECISION              64-bit double precision
 !
-! REQUIRED files         type_FishpackWorkspace.f90, genbun.f90, type_GenbunAux.f9090, type_ComfAux.f90
+! REQUIRED files         type_FishpackWorkspace.f90, genbun.f90, type_CyclicReductionUtility.f9090
 !
 ! HISTORY                * Written by Roland Sweet at NCAR in the late
 !                          1970's.  released on NCAR's public software

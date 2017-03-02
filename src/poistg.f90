@@ -140,7 +140,7 @@
 !
 ! PRECISION              64-bit precision float and 32-bit precision integer
 !
-! REQUIRED FILES         type_FishpackWorkspace.f90, type_GenbunAux.f9090, type_ComfAux.f90
+! REQUIRED FILES         type_FishpackWorkspace.f90, type_CyclicReductionUtility.f9090
 !
 ! STANDARD               Fortran 2008
 !
@@ -219,8 +219,8 @@ module module_poistg
     use type_FishpackWorkspace, only: &
         FishpackWorkspace
 
-    use type_GenbunAux, only: &
-        GenbunAux
+    use type_CyclicReductionUtility, only: &
+        CyclicReductionUtility
 
     ! Explicit typing only
     implicit none
@@ -552,7 +552,7 @@ contains
         integer(ip)     :: j, ijump, jp1, jp2, jp3
         integer(ip)     :: jm1, jm2, jm3, i, nrodpr, ii, nlastp, jstep
         real(wp)        :: fnum, fnum2, fi, t
-        type(GenbunAux) :: genbun_aux
+        type(CyclicReductionUtility) :: genbun_aux
         !-----------------------------------------------
 
         associate( &
@@ -607,7 +607,7 @@ contains
                             jm3 = jm2 - i2rby2
 
                             if (j == 1) then
-                                call genbun_aux%cosgen(i2r, 1, fnum, HALF, tcos)
+                                call genbun_aux%generate_cosines(i2r, 1, fnum, HALF, tcos)
                                 select case (i2r)
                                     case (1)
                                         b(:mr) = q(:mr, 1)
@@ -620,7 +620,7 @@ contains
                             else
                                 if (ijump == 1) then
                                     ijump = 2
-                                    call genbun_aux%cosgen(i2r, 1, HALF, ZERO, tcos)
+                                    call genbun_aux%generate_cosines(i2r, 1, HALF, ZERO, tcos)
                                 end if
 
                                 select case (i2r)
@@ -636,7 +636,7 @@ contains
                                 end select
                             end if
 
-                            call genbun_aux%trix(i2r, 0, mr, a, bb, c, b, tcos, d, w)
+                            call genbun_aux%solve_tridiag(i2r, 0, mr, a, bb, c, b, tcos, d, w)
 
                             q(:mr, j) = q(:mr, j) + b(:mr)
                             !
@@ -673,12 +673,12 @@ contains
                                         q(:mr, j) = q(:mr, j) - q(:mr, jm1) + q(:mr, jm2)
                                 end select
 
-                                if (lr /= 0) call genbun_aux%cosgen(lr, 1, fnum2, HALF, tcos(kr+1:))
+                                if (lr /= 0) call genbun_aux%generate_cosines(lr, 1, fnum2, HALF, tcos(kr+1:))
 
                         end select
 
-                        call genbun_aux%cosgen(kr, 1, fnum2, HALF, tcos)
-                        call genbun_aux%trix(kr, lr, mr, a, bb, c, b, tcos, d, w)
+                        call genbun_aux%generate_cosines(kr, 1, fnum2, HALF, tcos)
+                        call genbun_aux%solve_tridiag(kr, lr, mr, a, bb, c, b, tcos, d, w)
 
                         q(:mr, j) = q(:mr, j) + b(:mr)
                         kr = kr + i2r
@@ -691,7 +691,7 @@ contains
                                 b(:mr) = q(:mr, j)
                                 tcos(1) = ZERO
 
-                                call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
+                                call genbun_aux%solve_tridiag(1, 0, mr, a, bb, c, b, tcos, d, w)
 
                                 ipp = 0
                                 ipstor = mr
@@ -700,7 +700,7 @@ contains
                                 tcos(1) = -ONE + TWO*real(np/2, kind=wp)
                                 tcos(2) = ZERO
 
-                                call genbun_aux%trix(1, 1, mr, a, bb, c, b, tcos, d, w)
+                                call genbun_aux%solve_tridiag(1, 1, mr, a, bb, c, b, tcos, d, w)
 
                                 q(:mr, j) = q(:mr, jm2) + p(:mr) + b(:mr)
 
@@ -715,8 +715,8 @@ contains
                                         b(:mr) = b(:mr) + q(:mr, jp2) - q(:mr, jp1)
                                 end select
 
-                                call genbun_aux%cosgen(i2r, 1, HALF, ZERO, tcos)
-                                call genbun_aux%trix(i2r, 0, mr, a, bb, c, b, tcos, d, w)
+                                call genbun_aux%generate_cosines(i2r, 1, HALF, ZERO, tcos)
+                                call genbun_aux%solve_tridiag(i2r, 0, mr, a, bb, c, b, tcos, d, w)
 
                                 ipp = ipp + mr
                                 ipstor = max(ipstor, ipp + mr)
@@ -724,8 +724,8 @@ contains
                                 b(:mr) = p(ipp+1:mr+ipp) + q(:mr, jp2)
 
                                 if (lr /= 0) then
-                                    call genbun_aux%cosgen(lr, 1, fnum2, HALF, tcos(i2r+1:))
-                                    call genbun_aux%merger(tcos, 0, i2r, i2r, lr, kr)
+                                    call genbun_aux%generate_cosines(lr, 1, fnum2, HALF, tcos(i2r+1:))
+                                    call genbun_aux%merge_cosines(tcos, 0, i2r, i2r, lr, kr)
                                 else
                                     do i = 1, i2r
                                         ii = kr + i
@@ -733,8 +733,8 @@ contains
                                     end do
                                 end if
 
-                                call genbun_aux%cosgen(kr, 1, fnum2, HALF, tcos)
-                                call genbun_aux%trix(kr, kr, mr, a, bb, c, b, tcos, d, w)
+                                call genbun_aux%generate_cosines(kr, 1, fnum2, HALF, tcos)
+                                call genbun_aux%solve_tridiag(kr, kr, mr, a, bb, c, b, tcos, d, w)
 
                                 q(:mr, j) = q(:mr, jm2) + p(ipp+1:mr+ipp) + b(:mr)
 
@@ -792,7 +792,7 @@ contains
                                     b2(:mr) = q(:mr, 3)
                                     b3(:mr) = q(:mr, 1)
 
-                                    call genbun_aux%cosgen(3, 1, HALF, ZERO, tcos)
+                                    call genbun_aux%generate_cosines(3, 1, HALF, ZERO, tcos)
 
                                     tcos(4) = -ONE
                                     tcos(5) = ONE
@@ -806,20 +806,20 @@ contains
                             end select
 
 
-                            call genbun_aux%tri3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
+                            call genbun_aux%solve_tridiag3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
 
                             b(:mr) = b(:mr) + b2(:mr) + b3(:mr)
 
                             if (np == 3) then
                                 tcos(1) = TWO
-                                call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
+                                call genbun_aux%solve_tridiag(1, 0, mr, a, bb, c, b, tcos, d, w)
                             end if
 
                             q(:mr, 2) = b(:mr)
                             b(:mr) = q(:mr, 1) + b(:mr)
                             tcos(1) = -ONE + 4.0_wp*fnum
 
-                            call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
+                            call genbun_aux%solve_tridiag(1, 0, mr, a, bb, c, b, tcos, d, w)
 
                             q(:mr, 1) = b(:mr)
                             jr = 1
@@ -839,19 +839,19 @@ contains
                                 k1 = nlast - 1
                                 k2 = nlast + jr - 1
 
-                                call genbun_aux%cosgen(jr - 1, 1, ZERO, ONE, tcos(nlast:))
+                                call genbun_aux%generate_cosines(jr - 1, 1, ZERO, ONE, tcos(nlast:))
 
                                 tcos(k2) = TWO*real(np - 2, kind=wp)
 
-                                call genbun_aux%cosgen(jr, 1, HALF - fnum, HALF, tcos(k2+1:))
+                                call genbun_aux%generate_cosines(jr, 1, HALF - fnum, HALF, tcos(k2+1:))
 
                                 k3 = (3 - np)/2
 
-                                call genbun_aux%merger(tcos, k1, jr - k3, k2 - k3, jr + k3, 0)
+                                call genbun_aux%merge_cosines(tcos, k1, jr - k3, k2 - k3, jr + k3, 0)
 
                                 k1 = k1 - 1 + k3
 
-                                call genbun_aux%cosgen(jr, 1, fnum, HALF, tcos(k1+1:))
+                                call genbun_aux%generate_cosines(jr, 1, fnum, HALF, tcos(k1+1:))
 
                                 k2 = jr
                                 k3 = 0
@@ -866,35 +866,35 @@ contains
                                 k1 = nlast + jr - 1
                                 k2 = k1 + jr - 1
 
-                                call genbun_aux%cosgen(jr - 1, 1, ZERO, ONE, tcos(k1+1:))
-                                call genbun_aux%cosgen(nlast, 1, HALF, ZERO, tcos(k2+1:))
-                                call genbun_aux%merger(tcos, k1, jr - 1, k2, nlast, 0)
+                                call genbun_aux%generate_cosines(jr - 1, 1, ZERO, ONE, tcos(k1+1:))
+                                call genbun_aux%generate_cosines(nlast, 1, HALF, ZERO, tcos(k2+1:))
+                                call genbun_aux%merge_cosines(tcos, k1, jr - 1, k2, nlast, 0)
 
                                 k3 = k1 + nlast - 1
                                 k4 = k3 + jr
 
-                                call genbun_aux%cosgen(jr, 1, HALF, HALF, tcos(k3+1:))
-                                call genbun_aux%cosgen(jr, 1, ZERO, HALF, tcos(k4+1:))
-                                call genbun_aux%merger(tcos, k3, jr, k4, jr, k1)
+                                call genbun_aux%generate_cosines(jr, 1, HALF, HALF, tcos(k3+1:))
+                                call genbun_aux%generate_cosines(jr, 1, ZERO, HALF, tcos(k4+1:))
+                                call genbun_aux%merge_cosines(tcos, k3, jr, k4, jr, k1)
 
                                 k2 = nlast - 1
                                 k3 = jr
                                 k4 = jr
                         end select
 
-                        call genbun_aux%tri3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
+                        call genbun_aux%solve_tridiag3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
                         b(:mr) = b(:mr) + b2(:mr) + b3(:mr)
 
                         if (np == 3) then
                             tcos(1) = TWO
-                            call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
+                            call genbun_aux%solve_tridiag(1, 0, mr, a, bb, c, b, tcos, d, w)
                         end if
 
                         q(:mr, j) = b(:mr) + HALF * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
                         b(:mr) = q(:mr, j) + q(:mr, 1)
 
-                        call genbun_aux%cosgen(jr, 1, fnum, HALF, tcos)
-                        call genbun_aux%trix(jr, 0, mr, a, bb, c, b, tcos, d, w)
+                        call genbun_aux%generate_cosines(jr, 1, fnum, HALF, tcos)
+                        call genbun_aux%solve_tridiag(jr, 0, mr, a, bb, c, b, tcos, d, w)
 
                         q(:mr, 1) = q(:mr, 1) - q(:mr, jm1) + b(:mr)
 
@@ -920,61 +920,61 @@ contains
 
                     k1 = kr + 2*jr
 
-                    call genbun_aux%cosgen(jr - 1, 1, ZERO, ONE, tcos(k1+1:))
+                    call genbun_aux%generate_cosines(jr - 1, 1, ZERO, ONE, tcos(k1+1:))
 
                     k2 = k1 + jr
                     tcos(k2) = TWO*real(np - 2, kind=wp)
                     k4 = (np - 1)*(3 - np)
                     k3 = k2 + 1 - k4
 
-                    !cosgen(n, ijump, fnum, fden, a)
+                    !generate_cosines(n, ijump, fnum, fden, a)
                     associate( &
                         n_arg => kr+jr+k4, &
                         fnum_arg => real(k4, kind=wp)/2, &
                         fden_arg => ONE-real(k4, kind=wp) &
                         )
-                        call genbun_aux%cosgen(n_arg, 1, fnum_arg , fden_arg, tcos(k3:))
+                        call genbun_aux%generate_cosines(n_arg, 1, fnum_arg , fden_arg, tcos(k3:))
                     end associate
 
                     k4 = 1 - np/3
 
-                    call genbun_aux%merger(tcos, k1, jr - k4, k2 - k4, kr + jr + k4, 0)
+                    call genbun_aux%merge_cosines(tcos, k1, jr - k4, k2 - k4, kr + jr + k4, 0)
 
                     if (np == 3) k1 = k1 - 1
 
                     k2 = kr + jr
                     k4 = k1 + k2
 
-                    call genbun_aux%cosgen(kr, 1, fnum2, HALF, tcos(k4+1:))
+                    call genbun_aux%generate_cosines(kr, 1, fnum2, HALF, tcos(k4+1:))
 
                     k3 = k4 + kr
 
-                    call genbun_aux%cosgen(jr, 1, fnum, HALF, tcos(k3+1:))
-                    call genbun_aux%merger(tcos, k4, kr, k3, jr, k1)
+                    call genbun_aux%generate_cosines(jr, 1, fnum, HALF, tcos(k3+1:))
+                    call genbun_aux%merge_cosines(tcos, k4, kr, k3, jr, k1)
 
                     k4 = k3 + jr
 
-                    call genbun_aux%cosgen(lr, 1, fnum2, HALF, tcos(k4+1:))
-                    call genbun_aux%merger(tcos, k3, jr, k4, lr, k1 + k2)
-                    call genbun_aux%cosgen(kr, 1, fnum2, HALF, tcos(k3+1:))
+                    call genbun_aux%generate_cosines(lr, 1, fnum2, HALF, tcos(k4+1:))
+                    call genbun_aux%merge_cosines(tcos, k3, jr, k4, lr, k1 + k2)
+                    call genbun_aux%generate_cosines(kr, 1, fnum2, HALF, tcos(k3+1:))
 
                     k3 = kr
                     k4 = kr
 
-                    call genbun_aux%tri3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
+                    call genbun_aux%solve_tridiag3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
 
                     b(:mr) = b(:mr) + b2(:mr) + b3(:mr)
 
                     if (np == 3) then
                         tcos(1) = TWO
-                        call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
+                        call genbun_aux%solve_tridiag(1, 0, mr, a, bb, c, b, tcos, d, w)
                     end if
 
                     q(:mr, j) = q(:mr, j) + b(:mr)
                     b(:mr) = q(:mr, 1) + q(:mr, j)
 
-                    call genbun_aux%cosgen(jr, 1, fnum, HALF, tcos)
-                    call genbun_aux%trix(jr, 0, mr, a, bb, c, b, tcos, d, w)
+                    call genbun_aux%generate_cosines(jr, 1, fnum, HALF, tcos)
+                    call genbun_aux%solve_tridiag(jr, 0, mr, a, bb, c, b, tcos, d, w)
 
                     if (jr == 1) then
                         q(:mr, 1) = b(:mr)
@@ -993,40 +993,40 @@ contains
                 k1 = kr + jr
                 k2 = k1 + jr
 
-                call genbun_aux%cosgen(jr - 1, 1, ZERO, ONE, tcos(k1+1:))
+                call genbun_aux%generate_cosines(jr - 1, 1, ZERO, ONE, tcos(k1+1:))
 
                 select case (np)
                     case (1, 3)
                         tcos(k2) = TWO*real(np - 2, kind=wp)
-                        call genbun_aux%cosgen(kr, 1, ZERO, ONE, tcos(k2+1:))
+                        call genbun_aux%generate_cosines(kr, 1, ZERO, ONE, tcos(k2+1:))
                     case (2)
-                        call genbun_aux%cosgen(kr + 1, 1, HALF, ZERO, tcos(k2:))
+                        call genbun_aux%generate_cosines(kr + 1, 1, HALF, ZERO, tcos(k2:))
                 end select
 
                 k4 = 1 - np/3
 
-                call genbun_aux%merger(tcos, k1, jr - k4, k2 - k4, kr + k4, 0)
+                call genbun_aux%merge_cosines(tcos, k1, jr - k4, k2 - k4, kr + k4, 0)
 
                 if (np == 3) k1 = k1 - 1
 
                 k2 = kr
 
-                call genbun_aux%cosgen(kr, 1, fnum2, HALF, tcos(k1+1:))
+                call genbun_aux%generate_cosines(kr, 1, fnum2, HALF, tcos(k1+1:))
 
                 k4 = k1 + kr
 
-                call genbun_aux%cosgen(lr, 1, fnum2, HALF, tcos(k4+1:))
+                call genbun_aux%generate_cosines(lr, 1, fnum2, HALF, tcos(k4+1:))
 
                 k3 = lr
                 k4 = 0
 
-                call genbun_aux%tri3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
+                call genbun_aux%solve_tridiag3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
 
                 b(:mr) = b(:mr) + b2(:mr)
 
                 if (np == 3) then
                     tcos(1) = TWO
-                    call genbun_aux%trix(1, 0, mr, a, bb, c, b, tcos, d, w)
+                    call genbun_aux%solve_tridiag(1, 0, mr, a, bb, c, b, tcos, d, w)
                 end if
 
                 q(:mr, 1) = q(:mr, 1) + b(:mr)
@@ -1051,9 +1051,9 @@ contains
                     end select
                 end if
 
-                call genbun_aux%cosgen(kr, 1, fnum2, HALF, tcos)
-                call genbun_aux%cosgen(lr, 1, fnum2, HALF, tcos(kr+1:))
-                call genbun_aux%trix(kr, lr, mr, a, bb, c, b, tcos, d, w)
+                call genbun_aux%generate_cosines(kr, 1, fnum2, HALF, tcos)
+                call genbun_aux%generate_cosines(lr, 1, fnum2, HALF, tcos(kr+1:))
+                call genbun_aux%solve_tridiag(kr, lr, mr, a, bb, c, b, tcos, d, w)
 
                 q(:mr, nlast) = q(:mr, nlast) + b(:mr)
                 nlastp = nlast
@@ -1082,7 +1082,7 @@ contains
 
                     lr = kr - jr
 
-                    call genbun_aux%cosgen(jr, 1, HALF, ZERO, tcos)
+                    call genbun_aux%generate_cosines(jr, 1, HALF, ZERO, tcos)
 
                     do j = jstart, jstop, jstep
                         jm2 = j - jr
@@ -1102,7 +1102,7 @@ contains
                             q(:mr, j) = HALF * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
                         end if
 
-                        call genbun_aux%trix(jr, 0, mr, a, bb, c, b, tcos, d, w)
+                        call genbun_aux%solve_tridiag(jr, 0, mr, a, bb, c, b, tcos, d, w)
 
                         q(:mr, j) = q(:mr, j) + b(:mr)
                     end do

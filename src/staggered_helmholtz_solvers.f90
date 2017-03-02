@@ -14,8 +14,8 @@ module staggered_helmholtz_solvers
     use module_poistg, only: &
         poistgg
 
-    use type_BlktriAux, only:&
-        BlktriAux
+    use type_GeneralizedCyclicReductionUtility, only:&
+        GeneralizedCyclicReductionUtility
 
     ! Explicit typing only
     implicit none

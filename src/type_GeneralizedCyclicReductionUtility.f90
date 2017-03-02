@@ -31,41 +31,43 @@
 !     *                                                               *
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-module type_BlktriAux
+module type_GeneralizedCyclicReductionUtility
 
     use fishpack_precision, only: &
         wp, & ! Working precision
         ip, & ! Integer precision
         MACHINE_EPSILON ! Machine epsilon
 
-    use type_ComfAux, only: &
-        ComfAux, &
-        psgf, &
-        ppspf, &
-        comf_interface
-
     ! Explicit typing only
     implicit none
 
     ! Everything is private unless stated otherwise
     private
-    public :: BlktriAux
+    public :: GeneralizedCyclicReductionUtility
+    public :: ppsgf
+    public :: ppspf
+    public :: psgf
+    public :: comf_interface
 
     ! Parameters confined to the module
     real(wp),    parameter :: ZERO = 0.0_wp
     real(wp),    parameter :: ONE = 1.0_wp
     real(wp),    parameter :: TWO = 2.0_wp
-    integer(ip), parameter :: IIWK = 6 ! Size of workspace_indices
+    integer(ip), parameter :: SIZE_OF_WORKSPACE_INDICES = 6
 
-    type, public, extends(ComfAux) :: BlktriAux
+    type, public :: GeneralizedCyclicReductionUtility
         ! Type components
-        integer(ip) :: indices(IIWK)
+        integer(ip) :: indices(SIZE_OF_WORKSPACE_INDICES)
         integer(ip) :: nl, npp, k, nm, ncmplx, ik
         real(wp)    :: cnv
     contains
-        ! Type-bound procedures
-        procedure, public, nopass :: check_input_arguments
-        procedure, public  :: blktrii
+        ! Public type-bound procedures
+        procedure,         public :: blktrii
+        procedure, nopass, public :: check_input_arguments
+        procedure, nopass, public :: ppsgf
+        procedure, nopass, public :: ppspf
+        procedure, nopass, public :: psgf
+        ! Private type-bound procedures
         procedure, private :: blktri_lower_routine
         procedure, private :: bsrh
         procedure, private :: compute_roots_of_b_polynomials
@@ -74,11 +76,90 @@ module type_BlktriAux
         procedure, private :: compute_index_a_coeff
         procedure, private :: compute_index_b_coeff
         procedure, private :: compute_index_c_coeff
-    end type BlktriAux
+    end type GeneralizedCyclicReductionUtility
+
+    ! Declare interface
+    interface
+        function comf_interface(x, iz, c, a, bh) &
+            result (return_value)
+            import :: ip, wp
+
+            ! Dummy arguments
+            integer(ip), intent(in) :: iz
+            real(wp),    intent(in) :: x
+            real(wp),    intent(in) :: c(*)
+            real(wp),    intent(in) :: a(*)
+            real(wp),    intent(in) :: bh(*)
+            real(wp)                :: return_value
+        end function comf_interface
+    end interface
 
 contains
 
-    subroutine check_input_arguments(n, m, idimy, ierror)
+    pure function ppsgf(x, iz, c, a, bh) &
+        result (return_value)
+
+        ! Dummy arguments
+        integer(ip),    intent(in)    :: iz
+        real(wp),       intent(in)    :: x
+        real(wp),       intent(in)    :: c(*)
+        real(wp),       intent(in)    :: a(*)
+        real(wp),       intent(in)    :: bh(*)
+        real(wp)                      :: return_value
+
+        return_value = sum(ONE/(x - bh(1:iz))**2)
+
+    end function ppsgf
+
+    pure function ppspf(x, iz, c, a, bh) &
+        result (return_value)
+
+        ! Dummy arguments
+        integer(ip),    intent(in)    :: iz
+        real(wp),       intent(in)    :: x
+        real(wp),       intent(in)    :: c(*)
+        real(wp),       intent(in)    :: a(*)
+        real(wp),       intent(in)    :: bh(*)
+        real(wp)                      :: return_value
+
+        return_value = sum(ONE/(x - bh(1:iz)))
+
+    end function ppspf
+
+    pure function psgf(x, iz, c, a, bh) &
+        result (return_value)
+
+        ! Dummy arguments
+        integer(ip),    intent(in)    :: iz
+        real(wp),       intent(in)    :: x
+        real(wp),       intent(in)    :: c(*)
+        real(wp),       intent(in)    :: a(*)
+        real(wp),       intent(in)    :: bh(*)
+        real(wp)                      :: return_value
+
+        ! Local variables
+        integer(ip) :: j
+        real(wp)    :: fsg, hsg, dd
+
+        fsg = ONE
+        hsg = ONE
+
+        do j = 1, iz
+            dd = ONE/(x - bh(j))
+            fsg = fsg * a(j) * dd
+            hsg = hsg * c(j) * dd
+        end do
+
+        select case (mod(iz,2))
+            case (0)
+                return_value = ONE - fsg - hsg
+            case default
+                return_value = ONE + fsg + hsg
+        end select
+
+    end function psgf
+
+    pure subroutine check_input_arguments(n, m, idimy, ierror)
 
         ! Dummy arguments
         integer(ip), intent(in)  :: n, m, idimy
@@ -86,13 +167,10 @@ contains
 
         if (m < 5) then
             ierror = 1
-            return
         else if (n < 3) then
             ierror = 2
-            return
         else if (idimy < m) then
             ierror = 3
-            return
         else
             ierror = 0
         end if
@@ -103,7 +181,7 @@ contains
         idimy, y, ierror, w, wc)
 
         ! Dummy arguments
-        class(BlktriAux), intent(inout) :: self
+        class(GeneralizedCyclicReductionUtility), intent(inout) :: self
         integer(ip),      intent(in)    :: iflg
         integer(ip),      intent(in)    :: np
         integer(ip),      intent(in)    :: n
@@ -227,7 +305,7 @@ contains
         w1, w2, w3, wd, ww, wu, cw1, cw2, cw3, prdct, cprdct)
 
         ! Dummy arguments
-        class(BlktriAux), intent(inout) :: self
+        class(GeneralizedCyclicReductionUtility), intent(inout) :: self
         integer(ip), intent(in)     :: m
         real(wp),    intent(in)     :: an(:)
         real(wp),    intent(in)     :: cn(:)
@@ -513,7 +591,7 @@ contains
         result (return_value)
 
         ! Dummy arguments
-        class(BlktriAux), intent(inout) :: self
+        class(GeneralizedCyclicReductionUtility), intent(inout) :: self
         real(wp),         intent(in)    :: xll
         real(wp),         intent(in)    :: xrr
         integer(ip),      intent(in)    :: iz
@@ -585,7 +663,7 @@ contains
     subroutine compute_roots_of_b_polynomials(self, n, ierror, an, bn, cn, b, bc, ah, bh)
 
         ! Dummy arguments
-        class(BlktriAux), intent(inout) :: self
+        class(GeneralizedCyclicReductionUtility), intent(inout) :: self
         integer(ip),      intent(in)    :: n
         integer(ip),      intent(out)   :: ierror
         real(wp),         intent(in)    :: an(:)
@@ -1044,7 +1122,7 @@ contains
 
         ! Dummy arguments
 
-        class(BlktriAux), intent(inout) :: self
+        class(GeneralizedCyclicReductionUtility), intent(inout) :: self
         integer(ip),      intent(in)    :: i
         integer(ip),      intent(in)    :: ir
         integer(ip),      intent(out)   :: idxa
@@ -1063,7 +1141,7 @@ contains
 
         ! Dummy arguments
 
-        class(BlktriAux), intent(inout) :: self
+        class(GeneralizedCyclicReductionUtility), intent(inout) :: self
         integer(ip),      intent(in)    :: i
         integer(ip),      intent(in)    :: ir
         integer(ip),      intent(out)   :: idx
@@ -1113,7 +1191,7 @@ contains
 
         ! Dummy arguments
 
-        class(BlktriAux), intent(inout) :: self
+        class(GeneralizedCyclicReductionUtility), intent(inout) :: self
         integer(ip),      intent(in)    :: i
         integer(ip),      intent(in)    :: ir
         integer(ip),      intent(out)   :: idxc
@@ -1142,7 +1220,7 @@ contains
     subroutine compute_eigen_values(self, ierror, a, c, cbp, bp, bh)
 
         ! Dummy arguments
-        class(BlktriAux), intent(inout) :: self
+        class(GeneralizedCyclicReductionUtility), intent(inout) :: self
         integer(ip),      intent(out)   :: ierror
         real(wp),         intent(in)    :: a(:)
         real(wp),         intent(in)    :: c(:)
@@ -1733,7 +1811,7 @@ contains
     subroutine tevls(self, diagonal, subdiagonal, error_flag)
 
         ! Dummy arguments
-        class(BlktriAux), intent(inout) :: self
+        class(GeneralizedCyclicReductionUtility), intent(inout) :: self
         integer(ip),      intent(out)   :: error_flag
         real(wp),         intent(inout) :: diagonal(:)
         real(wp),         intent(inout) :: subdiagonal(:)
@@ -1898,5 +1976,5 @@ contains
 
     end subroutine tevls
 
-end module type_BlktriAux
+end module type_GeneralizedCyclicReductionUtility
 

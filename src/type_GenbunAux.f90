@@ -1,6 +1,4 @@
 !
-!     file type_GenbunAux.f90
-!
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
 !     *                  copyright (c) 2005 by UCAR                   *
@@ -33,87 +31,62 @@
 !     *                                                               *
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-!
-! Package gnbnaux
-!
-! Latest revision        April 2016
-!
 ! Purpose                to provide auxiliary routines for fishpack
 !                        entries genbun and poistg.
 !
 ! Usage                  There are no user entries in this package.
 !                        the routines in this package are not intended
 !                        to be called by users, but rather by routines
-!                        in packages genbun and poistg.
-!
-! Special conditions     None
-!
-! I/O                    None
-!
-! Precision              64-bit double precision
-!
-!
-! Language               Fortran 2008
+!                        in genbun and poistg.
 !
 ! History                * Written in 1979 by Roland Sweet of NCAR'S
 !                        scientific computing division. Made available
 !                        on NCAR's public libraries in January, 1980.
 !                        * Revised by John Adams in June 2004 incorporating
 !                        Fortran 90 features
-!                        * Revised by Jon Lo Kim Lin in 2016 incorporating
-!                        Fortran 2008 features
 !
-! Portability            Fortran 2008
-!
-module type_GenbunAux
+module type_CyclicReductionUtility
 
     use fishpack_precision, only: &
         wp, & ! Working precision
         ip, & ! Integer precision
         PI
 
-    ! Explicit typing only
+        ! Explicit typing only
     implicit none
 
     ! Everything is private unless stated otherwise
     private
-    public :: GenbunAux
-
+    public :: CyclicReductionUtility
     
-    type, public :: GenbunAux
+    type, public :: CyclicReductionUtility
     contains
-        !--------------------------------------------------
-        ! Type-bound procedures
-        !--------------------------------------------------
-        procedure, nopass, public :: cosgen
-        procedure, nopass, public :: merger
-        procedure, nopass, public :: trix
-        procedure, nopass, public :: tri3
+        ! Public type-bound procedures
+        procedure, nopass, public :: generate_cosines
+        procedure, nopass, public :: merge_cosines
+        procedure, nopass, public :: solve_tridiag
+        procedure, nopass, public :: solve_tridiag3
+        ! Private type-bound procedures
         procedure, nopass, private :: swap_real
         procedure, nopass, private :: swap_complex
         procedure, nopass, private :: swap_integer
         procedure, nopass, private :: swap_character
-        !--------------------------------------------------
         ! Generic type-bound procedures
-        !--------------------------------------------------
         generic, public :: swap => swap_real, &
             swap_complex, &
             swap_integer, &
             swap_character
-        !--------------------------------------------------
-    end type GenbunAux
+    end type CyclicReductionUtility
 
-    !---------------------------------------------------------------
     ! Parameters confined to the module
-    !---------------------------------------------------------------
     real(wp), parameter :: ZERO = 0.0_wp
     real(wp), parameter :: ONE = 1.0_wp
     real(wp), parameter :: TWO = 2.0_wp
-    !---------------------------------------------------------------
 
 contains
 
-    pure subroutine cosgen(n, ijump, fnum, fden, a)
+    pure subroutine generate_cosines(n, ijump, fnum, fden, a)
+
         !
         ! Purpose:
         !
@@ -137,20 +110,20 @@ contains
         !                                in poisn2 only.
         !
         !
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip), intent(in)  :: n
         integer(ip), intent(in)  :: ijump
         real(wp),    intent(in)  :: fnum
         real(wp),    intent(in)  :: fden
         real(wp),    intent(out) :: a(:)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip) :: k3, k4, k, k1, k5, i, k2, np1
         real(wp)    :: pibyn, x, y
-        !-----------------------------------------------
+
 
         if (n == 0) return
 
@@ -185,19 +158,18 @@ contains
                 end do
         end select
 
-    end subroutine cosgen
+    end subroutine generate_cosines
 
-    subroutine trix(idegbr, idegcr, m, a, b, c, y, tcos, d, w)
-        !
-        ! Purpose:
-        !
-        !     subroutine to solve a system of linear equations where the
-        !     coefficient matrix is a rational function in the matrix given by
-        !     tridiagonal  ( . . . , a(i), b(i), c(i), . . . ).
-        !
-        !-----------------------------------------------
+    !
+    ! Purpose:
+    !
+    !     subroutine to solve a system of linear equations where the
+    !     coefficient matrix is a rational function in the matrix given by
+    !     tridiagonal  ( . . . , a(i), b(i), c(i), . . . ).
+    !
+    subroutine solve_tridiag(idegbr, idegcr, m, a, b, c, y, tcos, d, w)
+
         ! Dummy arguments
-        !-----------------------------------------------
         integer(ip), intent(in)     :: idegbr
         integer(ip), intent(in)     :: idegcr
         integer(ip), intent(in)     :: m
@@ -208,14 +180,11 @@ contains
         real(wp),    intent(in)     :: tcos(:)
         real(wp),    intent(inout)  :: d(:)
         real(wp),    intent(inout)  :: w(:)
-        !-----------------------------------------------
-        ! Local variables
-        !-----------------------------------------------
-        integer(ip) :: mm1, ifb, ifc, l, lint, k, i, ip
-        real(wp)    :: x, xx, z
-        !-----------------------------------------------
 
-        mm1 = m - 1
+        ! Local variables
+        integer(ip) :: ifb, ifc, l, lint, k, i
+        real(wp)    :: x, xx, temp
+
         ifb = idegbr + 1
         ifc = idegcr + 1
         l = ifb/ifc
@@ -232,26 +201,26 @@ contains
                 y = xx*y
             end if
 
-            z = ONE/(b(1)-x)
-            d(1) = c(1)*z
-            y(1) = y(1)*z
+            temp = b(1) - x
+            d(1) = c(1)/temp
+            y(1) = y(1)/temp
 
-            do i = 2, mm1
-                z = ONE/(b(i)-x-a(i)*d(i-1))
-                d(i) = c(i)*z
-                y(i) = (y(i)-a(i)*y(i-1))*z
+            do i = 2, m - 1
+                temp = b(i) - x - a(i) * d(i-1)
+                d(i) = c(i)/temp
+                y(i) = (y(i) - a(i) * y(i-1))/temp
             end do
 
-            z = b(m) - x - a(m)*d(mm1)
+            temp = b(m) - x - a(m) * d(m - 1)
 
-            if (z == ZERO) then
+            if (temp == ZERO) then
                 y(m) = ZERO
             else
-                y(m) = (y(m)-a(m)*y(mm1))/z
+                y(m) = (y(m) - a(m) * y(m - 1))/temp
             end if
 
-            do ip = 1, mm1
-                y(m-ip) = y(m-ip) - d(m-ip)*y(m+1-ip)
+            do i = m - 1, 1, -1
+                y(i) = y(i) - d(i) * y(i + 1)
             end do
 
             if (k /= l) cycle outer_loop
@@ -262,20 +231,19 @@ contains
 
         end do outer_loop
 
-    end subroutine trix
+    end subroutine solve_tridiag
 
-    subroutine tri3(m, a, b, c, k, y1, y2, y3, tcos, d, w1, w2, w3)
-        !
-        ! Purpose:
-        !
-        ! subroutine to solve three linear systems whose common coefficient
-        ! matrix is a rational function in the matrix given by
-        !
-        !  tridiagonal (..., a(i), b(i), c(i), ...)
-        !
-        !-----------------------------------------------
+    !
+    ! Purpose:
+    !
+    ! subroutine to solve three linear systems whose common coefficient
+    ! matrix is a rational function in the matrix given by
+    !
+    !  tridiagonal (..., a(i), b(i), c(i), ...)
+    !
+    subroutine solve_tridiag3(m, a, b, c, k, y1, y2, y3, tcos, d, w1, w2, w3)
+
         ! Dummy arguments
-        !-----------------------------------------------
         integer(ip), intent(in)     :: m
         integer(ip), intent(in)     :: k(4)
         real(wp),    intent(in)     :: a(:)
@@ -289,13 +257,12 @@ contains
         real(wp),    intent(inout) :: w1(:)
         real(wp),    intent(inout) :: w2(:)
         real(wp),    intent(inout) :: w3(:)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         integer(ip) :: mm1, k1, k2, k3, k4, if1, if2, if3, if4, k2k3k4, l1, l2
         integer(ip) :: l3, lint1, lint2, lint3, kint1, kint2, kint3, n, i, ipp
         real(wp)    :: x, z, xx
-        !-----------------------------------------------
+
 
         mm1 = m - 1
         k1 = k(1)
@@ -378,152 +345,107 @@ contains
 
         end do outer_loop
 
-    end subroutine tri3
+    end subroutine solve_tridiag3
 
-    subroutine merger(tcos, i1, m1, i2, m2, i3)
-        !
-        ! Purpose:
-        !
-        !     this subroutine merges two ascending strings of numbers in the
-        !     array tcos.  the first string is of length m1 and starts at
-        !     tcos(i1+1).  the second string is of length m2 and starts at
-        !     tcos(i2+1).  the merged string goes into tcos(i3+1).
-        !
-        !
-        !-----------------------------------------------
+    ! Purpose:
+    !
+    !     this subroutine merges two ascending strings of numbers in the
+    !     array tcos.  the first string is of length m1 and starts at
+    !     tcos(i1+1).  the second string is of length m2 and starts at
+    !     tcos(i2+1).  the merged string goes into tcos(i3+1).
+    !
+    subroutine merge_cosines(tcos, i1, m1, i2, m2, i3)
+
         ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip), intent(in)     :: i1
-        integer(ip), intent(in)     :: m1
-        integer(ip), intent(in)     :: i2
-        integer(ip), intent(in)     :: m2
-        integer(ip), intent(in)     :: i3
+        integer(ip), intent(in)    :: i1
+        integer(ip), intent(in)    :: m1
+        integer(ip), intent(in)    :: i2
+        integer(ip), intent(in)    :: m2
+        integer(ip), intent(in)    :: i3
         real(wp),    intent(inout) :: tcos(:)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
-        integer(ip) :: j11, j3, j1, j2, j, l, k, m
-        real(wp)    :: x, y
-        !-----------------------------------------------
+        integer(ip) :: j1, j2, j3, istop
 
-        j1 = 1
-        j2 = 1
-        j = i3
-
-        if_construct: if (m1 /= 0) then
-            if (m2 /= 0) then
-
-                outer_loop: do
-
-                    j11 = j1
-                    j3 = max(m1, j11)
-
-                    block_construct: block
-
-                        do j1 = j11, j3
-                            j = j + 1
-                            l = j1 + i1
-                            x = tcos(l)
-                            l = j2 + i2
-                            y = tcos(l)
-                            if (x - y > ZERO) exit block_construct
-                            tcos(j) = x
-                        end do
-
-                        if (j2 > m2) return
-
-                        exit if_construct
-
-                    end block block_construct
-
-                    tcos(j) = y
-                    j2 = j2 + 1
-
-                    if (j2 > m2) exit outer_loop
-
-                end do outer_loop
-
-                if (j1 > m1) return
-
-            end if
-
-            k = j - j1 + 1
-
-            do j = j1, m1
-                m = k + j
-                l = j + i1
-                tcos(m) = tcos(l)
-            end do
-
+        if (m1 == 0 .and. m2 == 0) then
             return
+        else if (m1 == 0 .and. m2 /= 0) then
+            istop = m2
+            tcos(i3+1:istop) = tcos(i2+1:istop)
+        else if (m1 /= 0 .and. m2 == 0) then
+            istop = m1
+            tcos(i3+1:istop) = tcos(i1+1:istop)
+        else
+            j1 = 1
+            j2 = 1
+            j3 = 1
+            do
+                if (tcos(i1+j1)  <=  tcos(i2+j2)) then
+                    tcos(i3+j3) = tcos(i1+j1)
+                    j1 = j1+1
+                    if (j1  >  m1) then
+                        istop = m2-j2+1
+                        tcos(i3+j3+1:istop) = tcos(i2+j2:istop)
+                        return
+                    end if
+                else
+                    tcos(i3+j3) = tcos(i2+j2)
+                    j2 = j2+1
+                    if (j2  >  m2) then
+                        istop = m1-j1+1
+                        tcos(i3+j3+1:istop) = tcos(i1+j1:istop)
+                        return
+                    end if
+                end if
+                j3 = j3+1
+            end do
+        end if
 
-        end if if_construct
-
-        k = j - j2 + 1
-
-        do j = j2, m2
-            m = k + j
-            l = j + i2
-            tcos(m) = tcos(l)
-        end do
-
-    end subroutine merger
+    end subroutine merge_cosines
 
     pure subroutine swap_real(a, b)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         real(wp), intent(inout) :: a, b
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         real(wp) temp
-        !-----------------------------------------------
 
         temp = a ; a = b ; b = temp
 
     end subroutine swap_real
 
     pure subroutine swap_complex(a, b)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         complex(wp), intent(inout) :: a, b
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         complex(wp) temp
-        !-----------------------------------------------
 
         temp = a ; a = b ; b = temp
 
     end subroutine swap_complex
 
     pure subroutine swap_integer(a, b)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         integer(ip), intent(inout) :: a, b
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         integer(ip) temp
-        !-----------------------------------------------
 
         temp = a ; a = b ; b = temp
 
     end subroutine swap_integer
 
     pure subroutine swap_character(a, b)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         character, intent(inout) :: a, b
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         character temp
-        !-----------------------------------------------
 
         temp = a
         a = b
@@ -531,16 +453,4 @@ contains
 
     end subroutine swap_character
 
-end module type_GenbunAux
-!
-! REVISION HISTORY
-!
-! September 1973    Version 1
-! April     1976    Version 2
-! January   1978    Version 3
-! December  1979    Version 3.1
-! October   1980    Changed several divides of floating integers
-!                   to integer divides to accomodate cray-1 arithmetic.
-! February  1985    Documentation upgrade
-! November  1988    Version 3.2, FORTRAN 77 changes
-! May       2016    Fortran 2008 changes
+end module type_CyclicReductionUtility

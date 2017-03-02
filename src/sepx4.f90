@@ -389,7 +389,7 @@
 !
 ! I/O                    None
 !
-! REQUIRED FILES         type_FishpackWorkspace.f90, type_ComfAux.f90, genbun.f90, type_GenbunAux.f9090, type_SepAux.f90
+! REQUIRED FILES         type_FishpackWorkspace.f90, genbun.f90, type_CyclicReductionUtility.f9090, type_SepAux.f90
 !
 !
 ! PRECISION              64-bit double precision
