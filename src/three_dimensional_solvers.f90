@@ -18,7 +18,7 @@ module three_dimensional_solvers
     private
     public :: pois3d
     public :: hw3crt
-    public :: Pois3dAux
+    public :: SolverUtility3D
 
     ! Parameters confined to the module
     real(wp),    parameter :: ZERO = 0.0_wp
@@ -28,7 +28,7 @@ module three_dimensional_solvers
     real(wp),    parameter :: FOUR = 4.0_wp
     integer(ip), parameter :: SIZE_OF_WORKSPACE_INDICES = 6
 
-    type, public :: Pois3dAux
+    type, public :: SolverUtility3D
         ! Type components
         integer(ip) :: IIWK = SIZE_OF_WORKSPACE_INDICES
     contains
@@ -36,11 +36,11 @@ module three_dimensional_solvers
         procedure, nopass :: pois3dd
         procedure, nopass :: check_input_arguments
         procedure, nopass :: get_workspace_indices
-    end type Pois3dAux
+    end type SolverUtility3D
 
     ! Declare interfaces for submodule implementation
     interface
-        subroutine pois3d(lperod, l, c1, mperod, m, c2, nperod, n, a, b, c, &
+        module subroutine pois3d(lperod, l, c1, mperod, m, c2, nperod, n, a, b, c, &
             ldimf, mdimf, f, ierror)
 
             ! Dummy arguments
@@ -61,7 +61,7 @@ module three_dimensional_solvers
             real(wp),    intent(inout) :: f(:,:,:)
         end subroutine pois3d
 
-        subroutine hw3crt(xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m, mbdcnd, &
+        module subroutine hw3crt(xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m, mbdcnd, &
             bdys, bdyf, zs, zf, n, nbdcnd, bdzs, bdzf, elmbda, ldimf, &
             mdimf, f, pertrb, ierror)
 
@@ -191,7 +191,7 @@ contains
                 end select
             end if
 
-            call pois3d_lower_routine(lp, l, mp, m, n, a, b, c, f, &
+            call pois3dd_lower_routine(lp, l, mp, m, n, a, b, c, f, &
                 w, w(iwyrt:), w(iwt:), w(iwd:), w(iwx:), w(iwy:), c1, c2, w(iwbb:))
 
             if (np == 1) then
@@ -295,7 +295,7 @@ contains
 
     end function get_workspace_indices
 
-    subroutine pois3d_lower_routine(lp, l, mp, m, n, a, b, c, &
+    subroutine pois3dd_lower_routine(lp, l, mp, m, n, a, b, c, &
         f, xrt, yrt, t, d, wx, wy, c1, c2, bb)
 
         ! Dummy arguments
@@ -539,7 +539,7 @@ contains
                                 bb(:nr) = b(:nr) + xrt(i) + yrt(j)
                                 t(:nr) = f(i, j,:nr)
 
-                                call trid(nr, a, bb, c, t, d)
+                                call solve_tridiag(nr, a, bb, c, t, d)
 
                                 f(i, j,:nr) = t(:nr)
                             end do
@@ -559,47 +559,44 @@ contains
 
         f(:lr,:mr,:nr) = f(:lr,:mr,:nr)/(scalx*scaly)
 
-    end subroutine pois3d_lower_routine
+    end subroutine pois3dd_lower_routine
 
-    subroutine trid(mr, a, b, c, y, d)
+    subroutine solve_tridiag(m, a, b, c, y, d)
 
         ! Dummy arguments
-        integer(ip), intent(in)    :: mr
-        real(wp),    intent(in)    :: a(mr)
-        real(wp),    intent(in)    :: b(mr)
-        real(wp),    intent(in)    :: c(mr)
-        real(wp),    intent(inout) :: y(mr)
-        real(wp),    intent(inout) :: d(mr)
+        integer(ip), intent(in)    :: m
+        real(wp),    intent(in)    :: a(m) ! subdiagonal, i.e., the diagonal below the main diagonal
+        real(wp),    intent(in)    :: b(m) ! the main diagonal
+        real(wp),    intent(in)    :: c(m) ! supdiagonal, i.e, the diagonal above the main diagonal
+        real(wp),    intent(inout) :: y(m) ! the answer
+        real(wp),    intent(inout) :: d(m) ! right part
 
         ! Local variables
-        integer(ip) :: m, mm1, i, iip
-        real(wp)    :: z
+        integer(ip) :: i
+        real(wp)    :: temp
 
-        m = mr
-        mm1 = m - 1
-        z = ONE/b(1)
-        d(1) = c(1)*z
-        y(1) = y(1)*z
+        ! Initialize
+        d(1) = c(1)/b(1)
+        y(1) = y(1)/b(1)
 
-        do i = 2, mm1
-            z = ONE/(b(i)-a(i)*d(i-1))
-            d(i) = c(i)*z
-            y(i) = (y(i)-a(i)*y(i-1))*z
+        do i = 2, m - 1
+            temp = b(i) - d(i - 1) * a(i)
+            d(i) = c(i)/temp
+            y(i) = (y(i) - a(i) * y(i - 1))/temp
         end do
 
-        z = b(m) - a(m)*d(mm1)
+        temp = b(m) - a(m) * d(m - 1)
 
-        if (z == ZERO) then
+        if (temp == ZERO) then
             y(m) = ZERO
         else
-            y(m) = (y(m)-a(m)*y(mm1))/z
+            y(m) = (y(m) - a(m) * y(m - 1))/temp
         end if
 
-        do iip = 1, mm1
-            i = m - iip
-            y(i) = y(i) - d(i)*y(i+1)
+        do i = m - 1, 1, -1
+            y(i) = y(i) - d(i) * y(i + 1)
         end do
 
-    end subroutine trid
+    end subroutine solve_tridiag
 
 end module three_dimensional_solvers

@@ -1,6 +1,4 @@
 !
-!     file hwscyl.f90
-!
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
 !     *                  copyright (c) 2005 by UCAR                   *
@@ -39,8 +37,6 @@
 !
 ! DIMENSION OF           bda(n), bdb(n), bdc(m), bdd(m), f(idimf, n+1)
 ! ARGUMENTS
-!
-! LATEST REVISION        May 2016
 !
 ! PURPOSE                Solves a finite difference approximation
 !                        to the helmholtz equation in cylindrical
@@ -281,16 +277,6 @@
 !                          user should test ierror after the call.
 !
 !
-! SPECIAL CONDITIONS     None
-!
-! I/O                    None
-!
-! PRECISION              64-bit double precision
-!
-! REQUIRED files         type_FishpackWorkspace.f90, genbun.f90, type_GenbunAux.f9090, type_ComfAux.f90
-!
-! STANDARD               Fortran 2008
-!
 ! HISTORY                Written by Roland Sweet at NCAR in the late
 !                        1970's.  Released on NCAR's public software
 !                        libraries in January 1980.
@@ -330,34 +316,31 @@ contains
 
     module subroutine hwscyl(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip), intent(in)     :: m
-        integer(ip), intent(in)     :: mbdcnd
-        integer(ip), intent(in)     :: n
-        integer(ip), intent(in)     :: nbdcnd
-        integer(ip), intent(in)     :: idimf
-        integer(ip), intent(out)    :: ierror
-        real(wp),    intent(in)     :: a
-        real(wp),    intent(in)     :: b
-        real(wp),    intent(in)     :: c
-        real(wp),    intent(in)     :: d
-        real(wp),    intent(in)     :: elmbda
-        real(wp),    intent(out)    :: pertrb
-        real(wp),    intent(in)     :: bda(:)
-        real(wp),    intent(in)     :: bdb(:)
-        real(wp),    intent(in)     :: bdc(:)
-        real(wp),    intent(in)     :: bdd(:)
+        integer(ip), intent(in)    :: m
+        integer(ip), intent(in)    :: mbdcnd
+        integer(ip), intent(in)    :: n
+        integer(ip), intent(in)    :: nbdcnd
+        integer(ip), intent(in)    :: idimf
+        integer(ip), intent(out)   :: ierror
+        real(wp),    intent(in)    :: a
+        real(wp),    intent(in)    :: b
+        real(wp),    intent(in)    :: c
+        real(wp),    intent(in)    :: d
+        real(wp),    intent(in)    :: elmbda
+        real(wp),    intent(out)   :: pertrb
+        real(wp),    intent(in)    :: bda(:)
+        real(wp),    intent(in)    :: bdb(:)
+        real(wp),    intent(in)    :: bdc(:)
+        real(wp),    intent(in)    :: bdd(:)
         real(wp),    intent(inout) :: f(:,:)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
-        type(Fish)  :: workspace
-        !-----------------------------------------------
+        type(FishpackWorkspace)  :: workspace
 
         ! Check input arguments
-        call check_input_arguments(a, b, m, mbdcnd, c, d, n, &
+        call hwscyl_check_input_arguments(a, b, m, mbdcnd, c, d, n, &
             nbdcnd, elmbda, idimf, ierror)
 
         ! Check error flag
@@ -377,11 +360,10 @@ contains
 
     end subroutine hwscyl
 
-    subroutine check_input_arguments(a, b, m, mbdcnd, c, d, n, &
+    subroutine hwscyl_check_input_arguments(a, b, m, mbdcnd, c, d, n, &
         nbdcnd, elmbda, idimf, ierror)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         integer(ip), intent(in)     :: m
         integer(ip), intent(in)     :: mbdcnd
         integer(ip), intent(in)     :: n
@@ -393,52 +375,40 @@ contains
         real(wp),    intent(in)     :: c
         real(wp),    intent(in)     :: d
         real(wp),    intent(in)     :: elmbda
-        !-----------------------------------------------
 
         if (a < ZERO) then
             ierror = 1
-            return
         else if (a >= b) then
             ierror = 2
-            return
         else if (mbdcnd <= 0 .or. mbdcnd >= 7) then
             ierror = 3
-            return
         else if (c >= d) then
             ierror = 4
-            return
         else if (n <= 3) then
             ierror = 5
-            return
         else if (nbdcnd <= (-1) .or. nbdcnd >= 5) then
             ierror = 6
-            return
         else if (a == ZERO .and. (mbdcnd == 3 .or. mbdcnd == 4)) then
             ierror = 7
-            return
         else if (a > ZERO .and. mbdcnd >= 5) then
             ierror = 8
-            return
         else if (a == ZERO .and. elmbda /= ZERO .and. mbdcnd >= 5) then
             ierror = 9
-            return
         else if (idimf < m + 1) then
             ierror = 10
-            return
         else if (m <= 3) then
             ierror = 12
-            return
         else
             ierror = 0
         end if
 
-    end subroutine check_input_arguments
+    end subroutine hwscyl_check_input_arguments
 
     subroutine hwscyl_lower_routine(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror, w)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip), intent(in)     :: m
         integer(ip), intent(in)     :: mbdcnd
         integer(ip), intent(in)     :: n
@@ -457,16 +427,14 @@ contains
         real(wp),    intent(in)     :: bdd(:)
         real(wp),    intent(inout) :: f(:,:)
         real(wp),    intent(inout) :: w(:)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         integer(ip) :: mp1, np1, np, mstart, mstop, munk, nstart, nstop, nunk
         integer(ip) :: id2, id3, id4, id5, id6, istart
         integer(ip) :: ij, i, j, k, l, nsp1, nstm1
         integer(ip) :: local_error_flag, i1
         real(wp)    :: dr, half_dr, dr2, dth, dth2
         real(wp)    :: a1, r, a2, s, s1, s2
-        !-----------------------------------------------
 
         mp1 = m + 1
         dr = (b - a)/m
@@ -476,9 +444,8 @@ contains
         dth = (d - c)/n
         dth2 = dth**2
         np = nbdcnd + 1
-        !
+
         ! Define range of indices i and j for unknowns u(i, j).
-        !
         mstart = 2
         mstop = m
         select case (mbdcnd)
@@ -505,9 +472,8 @@ contains
         end select
 
         nunk = nstop - nstart + 1
-        !
+
         ! Define a, b, c coefficients in w-array.
-        !
         id2 = munk
         id3 = id2 + munk
         id4 = id3 + munk
@@ -569,10 +535,7 @@ contains
                 f(mp1, nstart:nstop) = f(mp1, nstart:nstop) - a1*bdb(nstart:nstop)
         end select
 
-
-        !
         ! Enter boundary data for z-boundaries.
-        !
         a1 = ONE/dth2
         l = id5 - mstart + 1
 
@@ -652,9 +615,8 @@ contains
         f(mstart:mstop, nstart:nstop) = f(mstart:mstop, nstart:nstop)*dth2
         w(1) = ZERO
         w(id4) = ZERO
-        !
+
         ! Solve the system of equations.
-        !
         local_error_flag = 0
         i1 = 1
         call genbunn(nbdcnd, nunk, i1, munk, w(1:), w(id2+1:), w(id3+1:), &
@@ -669,15 +631,3 @@ contains
     end subroutine hwscyl_lower_routine
 
 end submodule centered_cylindrical_solver
-!
-! REVISION HISTORY
-!
-! September 1973    Version 1
-! April     1976    Version 2
-! January   1978    Version 3
-! December  1979    Version 3.1
-! February  1985    Documentation upgrade
-! November  1988    Version 3.2, FORTRAN 77 changes
-! June      2004    Version 5.0, Fortran 90 changes
-! June      2016    Fortran 2008 changes
-!

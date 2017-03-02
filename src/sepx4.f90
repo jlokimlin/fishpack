@@ -435,7 +435,7 @@ module module_sepx4
         ip ! Integer precision
 
     use type_FishpackWorkspace, only: &
-        Fish => FishpackWorkspace
+        FishpackWorkspace
 
     use module_genbun, only: &
         genbun
@@ -455,7 +455,7 @@ module module_sepx4
         !---------------------------------------------------------------
         ! Type components
         !---------------------------------------------------------------
-        type(Fish), public :: workspace
+        type(FishpackWorkspace), public :: workspace
         !---------------------------------------------------------------
     contains
         !---------------------------------------------------------------

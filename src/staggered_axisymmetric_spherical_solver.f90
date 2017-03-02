@@ -517,7 +517,7 @@ contains
         real(wp),    intent(in)     :: bdc(:)
         real(wp),    intent(in)     :: bdd(:)
         real(wp),    intent(inout) :: f(:,:)
-        class(Fish), intent(inout) :: workspace
+        class(FishpackWorkspace), intent(inout) :: workspace
         !-----------------------------------------------
 
         ! Check for invalid input parameters
@@ -567,7 +567,7 @@ contains
         !-----------------------------------------------
         integer(ip), intent(in)  :: n
         integer(ip), intent(in)  :: m
-        class(Fish), intent(out) :: workspace
+        class(FishpackWorkspace), intent(out) :: workspace
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------

@@ -6,7 +6,7 @@ module staggered_helmholtz_solvers
         PI
 
     use type_FishpackWorkspace, only: &
-        Fish => FishpackWorkspace
+        FishpackWorkspace
 
     use module_genbun, only: &
         genbunn
@@ -153,7 +153,7 @@ module staggered_helmholtz_solvers
             real(wp),    intent(in)     :: bdc(:)
             real(wp),    intent(in)     :: bdd(:)
             real(wp),    intent(inout) :: f(:,:)
-            class(Fish), intent(inout) :: workspace
+            class(FishpackWorkspace), intent(inout) :: workspace
             !-----------------------------------------------
         end subroutine hstcsp
     end interface

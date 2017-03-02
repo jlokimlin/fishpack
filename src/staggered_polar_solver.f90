@@ -374,7 +374,7 @@ contains
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        type(Fish)  :: workspace
+        type(FishpackWorkspace)  :: workspace
         !-----------------------------------------------
 
         ! Check input arguments

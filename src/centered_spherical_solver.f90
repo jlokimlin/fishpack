@@ -425,7 +425,7 @@ contains
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        type(Fish) :: workspace
+        type(FishpackWorkspace) :: workspace
         !-----------------------------------------------
 
         ! Check input arguments
@@ -538,7 +538,7 @@ contains
         !-----------------------------------------------
         integer(ip), intent(in)  :: n
         integer(ip), intent(in)  :: m
-        class(Fish), intent(out) :: workspace
+        class(FishpackWorkspace), intent(out) :: workspace
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------

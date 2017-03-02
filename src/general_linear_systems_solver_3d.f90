@@ -221,7 +221,7 @@ contains
     !                          31        1         1        2.e-12
     !                          33        3         3        7.e-13
     !
-    subroutine pois3d(lperod, l, c1, mperod, m, c2, nperod, n, a, b, c, &
+    module subroutine pois3d(lperod, l, c1, mperod, m, c2, nperod, n, a, b, c, &
         ldimf, mdimf, f, ierror)
 
         ! Dummy arguments
@@ -243,14 +243,14 @@ contains
 
         ! Local variables
         type(FishpackWorkspace) :: workspace
-        type(Pois3dAux)         :: aux
+        type(SolverUtility3D)   :: util3d
 
         ! Check input arguments
-        call aux%check_input_arguments(lperod, l, mperod, m, nperod, n, &
+        call util3d%check_input_arguments(lperod, l, mperod, m, nperod, n, &
             a, b, c, ldimf, mdimf, ierror)
 
-            ! Check error flag
-            if (ierror /= 0) return
+        ! Check error flag
+        if (ierror /= 0) return
 
         ! Allocate memory
         call initialize_workspace(n, m, l, workspace)
@@ -260,7 +260,7 @@ contains
             rew => workspace%real_workspace, &
             indx => workspace%workspace_indices &
             )
-            call aux%pois3dd(lperod, l, c1, mperod, m, c2, nperod, n, &
+            call util3d%pois3dd(lperod, l, c1, mperod, m, c2, nperod, n, &
                 a, b, c, ldimf, mdimf, f, ierror, rew, indx)
         end associate
 
@@ -279,7 +279,7 @@ contains
 
         ! Local variables
         integer(ip)     :: irwk, icwk
-        type(Pois3dAux) :: aux
+        type(SolverUtility3D) :: aux
 
         ! Adjust workspace for pois3d
         irwk = 30 + l + m + (2 * n) + max(l, m, n) + 7 * ( (l + 1)/2 + (m + 1)/2)

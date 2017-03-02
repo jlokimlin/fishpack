@@ -506,7 +506,7 @@ module module_sepeli
         ip ! Integer precision
 
     use type_FishpackWorkspace, only: &
-        Fish => FishpackWorkspace
+        FishpackWorkspace
 
     use type_BlktriAux, only: &
         BlktriAux
@@ -578,7 +578,7 @@ contains
         real(wp),    intent(in)     :: bdd(:)
         real(wp),    intent(inout)  :: grhs(:,:)
         real(wp),    intent(inout)  :: usol(:,:)
-        class(Fish), intent(inout)  :: workspace
+        class(FishpackWorkspace), intent(inout)  :: workspace
         procedure(get_coefficients) :: cofx
         procedure(get_coefficients) :: cofy
         !--------------------------------------------------------------
@@ -628,7 +628,7 @@ contains
         !-----------------------------------------------
         integer(ip), intent(in)  :: n
         integer(ip), intent(in)  :: m
-        class(Fish), intent(out) :: workspace
+        class(FishpackWorkspace), intent(out) :: workspace
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------

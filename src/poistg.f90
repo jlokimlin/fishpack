@@ -217,7 +217,7 @@ module module_poistg
         ip ! Integer precision
 
     use type_FishpackWorkspace, only: &
-        Fish => FishpackWorkspace
+        FishpackWorkspace
 
     use type_GenbunAux, only: &
         GenbunAux
@@ -260,7 +260,7 @@ contains
         ! Local variables
         !--------------------------------------------------------------
         integer(ip) :: irwk, icwk
-        type(Fish)  :: workspace
+        type(FishpackWorkspace)  :: workspace
         !--------------------------------------------------------------
 
         ! Compute workspace dimensions

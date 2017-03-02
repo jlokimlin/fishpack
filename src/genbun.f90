@@ -231,7 +231,7 @@ module module_genbun
         ip ! Integer precision
 
     use type_FishpackWorkspace, only: &
-        Fish => FishpackWorkspace
+        FishpackWorkspace
 
     use type_GenbunAux, only: &
         GenbunAux
@@ -273,7 +273,7 @@ contains
         !--------------------------------------------------------------
         ! Local variables
         !--------------------------------------------------------------
-        type(Fish)  :: workspace
+        type(FishpackWorkspace)  :: workspace
         !--------------------------------------------------------------
 
         !
@@ -614,7 +614,7 @@ contains
         ! Dummy arguments
         !-----------------------------------------------
         integer(ip), intent(in)  :: n, m
-        type(Fish)               :: return_value
+        type(FishpackWorkspace)               :: return_value
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------

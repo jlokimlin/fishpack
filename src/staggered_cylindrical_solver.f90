@@ -356,7 +356,7 @@ contains
         !-----------------------------------------------
         ! Local variables
         !-----------------------------------------------
-        type(Fish)  :: workspace
+        type(FishpackWorkspace)  :: workspace
         !-----------------------------------------------
 
         ! Allocate memory

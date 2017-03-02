@@ -31,413 +31,413 @@
 !     *                                                               *
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-! SUBROUTINE hw3crt (xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m, mbdcnd, bdys,
-!                    bdyf, zs, zf, n, nbdcnd, bdzs, bdzf, elmbda, ldimf,
-!                    mdimf, f, pertrb, ierror)
-!
-!
-! DIMENSION OF           bdxs(mdimf, n+1),    bdxf(mdimf, n+1),
-! ARGUMENTS              bdys(ldimf, n+1),    bdyf(ldimf, n+1),
-!                        bdzs(ldimf, m+1),    bdzf(ldimf, m+1),
-!                        f(ldimf, mdimf, n+1)
-!
-! PURPOSE                Solves the standard five-point finite
-!                        difference approximation to the helmholtz
-!                        equation in cartesian coordinates.  this
-!                        equation is
-!
-!                          (d/dx)(du/dx) + (d/dy)(du/dy) +
-!                          (d/dz)(du/dz) + lambda*u = f(x, y, z).
-!
-! USAGE                 call hw3crt(xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m,
-!                            mbdcnd, bdys, bdyf, zs, zf, n, nbdcnd,
-!                            bdzs, bdzf, elmbda, ldimf, mdimf, f,
-!                            pertrb, ierror)
-!
-! ARGUMENTS
-!
-! ON INPUT               xs, xf
-!
-!                          the range of x, i.e. xs <= x <= xf .
-!                          xs must be less than xf.
-!
-!                        l
-!                          the number of panels into which the
-!                          interval (xs, xf) is subdivided.
-!                          hence, there will be l+1 grid points
-!                          in the x-direction given by
-!                          x(i) = xs+(i-1)dx for i=1, 2, ..., l+1,
-!                          where dx = (xf-xs)/l is the panel width.
-!                          l must be at least 5.
-!
-!                        lbdcnd
-!                          indicates the type of boundary conditions
-!                          at x = xs and x = xf.
-!
-!                          = 0  if the solution is periodic in x,
-!                               i.e. u(l+i, j, k) = u(i, j, k).
-!                          = 1  if the solution is specified at
-!                               x = xs and x = xf.
-!                          = 2  if the solution is specified at
-!                               x = xs and the derivative of the
-!                               solution with respect to x is
-!                               specified at x = xf.
-!                          = 3  if the derivative of the solution
-!                               with respect to x is specified at
-!                               x = xs and x = xf.
-!                          = 4  if the derivative of the solution
-!                               with respect to x is specified at
-!                               x = xs and the solution is specified
-!                               at x=xf.
-!
-!                        bdxs
-!                          a two-dimensional array that specifies the
-!                          values of the derivative of the solution
-!                          with respect to x at x = xs.
-!
-!                          when lbdcnd = 3 or 4,
-!
-!                            bdxs(j, k) = (d/dx)u(xs, y(j), z(k)),
-!                            j=1, 2, ..., m+1,      k=1, 2, ..., n+1.
-!
-!                          when lbdcnd has any other value, bdxs
-!                          is a dummy variable. bdxs must be
-!                          dimensioned at least (m+1)*(n+1).
-!
-!                        bdxf
-!                          a two-dimensional array that specifies the
-!                          values of the derivative of the solution
-!                          with respect to x at x = xf.
-!
-!                          when lbdcnd = 2 or 3,
-!
-!                            bdxf(j, k) = (d/dx)u(xf, y(j), z(k)),
-!                            j=1, 2, ..., m+1,      k=1, 2, ..., n+1.
-!
-!                          when lbdcnd has any other value, bdxf is
-!                          a dummy variable.  bdxf must be
-!                          dimensioned at least (m+1)*(n+1).
-!
-!                        ys, yf
-!                          the range of y, i.e. ys <= y <= yf.
-!                          ys must be less than yf.
-!
-!                        m
-!                          the number of panels into which the
-!                          interval (ys, yf) is subdivided.
-!                          hence, there will be m+1 grid points in
-!                          the y-direction given by y(j) = ys+(j-1)dy
-!                          for j=1, 2, ..., m+1,
-!                          where dy = (yf-ys)/m is the panel width.
-!                          m must be at least 5.
-!
-!                        mbdcnd
-!                          indicates the type of boundary conditions
-!                          at y = ys and y = yf.
-!
-!                          = 0  if the solution is periodic in y, i.e.
-!                               u(i, m+j, k) = u(i, j, k).
-!                          = 1  if the solution is specified at
-!                               y = ys and y = yf.
-!                          = 2  if the solution is specified at
-!                               y = ys and the derivative of the
-!                               solution with respect to y is
-!                               specified at y = yf.
-!                          = 3  if the derivative of the solution
-!                               with respect to y is specified at
-!                               y = ys and y = yf.
-!                          = 4  if the derivative of the solution
-!                               with respect to y is specified at
-!                               at y = ys and the solution is
-!                               specified at y=yf.
-!
-!                        bdys
-!                          A two-dimensional array that specifies
-!                          the values of the derivative of the
-!                          solution with respect to y at y = ys.
-!
-!                          when mbdcnd = 3 or 4,
-!
-!                            bdys(i, k) = (d/dy)u(x(i), ys, z(k)),
-!                            i=1, 2, ..., l+1,      k=1, 2, ..., n+1.
-!
-!                          when mbdcnd has any other value, bdys
-!                          is a dummy variable. bdys must be
-!                          dimensioned at least (l+1)*(n+1).
-!
-!                        bdyf
-!                          A two-dimensional array that specifies
-!                          the values of the derivative of the
-!                          solution with respect to y at y = yf.
-!
-!                          when mbdcnd = 2 or 3,
-!
-!                            bdyf(i, k) = (d/dy)u(x(i), yf, z(k)),
-!                            i=1, 2, ..., l+1,      k=1, 2, ..., n+1.
-!
-!                          when mbdcnd has any other value, bdyf
-!                          is a dummy variable. bdyf must be
-!                          dimensioned at least (l+1)*(n+1).
-!
-!                        zs, zf
-!                          The range of z, i.e. zs <= z <= zf.
-!                          zs must be less than zf.
-!
-!                        n
-!                          The number of panels into which the
-!                          interval (zs, zf) is subdivided.
-!                          hence, there will be n+1 grid points
-!                          in the z-direction given by
-!                          z(k) = zs+(k-1)dz for k=1, 2, ..., n+1,
-!                          where dz = (zf-zs)/n is the panel width.
-!                          n must be at least 5.
-!
-!                        nbdcnd
-!                          Indicates the type of boundary conditions
-!                          at z = zs and z = zf.
-!
-!                          = 0  if the solution is periodic in z, i.e.
-!                               u(i, j, n+k) = u(i, j, k).
-!                          = 1  if the solution is specified at
-!                               z = zs and z = zf.
-!                          = 2  if the solution is specified at
-!                               z = zs and the derivative of the
-!                               solution with respect to z is
-!                               specified at z = zf.
-!                          = 3  if the derivative of the solution
-!                               with respect to z is specified at
-!                               z = zs and z = zf.
-!                          = 4  if the derivative of the solution
-!                               with respect to z is specified at
-!                               z = zs and the solution is specified
-!                               at z=zf.
-!
-!                        bdzs
-!                          A two-dimensional array that specifies
-!                          the values of the derivative of the
-!                          solution with respect to z at z = zs.
-!
-!                          When nbdcnd = 3 or 4,
-!
-!                            bdzs(i, j) = (d/dz)u(x(i), y(j), zs),
-!                            i=1, 2, ..., l+1,      j=1, 2, ..., m+1.
-!
-!                          When nbdcnd has any other value, bdzs
-!                          is a dummy variable. bdzs must be
-!                          dimensioned at least (l+1)*(m+1).
-!
-!                        bdzf
-!                          A two-dimensional array that specifies
-!                          the values of the derivative of the
-!                          solution with respect to z at z = zf.
-!
-!                          when nbdcnd = 2 or 3,
-!
-!                            bdzf(i, j) = (d/dz)u(x(i), y(j), zf),
-!                            i=1, 2, ..., l+1,      j=1, 2, ..., m+1.
-!
-!                          when nbdcnd has any other value, bdzf
-!                          is a dummy variable. bdzf must be
-!                          dimensioned at least (l+1)*(m+1).
-!
-!                        elmbda
-!                          The constant lambda in the helmholtz
-!                          equation. if lambda > 0, a solution
-!                          may not exist.  however, hw3crt will
-!                          attempt to find a solution.
-!
-!                        ldimf
-!                          The row (or first) dimension of the
-!                          arrays f, bdys, bdyf, bdzs, and bdzf as it
-!                          appears in the program calling hw3crt.
-!                          this parameter is used to specify the
-!                          variable dimension of these arrays.
-!                          ldimf must be at least l+1.
-!
-!                        mdimf
-!                          the column (or second) dimension of the
-!                          array f and the row (or first) dimension
-!                          of the arrays bdxs and bdxf as it appears
-!                          in the program calling hw3crt.  this
-!                          parameter is used to specify the variable
-!                          dimension of these arrays.
-!                          mdimf must be at least m+1.
-!
-!                        f
-!                          a three-dimensional array of dimension at
-!                          at least (l+1)*(m+1)*(n+1), specifying the
-!                          values of the right side of the helmholz
-!                          equation and boundary values (if any).
-!
-!                          on the interior, f is defined as follows:
-!                          for i=2, 3, ..., l,  j=2, 3, ..., m,
-!                          and k=2, 3, ..., n
-!                          f(i, j, k) = f(x(i), y(j), z(k)).
-!
-!                          on the boundaries, f is defined as follows:
-!                          for j=1, 2, ..., m+1,  k=1, 2, ..., n+1,
-!                          and i=1, 2, ..., l+1
-!
-!                          lbdcnd      f(1, j, k)         f(l+1, j, k)
-!                          ------   ---------------   ---------------
-!
-!                            0      f(xs, y(j), z(k))   f(xs, y(j), z(k))
-!                            1      u(xs, y(j), z(k))   u(xf, y(j), z(k))
-!                            2      u(xs, y(j), z(k))   f(xf, y(j), z(k))
-!                            3      f(xs, y(j), z(k))   f(xf, y(j), z(k))
-!                            4      f(xs, y(j), z(k))   u(xf, y(j), z(k))
-!
-!                          mbdcnd      f(i, 1, k)         f(i, m+1, k)
-!                          ------   ---------------   ---------------
-!
-!                            0      f(x(i), ys, z(k))   f(x(i), ys, z(k))
-!                            1      u(x(i), ys, z(k))   u(x(i), yf, z(k))
-!                            2      u(x(i), ys, z(k))   f(x(i), yf, z(k))
-!                            3      f(x(i), ys, z(k))   f(x(i), yf, z(k))
-!                            4      f(x(i), ys, z(k))   u(x(i), yf, z(k))
-!
-!                          nbdcnd      f(i, j, 1)         f(i, j, n+1)
-!                          ------   ---------------   ---------------
-!
-!                            0      f(x(i), y(j), zs)   f(x(i), y(j), zs)
-!                            1      u(x(i), y(j), zs)   u(x(i), y(j), zf)
-!                            2      u(x(i), y(j), zs)   f(x(i), y(j), zf)
-!                            3      f(x(i), y(j), zs)   f(x(i), y(j), zf)
-!                            4      f(x(i), y(j), zs)   u(x(i), y(j), zf)
-!
-!                          Note:
-!                          If the table calls for both the solution
-!                          u and the right side f on a boundary,
-!                          then the solution must be specified.
-!
-!
-! ON OUTPUT              f
-!                          Contains the solution u(i, j, k) of the
-!                          finite difference approximation for the
-!                          grid point (x(i), y(j), z(k)) for
-!                          i=1, 2, ..., l+1, j=1, 2, ..., m+1,
-!                          and k=1, 2, ..., n+1.
-!
-!                        pertrb
-!                          If a combination of periodic or derivative
-!                          boundary conditions is specified for a
-!                          poisson equation (lambda = 0), a solution
-!                          may not exist.  pertrb is a constant,
-!                          calculated and subtracted from f, which
-!                          ensures that a solution exists.  pwscrt
-!                          then computes this solution, which is a
-!                          least squares solution to the original
-!                          approximation. This solution is not
-!                          unique and is unnormalized. The value of
-!                          pertrb should be small compared to the
-!                          the right side f. Otherwise, a solution
-!                          is obtained to an essentially different
-!                          problem. This comparison should always
-!                          be made to insure that a meaningful
-!                          solution has been obtained.
-!
-!                        ierror
-!                          An error flag that indicates invalid input
-!                          parameters.  except for numbers 0 and 12,
-!                          a solution is not attempted.
-!
-!                          =  0  no error
-!                          =  1  xs >= xf
-!                          =  2  l < 5
-!                          =  3  lbdcnd < 0 .or. lbdcnd > 4
-!                          =  4  ys >= yf
-!                          =  5  m < 5
-!                          =  6  mbdcnd < 0 .or. mbdcnd > 4
-!                          =  7  zs >= zf
-!                          =  8  n < 5
-!                          =  9  nbdcnd < 0 .or. nbdcnd > 4
-!                          = 10  ldimf < l+1
-!                          = 11  mdimf < m+1
-!                          = 12  lambda > 0
-!                          = 20  If the dynamic allocation of real and
-!                                complex workspace required for solution
-!                                fails (for example if n, m are too large
-!                                for your computer)
-!
-!                          Since this is the only means of indicating
-!                          a possibly incorrect call to hw3crt, the
-!                          user should test ierror after the call.
-!
-! HISTORY                * Written by Roland Sweet at NCAR in the late
-!                          1970's.
-!                        * Released on ncar's public software
-!                          libraries in January 1980.
-!                        * Revised in June 2004 by John Adams using
-!                          Fortran 90 dynamically allocated workspace.
-!
-! ALGORITHM              This subroutine defines the finite difference
-!                        equations, incorporates boundary data, and
-!                        adjusts the right side of singular systems and
-!                        then calls pois3d to solve the system.
-!
-! TIMING                 For large l, m and n, the operation count
-!                        is roughly proportional to
-!
-!                          l*m*n*(log2(l)+log2(m)+5),
-!
-!                        but also depends on input parameters lbdcnd
-!                        and mbdcnd.
-!
-! ACCURACY               The solution process employed results in
-!                        a loss of no more than four significant
-!                        digits for l, m and n as large as 32.
-!                        more detailed information about accuracy
-!                        can be found in the documentation for
-!                        routine pois3d which is the routine that
-!                        actually solves the finite difference
-!                        equations.
-!
 submodule(three_dimensional_solvers) centered_cartesian_helmholtz_solver_3d
 
 contains
 
+    ! SUBROUTINE hw3crt (xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m, mbdcnd, bdys,
+    !                    bdyf, zs, zf, n, nbdcnd, bdzs, bdzf, elmbda, ldimf,
+    !                    mdimf, f, pertrb, ierror)
+    !
+    !
+    ! DIMENSION OF           bdxs(mdimf, n+1),    bdxf(mdimf, n+1),
+    ! ARGUMENTS              bdys(ldimf, n+1),    bdyf(ldimf, n+1),
+    !                        bdzs(ldimf, m+1),    bdzf(ldimf, m+1),
+    !                        f(ldimf, mdimf, n+1)
+    !
+    ! PURPOSE                Solves the standard five-point finite
+    !                        difference approximation to the helmholtz
+    !                        equation in cartesian coordinates.  this
+    !                        equation is
+    !
+    !                          (d/dx)(du/dx) + (d/dy)(du/dy) +
+    !                          (d/dz)(du/dz) + lambda*u = f(x, y, z).
+    !
+    ! USAGE                 call hw3crt(xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m,
+    !                            mbdcnd, bdys, bdyf, zs, zf, n, nbdcnd,
+    !                            bdzs, bdzf, elmbda, ldimf, mdimf, f,
+    !                            pertrb, ierror)
+    !
+    ! ARGUMENTS
+    !
+    ! ON INPUT               xs, xf
+    !
+    !                          the range of x, i.e. xs <= x <= xf .
+    !                          xs must be less than xf.
+    !
+    !                        l
+    !                          the number of panels into which the
+    !                          interval (xs, xf) is subdivided.
+    !                          hence, there will be l+1 grid points
+    !                          in the x-direction given by
+    !                          x(i) = xs+(i-1)dx for i=1, 2, ..., l+1,
+    !                          where dx = (xf-xs)/l is the panel width.
+    !                          l must be at least 5.
+    !
+    !                        lbdcnd
+    !                          indicates the type of boundary conditions
+    !                          at x = xs and x = xf.
+    !
+    !                          = 0  if the solution is periodic in x,
+    !                               i.e. u(l+i, j, k) = u(i, j, k).
+    !                          = 1  if the solution is specified at
+    !                               x = xs and x = xf.
+    !                          = 2  if the solution is specified at
+    !                               x = xs and the derivative of the
+    !                               solution with respect to x is
+    !                               specified at x = xf.
+    !                          = 3  if the derivative of the solution
+    !                               with respect to x is specified at
+    !                               x = xs and x = xf.
+    !                          = 4  if the derivative of the solution
+    !                               with respect to x is specified at
+    !                               x = xs and the solution is specified
+    !                               at x=xf.
+    !
+    !                        bdxs
+    !                          a two-dimensional array that specifies the
+    !                          values of the derivative of the solution
+    !                          with respect to x at x = xs.
+    !
+    !                          when lbdcnd = 3 or 4,
+    !
+    !                            bdxs(j, k) = (d/dx)u(xs, y(j), z(k)),
+    !                            j=1, 2, ..., m+1,      k=1, 2, ..., n+1.
+    !
+    !                          when lbdcnd has any other value, bdxs
+    !                          is a dummy variable. bdxs must be
+    !                          dimensioned at least (m+1)*(n+1).
+    !
+    !                        bdxf
+    !                          a two-dimensional array that specifies the
+    !                          values of the derivative of the solution
+    !                          with respect to x at x = xf.
+    !
+    !                          when lbdcnd = 2 or 3,
+    !
+    !                            bdxf(j, k) = (d/dx)u(xf, y(j), z(k)),
+    !                            j=1, 2, ..., m+1,      k=1, 2, ..., n+1.
+    !
+    !                          when lbdcnd has any other value, bdxf is
+    !                          a dummy variable.  bdxf must be
+    !                          dimensioned at least (m+1)*(n+1).
+    !
+    !                        ys, yf
+    !                          the range of y, i.e. ys <= y <= yf.
+    !                          ys must be less than yf.
+    !
+    !                        m
+    !                          the number of panels into which the
+    !                          interval (ys, yf) is subdivided.
+    !                          hence, there will be m+1 grid points in
+    !                          the y-direction given by y(j) = ys+(j-1)dy
+    !                          for j=1, 2, ..., m+1,
+    !                          where dy = (yf-ys)/m is the panel width.
+    !                          m must be at least 5.
+    !
+    !                        mbdcnd
+    !                          indicates the type of boundary conditions
+    !                          at y = ys and y = yf.
+    !
+    !                          = 0  if the solution is periodic in y, i.e.
+    !                               u(i, m+j, k) = u(i, j, k).
+    !                          = 1  if the solution is specified at
+    !                               y = ys and y = yf.
+    !                          = 2  if the solution is specified at
+    !                               y = ys and the derivative of the
+    !                               solution with respect to y is
+    !                               specified at y = yf.
+    !                          = 3  if the derivative of the solution
+    !                               with respect to y is specified at
+    !                               y = ys and y = yf.
+    !                          = 4  if the derivative of the solution
+    !                               with respect to y is specified at
+    !                               at y = ys and the solution is
+    !                               specified at y=yf.
+    !
+    !                        bdys
+    !                          A two-dimensional array that specifies
+    !                          the values of the derivative of the
+    !                          solution with respect to y at y = ys.
+    !
+    !                          when mbdcnd = 3 or 4,
+    !
+    !                            bdys(i, k) = (d/dy)u(x(i), ys, z(k)),
+    !                            i=1, 2, ..., l+1,      k=1, 2, ..., n+1.
+    !
+    !                          when mbdcnd has any other value, bdys
+    !                          is a dummy variable. bdys must be
+    !                          dimensioned at least (l+1)*(n+1).
+    !
+    !                        bdyf
+    !                          A two-dimensional array that specifies
+    !                          the values of the derivative of the
+    !                          solution with respect to y at y = yf.
+    !
+    !                          when mbdcnd = 2 or 3,
+    !
+    !                            bdyf(i, k) = (d/dy)u(x(i), yf, z(k)),
+    !                            i=1, 2, ..., l+1,      k=1, 2, ..., n+1.
+    !
+    !                          when mbdcnd has any other value, bdyf
+    !                          is a dummy variable. bdyf must be
+    !                          dimensioned at least (l+1)*(n+1).
+    !
+    !                        zs, zf
+    !                          The range of z, i.e. zs <= z <= zf.
+    !                          zs must be less than zf.
+    !
+    !                        n
+    !                          The number of panels into which the
+    !                          interval (zs, zf) is subdivided.
+    !                          hence, there will be n+1 grid points
+    !                          in the z-direction given by
+    !                          z(k) = zs+(k-1)dz for k=1, 2, ..., n+1,
+    !                          where dz = (zf-zs)/n is the panel width.
+    !                          n must be at least 5.
+    !
+    !                        nbdcnd
+    !                          Indicates the type of boundary conditions
+    !                          at z = zs and z = zf.
+    !
+    !                          = 0  if the solution is periodic in z, i.e.
+    !                               u(i, j, n+k) = u(i, j, k).
+    !                          = 1  if the solution is specified at
+    !                               z = zs and z = zf.
+    !                          = 2  if the solution is specified at
+    !                               z = zs and the derivative of the
+    !                               solution with respect to z is
+    !                               specified at z = zf.
+    !                          = 3  if the derivative of the solution
+    !                               with respect to z is specified at
+    !                               z = zs and z = zf.
+    !                          = 4  if the derivative of the solution
+    !                               with respect to z is specified at
+    !                               z = zs and the solution is specified
+    !                               at z=zf.
+    !
+    !                        bdzs
+    !                          A two-dimensional array that specifies
+    !                          the values of the derivative of the
+    !                          solution with respect to z at z = zs.
+    !
+    !                          When nbdcnd = 3 or 4,
+    !
+    !                            bdzs(i, j) = (d/dz)u(x(i), y(j), zs),
+    !                            i=1, 2, ..., l+1,      j=1, 2, ..., m+1.
+    !
+    !                          When nbdcnd has any other value, bdzs
+    !                          is a dummy variable. bdzs must be
+    !                          dimensioned at least (l+1)*(m+1).
+    !
+    !                        bdzf
+    !                          A two-dimensional array that specifies
+    !                          the values of the derivative of the
+    !                          solution with respect to z at z = zf.
+    !
+    !                          when nbdcnd = 2 or 3,
+    !
+    !                            bdzf(i, j) = (d/dz)u(x(i), y(j), zf),
+    !                            i=1, 2, ..., l+1,      j=1, 2, ..., m+1.
+    !
+    !                          when nbdcnd has any other value, bdzf
+    !                          is a dummy variable. bdzf must be
+    !                          dimensioned at least (l+1)*(m+1).
+    !
+    !                        elmbda
+    !                          The constant lambda in the helmholtz
+    !                          equation. if lambda > 0, a solution
+    !                          may not exist.  however, hw3crt will
+    !                          attempt to find a solution.
+    !
+    !                        ldimf
+    !                          The row (or first) dimension of the
+    !                          arrays f, bdys, bdyf, bdzs, and bdzf as it
+    !                          appears in the program calling hw3crt.
+    !                          this parameter is used to specify the
+    !                          variable dimension of these arrays.
+    !                          ldimf must be at least l+1.
+    !
+    !                        mdimf
+    !                          the column (or second) dimension of the
+    !                          array f and the row (or first) dimension
+    !                          of the arrays bdxs and bdxf as it appears
+    !                          in the program calling hw3crt.  this
+    !                          parameter is used to specify the variable
+    !                          dimension of these arrays.
+    !                          mdimf must be at least m+1.
+    !
+    !                        f
+    !                          a three-dimensional array of dimension at
+    !                          at least (l+1)*(m+1)*(n+1), specifying the
+    !                          values of the right side of the helmholz
+    !                          equation and boundary values (if any).
+    !
+    !                          on the interior, f is defined as follows:
+    !                          for i=2, 3, ..., l,  j=2, 3, ..., m,
+    !                          and k=2, 3, ..., n
+    !                          f(i, j, k) = f(x(i), y(j), z(k)).
+    !
+    !                          on the boundaries, f is defined as follows:
+    !                          for j=1, 2, ..., m+1,  k=1, 2, ..., n+1,
+    !                          and i=1, 2, ..., l+1
+    !
+    !                          lbdcnd      f(1, j, k)         f(l+1, j, k)
+    !                          ------   ---------------   ---------------
+    !
+    !                            0      f(xs, y(j), z(k))   f(xs, y(j), z(k))
+    !                            1      u(xs, y(j), z(k))   u(xf, y(j), z(k))
+    !                            2      u(xs, y(j), z(k))   f(xf, y(j), z(k))
+    !                            3      f(xs, y(j), z(k))   f(xf, y(j), z(k))
+    !                            4      f(xs, y(j), z(k))   u(xf, y(j), z(k))
+    !
+    !                          mbdcnd      f(i, 1, k)         f(i, m+1, k)
+    !                          ------   ---------------   ---------------
+    !
+    !                            0      f(x(i), ys, z(k))   f(x(i), ys, z(k))
+    !                            1      u(x(i), ys, z(k))   u(x(i), yf, z(k))
+    !                            2      u(x(i), ys, z(k))   f(x(i), yf, z(k))
+    !                            3      f(x(i), ys, z(k))   f(x(i), yf, z(k))
+    !                            4      f(x(i), ys, z(k))   u(x(i), yf, z(k))
+    !
+    !                          nbdcnd      f(i, j, 1)         f(i, j, n+1)
+    !                          ------   ---------------   ---------------
+    !
+    !                            0      f(x(i), y(j), zs)   f(x(i), y(j), zs)
+    !                            1      u(x(i), y(j), zs)   u(x(i), y(j), zf)
+    !                            2      u(x(i), y(j), zs)   f(x(i), y(j), zf)
+    !                            3      f(x(i), y(j), zs)   f(x(i), y(j), zf)
+    !                            4      f(x(i), y(j), zs)   u(x(i), y(j), zf)
+    !
+    !                          Note:
+    !                          If the table calls for both the solution
+    !                          u and the right side f on a boundary,
+    !                          then the solution must be specified.
+    !
+    !
+    ! ON OUTPUT              f
+    !                          Contains the solution u(i, j, k) of the
+    !                          finite difference approximation for the
+    !                          grid point (x(i), y(j), z(k)) for
+    !                          i=1, 2, ..., l+1, j=1, 2, ..., m+1,
+    !                          and k=1, 2, ..., n+1.
+    !
+    !                        pertrb
+    !                          If a combination of periodic or derivative
+    !                          boundary conditions is specified for a
+    !                          poisson equation (lambda = 0), a solution
+    !                          may not exist.  pertrb is a constant,
+    !                          calculated and subtracted from f, which
+    !                          ensures that a solution exists.  pwscrt
+    !                          then computes this solution, which is a
+    !                          least squares solution to the original
+    !                          approximation. This solution is not
+    !                          unique and is unnormalized. The value of
+    !                          pertrb should be small compared to the
+    !                          the right side f. Otherwise, a solution
+    !                          is obtained to an essentially different
+    !                          problem. This comparison should always
+    !                          be made to insure that a meaningful
+    !                          solution has been obtained.
+    !
+    !                        ierror
+    !                          An error flag that indicates invalid input
+    !                          parameters.  except for numbers 0 and 12,
+    !                          a solution is not attempted.
+    !
+    !                          =  0  no error
+    !                          =  1  xs >= xf
+    !                          =  2  l < 5
+    !                          =  3  lbdcnd < 0 .or. lbdcnd > 4
+    !                          =  4  ys >= yf
+    !                          =  5  m < 5
+    !                          =  6  mbdcnd < 0 .or. mbdcnd > 4
+    !                          =  7  zs >= zf
+    !                          =  8  n < 5
+    !                          =  9  nbdcnd < 0 .or. nbdcnd > 4
+    !                          = 10  ldimf < l+1
+    !                          = 11  mdimf < m+1
+    !                          = 12  lambda > 0
+    !                          = 20  If the dynamic allocation of real and
+    !                                complex workspace required for solution
+    !                                fails (for example if n, m are too large
+    !                                for your computer)
+    !
+    !                          Since this is the only means of indicating
+    !                          a possibly incorrect call to hw3crt, the
+    !                          user should test ierror after the call.
+    !
+    ! HISTORY                * Written by Roland Sweet at NCAR in the late
+    !                          1970's.
+    !                        * Released on ncar's public software
+    !                          libraries in January 1980.
+    !                        * Revised in June 2004 by John Adams using
+    !                          Fortran 90 dynamically allocated workspace.
+    !
+    ! ALGORITHM              This subroutine defines the finite difference
+    !                        equations, incorporates boundary data, and
+    !                        adjusts the right side of singular systems and
+    !                        then calls pois3d to solve the system.
+    !
+    ! TIMING                 For large l, m and n, the operation count
+    !                        is roughly proportional to
+    !
+    !                          l*m*n*(log2(l)+log2(m)+5),
+    !
+    !                        but also depends on input parameters lbdcnd
+    !                        and mbdcnd.
+    !
+    ! ACCURACY               The solution process employed results in
+    !                        a loss of no more than four significant
+    !                        digits for l, m and n as large as 32.
+    !                        more detailed information about accuracy
+    !                        can be found in the documentation for
+    !                        routine pois3d which is the routine that
+    !                        actually solves the finite difference
+    !                        equations.
+    !
     module subroutine hw3crt(xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m, mbdcnd, &
         bdys, bdyf, zs, zf, n, nbdcnd, bdzs, bdzf, elmbda, ldimf, &
         mdimf, f, pertrb, ierror)
 
         ! Dummy arguments
-        integer(ip), intent(in)      :: l
-        integer(ip), intent(in)      :: lbdcnd
-        integer(ip), intent(in)      :: m
-        integer(ip), intent(in)      :: mbdcnd
-        integer(ip), intent(in)      :: n
-        integer(ip), intent(in)      :: nbdcnd
-        integer(ip), intent(in)      :: ldimf
-        integer(ip), intent(in)      :: mdimf
-        integer(ip), intent(out)     :: ierror
-        real(wp),    intent(in)      :: xs
-        real(wp),    intent(in)      :: xf
-        real(wp),    intent(in)      :: ys
-        real(wp),    intent(in)      :: yf
-        real(wp),    intent(in)      :: zs
-        real(wp),    intent(in)      :: zf
-        real(wp),    intent(in)      :: elmbda
-        real(wp),    intent(out)     :: pertrb
-        real(wp),    intent(in)      :: bdxs(:,:)
-        real(wp),    intent(in)      :: bdxf(:,:)
-        real(wp),    intent(in)      :: bdys(:,:)
-        real(wp),    intent(in)      :: bdyf(:,:)
-        real(wp),    intent(in)      :: bdzs(:,:)
-        real(wp),    intent(in)      :: bdzf(:,:)
+        integer(ip), intent(in)     :: l
+        integer(ip), intent(in)     :: lbdcnd
+        integer(ip), intent(in)     :: m
+        integer(ip), intent(in)     :: mbdcnd
+        integer(ip), intent(in)     :: n
+        integer(ip), intent(in)     :: nbdcnd
+        integer(ip), intent(in)     :: ldimf
+        integer(ip), intent(in)     :: mdimf
+        integer(ip), intent(out)    :: ierror
+        real(wp),    intent(in)     :: xs
+        real(wp),    intent(in)     :: xf
+        real(wp),    intent(in)     :: ys
+        real(wp),    intent(in)     :: yf
+        real(wp),    intent(in)     :: zs
+        real(wp),    intent(in)     :: zf
+        real(wp),    intent(in)     :: elmbda
+        real(wp),    intent(out)    :: pertrb
+        real(wp),    intent(in)     :: bdxs(:,:)
+        real(wp),    intent(in)     :: bdxf(:,:)
+        real(wp),    intent(in)     :: bdys(:,:)
+        real(wp),    intent(in)     :: bdyf(:,:)
+        real(wp),    intent(in)     :: bdzs(:,:)
+        real(wp),    intent(in)     :: bdzf(:,:)
         real(wp),    intent(inout)  :: f(:,:,:)
 
         ! Local variables
         type(FishpackWorkspace) :: workspace
 
         ! Check input arguments
-        call check_input_arguments(l, lbdcnd, m, mbdcnd, n, nbdcnd, &
+        call hw3crt_check_input_arguments(l, lbdcnd, m, mbdcnd, n, nbdcnd, &
             ldimf, mdimf, xs, xf, ys, yf, zs, zf, ierror)
 
         ! Check error flag
         if (ierror /= 0) return
 
         ! Allocate memory
-        call initialize_workspace(n, m, l, workspace)
+        call hw3crt_initialize_workspace(n, m, l, workspace)
 
         ! Solve system
         associate( &
@@ -493,8 +493,7 @@ contains
         integer(ip) :: mstpm1, lstpm1, nstpm1, nperod
         real(wp)    :: dy, twbydy, c2, dz, twbydz, c3, dx
         real(wp)    :: c1, twbydx, xlp, ylp, zlp, s1, s2, s
-        type(Pois3dAux) :: aux
-
+        type(SolverUtility3D) :: util3d
 
         dy = (yf - ys)/m
         twbydy = TWO/dy
@@ -545,10 +544,8 @@ contains
         lp = lbdcnd + 1
         lstart = 1
         lstop = l
-        !
+
         ! Enter boundary data for x-boundaries.
-        !
-        !
         select case (lp)
             case (2:3)
                 lstart = 2
@@ -575,9 +572,7 @@ contains
 
         lunk = lstop - lstart + 1
 
-        !
         ! Enter boundary data for y-boundaries.
-        !
         select case (mp)
             case (2:3)
                 f(lstart:lstop, 2, nstart:nstop) = &
@@ -623,9 +618,7 @@ contains
                     - twbydz*bdzf(lstart:lstop, mstart:mstop)
         end select
 
-        !
         ! Define a, b, c coefficients in w-array.
-        !
         iwb = nunk + 1
         iwc = iwb + nunk
         iww = iwc + nunk
@@ -644,17 +637,15 @@ contains
         end select
 
         pertrb = ZERO
-        !
+
         ! For singular problems adjust data to insure a solution will exist.
-        !
-        !
         select case (lp)
             case (1, 4)
                 select case (mp)
                     case (1, 4)
                         select case (np)
                             case (1, 4)
-                                if (elmbda >= ZERO) then
+                                if (ZERO <= elmbda) then
                                     if (elmbda /= ZERO) then
                                         ierror = 12
                                         return
@@ -716,7 +707,7 @@ contains
         end select
 
         ! Solve system
-        call aux%pois3dd(lbdcnd, lunk, c1, mbdcnd, munk, c2, nperod, nunk, w, &
+        call util3d%pois3dd(lbdcnd, lunk, c1, mbdcnd, munk, c2, nperod, nunk, w, &
             w(iwb:), w(iwc:), ldimf, mdimf, f(lstart:, mstart:, nstart:), &
             ierror, w(iww:), workspace_indices)
 
@@ -755,7 +746,7 @@ contains
 
     end subroutine hw3crt_lower_routine
 
-    pure subroutine check_input_arguments(l, lbdcnd, m, mbdcnd, n, nbdcnd, &
+    pure subroutine hw3crt_check_input_arguments(l, lbdcnd, m, mbdcnd, n, nbdcnd, &
         ldimf, mdimf, xs, xf, ys, yf, zs, zf, ierror)
 
         ! Dummy arguments
@@ -777,63 +768,52 @@ contains
 
         if (xf <= xs) then
             ierror = 1
-            return
         else if (l < 5) then
             ierror = 2
-            return
         else if (lbdcnd < 0 .or. lbdcnd > 4) then
             ierror = 3
-            return
         else if (yf <= ys) then
             ierror = 4
-            return
         else if (m < 5) then
             ierror = 5
-            return
         else if (mbdcnd < 0 .or. mbdcnd > 4) then
             ierror = 6
-            return
         else if (zf <= zs) then
             ierror = 7
-            return
         else if (n < 5) then
             ierror = 8
-            return
         else if (nbdcnd < 0 .or. nbdcnd > 4) then
             ierror = 9
-            return
         else if (ldimf < l + 1) then
             ierror = 10
-            return
         else if (mdimf < m + 1) then
             ierror = 11
-            return
         else
             ierror = 0
         end if
 
-    end subroutine check_input_arguments
+    end subroutine hw3crt_check_input_arguments
 
-    subroutine initialize_workspace(n, m, l, workspace)
+    subroutine hw3crt_initialize_workspace(n, m, l, workspace)
 
         ! Dummy arguments
         integer(ip),              intent(in)  :: n, m, l
         class(FishpackWorkspace), intent(out) :: workspace
 
         ! Local variables
-        integer(ip)     :: irwk, icwk
-        type(Pois3dAux) :: aux
+        integer(ip)           :: irwk, icwk
+        type(SolverUtility3D) :: util3d
 
         ! Adjust workspace for hw3crt
         irwk = 30 + l + m + (5 * n) + max(n, m, l) + 7*((l+1)/2 + (m+1)/2)
         icwk = 0
 
         ! Allocate memory
-        call workspace%create(irwk, icwk, aux%IIWK)
+        call workspace%create(irwk, icwk, util3d%IIWK)
 
         ! Set workspace indices
-        workspace%workspace_indices = aux%get_workspace_indices(l, m, n)
+        workspace%workspace_indices = util3d%get_workspace_indices(l, m, n)
 
-    end subroutine initialize_workspace
+    end subroutine hw3crt_initialize_workspace
 
 end submodule centered_cartesian_helmholtz_solver_3d

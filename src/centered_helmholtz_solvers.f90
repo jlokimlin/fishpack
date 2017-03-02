@@ -7,7 +7,7 @@ module centered_helmholtz_solvers
         TWO_PI
 
     use type_FishpackWorkspace, only: &
-        Fish => FishpackWorkspace
+        FishpackWorkspace
 
     use module_genbun, only: &
         genbunn
@@ -154,7 +154,7 @@ module centered_helmholtz_solvers
             real(wp),    intent(in)     :: bdrs(:)
             real(wp),    intent(in)     :: bdrf(:)
             real(wp),    intent(inout)  :: f(:,:)
-            class(Fish), intent(inout)  :: workspace
+            class(FishpackWorkspace), intent(inout)  :: workspace
             !-----------------------------------------------
         end subroutine hwscsp
     end interface

@@ -1,6 +1,4 @@
 !
-!     file hwscsp.f90
-!
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
 !     *                  copyright (c) 2005 by UCAR                   *
@@ -33,418 +31,405 @@
 !     *                                                               *
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !
-!     SUBROUTINE hwscsp(intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, nbdcnd,
-!    +                   bdrs, bdrf, elmbda, f, idimf, pertrb, ierror, w)
-!
-!
-! DIMENSION OF           bdts(n+1),  bdtf(n+1), bdrs(m+1), bdrf(m+1),
-! arguments              f(idimf, n+1)
-!
-! LATEST REVISION        June 2016
-!
-! PURPOSE                Solves a finite difference approximation
-!                        to the modified helmholtz equation in
-!                        spherical coordinates assuming axisymmetry
-!                        (no dependence on longitude).  the equation
-!                        is
-!
-!                          (1/r**2)(d/dr)((r**2)(d/dr)u) +
-!
-!                          (1/(r**2)sin(theta))(d/dtheta)
-!
-!                          (sin(theta)(d/dtheta)u) +
-!
-!                          (lambda/(rsin(theta))**2)u = f(theta, r).
-!
-!                        this two dimensional modified helmholtz
-!                        equation results from the fourier transform
-!                        of the three dimensional poisson equation.
-!
-! USAGE                  call hwscsp(intl, ts, tf, m, mbdcnd, bdts, bdtf,
-!                                    rs, rf, n, nbdcnd, bdrs, bdrf, elmbda,
-!                                    f, idimf, pertrb, ierror, w)
-!
-! ARGUMENTS
-! ON INPUT               intl
-!                          = 0  on initial entry to hwscsp or if any
-!                               of the arguments rs, rf, n, nbdcnd
-!                               are changed from a previous call.
-!                          = 1  if rs, rf, n, nbdcnd are all unchanged
-!                               from previous call to hwscsp.
-!
-!                          note:
-!                          a call with intl=0 takes approximately
-!                          1.5 times as much time as a call with
-!                          intl = 1  .  once a call with intl = 0
-!                          has been made then subsequent solutions
-!                          corresponding to different f, bdts, bdtf,
-!                          bdrs, bdrf can be obtained faster with
-!                          intl = 1 since initialization is not
-!                          repeated.
-!
-!                        ts, tf
-!                          the range of theta (colatitude), i.e.,
-!                          ts <= theta <= tf. ts must be less
-!                          than tf.  ts and tf are in radians. a ts of
-!                          zero corresponds to the north pole and a
-!                          tf of pi corresponds to the south pole.
-!
-!                          **** important ****
-!
-!                          if tf is equal to pi then it must be
-!                          computed using the statement
-!                          tf = pi_mach(dum). this insures that tf
-!                          in the user's program is equal to pi in
-!                          this program which permits several tests
-!                          of the  input parameters that otherwise
-!                          would not be possible.
-!
-!                        m
-!                          the number of panels into which the
-!                          interval (ts, tf) is subdivided.
-!                          hence, there will be m+1 grid points
-!                          in the theta-direction given by
-!                          theta(k) = (i-1)dtheta+ts for
-!                          i = 1, 2, ..., m+1, where dtheta = (tf-ts)/m
-!                          is the panel width.
-!
-!                        mbdcnd
-!                          indicates the type of boundary condition
-!                          at theta = ts and  theta = tf.
-!
-!                          = 1  if the solution is specified at
-!                               theta = ts and theta = tf.
-!                          = 2  if the solution is specified at
-!                               theta = ts and the derivative of the
-!                               solution with respect to theta is
-!                               specified at theta = tf
-!                               (see note 2 below).
-!                          = 3  if the derivative of the solution
-!                               with respect to theta is specified
-!                               at theta = ts and theta = tf
-!                               (see notes 1, 2 below).
-!                          = 4  if the derivative of the solution
-!                               with respect to theta is specified
-!                               at theta = ts (see note 1 below) and
-!                               solution is specified at theta = tf.
-!                          = 5  if the solution is unspecified at
-!                               theta = ts = 0 and the solution is
-!                                specified at theta = tf.
-!                          = 6  if the solution is unspecified at
-!                               theta = ts = 0 and the derivative
-!                               of the solution with respect to theta
-!                               is specified at theta = tf
-!                               (see note 2 below).
-!                          = 7  if the solution is specified at
-!                               theta = ts and the solution is
-!                                unspecified at theta = tf = pi.
-!                          = 8  if the derivative of the solution
-!                               with respect to theta is specified
-!                               at theta = ts (see note 1 below)
-!                               and the solution is unspecified at
-!                               theta = tf = pi.
-!                          = 9  if the solution is unspecified at
-!                               theta = ts = 0 and theta = tf = pi.
-!
-!                          note 1:
-!                          if ts = 0, do not use mbdcnd = 3, 4, or 8,
-!                          but instead use mbdcnd = 5, 6, or 9  .
-!
-!                          note 2:
-!                          if tf = pi, do not use mbdcnd = 2, 3, or 6,
-!                          but instead use mbdcnd = 7, 8, or 9  .
-!
-!                        bdts
-!                          a one-dimensional array of length n+1 that
-!                          specifies the values of the derivative of
-!                          the solution with respect to theta at
-!                          theta = ts.  when mbdcnd = 3, 4, or 8,
-!
-!                            bdts(j) = (d/dtheta)u(ts, r(j)),
-!                            j = 1, 2, ..., n+1  .
-!
-!                          when mbdcnd has any other value, bdts is
-!                          a dummy variable.
-!
-!                        bdtf
-!                          a one-dimensional array of length n+1 that
-!                          specifies the values of the derivative of
-!                          the solution with respect to theta at
-!                          theta = tf.  when mbdcnd = 2, 3, or 6,
-!
-!                          bdtf(j) = (d/dtheta)u(tf, r(j)),
-!                          j = 1, 2, ..., n+1  .
-!
-!                          when mbdcnd has any other value, bdtf is
-!                          a dummy variable.
-!
-!                        rs, rf
-!                          the range of r, i.e., rs <= r < rf.
-!                          rs must be less than rf.  rs must be
-!                          non-negative.
-!
-!                        n
-!                          the number of panels into which the
-!                          interval (rs, rf) is subdivided.
-!                          hence, there will be n+1 grid points in the
-!                          r-direction given by r(j) = (j-1)dr+rs
-!                          for j = 1, 2, ..., n+1, where dr = (rf-rs)/n
-!                          is the panel width.
-!                          n must be greater than 2
-!
-!                        nbdcnd
-!                          indicates the type of boundary condition
-!                          at r = rs and r = rf.
-!
-!                          = 1  if the solution is specified at
-!                               r = rs and r = rf.
-!                          = 2  if the solution is specified at
-!                               r = rs and the derivative
-!                               of the solution with respect to r
-!                               is specified at r = rf.
-!                          = 3  if the derivative of the solution
-!                               with respect to r is specified at
-!                               r = rs and r = rf.
-!                          = 4  if the derivative of the solution
-!                               with respect to r is specified at
-!                               rs and the solution is specified at
-!                               r = rf.
-!                          = 5  if the solution is unspecified at
-!                               r = rs = 0 (see note below)  and the
-!                               solution is specified at r = rf.
-!                          = 6  if the solution is unspecified at
-!                               r = rs = 0 (see note below) and the
-!                               derivative of the solution with
-!                               respect to r is specified at r = rf.
-!
-!                          note:
-!                          nbdcnd = 5 or 6 cannot be used with
-!                          mbdcnd = 1, 2, 4, 5, or 7.  the former
-!                          indicates that the solution is unspecified
-!                          at r = 0, the latter indicates that the
-!                          solution is specified).
-!                          use instead   nbdcnd = 1 or 2  .
-!
-!                        bdrs
-!                          a one-dimensional array of length m+1 that
-!                          specifies the values of the derivative of
-!                          the solution with respect to r at r = rs.
-!
-!                          when nbdcnd = 3 or 4,
-!                            bdrs(i) = (d/dr)u(theta(i), rs),
-!                            i = 1, 2, ..., m+1  .
-!
-!                          when nbdcnd has any other value, bdrs is
-!                          a dummy variable.
-!
-!                        bdrf
-!                          a one-dimensional array of length m+1
-!                          that specifies the values of the
-!                          derivative of the solution with respect
-!                          to r at r = rf.
-!
-!                          when nbdcnd = 2, 3, or 6,
-!                            bdrf(i) = (d/dr)u(theta(i), rf),
-!                            i = 1, 2, ..., m+1  .
-!
-!                          when nbdcnd has any other value, bdrf is
-!                          a dummy variable.
-!
-!                        elmbda
-!                          the constant lambda in the helmholtz
-!                          equation.  if lambda > 0, a solution
-!                          may not exist.  however, hwscsp will
-!                          attempt to find a solution.  if nbdcnd = 5
-!                          or 6 or  mbdcnd = 5, 6, 7, 8, or 9, elmbda
-!                          must be zero.
-!
-!                        f
-!                          a two-dimensional array, of dimension at
-!                          least (m+1)*(n+1), specifying values of the
-!                          right side of the helmholtz equation and
-!                          boundary values (if any).
-!
-!                          on the interior, f is defined as follows:
-!                          for i = 2, 3, ..., m and j = 2, 3, ..., n
-!                          f(i, j) = f(theta(i), r(j)).
-!
-!                          on the boundaries, f is defined as follows:
-!                          for j=1, 2, ..., n+1,  i=1, 2, ..., m+1,
-!
-!                          mbdcnd   f(1, j)            f(m+1, j)
-!                          ------   ----------        ----------
-!
-!                            1      u(ts, r(j))        u(tf, r(j))
-!                            2      u(ts, r(j))        f(tf, r(j))
-!                            3      f(ts, r(j))        f(tf, r(j))
-!                            4      f(ts, r(j))        u(tf, r(j))
-!                            5      f(0, r(j))         u(tf, r(j))
-!                            6      f(0, r(j))         f(tf, r(j))
-!                            7      u(ts, r(j))        f(pi, r(j))
-!                            8      f(ts, r(j))        f(pi, r(j))
-!                            9      f(0, r(j))         f(pi, r(j))
-!
-!                            nbdcnd   f(i, 1)            f(i, n+1)
-!                            ------   --------------    --------------
-!
-!                              1      u(theta(i), rs)    u(theta(i), rf)
-!                              2      u(theta(i), rs)    f(theta(i), rf)
-!                              3      f(theta(i), rs)    f(theta(i), rf)
-!                              4      f(theta(i), rs)    u(theta(i), rf)
-!                              5      f(ts, 0)           u(theta(i), rf)
-!                              6      f(ts, 0)           f(theta(i), rf)
-!
-!                          note:
-!                          if the table calls for both the solution
-!                          u and the right side f at a corner then
-!                          the solution must be specified.
-!
-!                        idimf
-!                          the row (or first) dimension of the array
-!                          f as it appears in the program calling
-!                          hwscsp.  this parameter is used to specify
-!                          the variable dimension of f.  idimf must
-!                          be at least m+1  .
-!
-!                        w
-!                          A FishpackWorkspace derived data type variable
-!                          that must be declared by the user.  the first
-!                          two declarative statements in the user program
-!                          calling sepeli must be:
-!
-!                               use type_fishpackworkspace
-!                               type(fishpackworkspace) :: w
-!
-!                          The first statement makes the fishpack module
-!                          defined in the file "type_FishpackWorkspace.f90" available to the
-!                          user program calling hwscsp. The second statement
-!                          declares a derived type variable (defined in
-!                          the module "type_FishpackWorkspace.f90") which is used internally
-!                          in hwscsp to dynamically allocate real and complex
-!                          workspace used in solution.  an error flag
-!                          (ierror = 20) is set if the required workspace
-!                          allocation fails (for example if n, m are too large)
-!                          real and complex values are set in the components
-!                          of w on a initial (intl=0) call to hwscsp.  these
-!                          must be preserved on non-initial calls (intl=1)
-!                          to hwscsp.  this eliminates redundant calculations
-!                          and saves compute time.
-!               ****       IMPORTANT!  The user program calling hwscsp should
-!                          include the statement:
-!
-!                               call w%destroy()
-!
-!                          after the final approximation is generated by
-!                          hwscsp.  The will deallocate the real and complex
-!                          workspace of W.  Failure to include this statement
-!                          could result in serious memory leakage.
-!
-!
-! ON OUTPUT              f
-!                          contains the solution u(i, j) of the finite
-!                          difference approximation for the grid point
-!                          (theta(i), r(j)),  i = 1, 2, ..., m+1,
-!                                            j = 1, 2, ..., n+1  .
-!
-!                        pertrb
-!                          if a combination of periodic or derivative
-!                          boundary conditions is specified for a
-!                          poisson equation (lambda = 0), a solution
-!                          may not exist.  pertrb is a constant,
-!                          calculated and subtracted from f, which
-!                          ensures that a solution exists.  hwscsp
-!                          then computes this solution, which is a
-!                          least squares solution to the original
-!                          approximation. this solution is not unique
-!                          and is unnormalized. the value of pertrb
-!                          should be small compared to the right side
-!                          f. otherwise , a solution is obtained to
-!                          an essentially different problem. this
-!                          comparison should always be made to insure
-!                          that a meaningful solution has been obtained.
-!
-!                        ierror
-!                          an error flag that indicates invalid input
-!                          parameters.  except for numbers 0 and 10,
-!                          a solution is not attempted.
-!
-!                          = 1  ts<0. or tf>pi
-!                          = 2  ts>=tf
-!                          = 3  m<5
-!                          = 4  mbdcnd<1 or mbdcnd>9
-!                          = 5  rs<0
-!                          = 6  rs>=rf
-!                          = 7  n<5
-!                          = 8  nbdcnd<1 or nbdcnd>6
-!                          = 9  elmbda>0
-!                          = 10 idimf<m+1
-!                          = 11 elmbda/=0 and mbdcnd>=5
-!                          = 12 elmbda/=0 and nbdcnd equals 5 or 6
-!                          = 13 mbdcnd equals 5, 6 or 9 and ts/=0
-!                          = 14 mbdcnd>=7 and tf/=pi
-!                          = 15 ts.eq.0 and mbdcnd equals 3, 4 or 8
-!                          = 16 tf.eq.pi and mbdcnd equals 2, 3 or 6
-!                          = 17 nbdcnd>=5 and rs/=0
-!                          = 18 nbdcnd>=5 and mbdcnd equals 1, 2, 4, 5 or
-!                          = 20 if the dynamic allocation of real and
-!                               complex workspace in the derived type
-!                               (fishpackworkspace) variable w fails (e.g.,
-!                               if n, m are too large for the platform used)
-!
-!                          since this is the only means of indicating
-!                          a possliby incorrect call to hwscsp, the
-!                          user should test ierror after a call.
-!
-!                        w
-!                          the derived type(fishpackworkspace) variable w
-!                          contains real and complex values that must not
-!                          be destroyed if hwscsp is called again with
-!                          intl=1.
-!
-! SPECIAL CONDITIONS     None
-!
-! I/O                    None
-!
-! PRECISION              64-bit double precision
-!
-! REQUIRED files         type_FishpackWorkspace.f90, blktri.f90, type_ComfAux.f90
-!
-! STANDARD               Fortran 2008
-!
-! HISTORY                Written by Roland Sweet AT NCAR in the late
-!                        1970'S.  Released on NCAR's public software
-!                        libraries in January 1980. Revised by John
-!                        Adams in June 2004 using Fortran 90 dynamically
-!                        allocated workspace and derived datat types
-!                        to eliminate mixed mode conflicts in the earlier
-!                        versions.
-!
-!
-! ALGORITHM              The routine defines the finite difference
-!                        equations, incorporates boundary data, and
-!                        adjusts the right side of singular systems
-!                        and then calls blktri to solve the system.
-!
-! REFERENCES             Swarztrauber, P. and R. Sweet, "Efficient
-!                        FORTRAN subprograms for the solution of
-!                        elliptic equations"
-!                          NCAR TN/IA-109, July, 1975, 138 pp.
-!
+
 submodule(centered_helmholtz_solvers) centered_axisymmetric_spherical_solver
 
-!---------------------------------------------------------------
 ! Parameters confined to the submodule
-!---------------------------------------------------------------
-integer(ip), parameter :: IIWK = 10 ! Size for workspace_indices
-!---------------------------------------------------------------
+integer(ip), parameter :: SIZE_OF_WORKSPACE_INDICES = 10
 
 contains
 
+    ! SUBROUTINE hwscsp(intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, nbdcnd, &
+    !                       bdrs, bdrf, elmbda, f, idimf, pertrb, ierror, w)
+    !
+    !
+    ! DIMENSION OF           bdts(n+1),  bdtf(n+1), bdrs(m+1), bdrf(m+1),
+    ! ARGUMENTS              f(idimf, n+1)
+    !
+    !
+    ! PURPOSE                Solves a finite difference approximation
+    !                        to the modified helmholtz equation in
+    !                        spherical coordinates assuming axisymmetry
+    !                        (no dependence on longitude).  the equation
+    !                        is
+    !
+    !                          (1/r**2)(d/dr)((r**2)(d/dr)u) +
+    !
+    !                          (1/(r**2)sin(theta))(d/dtheta)
+    !
+    !                          (sin(theta)(d/dtheta)u) +
+    !
+    !                          (lambda/(rsin(theta))**2)u = f(theta, r).
+    !
+    !                        this two dimensional modified helmholtz
+    !                        equation results from the fourier transform
+    !                        of the three dimensional poisson equation.
+    !
+    ! USAGE                  call hwscsp(intl, ts, tf, m, mbdcnd, bdts, bdtf,
+    !                                    rs, rf, n, nbdcnd, bdrs, bdrf, elmbda,
+    !                                    f, idimf, pertrb, ierror, w)
+    !
+    ! ARGUMENTS
+    ! ON INPUT               intl
+    !                          = 0  on initial entry to hwscsp or if any
+    !                               of the arguments rs, rf, n, nbdcnd
+    !                               are changed from a previous call.
+    !                          = 1  if rs, rf, n, nbdcnd are all unchanged
+    !                               from previous call to hwscsp.
+    !
+    !                          note:
+    !                          a call with intl=0 takes approximately
+    !                          1.5 times as much time as a call with
+    !                          intl = 1  .  once a call with intl = 0
+    !                          has been made then subsequent solutions
+    !                          corresponding to different f, bdts, bdtf,
+    !                          bdrs, bdrf can be obtained faster with
+    !                          intl = 1 since initialization is not
+    !                          repeated.
+    !
+    !                        ts, tf
+    !                          the range of theta (colatitude), i.e.,
+    !                          ts <= theta <= tf. ts must be less
+    !                          than tf.  ts and tf are in radians. a ts of
+    !                          zero corresponds to the north pole and a
+    !                          tf of pi corresponds to the south pole.
+    !
+    !                          **** important ****
+    !
+    !                          if tf is equal to pi then it must be
+    !                          computed using the statement
+    !                          tf = pi_mach(dum). this insures that tf
+    !                          in the user's program is equal to pi in
+    !                          this program which permits several tests
+    !                          of the  input parameters that otherwise
+    !                          would not be possible.
+    !
+    !                        m
+    !                          the number of panels into which the
+    !                          interval (ts, tf) is subdivided.
+    !                          hence, there will be m+1 grid points
+    !                          in the theta-direction given by
+    !                          theta(k) = (i-1)dtheta+ts for
+    !                          i = 1, 2, ..., m+1, where dtheta = (tf-ts)/m
+    !                          is the panel width.
+    !
+    !                        mbdcnd
+    !                          indicates the type of boundary condition
+    !                          at theta = ts and  theta = tf.
+    !
+    !                          = 1  if the solution is specified at
+    !                               theta = ts and theta = tf.
+    !                          = 2  if the solution is specified at
+    !                               theta = ts and the derivative of the
+    !                               solution with respect to theta is
+    !                               specified at theta = tf
+    !                               (see note 2 below).
+    !                          = 3  if the derivative of the solution
+    !                               with respect to theta is specified
+    !                               at theta = ts and theta = tf
+    !                               (see notes 1, 2 below).
+    !                          = 4  if the derivative of the solution
+    !                               with respect to theta is specified
+    !                               at theta = ts (see note 1 below) and
+    !                               solution is specified at theta = tf.
+    !                          = 5  if the solution is unspecified at
+    !                               theta = ts = 0 and the solution is
+    !                                specified at theta = tf.
+    !                          = 6  if the solution is unspecified at
+    !                               theta = ts = 0 and the derivative
+    !                               of the solution with respect to theta
+    !                               is specified at theta = tf
+    !                               (see note 2 below).
+    !                          = 7  if the solution is specified at
+    !                               theta = ts and the solution is
+    !                                unspecified at theta = tf = pi.
+    !                          = 8  if the derivative of the solution
+    !                               with respect to theta is specified
+    !                               at theta = ts (see note 1 below)
+    !                               and the solution is unspecified at
+    !                               theta = tf = pi.
+    !                          = 9  if the solution is unspecified at
+    !                               theta = ts = 0 and theta = tf = pi.
+    !
+    !                          note 1:
+    !                          if ts = 0, do not use mbdcnd = 3, 4, or 8,
+    !                          but instead use mbdcnd = 5, 6, or 9  .
+    !
+    !                          note 2:
+    !                          if tf = pi, do not use mbdcnd = 2, 3, or 6,
+    !                          but instead use mbdcnd = 7, 8, or 9  .
+    !
+    !                        bdts
+    !                          a one-dimensional array of length n+1 that
+    !                          specifies the values of the derivative of
+    !                          the solution with respect to theta at
+    !                          theta = ts.  when mbdcnd = 3, 4, or 8,
+    !
+    !                            bdts(j) = (d/dtheta)u(ts, r(j)),
+    !                            j = 1, 2, ..., n+1  .
+    !
+    !                          when mbdcnd has any other value, bdts is
+    !                          a dummy variable.
+    !
+    !                        bdtf
+    !                          a one-dimensional array of length n+1 that
+    !                          specifies the values of the derivative of
+    !                          the solution with respect to theta at
+    !                          theta = tf.  when mbdcnd = 2, 3, or 6,
+    !
+    !                          bdtf(j) = (d/dtheta)u(tf, r(j)),
+    !                          j = 1, 2, ..., n+1  .
+    !
+    !                          when mbdcnd has any other value, bdtf is
+    !                          a dummy variable.
+    !
+    !                        rs, rf
+    !                          the range of r, i.e., rs <= r < rf.
+    !                          rs must be less than rf.  rs must be
+    !                          non-negative.
+    !
+    !                        n
+    !                          the number of panels into which the
+    !                          interval (rs, rf) is subdivided.
+    !                          hence, there will be n+1 grid points in the
+    !                          r-direction given by r(j) = (j-1)dr+rs
+    !                          for j = 1, 2, ..., n+1, where dr = (rf-rs)/n
+    !                          is the panel width.
+    !                          n must be greater than 2
+    !
+    !                        nbdcnd
+    !                          indicates the type of boundary condition
+    !                          at r = rs and r = rf.
+    !
+    !                          = 1  if the solution is specified at
+    !                               r = rs and r = rf.
+    !                          = 2  if the solution is specified at
+    !                               r = rs and the derivative
+    !                               of the solution with respect to r
+    !                               is specified at r = rf.
+    !                          = 3  if the derivative of the solution
+    !                               with respect to r is specified at
+    !                               r = rs and r = rf.
+    !                          = 4  if the derivative of the solution
+    !                               with respect to r is specified at
+    !                               rs and the solution is specified at
+    !                               r = rf.
+    !                          = 5  if the solution is unspecified at
+    !                               r = rs = 0 (see note below)  and the
+    !                               solution is specified at r = rf.
+    !                          = 6  if the solution is unspecified at
+    !                               r = rs = 0 (see note below) and the
+    !                               derivative of the solution with
+    !                               respect to r is specified at r = rf.
+    !
+    !                          note:
+    !                          nbdcnd = 5 or 6 cannot be used with
+    !                          mbdcnd = 1, 2, 4, 5, or 7.  the former
+    !                          indicates that the solution is unspecified
+    !                          at r = 0, the latter indicates that the
+    !                          solution is specified).
+    !                          use instead   nbdcnd = 1 or 2  .
+    !
+    !                        bdrs
+    !                          a one-dimensional array of length m+1 that
+    !                          specifies the values of the derivative of
+    !                          the solution with respect to r at r = rs.
+    !
+    !                          when nbdcnd = 3 or 4,
+    !                            bdrs(i) = (d/dr)u(theta(i), rs),
+    !                            i = 1, 2, ..., m+1  .
+    !
+    !                          when nbdcnd has any other value, bdrs is
+    !                          a dummy variable.
+    !
+    !                        bdrf
+    !                          a one-dimensional array of length m+1
+    !                          that specifies the values of the
+    !                          derivative of the solution with respect
+    !                          to r at r = rf.
+    !
+    !                          when nbdcnd = 2, 3, or 6,
+    !                            bdrf(i) = (d/dr)u(theta(i), rf),
+    !                            i = 1, 2, ..., m+1  .
+    !
+    !                          when nbdcnd has any other value, bdrf is
+    !                          a dummy variable.
+    !
+    !                        elmbda
+    !                          the constant lambda in the helmholtz
+    !                          equation.  if lambda > 0, a solution
+    !                          may not exist.  however, hwscsp will
+    !                          attempt to find a solution.  if nbdcnd = 5
+    !                          or 6 or  mbdcnd = 5, 6, 7, 8, or 9, elmbda
+    !                          must be zero.
+    !
+    !                        f
+    !                          a two-dimensional array, of dimension at
+    !                          least (m+1)*(n+1), specifying values of the
+    !                          right side of the helmholtz equation and
+    !                          boundary values (if any).
+    !
+    !                          on the interior, f is defined as follows:
+    !                          for i = 2, 3, ..., m and j = 2, 3, ..., n
+    !                          f(i, j) = f(theta(i), r(j)).
+    !
+    !                          on the boundaries, f is defined as follows:
+    !                          for j=1, 2, ..., n+1,  i=1, 2, ..., m+1,
+    !
+    !                          mbdcnd   f(1, j)            f(m+1, j)
+    !                          ------   ----------        ----------
+    !
+    !                            1      u(ts, r(j))        u(tf, r(j))
+    !                            2      u(ts, r(j))        f(tf, r(j))
+    !                            3      f(ts, r(j))        f(tf, r(j))
+    !                            4      f(ts, r(j))        u(tf, r(j))
+    !                            5      f(0, r(j))         u(tf, r(j))
+    !                            6      f(0, r(j))         f(tf, r(j))
+    !                            7      u(ts, r(j))        f(pi, r(j))
+    !                            8      f(ts, r(j))        f(pi, r(j))
+    !                            9      f(0, r(j))         f(pi, r(j))
+    !
+    !                            nbdcnd   f(i, 1)            f(i, n+1)
+    !                            ------   --------------    --------------
+    !
+    !                              1      u(theta(i), rs)    u(theta(i), rf)
+    !                              2      u(theta(i), rs)    f(theta(i), rf)
+    !                              3      f(theta(i), rs)    f(theta(i), rf)
+    !                              4      f(theta(i), rs)    u(theta(i), rf)
+    !                              5      f(ts, 0)           u(theta(i), rf)
+    !                              6      f(ts, 0)           f(theta(i), rf)
+    !
+    !                          note:
+    !                          if the table calls for both the solution
+    !                          u and the right side f at a corner then
+    !                          the solution must be specified.
+    !
+    !                        idimf
+    !                          the row (or first) dimension of the array
+    !                          f as it appears in the program calling
+    !                          hwscsp.  this parameter is used to specify
+    !                          the variable dimension of f.  idimf must
+    !                          be at least m+1  .
+    !
+    !                        w
+    !                          A FishpackWorkspace derived data type variable
+    !                          that must be declared by the user.  the first
+    !                          two declarative statements in the user program
+    !                          calling sepeli must be:
+    !
+    !                               use type_fishpackworkspace
+    !                               type(fishpackworkspace) :: w
+    !
+    !                          The first statement makes the fishpack module
+    !                          defined in the file "type_FishpackWorkspace.f90" available to the
+    !                          user program calling hwscsp. The second statement
+    !                          declares a derived type variable (defined in
+    !                          the module "type_FishpackWorkspace.f90") which is used internally
+    !                          in hwscsp to dynamically allocate real and complex
+    !                          workspace used in solution.  an error flag
+    !                          (ierror = 20) is set if the required workspace
+    !                          allocation fails (for example if n, m are too large)
+    !                          real and complex values are set in the components
+    !                          of w on a initial (intl=0) call to hwscsp.  these
+    !                          must be preserved on non-initial calls (intl=1)
+    !                          to hwscsp.  this eliminates redundant calculations
+    !                          and saves compute time.
+    !               ****       IMPORTANT!  The user program calling hwscsp should
+    !                          include the statement:
+    !
+    !                               call w%destroy()
+    !
+    !                          after the final approximation is generated by
+    !                          hwscsp.  The will deallocate the real and complex
+    !                          workspace of W.  Failure to include this statement
+    !                          could result in serious memory leakage.
+    !
+    !
+    ! ON OUTPUT              f
+    !                          contains the solution u(i, j) of the finite
+    !                          difference approximation for the grid point
+    !                          (theta(i), r(j)),  i = 1, 2, ..., m+1,
+    !                                            j = 1, 2, ..., n+1  .
+    !
+    !                        pertrb
+    !                          if a combination of periodic or derivative
+    !                          boundary conditions is specified for a
+    !                          poisson equation (lambda = 0), a solution
+    !                          may not exist.  pertrb is a constant,
+    !                          calculated and subtracted from f, which
+    !                          ensures that a solution exists.  hwscsp
+    !                          then computes this solution, which is a
+    !                          least squares solution to the original
+    !                          approximation. this solution is not unique
+    !                          and is unnormalized. the value of pertrb
+    !                          should be small compared to the right side
+    !                          f. otherwise , a solution is obtained to
+    !                          an essentially different problem. this
+    !                          comparison should always be made to insure
+    !                          that a meaningful solution has been obtained.
+    !
+    !                        ierror
+    !                          an error flag that indicates invalid input
+    !                          parameters.  except for numbers 0 and 10,
+    !                          a solution is not attempted.
+    !
+    !                          = 1  ts<0. or tf>pi
+    !                          = 2  ts>=tf
+    !                          = 3  m<5
+    !                          = 4  mbdcnd<1 or mbdcnd>9
+    !                          = 5  rs<0
+    !                          = 6  rs>=rf
+    !                          = 7  n<5
+    !                          = 8  nbdcnd<1 or nbdcnd>6
+    !                          = 9  elmbda>0
+    !                          = 10 idimf<m+1
+    !                          = 11 elmbda/=0 and mbdcnd>=5
+    !                          = 12 elmbda/=0 and nbdcnd equals 5 or 6
+    !                          = 13 mbdcnd equals 5, 6 or 9 and ts/=0
+    !                          = 14 mbdcnd>=7 and tf/=pi
+    !                          = 15 ts.eq.0 and mbdcnd equals 3, 4 or 8
+    !                          = 16 tf.eq.pi and mbdcnd equals 2, 3 or 6
+    !                          = 17 nbdcnd>=5 and rs/=0
+    !                          = 18 nbdcnd>=5 and mbdcnd equals 1, 2, 4, 5 or
+    !                          = 20 if the dynamic allocation of real and
+    !                               complex workspace in the derived type
+    !                               (fishpackworkspace) variable w fails (e.g.,
+    !                               if n, m are too large for the platform used)
+    !
+    !                          since this is the only means of indicating
+    !                          a possliby incorrect call to hwscsp, the
+    !                          user should test ierror after a call.
+    !
+    !                        w
+    !                          the derived type(fishpackworkspace) variable w
+    !                          contains real and complex values that must not
+    !                          be destroyed if hwscsp is called again with
+    !                          intl=1.
+    !
+    !
+    ! HISTORY                Written by Roland Sweet AT NCAR in the late
+    !                        1970'S.  Released on NCAR's public software
+    !                        libraries in January 1980. Revised by John
+    !                        Adams in June 2004 using Fortran 90 dynamically
+    !                        allocated workspace and derived datat types
+    !                        to eliminate mixed mode conflicts in the earlier
+    !                        versions.
+    !
+    !
+    ! ALGORITHM              The routine defines the finite difference
+    !                        equations, incorporates boundary data, and
+    !                        adjusts the right side of singular systems
+    !                        and then calls blktri to solve the system.
+    !
+    ! REFERENCES             Swarztrauber, P. and R. Sweet, "Efficient
+    !                        FORTRAN subprograms for the solution of
+    !                        elliptic equations"
+    !                          NCAR TN/IA-109, July, 1975, 138 pp.
+    !
     module subroutine hwscsp(intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, &
         nbdcnd, bdrs, bdrf, elmbda, f, idimf, pertrb, ierror, workspace)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         integer(ip), intent(in)     :: intl
         integer(ip), intent(in)     :: m
         integer(ip), intent(in)     :: mbdcnd
@@ -463,18 +448,17 @@ contains
         real(wp),    intent(in)     :: bdrs(:)
         real(wp),    intent(in)     :: bdrf(:)
         real(wp),    intent(inout)  :: f(:,:)
-        class(Fish), intent(inout)  :: workspace
-        !-----------------------------------------------
+        class(FishpackWorkspace), intent(inout)  :: workspace
 
         ! Check input arguments
-        call check_input_arguments(ts, tf, m, mbdcnd, rs, rf, &
+        call hwscsp_check_input_arguments(ts, tf, m, mbdcnd, rs, rf, &
             n, nbdcnd, elmbda, idimf, ierror)
 
         ! Check error flag
         if (ierror /= 0) return
 
         ! Set up workspace on initial call only
-        if (intl == 0) call initialize_workspace(n, m, nbdcnd, workspace)
+        if (intl == 0) call hwscsp_initialize_workspace(n, m, nbdcnd, workspace)
 
         ! Solve system
         associate( &
@@ -504,22 +488,22 @@ contains
 
     end subroutine hwscsp
 
-    subroutine initialize_workspace(n, m, nbdcnd, workspace)
-        !-----------------------------------------------
+    subroutine hwscsp_initialize_workspace(n, m, nbdcnd, workspace)
+
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip), intent(in)  :: nbdcnd
         integer(ip), intent(in)  :: n
         integer(ip), intent(in)  :: m
-        class(Fish), intent(out) :: workspace
-        !-----------------------------------------------
+        class(FishpackWorkspace), intent(out) :: workspace
+
         ! Local variables
-        !-----------------------------------------------
-        integer(ip) :: irwk, icwk, indx(IIWK)
-        !-----------------------------------------------
+
+        integer(ip) :: irwk, icwk, indx(SIZE_OF_WORKSPACE_INDICES)
+
 
         ! Compute workspace indices
-        indx = get_workspace_indices(n, m, nbdcnd)
+        indx = hwscsp_get_workspace_indices(n, m, nbdcnd)
 
         ! Compute required blktri workspace lengths
         call workspace%compute_blktri_workspace_lengths(n, m, irwk, icwk)
@@ -529,24 +513,23 @@ contains
         icwk = icwk + 3 * m
 
         ! Allocate memory
-        call workspace%create(irwk, icwk, IIWK)
+        call workspace%create(irwk, icwk, SIZE_OF_WORKSPACE_INDICES)
 
         ! Set workspace indices
         workspace%workspace_indices = indx
 
-    end subroutine initialize_workspace
+    end subroutine hwscsp_initialize_workspace
 
-    pure function get_workspace_indices(n, m, nbdcnd) result (return_value)
-        !--------------------------------------------------------------
+    pure function hwscsp_get_workspace_indices(n, m, nbdcnd) result (return_value)
+
         ! Dummy arguments
-        !----------------------------------------------
         integer(ip), intent(in) :: n, m, nbdcnd
-        integer(ip)             :: return_value(IIWK)
-        !-----------------------------------------------
+        integer(ip)             :: return_value(SIZE_OF_WORKSPACE_INDICES)
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip)  :: j, nck, l, k
-        !-----------------------------------------------
+
 
         nck = n
 
@@ -583,13 +566,13 @@ contains
 
         end associate
 
-    end function get_workspace_indices
+    end function hwscsp_get_workspace_indices
 
-    subroutine check_input_arguments(ts, tf, m, mbdcnd, rs, rf, &
+    subroutine hwscsp_check_input_arguments(ts, tf, m, mbdcnd, rs, rf, &
         n, nbdcnd, elmbda, idimf, ierror)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip), intent(in)  :: m
         integer(ip), intent(in)  :: mbdcnd
         integer(ip), intent(in)  :: n
@@ -601,7 +584,7 @@ contains
         real(wp),    intent(in)  :: rs
         real(wp),    intent(in)  :: rf
         real(wp),    intent(in)  :: elmbda
-        !-----------------------------------------------
+
 
         if (ts < ZERO .or. tf > PI) then
             ierror = 1
@@ -676,14 +659,14 @@ contains
             ierror = 0
         end if
 
-    end subroutine check_input_arguments
+    end subroutine hwscsp_check_input_arguments
 
     subroutine hwscsp_lower_routine(intl, ts, tf, m, mbdcnd, bdts, bdtf, rs, rf, n, &
         nbdcnd, bdrs, bdrf, elmbda, f, idimf, pertrb, w, wc, s, an, bn &
         , cn, r, am, bm, cm, sint, bmh, ierror)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip), intent(in)     :: intl
         integer(ip), intent(in)     :: m
         integer(ip), intent(in)     :: mbdcnd
@@ -714,9 +697,9 @@ contains
         real(wp),    intent(out) :: sint(:)
         real(wp),    intent(out) :: bmh(:)
         complex(wp), intent(out) :: wc(:)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
+
         integer(ip)           :: mp1, i, np1, j, mp, np
         integer(ip)           :: its, itf, itsp, itfm, ictr, jrs
         integer(ip)           :: l, jrf, jrsp, jrfm, munk, nunk, ising, iflg
@@ -729,7 +712,7 @@ contains
         real(wp), parameter   :: FOUR = 4.0_wp
         real(wp), parameter   :: SIX = 6.0_wp
         type(BlktriAux)       :: blktri_aux
-        !-----------------------------------------------
+
 
         mp1 = m + 1
         dth = (tf - ts)/m
