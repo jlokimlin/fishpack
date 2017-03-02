@@ -521,12 +521,12 @@ contains
         !-----------------------------------------------
 
         ! Check for invalid input parameters
-        call check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, elmbda, idimf, ierror)
+        call hstcsp_check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, elmbda, idimf, ierror)
 
         if (ierror /= 0) return
 
         ! Initialize workspace on first call
-        if (intl == 0) call initialize_workspace(n, m, workspace)
+        if (intl == 0) call hstcsp_initialize_workspace(n, m, workspace)
 
         ! Solve system
         associate( &
@@ -561,7 +561,7 @@ contains
 
     end subroutine hstcsp
 
-    subroutine initialize_workspace(n, m, workspace)
+    subroutine hstcsp_initialize_workspace(n, m, workspace)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
@@ -610,9 +610,9 @@ contains
         ! Copy indices
         workspace%workspace_indices = indx
 
-    end subroutine initialize_workspace
+    end subroutine hstcsp_initialize_workspace
 
-    pure subroutine check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, elmbda, idimf, ierror)
+    pure subroutine hstcsp_check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, elmbda, idimf, ierror)
         !-----------------------------------------------
         ! Dummy arguments
         !-----------------------------------------------
@@ -687,7 +687,7 @@ contains
             ierror = 0
         end if
 
-    end subroutine check_input_arguments
+    end subroutine hstcsp_check_input_arguments
 
     subroutine hstcsp_lower_routine(intl, a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, &
         bdc, bdd, elmbda, f, idimf, pertrb, ierror, am, bm, cm, an, bn, &
@@ -728,7 +728,7 @@ contains
         !-----------------------------------------------
         integer(ip)     :: i, j, isw, nb
         real(wp)        :: dth, dthsq, dr, x, y, a2, a1, a3
-        type(GeneralizedCyclicReductionUtility) :: aux
+        type(GeneralizedCyclicReductionUtility) :: util
         !-----------------------------------------------
 
         dth = (b - a)/m
@@ -863,7 +863,7 @@ contains
             !
             ! Initialize blktri
             !
-            call aux%blktrii(0, 1, n, an, bn, cn, 1, m, am, bm, cm, idimf, f, ierror, w, wc)
+            call util%blktrii(0, 1, n, an, bn, cn, 1, m, am, bm, cm, idimf, f, ierror, w, wc)
 
             ! Check error flag
             if (ierror /= 0) then
@@ -872,7 +872,7 @@ contains
 
         end if
 
-        call aux%blktrii(1, 1, n, an, bn, cn, 1, m, am, bm, cm, idimf, f, ierror, w, wc)
+        call util%blktrii(1, 1, n, an, bn, cn, 1, m, am, bm, cm, idimf, f, ierror, w, wc)
 
         ! Check error flag
         if (ierror /= 0) then

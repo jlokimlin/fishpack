@@ -60,20 +60,20 @@ type_PeriodicFastFourierTransform.f90
 	$(FC) $(FFLAGS) -c type_PeriodicFastFourierTransform.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
-genbun.o: \
+type_CenteredCyclicReductionUtility.o: \
 fishpack_precision.o \
 type_FishpackWorkspace.o \
 type_CyclicReductionUtility.o \
-genbun.f90
-	$(FC) $(FFLAGS) -c genbun.f90 $(LINKS) \
+type_CenteredCyclicReductionUtility.f90
+	$(FC) $(FFLAGS) -c type_CenteredCyclicReductionUtility.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
-poistg.o: \
+type_StaggeredCyclicReductionUtility.o: \
 fishpack_precision.o \
 type_FishpackWorkspace.o \
 type_CyclicReductionUtility.o \
-poistg.f90
-	$(FC) $(FFLAGS) -c poistg.f90 $(LINKS) \
+type_StaggeredCyclicReductionUtility.f90
+	$(FC) $(FFLAGS) -c type_StaggeredCyclicReductionUtility.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
 three_dimensional_solvers.o: \
@@ -99,8 +99,8 @@ centered_cartesian_helmholtz_solver_3d.f90
 staggered_helmholtz_solvers.o: \
 fishpack_precision.o \
 type_FishpackWorkspace.o \
-genbun.o \
-poistg.o \
+type_CenteredCyclicReductionUtility.o \
+type_StaggeredCyclicReductionUtility.o \
 type_GeneralizedCyclicReductionUtility.o \
 staggered_helmholtz_solvers.f90
 	$(FC) $(FFLAGS) -c staggered_helmholtz_solvers.f90 $(LINKS) \
@@ -139,8 +139,7 @@ staggered_spherical_solver.f90
 centered_helmholtz_solvers.o: \
 fishpack_precision.o \
 type_FishpackWorkspace.o \
-genbun.o \
-poistg.o \
+type_CenteredCyclicReductionUtility.o \
 type_GeneralizedCyclicReductionUtility.o \
 centered_helmholtz_solvers.f90
 	$(FC) $(FFLAGS) -c centered_helmholtz_solvers.f90 $(LINKS) \
@@ -194,7 +193,7 @@ sepeli.f90
 sepx4.o: \
 fishpack_precision.o \
 type_FishpackWorkspace.o\
-genbun.o \
+type_CenteredCyclicReductionUtility.o \
 type_SepAux.o \
 sepx4.f90
 	$(FC) $(FFLAGS) -c sepx4.f90 $(LINKS) \
@@ -205,9 +204,9 @@ fishpack_precision.o \
 real_block_tridiagonal_linear_systems_solver.o \
 complex_block_tridiagonal_linear_systems_solver.o\
 complex_linear_systems_solver.o\
-genbun.o\
+type_CenteredCyclicReductionUtility.o\
 three_dimensional_solvers.o\
-poistg.o\
+type_StaggeredCyclicReductionUtility.o\
 sepeli.o\
 sepx4.o\
 centered_helmholtz_solvers.o \

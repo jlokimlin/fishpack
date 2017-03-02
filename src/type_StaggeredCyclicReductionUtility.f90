@@ -210,7 +210,7 @@
 !                        grid of arbitrary size, " J. Comp. Phys.
 !                        20 (1976), pp. 171-182.
 !
-module module_poistg
+module type_StaggeredCyclicReductionUtility
 
     use fishpack_precision, only: &
         wp, & ! Working precision
@@ -227,91 +227,53 @@ module module_poistg
 
     ! Everything is private unless stated otherwise
     private
-    public :: poistg
-    public :: poistgg
+    public :: CyclicReductionUtility
 
-    !---------------------------------------------------------------
     ! Parameters confined to the module
-    !---------------------------------------------------------------
     real(wp),    parameter :: ZERO = 0.0_wp
     real(wp),    parameter :: HALF = 0.5_wp
     real(wp),    parameter :: ONE = 1.0_wp
     real(wp),    parameter :: TWO = 2.0_wp
-    integer(ip), parameter :: IIWK = 11_ip ! Size of workspace indices
-    !---------------------------------------------------------------
+    integer(ip), parameter :: SIZE_OF_WORKSPACE_INDICES = 11
+
+    type, public, extends(CyclicReductionUtility) :: StaggeredCyclicReductionUtility
+    contains
+        ! Public type-bound procedures
+        procedure, nopass, public :: poistg_lower_routine
+        ! Private type-bound procedures
+        procedure, private :: poistg_solve_poisson_on_staggered_grid
+    end type
 
 contains
 
-    subroutine poistg(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
-        !--------------------------------------------------------------
-        ! Dummy arguments
-        !--------------------------------------------------------------
+    subroutine poistg_lower_routine(nperod, n, mperod, m, a, b, c, idimy, y, ierror, w)
+
+        ! Local variables
         integer(ip), intent(in)     :: nperod
         integer(ip), intent(in)     :: n
         integer(ip), intent(in)     :: mperod
         integer(ip), intent(in)     :: m
         integer(ip), intent(in)     :: idimy
         integer(ip), intent(out)    :: ierror
-        real(wp),    intent(in)     :: a(:)
-        real(wp),    intent(in)     :: b(:)
-        real(wp),    intent(in)     :: c(:)
-        real(wp),    intent(inout)  :: y(:,:)
-        !--------------------------------------------------------------
-        ! Local variables
-        !--------------------------------------------------------------
-        integer(ip) :: irwk, icwk
-        type(FishpackWorkspace)  :: workspace
-        !--------------------------------------------------------------
-
-        ! Compute workspace dimensions
-        irwk = m * (9 + int(log(real(n, kind=wp))/log(TWO),kind=ip)) + 4 * n
-        icwk = 0
-
-        ! Allocate memory
-        call workspace%create(irwk, icwk)
-
-        ! Solve system
-        associate( rew => workspace%real_workspace )
-            call poistgg(nperod, n, mperod, m, a, b, c, idimy, y, ierror, rew)
-        end associate
-
-        ! Release memory
-        call workspace%destroy()
-
-    end subroutine poistg
-
-    subroutine poistgg(nperod, n, mperod, m, a, b, c, idimy, y, ierror, w)
-        !--------------------------------------------------------------
-        ! Local variables
-        !--------------------------------------------------------------
-        integer(ip), intent(in)     :: nperod
-        integer(ip), intent(in)     :: n
-        integer(ip), intent(in)     :: mperod
-        integer(ip), intent(in)     :: m
-        integer(ip), intent(in)     :: idimy
-        integer(ip), intent(out)    :: ierror
-        real(wp),    intent(in)     :: a(m)
         real(wp),    intent(in)     :: b(m)
         real(wp),    intent(in)     :: c(m)
         real(wp),    intent(inout)  :: y(idimy,n)
         real(wp),    intent(inout)  :: w(:)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
-        integer(ip)     :: workspace_indices(IIWK)
+        integer(ip)     :: workspace_indices(SIZE_OF_WORKSPACE_INDICES)
         integer(ip)     :: i, k, j, np, mp
         integer(ip)     :: nby2, mskip, ipstor, irev, mh, mhm1, m_odd
         real(wp)        :: temp
-        !-----------------------------------------------
 
         ! Check validity of calling arguments
-        call check_input_arguments(nperod, n, mperod, m, idimy, ierror, a, b, c)
+        call poistg_check_input_arguments(nperod, n, mperod, m, idimy, ierror, a, b, c)
 
         ! Check error flag
         if (ierror /= 0) return
 
         ! Compute workspace indices
-        workspace_indices = get_workspace_indices(n,m)
+        workspace_indices = poistg_get_workspace_indices(n,m)
 
         associate( &
             iwba => workspace_indices(1), &
@@ -385,7 +347,7 @@ contains
                 loop_108: do
                     if (nperod /= 4) then
 
-                        call solve_poisson_staggered_grid(np, n, m, w(iwba:), w(iwbb:), w(iwbc:), idimy, y, &
+                        call poistg_solve_poisson_on_staggered_grid(np, n, m, w(iwba:), w(iwbb:), w(iwbc:), idimy, y, &
                             w, w(iwb2:), w(iwb3:), w(iww1:), w(iww2:), w(iww3:), &
                             w(iwd:), w(iwtcos:), w(iwp:))
 
@@ -450,12 +412,11 @@ contains
 
         end associate
 
-    end subroutine poistgg
+    end subroutine poistg_lower_routine
 
-    pure subroutine check_input_arguments(nperod, n, mperod, m, idimy, ierror, a, b, c)
-        !--------------------------------------------------------------
+    pure subroutine poistg_check_input_arguments(nperod, n, mperod, m, idimy, ierror, a, b, c)
+
         ! Dummy arguments
-        !--------------------------------------------------------------
         integer(ip), intent(in)  :: nperod
         integer(ip), intent(in)  :: n
         integer(ip), intent(in)  :: mperod
@@ -465,67 +426,54 @@ contains
         real(wp),    intent(in)  :: a(m)
         real(wp),    intent(in)  :: b(m)
         real(wp),    intent(in)  :: c(m)
-        !--------------------------------------------------------------
 
         if (3 > m) then
             ierror = 1
-            return
         else if (3 > n) then
             ierror = 2
-            return
         else if (idimy < m) then
             ierror = 3
-            return
         else if (nperod < 1 .or. nperod > 4) then
             ierror = 4
-            return
         else if (mperod < 0 .or. mperod > 1) then
             ierror = 5
-            return
         else if (mperod /= 1) then
             if (any(a /= c(1)) .or. any(c /= c(1)) .or. any(b /= b(1))) then
                 ierror = 6
-                return
             end if
         else if (a(1) /= ZERO .or. c(m) /= ZERO) then
             ierror = 7
-            return
         else
             ierror = 0
         end if
 
-    end subroutine check_input_arguments
+    end subroutine poistg_check_input_arguments
 
-    function get_workspace_indices(n, m) result (return_value)
-        !--------------------------------------------------------------
+    function poistg_get_workspace_indices(n, m) &
+        result (return_value)
+
         ! Dummy arguments
-        !--------------------------------------------------------------
         integer(ip), intent(in) :: n
         integer(ip), intent(in) :: m
-        integer(ip)             :: return_value(IIWK)
-        !--------------------------------------------------------------
+        integer(ip)             :: return_value(SIZE_OF_WORKSPACE_INDICES)
+
         integer(ip) :: j !! Counter
-        !--------------------------------------------------------------
 
         associate( i => return_value)
             i(1) = m + 1
-            do j = 2, IIWK - 1
+            do j = 2, SIZE_OF_WORKSPACE_INDICES - 1
                 i(j) = i(j-1) + m
             end do
-            i(IIWK) = i(IIWK - 1) + 4 * n
+            i(SIZE_OF_WORKSPACE_INDICES) = i(SIZE_OF_WORKSPACE_INDICES - 1) + 4 * n
         end associate
 
-    end function get_workspace_indices
+    end function poistg_get_workspace_indices
 
-    subroutine solve_poisson_staggered_grid(nperod, n, m, a, bb, c, idimq, q, b, b2, b3, w, &
-        w2, w3, d, tcos, p)
-        !
-        ! Purpose:
-        !
-        ! Subroutine to solve poisson's equation on a staggered grid.
-        !-----------------------------------------------
+    subroutine poistg_solve_poisson_on_staggered_grid(self, &
+        nperod, n, m, a, bb, c, idimq, q, b, b2, b3, w, w2, w3, d, tcos, p)
+
         ! Dummy arguments
-        !-----------------------------------------------
+        class(StaggeredCyclicReductionUtility), intent(inout) :: self
         integer(ip), intent(in)    :: nperod
         integer(ip), intent(in)    :: n
         integer(ip), intent(in)    :: m
@@ -543,17 +491,14 @@ contains
         real(wp),    intent(inout) :: d(m)
         real(wp),    intent(inout) :: tcos(m)
         real(wp),    intent(inout) :: p(4*n)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         integer(ip)     :: k(4)
         integer(ip)     :: np, mr, ipp, ipstor, i2r, jr, nr, nlast
         integer(ip)     :: kr, lr, nrod, jstart, jstop, i2rby2
         integer(ip)     :: j, ijump, jp1, jp2, jp3
         integer(ip)     :: jm1, jm2, jm3, i, nrodpr, ii, nlastp, jstep
         real(wp)        :: fnum, fnum2, fi, t
-        type(CyclicReductionUtility) :: genbun_aux
-        !-----------------------------------------------
 
         associate( &
             k1 => k(1), &
@@ -607,7 +552,7 @@ contains
                             jm3 = jm2 - i2rby2
 
                             if (j == 1) then
-                                call genbun_aux%generate_cosines(i2r, 1, fnum, HALF, tcos)
+                                call self%generate_cosines(i2r, 1, fnum, HALF, tcos)
                                 select case (i2r)
                                     case (1)
                                         b(:mr) = q(:mr, 1)
@@ -620,7 +565,7 @@ contains
                             else
                                 if (ijump == 1) then
                                     ijump = 2
-                                    call genbun_aux%generate_cosines(i2r, 1, HALF, ZERO, tcos)
+                                    call self%generate_cosines(i2r, 1, HALF, ZERO, tcos)
                                 end if
 
                                 select case (i2r)
@@ -636,7 +581,7 @@ contains
                                 end select
                             end if
 
-                            call genbun_aux%solve_tridiag(i2r, 0, mr, a, bb, c, b, tcos, d, w)
+                            call self%solve_tridiag(i2r, 0, mr, a, bb, c, b, tcos, d, w)
 
                             q(:mr, j) = q(:mr, j) + b(:mr)
                             !
@@ -673,12 +618,12 @@ contains
                                         q(:mr, j) = q(:mr, j) - q(:mr, jm1) + q(:mr, jm2)
                                 end select
 
-                                if (lr /= 0) call genbun_aux%generate_cosines(lr, 1, fnum2, HALF, tcos(kr+1:))
+                                if (lr /= 0) call self%generate_cosines(lr, 1, fnum2, HALF, tcos(kr+1:))
 
                         end select
 
-                        call genbun_aux%generate_cosines(kr, 1, fnum2, HALF, tcos)
-                        call genbun_aux%solve_tridiag(kr, lr, mr, a, bb, c, b, tcos, d, w)
+                        call self%generate_cosines(kr, 1, fnum2, HALF, tcos)
+                        call self%solve_tridiag(kr, lr, mr, a, bb, c, b, tcos, d, w)
 
                         q(:mr, j) = q(:mr, j) + b(:mr)
                         kr = kr + i2r
@@ -691,7 +636,7 @@ contains
                                 b(:mr) = q(:mr, j)
                                 tcos(1) = ZERO
 
-                                call genbun_aux%solve_tridiag(1, 0, mr, a, bb, c, b, tcos, d, w)
+                                call self%solve_tridiag(1, 0, mr, a, bb, c, b, tcos, d, w)
 
                                 ipp = 0
                                 ipstor = mr
@@ -700,7 +645,7 @@ contains
                                 tcos(1) = -ONE + TWO*real(np/2, kind=wp)
                                 tcos(2) = ZERO
 
-                                call genbun_aux%solve_tridiag(1, 1, mr, a, bb, c, b, tcos, d, w)
+                                call self%solve_tridiag(1, 1, mr, a, bb, c, b, tcos, d, w)
 
                                 q(:mr, j) = q(:mr, jm2) + p(:mr) + b(:mr)
 
@@ -715,8 +660,8 @@ contains
                                         b(:mr) = b(:mr) + q(:mr, jp2) - q(:mr, jp1)
                                 end select
 
-                                call genbun_aux%generate_cosines(i2r, 1, HALF, ZERO, tcos)
-                                call genbun_aux%solve_tridiag(i2r, 0, mr, a, bb, c, b, tcos, d, w)
+                                call self%generate_cosines(i2r, 1, HALF, ZERO, tcos)
+                                call self%solve_tridiag(i2r, 0, mr, a, bb, c, b, tcos, d, w)
 
                                 ipp = ipp + mr
                                 ipstor = max(ipstor, ipp + mr)
@@ -724,8 +669,8 @@ contains
                                 b(:mr) = p(ipp+1:mr+ipp) + q(:mr, jp2)
 
                                 if (lr /= 0) then
-                                    call genbun_aux%generate_cosines(lr, 1, fnum2, HALF, tcos(i2r+1:))
-                                    call genbun_aux%merge_cosines(tcos, 0, i2r, i2r, lr, kr)
+                                    call self%generate_cosines(lr, 1, fnum2, HALF, tcos(i2r+1:))
+                                    call self%merge_cosines(tcos, 0, i2r, i2r, lr, kr)
                                 else
                                     do i = 1, i2r
                                         ii = kr + i
@@ -733,8 +678,8 @@ contains
                                     end do
                                 end if
 
-                                call genbun_aux%generate_cosines(kr, 1, fnum2, HALF, tcos)
-                                call genbun_aux%solve_tridiag(kr, kr, mr, a, bb, c, b, tcos, d, w)
+                                call self%generate_cosines(kr, 1, fnum2, HALF, tcos)
+                                call self%solve_tridiag(kr, kr, mr, a, bb, c, b, tcos, d, w)
 
                                 q(:mr, j) = q(:mr, jm2) + p(ipp+1:mr+ipp) + b(:mr)
 
@@ -792,7 +737,7 @@ contains
                                     b2(:mr) = q(:mr, 3)
                                     b3(:mr) = q(:mr, 1)
 
-                                    call genbun_aux%generate_cosines(3, 1, HALF, ZERO, tcos)
+                                    call self%generate_cosines(3, 1, HALF, ZERO, tcos)
 
                                     tcos(4) = -ONE
                                     tcos(5) = ONE
@@ -806,20 +751,20 @@ contains
                             end select
 
 
-                            call genbun_aux%solve_tridiag3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
+                            call self%solve_tridiag3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
 
                             b(:mr) = b(:mr) + b2(:mr) + b3(:mr)
 
                             if (np == 3) then
                                 tcos(1) = TWO
-                                call genbun_aux%solve_tridiag(1, 0, mr, a, bb, c, b, tcos, d, w)
+                                call self%solve_tridiag(1, 0, mr, a, bb, c, b, tcos, d, w)
                             end if
 
                             q(:mr, 2) = b(:mr)
                             b(:mr) = q(:mr, 1) + b(:mr)
                             tcos(1) = -ONE + 4.0_wp*fnum
 
-                            call genbun_aux%solve_tridiag(1, 0, mr, a, bb, c, b, tcos, d, w)
+                            call self%solve_tridiag(1, 0, mr, a, bb, c, b, tcos, d, w)
 
                             q(:mr, 1) = b(:mr)
                             jr = 1
@@ -839,19 +784,19 @@ contains
                                 k1 = nlast - 1
                                 k2 = nlast + jr - 1
 
-                                call genbun_aux%generate_cosines(jr - 1, 1, ZERO, ONE, tcos(nlast:))
+                                call self%generate_cosines(jr - 1, 1, ZERO, ONE, tcos(nlast:))
 
                                 tcos(k2) = TWO*real(np - 2, kind=wp)
 
-                                call genbun_aux%generate_cosines(jr, 1, HALF - fnum, HALF, tcos(k2+1:))
+                                call self%generate_cosines(jr, 1, HALF - fnum, HALF, tcos(k2+1:))
 
                                 k3 = (3 - np)/2
 
-                                call genbun_aux%merge_cosines(tcos, k1, jr - k3, k2 - k3, jr + k3, 0)
+                                call self%merge_cosines(tcos, k1, jr - k3, k2 - k3, jr + k3, 0)
 
                                 k1 = k1 - 1 + k3
 
-                                call genbun_aux%generate_cosines(jr, 1, fnum, HALF, tcos(k1+1:))
+                                call self%generate_cosines(jr, 1, fnum, HALF, tcos(k1+1:))
 
                                 k2 = jr
                                 k3 = 0
@@ -866,35 +811,35 @@ contains
                                 k1 = nlast + jr - 1
                                 k2 = k1 + jr - 1
 
-                                call genbun_aux%generate_cosines(jr - 1, 1, ZERO, ONE, tcos(k1+1:))
-                                call genbun_aux%generate_cosines(nlast, 1, HALF, ZERO, tcos(k2+1:))
-                                call genbun_aux%merge_cosines(tcos, k1, jr - 1, k2, nlast, 0)
+                                call self%generate_cosines(jr - 1, 1, ZERO, ONE, tcos(k1+1:))
+                                call self%generate_cosines(nlast, 1, HALF, ZERO, tcos(k2+1:))
+                                call self%merge_cosines(tcos, k1, jr - 1, k2, nlast, 0)
 
                                 k3 = k1 + nlast - 1
                                 k4 = k3 + jr
 
-                                call genbun_aux%generate_cosines(jr, 1, HALF, HALF, tcos(k3+1:))
-                                call genbun_aux%generate_cosines(jr, 1, ZERO, HALF, tcos(k4+1:))
-                                call genbun_aux%merge_cosines(tcos, k3, jr, k4, jr, k1)
+                                call self%generate_cosines(jr, 1, HALF, HALF, tcos(k3+1:))
+                                call self%generate_cosines(jr, 1, ZERO, HALF, tcos(k4+1:))
+                                call self%merge_cosines(tcos, k3, jr, k4, jr, k1)
 
                                 k2 = nlast - 1
                                 k3 = jr
                                 k4 = jr
                         end select
 
-                        call genbun_aux%solve_tridiag3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
+                        call self%solve_tridiag3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
                         b(:mr) = b(:mr) + b2(:mr) + b3(:mr)
 
                         if (np == 3) then
                             tcos(1) = TWO
-                            call genbun_aux%solve_tridiag(1, 0, mr, a, bb, c, b, tcos, d, w)
+                            call self%solve_tridiag(1, 0, mr, a, bb, c, b, tcos, d, w)
                         end if
 
                         q(:mr, j) = b(:mr) + HALF * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
                         b(:mr) = q(:mr, j) + q(:mr, 1)
 
-                        call genbun_aux%generate_cosines(jr, 1, fnum, HALF, tcos)
-                        call genbun_aux%solve_tridiag(jr, 0, mr, a, bb, c, b, tcos, d, w)
+                        call self%generate_cosines(jr, 1, fnum, HALF, tcos)
+                        call self%solve_tridiag(jr, 0, mr, a, bb, c, b, tcos, d, w)
 
                         q(:mr, 1) = q(:mr, 1) - q(:mr, jm1) + b(:mr)
 
@@ -920,7 +865,7 @@ contains
 
                     k1 = kr + 2*jr
 
-                    call genbun_aux%generate_cosines(jr - 1, 1, ZERO, ONE, tcos(k1+1:))
+                    call self%generate_cosines(jr - 1, 1, ZERO, ONE, tcos(k1+1:))
 
                     k2 = k1 + jr
                     tcos(k2) = TWO*real(np - 2, kind=wp)
@@ -933,48 +878,48 @@ contains
                         fnum_arg => real(k4, kind=wp)/2, &
                         fden_arg => ONE-real(k4, kind=wp) &
                         )
-                        call genbun_aux%generate_cosines(n_arg, 1, fnum_arg , fden_arg, tcos(k3:))
+                        call self%generate_cosines(n_arg, 1, fnum_arg , fden_arg, tcos(k3:))
                     end associate
 
                     k4 = 1 - np/3
 
-                    call genbun_aux%merge_cosines(tcos, k1, jr - k4, k2 - k4, kr + jr + k4, 0)
+                    call self%merge_cosines(tcos, k1, jr - k4, k2 - k4, kr + jr + k4, 0)
 
                     if (np == 3) k1 = k1 - 1
 
                     k2 = kr + jr
                     k4 = k1 + k2
 
-                    call genbun_aux%generate_cosines(kr, 1, fnum2, HALF, tcos(k4+1:))
+                    call self%generate_cosines(kr, 1, fnum2, HALF, tcos(k4+1:))
 
                     k3 = k4 + kr
 
-                    call genbun_aux%generate_cosines(jr, 1, fnum, HALF, tcos(k3+1:))
-                    call genbun_aux%merge_cosines(tcos, k4, kr, k3, jr, k1)
+                    call self%generate_cosines(jr, 1, fnum, HALF, tcos(k3+1:))
+                    call self%merge_cosines(tcos, k4, kr, k3, jr, k1)
 
                     k4 = k3 + jr
 
-                    call genbun_aux%generate_cosines(lr, 1, fnum2, HALF, tcos(k4+1:))
-                    call genbun_aux%merge_cosines(tcos, k3, jr, k4, lr, k1 + k2)
-                    call genbun_aux%generate_cosines(kr, 1, fnum2, HALF, tcos(k3+1:))
+                    call self%generate_cosines(lr, 1, fnum2, HALF, tcos(k4+1:))
+                    call self%merge_cosines(tcos, k3, jr, k4, lr, k1 + k2)
+                    call self%generate_cosines(kr, 1, fnum2, HALF, tcos(k3+1:))
 
                     k3 = kr
                     k4 = kr
 
-                    call genbun_aux%solve_tridiag3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
+                    call self%solve_tridiag3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
 
                     b(:mr) = b(:mr) + b2(:mr) + b3(:mr)
 
                     if (np == 3) then
                         tcos(1) = TWO
-                        call genbun_aux%solve_tridiag(1, 0, mr, a, bb, c, b, tcos, d, w)
+                        call self%solve_tridiag(1, 0, mr, a, bb, c, b, tcos, d, w)
                     end if
 
                     q(:mr, j) = q(:mr, j) + b(:mr)
                     b(:mr) = q(:mr, 1) + q(:mr, j)
 
-                    call genbun_aux%generate_cosines(jr, 1, fnum, HALF, tcos)
-                    call genbun_aux%solve_tridiag(jr, 0, mr, a, bb, c, b, tcos, d, w)
+                    call self%generate_cosines(jr, 1, fnum, HALF, tcos)
+                    call self%solve_tridiag(jr, 0, mr, a, bb, c, b, tcos, d, w)
 
                     if (jr == 1) then
                         q(:mr, 1) = b(:mr)
@@ -993,40 +938,40 @@ contains
                 k1 = kr + jr
                 k2 = k1 + jr
 
-                call genbun_aux%generate_cosines(jr - 1, 1, ZERO, ONE, tcos(k1+1:))
+                call self%generate_cosines(jr - 1, 1, ZERO, ONE, tcos(k1+1:))
 
                 select case (np)
                     case (1, 3)
                         tcos(k2) = TWO*real(np - 2, kind=wp)
-                        call genbun_aux%generate_cosines(kr, 1, ZERO, ONE, tcos(k2+1:))
+                        call self%generate_cosines(kr, 1, ZERO, ONE, tcos(k2+1:))
                     case (2)
-                        call genbun_aux%generate_cosines(kr + 1, 1, HALF, ZERO, tcos(k2:))
+                        call self%generate_cosines(kr + 1, 1, HALF, ZERO, tcos(k2:))
                 end select
 
                 k4 = 1 - np/3
 
-                call genbun_aux%merge_cosines(tcos, k1, jr - k4, k2 - k4, kr + k4, 0)
+                call self%merge_cosines(tcos, k1, jr - k4, k2 - k4, kr + k4, 0)
 
                 if (np == 3) k1 = k1 - 1
 
                 k2 = kr
 
-                call genbun_aux%generate_cosines(kr, 1, fnum2, HALF, tcos(k1+1:))
+                call self%generate_cosines(kr, 1, fnum2, HALF, tcos(k1+1:))
 
                 k4 = k1 + kr
 
-                call genbun_aux%generate_cosines(lr, 1, fnum2, HALF, tcos(k4+1:))
+                call self%generate_cosines(lr, 1, fnum2, HALF, tcos(k4+1:))
 
                 k3 = lr
                 k4 = 0
 
-                call genbun_aux%solve_tridiag3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
+                call self%solve_tridiag3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
 
                 b(:mr) = b(:mr) + b2(:mr)
 
                 if (np == 3) then
                     tcos(1) = TWO
-                    call genbun_aux%solve_tridiag(1, 0, mr, a, bb, c, b, tcos, d, w)
+                    call self%solve_tridiag(1, 0, mr, a, bb, c, b, tcos, d, w)
                 end if
 
                 q(:mr, 1) = q(:mr, 1) + b(:mr)
@@ -1051,9 +996,9 @@ contains
                     end select
                 end if
 
-                call genbun_aux%generate_cosines(kr, 1, fnum2, HALF, tcos)
-                call genbun_aux%generate_cosines(lr, 1, fnum2, HALF, tcos(kr+1:))
-                call genbun_aux%solve_tridiag(kr, lr, mr, a, bb, c, b, tcos, d, w)
+                call self%generate_cosines(kr, 1, fnum2, HALF, tcos)
+                call self%generate_cosines(lr, 1, fnum2, HALF, tcos(kr+1:))
+                call self%solve_tridiag(kr, lr, mr, a, bb, c, b, tcos, d, w)
 
                 q(:mr, nlast) = q(:mr, nlast) + b(:mr)
                 nlastp = nlast
@@ -1082,7 +1027,7 @@ contains
 
                     lr = kr - jr
 
-                    call genbun_aux%generate_cosines(jr, 1, HALF, ZERO, tcos)
+                    call self%generate_cosines(jr, 1, HALF, ZERO, tcos)
 
                     do j = jstart, jstop, jstep
                         jm2 = j - jr
@@ -1102,7 +1047,7 @@ contains
                             q(:mr, j) = HALF * (q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
                         end if
 
-                        call genbun_aux%solve_tridiag(jr, 0, mr, a, bb, c, b, tcos, d, w)
+                        call self%solve_tridiag(jr, 0, mr, a, bb, c, b, tcos, d, w)
 
                         q(:mr, j) = q(:mr, j) + b(:mr)
                     end do
@@ -1120,18 +1065,6 @@ contains
 
         end associate
 
-    end subroutine solve_poisson_staggered_grid
+    end subroutine poistg_solve_poisson_on_staggered_grid
 
-end module module_poistg
-!
-! Revision history
-!
-! September 1973    Version 1
-! April     1976    Version 2
-! January   1978    Version 3
-! December  1979    Version 3.1
-! February  1985    Documentation upgrade
-! November  1988    Version 3.2, FORTRAN 77 changes
-! June      2004    Version 5.0, Fortran 90 changes
-! April     2016    Fortran 2008 changes
-!
+end module type_StaggeredCyclicReductionUtility

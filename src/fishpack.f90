@@ -18,14 +18,14 @@ module fishpack
     use complex_linear_systems_solver, only: &
         cmgnbn
 
-    use module_genbun, only: &
+    use type_CenteredCyclicReductionUtility, only: &
         genbun
 
     use three_dimensional_solvers, only: &
         pois3d, & ! general_linear_systems_solver_3d
         hw3crt ! centered_cartesian_helmholtz_solver_3d
 
-    use module_poistg, only: &
+    use type_StaggeredCyclicReductionUtility, only: &
         poistg
 
     use module_sepeli, only: &

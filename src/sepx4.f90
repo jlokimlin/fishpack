@@ -437,7 +437,7 @@ module module_sepx4
     use type_FishpackWorkspace, only: &
         FishpackWorkspace
 
-    use module_genbun, only: &
+    use type_CenteredCyclicReductionUtility, only: &
         genbun
 
     use type_SepAux, only: &

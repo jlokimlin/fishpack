@@ -401,12 +401,13 @@ contains
         !-----------------------------------------------
         integer(ip) :: np, iwb, iwc, iwr, i, j, k, lp, local_error_flag
         real(wp)    :: dr, dr2, dt, dt2, temp
-        !-----------------------------------------------
+        type(CenteredCyclicReductionUtility)  :: centered_util
+        type(StaggeredCyclicReductionUtility) :: staggered_util
 
         !
         ! Check validity of calling arguments
         !
-        call check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, &
+        call hstcyl_check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, &
             elmbda, idimf, ierror)
 
         ! Check error flag
@@ -532,20 +533,20 @@ contains
             select case (nbdcnd)
                 case (0)
                     !
-                    ! Solve system with call to genbunn
+                    ! Solve system with call to genbun_lower_routine
                     !
-                    call genbunn(lp, n, 1, m, w, w(iw1:), w(iw2:), idimf, f, local_error_flag, w(iw3:))
+                    call centered_util%genbun_lower_routine(lp, n, 1, m, w, w(iw1:), w(iw2:), idimf, f, local_error_flag, w(iw3:))
 
                     ! Check error flag
                     if (local_error_flag /= 0) then
-                        error stop 'fishpack library: genbunn call failed in hstcyl_lower_routine'
+                        error stop 'fishpack library: genbun_lower_routine call failed in hstcyl_lower_routine'
                     end if
 
                 case default
                     !
-                    ! Solve system with call to poistgg
+                    ! Solve system with call to poistg_lower_routine
                     !
-                    call poistgg(lp, n, 1, m, w, w(iw1:), w(iw2:), idimf, f, local_error_flag, w(iw3:))
+                    call staggered_util%poistg_lower_routine(lp, n, 1, m, w, w(iw1:), w(iw2:), idimf, f, local_error_flag, w(iw3:))
 
                     ! Check error flag
                     if (local_error_flag /= 0) then
@@ -557,7 +558,7 @@ contains
 
     end subroutine hstcyl_lower_routine
 
-    pure subroutine check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, &
+    pure subroutine hstcyl_check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, &
         elmbda, idimf, ierror)
         !--------------------------------------------------------------
         ! Dummy arguments
@@ -612,7 +613,7 @@ contains
             ierror = 0
         end if
 
-    end subroutine check_input_arguments
+    end subroutine hstcyl_check_input_arguments
 
 end submodule staggered_cylindrical_solver
 !

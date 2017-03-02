@@ -491,16 +491,13 @@ contains
     subroutine hwscsp_initialize_workspace(n, m, nbdcnd, workspace)
 
         ! Dummy arguments
-
         integer(ip), intent(in)  :: nbdcnd
         integer(ip), intent(in)  :: n
         integer(ip), intent(in)  :: m
         class(FishpackWorkspace), intent(out) :: workspace
 
         ! Local variables
-
         integer(ip) :: irwk, icwk, indx(SIZE_OF_WORKSPACE_INDICES)
-
 
         ! Compute workspace indices
         indx = hwscsp_get_workspace_indices(n, m, nbdcnd)
@@ -527,9 +524,7 @@ contains
         integer(ip)             :: return_value(SIZE_OF_WORKSPACE_INDICES)
 
         ! Local variables
-
         integer(ip)  :: j, nck, l, k
-
 
         nck = n
 
@@ -572,7 +567,6 @@ contains
         n, nbdcnd, elmbda, idimf, ierror)
 
         ! Dummy arguments
-
         integer(ip), intent(in)  :: m
         integer(ip), intent(in)  :: mbdcnd
         integer(ip), intent(in)  :: n
@@ -584,7 +578,6 @@ contains
         real(wp),    intent(in)  :: rs
         real(wp),    intent(in)  :: rf
         real(wp),    intent(in)  :: elmbda
-
 
         if (ts < ZERO .or. tf > PI) then
             ierror = 1
@@ -699,19 +692,18 @@ contains
         complex(wp), intent(out) :: wc(:)
 
         ! Local variables
-
-        integer(ip)           :: mp1, i, np1, j, mp, np
-        integer(ip)           :: its, itf, itsp, itfm, ictr, jrs
-        integer(ip)           :: l, jrf, jrsp, jrfm, munk, nunk, ising, iflg
-        real(wp)              :: dth, tdt, hdth, sdts
-        real(wp)              :: theta, t1, dr, hdr
-        real(wp)              :: tdr, dr2, czr, at, ct, wts, wtf
-        real(wp)              :: ar, wtnm, yps, cr, wrs, wrf
-        real(wp)              :: wrz, summation, r2, hne, yhld
-        real(wp)              :: rs2, rf2, rsq, xp, yph, xps
-        real(wp), parameter   :: FOUR = 4.0_wp
-        real(wp), parameter   :: SIX = 6.0_wp
-        type(GeneralizedCyclicReductionUtility)       :: blktri_aux
+        integer(ip)         :: mp1, i, np1, j, mp, np
+        integer(ip)         :: its, itf, itsp, itfm, ictr, jrs
+        integer(ip)         :: l, jrf, jrsp, jrfm, munk, nunk, ising, iflg
+        real(wp)            :: dth, tdt, hdth, sdts
+        real(wp)            :: theta, t1, dr, hdr
+        real(wp)            :: tdr, dr2, czr, at, ct, wts, wtf
+        real(wp)            :: ar, wtnm, yps, cr, wrs, wrf
+        real(wp)            :: wrz, summation, r2, hne, yhld
+        real(wp)            :: rs2, rf2, rsq, xp, yph, xps
+        real(wp), parameter :: FOUR = 4.0_wp
+        real(wp), parameter :: SIX = 6.0_wp
+        type(GeneralizedCyclicReductionUtility) :: util
 
 
         mp1 = m + 1
@@ -949,7 +941,7 @@ contains
 
         iflg = intl
 
-        call blktri_aux%blktrii(iflg, np, nunk, an(jrs:), bn(jrs:), cn(jrs:), mp, munk, &
+        call util%blktrii(iflg, np, nunk, an(jrs:), bn(jrs:), cn(jrs:), mp, munk, &
             am(its:), bm(its:), cm(its:), idimf, f(its:, jrs:), ierror, w, wc)
 
         if (ierror /= 0) then
@@ -962,7 +954,7 @@ contains
             !
             ! Iterate solver
             !
-            call blktri_aux%blktrii(iflg, np, nunk, an(jrs:), bn(jrs:), cn(jrs:), mp, &
+            call util%blktrii(iflg, np, nunk, an(jrs:), bn(jrs:), cn(jrs:), mp, &
                 munk, am(its:), bm(its:), cm(its:), idimf, f(its:, jrs:), ierror, w, wc)
 
             if (ierror /= 0) then

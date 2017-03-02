@@ -435,6 +435,7 @@ contains
         integer(ip) :: local_error_flag, i1
         real(wp)    :: dr, half_dr, dr2, dth, dth2
         real(wp)    :: a1, r, a2, s, s1, s2
+        type(CenteredCyclicReductionUtility) :: util
 
         mp1 = m + 1
         dr = (b - a)/m
@@ -619,11 +620,11 @@ contains
         ! Solve the system of equations.
         local_error_flag = 0
         i1 = 1
-        call genbunn(nbdcnd, nunk, i1, munk, w(1:), w(id2+1:), w(id3+1:), &
+        call util%genbun_lower_routine(nbdcnd, nunk, i1, munk, w(1:), w(id2+1:), w(id3+1:), &
             idimf, f(mstart:, nstart:), local_error_flag, w(id4+1:))
 
         if (local_error_flag /= 0) then
-            error stop 'fishpack library: genbunn call failed in hwscyl_lower_routine'
+            error stop 'fishpack library: genbun_lower_routine call failed in hwscyl_lower_routine'
         end if
 
         if (nbdcnd == 0) f(mstart:mstop, np1) = f(mstart:mstop, 1)

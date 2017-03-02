@@ -224,7 +224,7 @@
 !                     65        1         1         1.e-12
 !                     65        1         3         4.e-13
 !
-module module_genbun
+module type_CenteredCyclicReductionUtility
 
     use fishpack_precision, only: &
         wp, & ! Working precision
@@ -242,7 +242,7 @@ module module_genbun
     ! Everything is private unless stated otherwise
     private
     public :: genbun
-    public :: genbunn
+    public :: genbun_lower_routine
 
     !---------------------------------------------------------------
     ! Parameters confined to the module
@@ -286,7 +286,7 @@ contains
             !
             ! Solve system
             !
-            call genbunn(nperod, n, mperod, m, a, b, c, idimy, y, ierror, rew)
+            call genbun_lower_routine(nperod, n, mperod, m, a, b, c, idimy, y, ierror, rew)
 
         end associate
 
@@ -297,7 +297,7 @@ contains
 
     end subroutine genbun
 
-    subroutine genbunn(nperod, n, mperod, m, a, b, c, idimy, y, ierror, w)
+    subroutine genbun_lower_routine(nperod, n, mperod, m, a, b, c, idimy, y, ierror, w)
         !--------------------------------------------------------------
         ! Dummy arguments
         !--------------------------------------------------------------
@@ -563,7 +563,7 @@ contains
 
         end associate
 
-    end subroutine genbunn
+    end subroutine genbun_lower_routine
 
     pure subroutine check_input_arguments(nperod, n, mperod, m, idimy, ierror, a, b, c)
         !--------------------------------------------------------------
@@ -1799,7 +1799,7 @@ end associate
 
 end subroutine solve_poisson_neumann
 
-end module module_genbun
+end module type_CenteredCyclicReductionUtility
 !
 ! Revision history
 !

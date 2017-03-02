@@ -409,9 +409,9 @@ contains
 
     module subroutine hstssp(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip), intent(in)     :: m
         integer(ip), intent(in)     :: mbdcnd
         integer(ip), intent(in)     :: n
@@ -429,14 +429,14 @@ contains
         real(wp),    intent(in)     :: bdc(:)
         real(wp),    intent(in)     :: bdd(:)
         real(wp),    intent(inout) :: f(:,:)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
+
         type(FishpackWorkspace) :: workspace
-        !-----------------------------------------------
+
 
         ! Check input arguments
-        call check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, idimf, ierror)
+        call hstssp_check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, idimf, ierror)
 
         if (ierror /= 0) return
 
@@ -454,10 +454,10 @@ contains
 
     end subroutine hstssp
 
-    pure subroutine check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, idimf, ierror)
-        !-----------------------------------------------
+    pure subroutine hstssp_check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, idimf, ierror)
+
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip), intent(in)     :: m
         integer(ip), intent(in)     :: mbdcnd
         integer(ip), intent(in)     :: n
@@ -468,7 +468,7 @@ contains
         real(wp),    intent(in)     :: b
         real(wp),    intent(in)     :: c
         real(wp),    intent(in)     :: d
-        !-----------------------------------------------
+
 
         ! Check input arguments
         if (a < ZERO .or. b > PI) then
@@ -525,38 +525,37 @@ contains
             ierror = 0
         end if
 
-    end subroutine check_input_arguments
+    end subroutine hstssp_check_input_arguments
 
     subroutine hstssp_lower_routine(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror, w)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip), intent(in)     :: m
-        integer(ip), intent(in)     :: mbdcnd
-        integer(ip), intent(in)     :: n
-        integer(ip), intent(in)     :: nbdcnd
-        integer(ip), intent(in)     :: idimf
-        integer(ip), intent(out)    :: ierror
-        real(wp),    intent(in)     :: a
-        real(wp),    intent(in)     :: b
-        real(wp),    intent(in)     :: c
-        real(wp),    intent(in)     :: d
-        real(wp),    intent(in)     :: elmbda
-        real(wp),    intent(out)    :: pertrb
-        real(wp),    intent(in)     :: bda(:)
-        real(wp),    intent(in)     :: bdb(:)
-        real(wp),    intent(in)     :: bdc(:)
-        real(wp),    intent(in)     :: bdd(:)
+        integer(ip), intent(in)    :: m
+        integer(ip), intent(in)    :: mbdcnd
+        integer(ip), intent(in)    :: n
+        integer(ip), intent(in)    :: nbdcnd
+        integer(ip), intent(in)    :: idimf
+        integer(ip), intent(out)   :: ierror
+        real(wp),    intent(in)    :: a
+        real(wp),    intent(in)    :: b
+        real(wp),    intent(in)    :: c
+        real(wp),    intent(in)    :: d
+        real(wp),    intent(in)    :: elmbda
+        real(wp),    intent(out)   :: pertrb
+        real(wp),    intent(in)    :: bda(:)
+        real(wp),    intent(in)    :: bdb(:)
+        real(wp),    intent(in)    :: bdc(:)
+        real(wp),    intent(in)    :: bdd(:)
         real(wp),    intent(inout) :: f(:,:)
         real(wp),    intent(out)   :: w(:)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         integer(ip) :: np, isw, jsw, mb, iwb, iwc, iwr, iws
         integer(ip) :: i, j, mm1, lp, local_error_flag
         real(wp)    :: dr, dr2, dth, dth2, a1, a2, a3
-        !-----------------------------------------------
+        type(CenteredCyclicReductionUtility)  :: centered_util
+        type(StaggeredCyclicReductionUtility) :: staggered_util
 
         dr = (b - a)/m
         dr2 = dr**2
@@ -566,7 +565,6 @@ contains
         isw = 1
         jsw = 1
         mb = mbdcnd
-
 
         if (elmbda == ZERO) then
             case_construct: select case (mbdcnd)
@@ -719,21 +717,21 @@ contains
 
             if (nbdcnd /= 0) then
 
-                ! Invoke poistgg solver
-                call poistgg(lp, n, iw0, m, w, w(iw1:), w(iw2:), idimf, f, local_error_flag, w(iw3:))
+                ! Invoke poistg_lower_routine solver
+                call staggered_util%poistg_lower_routine(lp, n, iw0, m, w, w(iw1:), w(iw2:), idimf, f, local_error_flag, w(iw3:))
 
                 ! Check error flag
                 if (local_error_flag /= 0) then
-                    error stop 'fishpack library: poistgg call failed in hstssp_lower_routine'
+                    error stop 'fishpack library: poistg_lower_routine call failed in hstssp_lower_routine'
                 end if
             else
 
-                ! Invoke genbunn solver
-                call genbunn(lp, n, iw0, m, w, w(iw1:), w(iw2:), idimf, f, local_error_flag, w(iw3:))
+                ! Invoke genbun_lower_routine solver
+                call centered_util%genbun_lower_routine(lp, n, iw0, m, w, w(iw1:), w(iw2:), idimf, f, local_error_flag, w(iw3:))
 
                 ! Check error flag
                 if (local_error_flag /= 0) then
-                    error stop 'fishpack library: genbunn call failed in hstssp_lower_routine'
+                    error stop 'fishpack library: genbun_lower_routine call failed in hstssp_lower_routine'
                 end if
             end if
 
@@ -758,15 +756,3 @@ contains
     end subroutine hstssp_lower_routine
 
 end submodule staggered_spherical_solver
-!
-! REVISION HISTORY
-!
-! September 1973    Version 1
-! April     1976    Version 2
-! January   1978    Version 3
-! December  1979    Version 3.1
-! February  1985    Documentation upgrade
-! November  1988    Version 3.2, FORTRAN 77 changes
-! June      2004    Version 5.0, Fortran 90 changes
-! May       2016    Fortran 2016 changes
-!

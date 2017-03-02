@@ -9,11 +9,8 @@ module centered_helmholtz_solvers
     use type_FishpackWorkspace, only: &
         FishpackWorkspace
 
-    use module_genbun, only: &
-        genbunn
-
-    use module_poistg, only: &
-        poistgg
+    use type_CenteredCyclicReductionUtility, only: &
+        CenteredCyclicReductionUtility
 
     use type_GeneralizedCyclicReductionUtility, only:&
         GeneralizedCyclicReductionUtility

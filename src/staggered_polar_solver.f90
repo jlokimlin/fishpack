@@ -378,7 +378,7 @@ contains
         !-----------------------------------------------
 
         ! Check input arguments
-        call check_input_arguments(a, b, m, mbdcnd, c, d, n, &
+        call hstplr_check_input_arguments(a, b, m, mbdcnd, c, d, n, &
             nbdcnd, idimf, ierror)
 
         ! Check error flag
@@ -399,7 +399,7 @@ contains
 
     end subroutine hstplr
 
-    pure subroutine check_input_arguments(a, b, m, mbdcnd, c, d, n, &
+    pure subroutine hstplr_check_input_arguments(a, b, m, mbdcnd, c, d, n, &
         nbdcnd, idimf, ierror)
         !-----------------------------------------------
         ! Dummy arguments
@@ -454,7 +454,7 @@ contains
             ierror = 0
         end if
 
-    end subroutine check_input_arguments
+    end subroutine hstplr_check_input_arguments
 
     subroutine hstplr_lower_routine(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror, w)
@@ -485,7 +485,8 @@ contains
         integer(ip) :: np, isw, mb, iwb, iwc, iwr
         integer(ip) :: i, j, k, lp, local_error_flag
         real(wp)    :: dr, dr2, dth, dth2, a1, a2
-        !-----------------------------------------------
+        type(CenteredCyclicReductionUtility)  :: centered_util
+        type(StaggeredCyclicReductionUtility) :: staggered_util
 
         dr = (b - a)/m
         dr2 = dr**2
@@ -617,9 +618,9 @@ contains
             w_arg => w(iwr+1:iwr+1+m) &
             )
             if (lp /= 0) then
-                call poistgg(lp, n, 1, m, a_arg, b_arg, c_arg, idimf, f, local_error_flag, w_arg)
+                call staggered_util%poistg_lower_routine(lp, n, 1, m, a_arg, b_arg, c_arg, idimf, f, local_error_flag, w_arg)
             else
-                call genbunn(lp, n, 1, m, a_arg, b_arg, w_arg, idimf, f, local_error_flag, w_arg)
+                call centered_util%genbun_lower_routine(lp, n, 1, m, a_arg, b_arg, w_arg, idimf, f, local_error_flag, w_arg)
             end if
         end associate set_arguments
 

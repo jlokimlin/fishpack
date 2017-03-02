@@ -376,6 +376,7 @@ contains
         integer(ip) :: local_error_flag
         real(wp)    :: dx, twdelx, delxsq, dy
         real(wp)    :: twdely, delysq, s, two_s
+        type(CenteredCyclicReductionUtility) :: util
 
         nperod = nbdcnd
 
@@ -514,12 +515,12 @@ contains
             )
 
             ! Solve system
-            call genbunn(nperod, nunk, mperod, munk, w(iw1:), w(iw2:), w(iw3:), &
+            call util%genbun_lower_routine(nperod, nunk, mperod, munk, w(iw1:), w(iw2:), w(iw3:), &
                 idimf, f(mstart, nstart), local_error_flag, w(iw4:))
 
             ! Check error flag
             if (local_error_flag /= 0) then
-                error stop 'fishpack library: genbunn call failed in hwscrt_lower_routine'
+                error stop 'fishpack library: genbun_lower_routine call failed in hwscrt_lower_routine'
             end if
         end associate
 

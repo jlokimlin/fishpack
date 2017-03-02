@@ -8,11 +8,11 @@ module staggered_helmholtz_solvers
     use type_FishpackWorkspace, only: &
         FishpackWorkspace
 
-    use module_genbun, only: &
-        genbunn
+    use type_CenteredCyclicReductionUtility, only: &
+        CenteredCyclicReductionUtility
 
-    use module_poistg, only: &
-        poistgg
+    use type_StaggeredCyclicReductionUtility, only: &
+        StaggeredCyclicReductionUtility
 
     use type_GeneralizedCyclicReductionUtility, only:&
         GeneralizedCyclicReductionUtility

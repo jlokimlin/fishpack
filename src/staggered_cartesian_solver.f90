@@ -302,9 +302,8 @@ contains
 
     module subroutine hstcrt(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         integer(ip), intent(in)    :: m
         integer(ip), intent(in)    :: mbdcnd
         integer(ip), intent(in)    :: n
@@ -322,14 +321,12 @@ contains
         real(wp),    intent(in)    :: bdc(:)
         real(wp),    intent(in)    :: bdd(:)
         real(wp),    intent(inout) :: f(:,:)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         type(FishpackWorkspace) :: workspace
-        !-----------------------------------------------
 
         ! Check input arguments
-        call check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, idimf, ierror)
+        call hstcrt_check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, idimf, ierror)
 
         ! Check error flag
         if (ierror /= 0) return
@@ -349,10 +346,9 @@ contains
 
     end subroutine hstcrt
 
-    pure subroutine check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, idimf, ierror)
-        !-----------------------------------------------
+    pure subroutine hstcrt_check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, idimf, ierror)
+
         ! Dummy arguments
-        !-----------------------------------------------
         integer(ip), intent(in)     :: m
         integer(ip), intent(in)     :: mbdcnd
         integer(ip), intent(in)     :: n
@@ -363,7 +359,6 @@ contains
         real(wp),    intent(in)     :: b
         real(wp),    intent(in)     :: c
         real(wp),    intent(in)     :: d
-        !-----------------------------------------------
 
         if (ZERO <= (a-b)) then
             ierror = 1
@@ -390,13 +385,12 @@ contains
             ierror = 0
         end if
 
-    end subroutine check_input_arguments
+    end subroutine hstcrt_check_input_arguments
 
     subroutine hstcrt_lower_routine(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror, w)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         integer(ip), intent(in)     :: m
         integer(ip), intent(in)     :: mbdcnd
         integer(ip), intent(in)     :: n
@@ -415,14 +409,14 @@ contains
         real(wp),    intent(in)     :: bdd(:)
         real(wp),    intent(inout) :: f(:,:)
         real(wp),    intent(inout) :: w(:)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         integer(ip) :: nperod, mperod, np, mp
         integer(ip) :: id2, id3, id4, local_error_flag
         real(wp)    :: dx, twdelx, delxsq, dy
         real(wp)    :: twdely, dy2, twdysq, s, two_s
-        !-----------------------------------------------
+        type(CenteredCyclicReductionUtility) :: centered_util
+        type(StaggeredCyclicReductionUtility) :: staggered_util
 
         nperod = nbdcnd
 
@@ -531,44 +525,29 @@ contains
             )
             select case (nperod)
                 case (0)
-                    !
-                    ! Solve system with call to genbunn
-                    !
-                    call genbunn(nperod, n, mperod, m, w(iw1:), w(iw2:), w(iw3:), &
+
+                    ! Solve system with call to genbun_lower_routine
+                    call centered_util%genbun_lower_routine(nperod, n, mperod, m, w(iw1:), w(iw2:), w(iw3:), &
                         idimf, f, local_error_flag, w(iw4:))
 
                     ! Check error flag
                     if (local_error_flag /= 0) then
-                        error stop 'fishpack library: genbunn call failed in hstcrt_lower_routine'
+                        error stop 'fishpack library: genbun_lower_routine call failed in hstcrt_lower_routine'
                     end if
 
                 case default
-                    !
-                    ! Solve system with call to poistgg
-                    !
-                    call poistgg(nperod, n, mperod, m, w(iw1:), w(iw2:), w(iw3:), &
+
+                    ! Solve system with call to poistg_lower_routine
+                    call staggered_util%poistg_lower_routine(nperod, n, mperod, m, w(iw1:), w(iw2:), w(iw3:), &
                         idimf, f, local_error_flag, w(iw4:))
 
                     ! Check error flag
                     if (local_error_flag /= 0) then
-                        error stop 'fishpack library: poistgg call failed in hstcrt_lower_routine'
+                        error stop 'fishpack library: poistg_lower_routine call failed in hstcrt_lower_routine'
                     end if
-
             end select
-
         end associate
 
     end subroutine hstcrt_lower_routine
 
 end submodule staggered_cartesian_solver
-!
-! REVISION HISTORY
-!
-! September 1973    Version 1
-! April     1976    Version 2
-! January   1978    Version 3
-! December  1979    Version 3.1
-! February  1985    Documentation upgrade
-! November  1988    Version 3.2, FORTRAN 77 changes
-! June      2004    Version 5.0, Fortran 90 changes
-! May       2016    Fortran 2008 changes

@@ -338,9 +338,8 @@ contains
 
     module subroutine hwsplr(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
         bdd, elmbda, f, idimf, pertrb, ierror)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         integer(ip), intent(in)     :: m
         integer(ip), intent(in)     :: mbdcnd
         integer(ip), intent(in)     :: n
@@ -358,14 +357,12 @@ contains
         real(wp),    intent(in)     :: bdc(:)
         real(wp),    intent(in)     :: bdd(:)
         real(wp),    intent(inout) :: f(:,:)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         type(FishpackWorkspace) workspace
-        !-----------------------------------------------
 
         ! Check input arguments
-        call check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, idimf, ierror)
+        call hwsplr_check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, idimf, ierror)
 
         ! Check error flag
         if (ierror /= 0) return
@@ -384,10 +381,9 @@ contains
 
     end subroutine hwsplr
 
-    pure subroutine check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, idimf, ierror)
-        !-----------------------------------------------
+    pure subroutine hwsplr_check_input_arguments(a, b, m, mbdcnd, c, d, n, nbdcnd, idimf, ierror)
+
         ! Dummy arguments
-        !-----------------------------------------------
         integer(ip), intent(in)     :: m
         integer(ip), intent(in)     :: mbdcnd
         integer(ip), intent(in)     :: n
@@ -398,52 +394,39 @@ contains
         real(wp),    intent(in)     :: b
         real(wp),    intent(in)     :: c
         real(wp),    intent(in)     :: d
-        !-----------------------------------------------
 
         if (a < ZERO) then
             ierror = 1
-            return
         else if (a >= b) then
             ierror = 2
-            return
         else if (mbdcnd <= 0 .or. mbdcnd >= 7) then
             ierror = 3
-            return
         else if (d <= c) then
             ierror = 4
-            return
         else if (n <= 3) then
             ierror = 5
-            return
         else if (nbdcnd <= -1 .or. 5 <= nbdcnd) then
             ierror = 6
-            return
         else if (a == ZERO .and. (mbdcnd==3 .or. mbdcnd==4)) then
             ierror = 7
-            return
         else if (a > ZERO .and. 5 <= mbdcnd) then
             ierror = 8
-            return
         else if (5 <= mbdcnd .and. nbdcnd /= 0 .and. nbdcnd /= 3) then
             ierror = 9
-            return
         else if (idimf < m + 1) then
             ierror = 10
-            return
         else if (m <= 3) then
             ierror = 12
-            return
         else
             ierror = 0
         end if
 
-    end subroutine check_input_arguments
+    end subroutine hwsplr_check_input_arguments
 
-    subroutine hwsplr_lower_routine(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc &
-        , bdd, elmbda, f, idimf, pertrb, ierror, w)
-        !-----------------------------------------------
+    subroutine hwsplr_lower_routine(a, b, m, mbdcnd, bda, bdb, c, d, n, nbdcnd, bdc, &
+        bdd, elmbda, f, idimf, pertrb, ierror, w)
+
         ! Dummy arguments
-        !-----------------------------------------------
         integer(ip), intent(in)     :: m
         integer(ip), intent(in)     :: mbdcnd
         integer(ip), intent(in)     :: n
@@ -462,15 +445,14 @@ contains
         real(wp),    intent(in)     :: bdd(:)
         real(wp),    intent(inout)  :: f(:,:)
         real(wp),    intent(inout)  :: w(:)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         integer(ip) :: mp1, np1, np, mstart, mstop, munk, nstart, nstop, nunk
         integer(ip) :: id2, id3, id4, id5, id6, ij, i
         integer(ip) :: j, l, lp, k, i1, local_error_flag, iip
         real(wp)    :: dr, half_dr, dr2, dt, dt2
         real(wp)    :: a1, r, s2, a2, s, s1, ypole
-        !-----------------------------------------------
+        type(CenteredCyclicReductionUtility) :: util
 
         mp1 = m + 1
         dr = (b - a)/m
@@ -684,13 +666,13 @@ contains
             y_arg => f(mstart:,nstart:nstart+nunk), &
             w_arg => w(id4+1:) &
             )
-            call genbunn(nbdcnd, nunk, i1, munk, a_arg, b_arg, c_arg, &
+            call util%genbun_lower_routine(nbdcnd, nunk, i1, munk, a_arg, b_arg, c_arg, &
                 idimf, y_arg, local_error_flag, w_arg)
         end associate
 
         ! Check error flag
         if (local_error_flag /= 0) then
-            error stop 'fishpack library: genbunn call failed in hwsplr_lower_routine'
+            error stop 'fishpack library: genbun_lower_routine call failed in hwsplr_lower_routine'
         end if
 
 

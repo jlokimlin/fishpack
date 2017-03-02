@@ -392,19 +392,19 @@
 !
 submodule(centered_helmholtz_solvers) centered_spherical_solver
 
-!---------------------------------------------------------------
+
 ! Parameters confined to the submodule
-!---------------------------------------------------------------
+
 integer(ip), parameter :: IIWK = 7 ! Size for workspace_indices
-!---------------------------------------------------------------
+
 
 contains
 
     module subroutine hwsssp(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
         bdps, bdpf, elmbda, f, idimf, pertrb, ierror)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
+
         integer(ip), intent(in)     :: m
         integer(ip), intent(in)     :: mbdcnd
         integer(ip), intent(in)     :: n
@@ -422,21 +422,19 @@ contains
         real(wp),    intent(in)     :: bdps(:)
         real(wp),    intent(in)     :: bdpf(:)
         real(wp),    intent(inout)  :: f(:,:)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         type(FishpackWorkspace) :: workspace
-        !-----------------------------------------------
 
         ! Check input arguments
-        call check_input_arguments(ts, tf, m, mbdcnd, ps, pf, n, &
+        call hwsssp_check_input_arguments(ts, tf, m, mbdcnd, ps, pf, n, &
             nbdcnd, elmbda, idimf, ierror)
 
         ! Check error flag
         if (ierror /= 0) return
 
         ! Allocate memory
-        call initialize_workspace(n, m, workspace)
+        call hwsssp_initialize_workspace(n, m, workspace)
 
         ! Solve system
         associate( &
@@ -463,11 +461,10 @@ contains
 
     end subroutine hwsssp
 
-    subroutine check_input_arguments(ts, tf, m, mbdcnd, ps, pf, n, &
+    subroutine hwsssp_check_input_arguments(ts, tf, m, mbdcnd, ps, pf, n, &
         nbdcnd, elmbda, idimf, ierror)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         integer(ip), intent(in)     :: m
         integer(ip), intent(in)     :: mbdcnd
         integer(ip), intent(in)     :: n
@@ -479,71 +476,52 @@ contains
         real(wp),    intent(in)     :: tf
         real(wp),    intent(in)     :: ps
         real(wp),    intent(in)     :: pf
-        !-----------------------------------------------
 
         if (ts < ZERO .or. tf > PI) then
             ierror = 1
-            return
         else if (ts >= tf) then
             ierror = 2
-            return
         else if (mbdcnd < 1 .or. mbdcnd > 9) then
             ierror = 3
-            return
         else if (ps < ZERO .or. pf > TWO_PI) then
             ierror = 4
-            return
         else if (ps >= pf) then
             ierror = 5
-            return
         else if (n < 5) then
             ierror = 6
-            return
         else if (m < 5) then
             ierror = 7
-            return
         else if (nbdcnd < 0 .or. nbdcnd > 4) then
             ierror = 8
-            return
         else if (elmbda > ZERO) then
             ierror = 9
-            return
         else if (idimf < m + 1) then
             ierror = 10
-            return
         else if ((nbdcnd == 1 .or. nbdcnd == 2 .or. nbdcnd == 4) .and. mbdcnd >= 5) then
             ierror = 11
-            return
         else if (ts == ZERO .and. (mbdcnd==3.or. mbdcnd==4 .or. mbdcnd == 8)) then
             ierror = 12
-            return
         else if (tf == PI .and. (mbdcnd==2.or. mbdcnd == 3 .or. mbdcnd == 6)) then
             ierror = 13
-            return
         else if ((mbdcnd == 5.or.mbdcnd == 6.or.mbdcnd == 9) .and. ts /= ZERO) then
             ierror = 14
-            return
         else if (mbdcnd >= 7 .and. tf /= PI) then
             ierror = 15
-            return
         else
             ierror = 0
         end if
 
-    end subroutine check_input_arguments
+    end subroutine hwsssp_check_input_arguments
 
-    subroutine initialize_workspace(n, m, workspace)
-        !-----------------------------------------------
+    subroutine hwsssp_initialize_workspace(n, m, workspace)
+
         ! Dummy arguments
-        !-----------------------------------------------
         integer(ip), intent(in)  :: n
         integer(ip), intent(in)  :: m
         class(FishpackWorkspace), intent(out) :: workspace
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         integer(ip) :: irwk, icwk
-        !-----------------------------------------------
 
         ! Compute workspace lengths for hwsssp
         irwk = 4 * (n + 1)  &
@@ -555,17 +533,16 @@ contains
         call workspace%create(irwk, icwk, IIWK)
 
         ! Set workspace indices
-        workspace%workspace_indices = get_workspace_indices(m)
+        workspace%workspace_indices = hwsssp_get_workspace_indices(m)
 
-    end subroutine initialize_workspace
+    end subroutine hwsssp_initialize_workspace
 
-    pure function get_workspace_indices(m) result (return_value)
-        !--------------------------------------------------------------
+    pure function hwsssp_get_workspace_indices(m) &
+        result (return_value)
+
         ! Dummy arguments
-        !----------------------------------------------
         integer(ip), intent(in) :: m
         integer(ip)             :: return_value(IIWK)
-        !-----------------------------------------------
 
         associate( indx => return_value)
             indx(1) = 1
@@ -577,14 +554,13 @@ contains
             indx(7) = 6*m+7
         end associate
 
-    end function get_workspace_indices
+    end function hwsssp_get_workspace_indices
 
     subroutine hwsssp_lower_routine(ts, tf, m, mbdcnd, bdts, bdtf, ps, pf, n, nbdcnd, &
         bdps, bdpf, elmbda, f, idimf, pertrb, am, bm, cm, sn, ss, &
         sint, d, error_flag)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         integer(ip), intent(in)     :: m
         integer(ip), intent(in)     :: mbdcnd
         integer(ip), intent(in)     :: n
@@ -609,16 +585,15 @@ contains
         real(wp),    intent(out)    :: sint(:)
         real(wp),    intent(out)    :: d(:)
         integer(ip), intent(out)    :: error_flag
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         integer(ip) :: mp1, np1, i, inp, isp, mbr, its, itf, itsp, itfm, munk
         integer(ip) :: iid, ii, nbr, jps, jpf, jpsp, jpfm, nunk, ising
         real(wp)    :: fn, fm, dth, half_dth, two_dth, dphi, two_dphi
         real(wp)    :: dphi2, edp2, dth2, cp, wpp, fim1, theta, t1, at, ct, wts, wtf
         real(wp)    :: wps, wpf, fjj, cf, summation, sum1, hne, yhld, sum2, dfn, dnn, dsn
         real(wp)    :: cnp, hld, dfs, dss, dns, csp, rtn, rts, den
-        !-----------------------------------------------
+        type(CenteredCyclicReductionUtility) :: util
 
         mp1 = m + 1
         np1 = n + 1
@@ -862,9 +837,8 @@ contains
             pertrb = summation/hne
             f(:mp1,:np1) = f(:mp1,:np1) - pertrb
         end if
-        !
-        ! scale right side for subroutine genbunn
-        !
+
+        ! scale right side for subroutine genbun_lower_routine
         do i = its, itf
             cf = dphi2*sint(i)*sint(i)
             f(i,jps:jpf) = cf*f(i,jps:jpf)
@@ -876,16 +850,15 @@ contains
             c_arg => cm(its:), &
             y_arg => f(its:,jps:) &
             )
-            !
-            ! Invoke genbunn solver
-            !
-            call genbunn(nbdcnd, nunk, 1, munk, a_arg, b_arg, c_arg, &
+
+            ! Invoke genbun_lower_routine solver
+            call util%genbun_lower_routine(nbdcnd, nunk, 1, munk, a_arg, b_arg, c_arg, &
                 idimf, y_arg, error_flag, d)
         end associate call_arguments
 
         ! Check error flag
         if (error_flag /= 0) then
-            error stop 'fishpack library: genbunn call failed in hwsssp_lower_routine'
+            error stop 'fishpack library: genbun_lower_routine call failed in hwsssp_lower_routine'
         end if
 
         if (ising > 0 .and. inp > 0 .and. isp <= 0) then
@@ -953,14 +926,3 @@ contains
     end subroutine hwsssp_lower_routine
 
 end submodule centered_spherical_solver
-!
-! REVISION HISTORY
-!
-! September 1973    Version 1
-! April     1976    Version 2
-! January   1978    Version 3
-! December  1979    Version 3.1
-! February  1985    Documentation upgrade
-! November  1988    Version 3.2, FORTRAN 77 changes
-! June      2004    Version 5.0, Fortran 90 changes
-! May       2016    Fortran 2008 changes
