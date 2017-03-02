@@ -36,7 +36,7 @@ program test_hstcsp
     use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT
 
-    use fishpack_library
+    use fishpack
 
     ! Explicit typing only
     implicit none

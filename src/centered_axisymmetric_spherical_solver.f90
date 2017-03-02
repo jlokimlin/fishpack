@@ -321,8 +321,8 @@
 !                          declares a derived type variable (defined in
 !                          the module "type_FishpackWorkspace.f90") which is used internally
 !                          in hwscsp to dynamically allocate real and complex
-!                          work space used in solution.  an error flag
-!                          (ierror = 20) is set if the required work space
+!                          workspace used in solution.  an error flag
+!                          (ierror = 20) is set if the required workspace
 !                          allocation fails (for example if n, m are too large)
 !                          real and complex values are set in the components
 !                          of w on a initial (intl=0) call to hwscsp.  these
@@ -387,7 +387,7 @@
 !                          = 17 nbdcnd>=5 and rs/=0
 !                          = 18 nbdcnd>=5 and mbdcnd equals 1, 2, 4, 5 or
 !                          = 20 if the dynamic allocation of real and
-!                               complex work space in the derived type
+!                               complex workspace in the derived type
 !                               (fishpackworkspace) variable w fails (e.g.,
 !                               if n, m are too large for the platform used)
 !
@@ -415,7 +415,7 @@
 !                        1970'S.  Released on NCAR's public software
 !                        libraries in January 1980. Revised by John
 !                        Adams in June 2004 using Fortran 90 dynamically
-!                        allocated work space and derived datat types
+!                        allocated workspace and derived datat types
 !                        to eliminate mixed mode conflicts in the earlier
 !                        versions.
 !

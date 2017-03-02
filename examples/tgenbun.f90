@@ -135,7 +135,7 @@
 !
 program test_genbun
 
-    use fishpack_library
+    use fishpack
 
     ! Explicit typing only
     implicit none

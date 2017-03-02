@@ -126,7 +126,7 @@
 !                               for some i = 1, 2, ..., m.
 !                          = 7  if mperod == 1 and (a(1)/= 0 or c(m)/= 0)
 !                          = 20 If the dynamic allocation of real and
-!                               complex work space required for solution
+!                               complex workspace required for solution
 !                               fails (for example if n, m are too large
 !                               for your computer)
 !
@@ -148,7 +148,7 @@
 !                        1970's.  Released on NCAR'S public software
 !                        libraries in January, 1980.
 !                        Revised in June 2004 by John Adams using
-!                        Fortran 90 dynamically allocated work space.
+!                        Fortran 90 dynamically allocated workspace.
 !                        * Revised in April 2016 by Jon Lo Kim Lin to
 !                        incorporate features of modern Fortran (2008+)
 !

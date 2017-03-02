@@ -138,7 +138,7 @@
 !                          = 7  a(1) /= 0 or c(m) /= 0 and
 !                                 mperod = 1
 !                          = 20 If the dynamic allocation of real and
-!                               complex work space required for solution
+!                               complex workspace required for solution
 !                               fails (for example if n, m are too large
 !                               for your computer)
 !
@@ -159,7 +159,7 @@
 !                        on NCAR'S public libraries in January, 1980.
 !
 !                        Revised in June 2004 by John Adams using
-!                        Fortran 90 dynamically allocated work space.
+!                        Fortran 90 dynamically allocated workspace.
 !
 ! ALGORITHM              The linear system is solved by a cyclic
 !                        reduction algorithm described in the

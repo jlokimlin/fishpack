@@ -1141,15 +1141,12 @@ contains
     subroutine sinti(n, wsave)
 
         ! Dummy arguments
-
         integer(ip), intent(in) :: n
         real(wp)                 :: wsave(*)
 
         ! Local variables
-
         integer(ip) :: ns2, np1, k
         real(wp)    :: dt
-
 
         if (n > 1) then
             ns2 = n/2
@@ -1168,13 +1165,11 @@ contains
     subroutine sint(n, x, wsave)
 
         ! Dummy arguments
-
         integer(ip) :: n
         real(wp) :: x(*)
         real(wp) :: wsave(*)
 
         ! Local variables
-
         integer(ip) :: np1, iw1, iw2, iw3
 
 
@@ -1360,7 +1355,6 @@ contains
         real(wp), parameter :: TWO_SQRT_2 = TWO * sqrt(TWO) ! 2.82842712474619
         real(wp)            :: temp
 
-
         if (3 > n) then
             if (n /= 2) then
                 x(1) = FOUR * x(1)
@@ -1374,7 +1368,6 @@ contains
         call cosqb1(n, x, wsave, wsave(n+1))
 
     end subroutine cosqb
-
 
     subroutine cosqb1(n, x, w, xh)
 

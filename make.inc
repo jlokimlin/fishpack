@@ -9,13 +9,14 @@ OBJ_DIRECTORY = ../objs
 OBJS = $(addprefix $(OBJ_DIRECTORY)/, $(OBJ))
 
 LIB_DIRECTORY = ../lib
-LIB_NAME = modern_fishpack
+LIB_NAME = fishpack
 LIB = $(LIB_DIRECTORY)/lib$(LIB_NAME).a
 MOD_DIRECTORY = $(LIB_DIRECTORY)
 
-FC = gfortran-6
+FC = gfortran
 
 FFLAGS = \
+-O3 \
 $(LANGUAGE_OPTIONS) \
 $(ERROR_WARNING_OPTIONS)
 

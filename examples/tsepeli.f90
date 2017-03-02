@@ -33,7 +33,7 @@
 !
 program test_sepeli
 
-    use fishpack_library
+    use fishpack
 
     ! Explicit typing only
     implicit none

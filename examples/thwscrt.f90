@@ -34,7 +34,7 @@
 !
 program test_hwscrt
 
-    use fishpack_library
+    use fishpack
 
     ! Explicit typing only
     implicit none

@@ -1,12 +1,11 @@
-# **modern\_fishpack - A modern Fortran (2008+) library for solving of separable elliptic partial differential equations**
+# **modern\_fishpack - A Fortran library for solving of separable elliptic partial differential equations**
  
-An object-oriented modernization of NCAR's FISHPACK90.
+A modernization of NCAR's FISHPACK90.
 
 * The original work, written in both FORTRAN 77 and Fortran 90, was heavily refactored to incorporate features of modern Fortran (2008+). 
 * The library is now fully Fortran 2008 (ISO/IEC 1539-1:2010) compliant.
 * Every common block, subroutine, and function is now encapsulated in a module. 
-* Numerous memory leaks in **type**(fishworkspace), now rebaptized as **type**(FishpackWorkspace) are resolved by replacing pointers with allocatable arrays. A valgrind run confirms the fix.
-* Every procedural solver is enclosed as a type-bound procedure in **type**(FishpackSolver) 
+* Numerous memory leaks in the derived data type fishworkspace, now refactored as FishpackWorkspace, are resolved by replacing pointers with allocatable arrays. A valgrind run confirms the fix.
 * This project is still a work in progress and every refactored solver passes their original unit test.
 
 -----------------------------------------------------------------------------
@@ -40,7 +39,7 @@ For bug reports or feature requests please open an issue on github.
 
 Type the following command line arguments
 ```
-git clone https://github.com/jlokimlin/modern_fishpack.git; cd modern_fishpack; make all
+git clone https://github.com/jlokimlin/fishpack.git; cd fishpack; make all
 ```
 
 -----------------------------------------------------------------------------

@@ -283,7 +283,7 @@
 !                          user should test ierror after the call.
 !
 !                          = 20 If the dynamic allocation of real and
-!                               complex work space required for solution
+!                               complex workspace required for solution
 !                               fails (for example if n, m are too large
 !                               for your computer)
 ! I/O                    None
@@ -299,7 +299,7 @@
 !                          released on NCAR's public software libraries
 !                          in January 1980.
 !                        * Revised in June 2004 by John Adams using
-!                          Fortran 90 dynamically allocated work space.
+!                          Fortran 90 dynamically allocated workspace.
 !                        * Revised in April 2016 by Jon Lo Kim Lin
 !                          using object-oriented features of Fortran 2008
 !

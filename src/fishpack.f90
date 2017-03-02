@@ -1,4 +1,4 @@
-module fishpack_library
+module fishpack
 
     use, intrinsic :: ISO_Fortran_env, only: &
         stdout => OUTPUT_UNIT, &
@@ -7,28 +7,32 @@ module fishpack_library
     use fishpack_precision, only: &
         wp, & ! working precision
         ip, & ! integer precision
-        PI, & ! machine precision pi
-        HALF_PI, &
-        TWO_PI
+        PI, HALF_PI, TWO_PI
 
     use real_block_tridiagonal_linear_systems_solver, &
         only: blktri
 
-    use complex_block_tridiagonal_linear_systems_solver, only: cblktri
+    use complex_block_tridiagonal_linear_systems_solver, only: &
+        cblktri
 
-    use complex_linear_systems_solver, only: cmgnbn
+    use complex_linear_systems_solver, only: &
+        cmgnbn
 
-    use module_genbun, only: genbun
+    use module_genbun, only: &
+        genbun
 
-    use module_hw3crt, only: hw3crt
+    use three_dimensional_solvers, only: &
+        pois3d, & ! general_linear_systems_solver_3d
+        hw3crt ! centered_cartesian_helmholtz_solver_3d
 
-    use module_pois3d, only: pois3d
+    use module_poistg, only: &
+        poistg
 
-    use module_poistg, only: poistg
+    use module_sepeli, only: &
+        sepeli
 
-    use module_sepeli, only: sepeli
-
-    use module_sepx4, only: sepx4
+    use module_sepx4, only: &
+        sepx4
 
     use staggered_helmholtz_solvers, only: &
         hstcrt, & ! Staggered cartesian solver
@@ -44,41 +48,8 @@ module fishpack_library
         hwsssp, & ! Centered spherical solver
         hwscsp ! Centered axisymmetric spherical solver
 
-    use type_FishpackGrid, only: &
-        FishpackGrid
-
     use type_FishpackWorkspace, only: &
         FishpackWorkspace
-
-    use type_FishpackSolver, only: &
-        FishpackSolver
-
-    use type_HelmholtzData, only: &
-        HelmholtzData
-
-    use type_HelmholtzSolver, only: &
-        HelmholtzSolver
-
-    use type_PoissonSolver, only: &
-        PoissonSolver
-
-    use type_TridiagonalData, only: &
-        TridiagonalData
-
-    use type_TridiagonalSolver, only: &
-        TridiagonalSolver
-
-    use type_Grid, only: &
-        Grid
-
-    use type_CenteredGrid, only: &
-        CenteredGrid
-
-    use type_StaggeredGrid, only: &
-        StaggeredGrid
-
-    use type_MacGrid, only: &
-        MacGrid
 
     use type_PeriodicFastFourierTransform, only: &
         PeriodicFastFourierTransform, &
@@ -109,18 +80,8 @@ module fishpack_library
     private
     public :: wp, ip
     public :: PI, HALF_PI, TWO_PI
-    public :: FishpackGrid
     public :: FishpackWorkspace
-    public :: FishpackSolver
-    public :: HelmholtzData
-    public :: HelmholtzSolver
-    public :: PoissonSolver
-    public :: TridiagonalData
-    public :: TridiagonalSolver
-    public :: Grid
-    public :: CenteredGrid
-    public :: StaggeredGrid
-    public :: MacGrid
+    public :: PeriodicFastFourierTransform
     public :: blktri
     public :: cblktri
     public :: cmgnbn
@@ -246,4 +207,4 @@ contains
 
     end function assert_equal
 
-end module fishpack_library
+end module fishpack

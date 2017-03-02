@@ -209,7 +209,7 @@ contains
     !                                was not elliptic.
     !
     !                        = 20 If the dynamic allocation of real and
-    !                             complex work space in the derived type
+    !                             complex workspace in the derived type
     !                             (FishpackWorkspace) variable W fails (e.g.,
     !                             if N, M are too large for the platform used)
     !

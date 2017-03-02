@@ -33,7 +33,7 @@
 !
 program test_hstplr
 
-    use fishpack_library
+    use fishpack
 
     ! Explicit typing only
     implicit none

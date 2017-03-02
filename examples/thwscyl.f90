@@ -35,7 +35,7 @@
 !
 program test_hwscyl
 
-    use fishpack_library
+    use fishpack
 
     ! Explicit typing only
     implicit none

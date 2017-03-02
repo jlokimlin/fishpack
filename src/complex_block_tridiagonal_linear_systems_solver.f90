@@ -186,7 +186,7 @@ contains
     !                          which is used internally in cblktri to
     !                          dynamically allocate real and complex workspace
     !                          arrays used in solution. An error flag
-    !                          (ierror = 20) is set if the required work space
+    !                          (ierror = 20) is set if the required workspace
     !                          allocation fails (for example if n, m are too large)
     !                          real and complex values are set in the components
     !                          of w on a initial (iflg=0) call to cblktri. These
@@ -233,7 +233,7 @@ contains
     !                                was not elliptic.
     !
     !                          = 20 if the dynamic allocation of real and
-    !                               complex work space in the derived type
+    !                               complex workspace in the derived type
     !                               (FishpackWorkspace) variable w fails (e.g.,
     !                               if n, m are too large for the platform used)
     !

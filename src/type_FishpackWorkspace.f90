@@ -50,11 +50,15 @@ module type_FishpackWorkspace
     private
     public :: FishpackWorkspace
 
+    ! Parameters confined to the module
+    real(wp), parameter :: TWO = 2.0_wp
+    real(wp), parameter :: LOG_TWO = log(TWO)
+
     type, public :: FishpackWorkspace
         ! Type components
-        real(wp),         allocatable :: real_workspace(:)
-        complex(wp),      allocatable :: complex_workspace(:)
-        integer(ip),      allocatable :: workspace_indices(:)
+        real(wp),    allocatable :: real_workspace(:)
+        complex(wp), allocatable :: complex_workspace(:)
+        integer(ip), allocatable :: workspace_indices(:)
     contains
         ! Type-bound procedures
         procedure, public :: create => create_fishpack_workspace
@@ -76,8 +80,8 @@ contains
         result (return_value)
 
         ! Dummy arguments
-        integer(ip),              intent(in)    :: irwk ! required real work space length
-        integer(ip),              intent(in)    :: icwk ! required integer work space length
+        integer(ip),              intent(in)    :: irwk ! required real workspace length
+        integer(ip),              intent(in)    :: icwk ! required integer workspace length
         integer(ip), optional,    intent(in)    :: iiwk
         type(FishpackWorkspace)                 :: return_value
 
@@ -100,8 +104,8 @@ contains
 
         ! Dummy arguments
         class(FishpackWorkspace), intent(inout) :: self
-        integer(ip),              intent(in)    :: irwk ! required real work space length
-        integer(ip),              intent(in)    :: icwk ! required integer work space length
+        integer(ip),              intent(in)    :: irwk ! required real workspace length
+        integer(ip),              intent(in)    :: icwk ! required integer workspace length
         integer(ip), optional,    intent(in)    :: iiwk
 
         ! Local variables
@@ -184,14 +188,13 @@ contains
         integer(ip),              intent(in)    :: m
 
         ! Local variables
-        integer(ip)         :: irwk, icwk
-        real(wp), parameter :: TWO = 2.0_wp
+        integer(ip) :: irwk, icwk
 
         ! Ensure that object is usable
         call self%destroy()
 
         ! Compute workspace lengths for hwscrt, hwsplr
-        irwk = 4*(n+1)+(m+1)*(13+int(log(real(n+1, kind=wp))/log(TWO)))
+        irwk = (4 * (n + 1)) + (m + 1) * (13 + int(log(real(n + 1, kind=wp))/LOG_TWO))
         icwk = 0
 
         ! Allocate memory
@@ -201,7 +204,30 @@ contains
 
     ! Purpose:
     !
-    ! This subroutine computes the real and complex work space
+    ! Compute nearest integer greater than or equal to
+    ! logarithm base 2 of (n + 1), i.e.,
+    ! log2n is smallest integer such that
+    ! (n + 1) < 2**log2n
+    !
+    pure function get_log2n(n) &
+        result (return_value)
+
+        ! Dummy arguments
+        integer(ip), intent(in) :: n
+        integer(ip)             :: return_value
+
+        associate( log2n => return_value )
+            log2n = 1
+            do while (n + 1 > 2**log2n)
+                log2n = log2n + 1
+            end do
+        end associate
+
+    end function
+
+    ! Purpose:
+    !
+    ! This subroutine computes the real and complex workspace
     ! requirements (generous estimate) of blktri for n,m values
     !
     pure subroutine compute_blktri_workspace_lengths(n, m, irwk, icwk)
@@ -215,26 +241,18 @@ contains
         ! Local variables
         integer(ip) :: log2n
 
-        ! Compute nearest integer greater than or equal to
-        !    log base 2 of n+1, i.e., log2n is smallest integer
-        !    such that 2**log2n >= n+1
-        !
-        log2n = 1
-        do
-            if (n+1 <= 2**log2n) exit
-            log2n = log2n+1
-        end do
+        log2n = get_log2n(n)
 
-        associate( l => 2**(log2n+1) )
-            irwk = (log2n-2)*l+5+max(2*n,6*m)+log2n+2*n
-            icwk = ((log2n-2)*l+5+log2n)/2+3*m+n
+        associate( k => (log2n - 2) * (2**(log2n + 1)) + 5 )
+            irwk = k + max(2 * n, 6 * m) + log2n + (2 * n)
+            icwk = (k + log2n)/2 + (3 * m) + n
         end associate
 
     end subroutine compute_blktri_workspace_lengths
 
     ! Purpose:
     !
-    ! This subroutine computes the real work space
+    ! This subroutine computes the real workspace
     ! requirement (generously) of genbun for the current n,m
     !
     pure subroutine compute_genbun_workspace_lengths(n, m, irwk)
@@ -247,23 +265,14 @@ contains
         ! Local variables
         integer(ip) :: log2n
 
-        ! Compute nearest integer greater than or equal to
-        ! log base 2 of n+1, i.e., log2n is smallest integer
-        ! such that 2**log2n >= n+1
-        log2n = 1
-
-        do
-            if (n+1 <= 2**log2n) exit
-            log2n = log2n+1
-        end do
-
+        log2n = get_log2n(n)
         irwk = 4*n + (10 + log2n)*m
 
     end subroutine compute_genbun_workspace_lengths
 
     ! Purpose:
     !
-    ! This subroutine releases dynamically allocated work space.
+    ! This subroutine releases dynamically allocated workspace.
     ! It should be called after a fishpack solver has finished
     !
     ! Remark:

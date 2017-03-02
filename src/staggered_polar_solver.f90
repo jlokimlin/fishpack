@@ -296,7 +296,7 @@
 !                          = 12  m <= 2
 !
 !                          = 20 if the dynamic allocation of real and
-!                               complex work space required for solution
+!                               complex workspace required for solution
 !                               fails (for example if n, m are too large
 !                               for your computer)
 !
@@ -317,7 +317,7 @@
 !                        released on NCAR's public software libraries
 !                        IN January 1980.
 !                        Revised in June 2004 by John Adams using
-!                        Fortran 90 dynamically allocated work space.
+!                        Fortran 90 dynamically allocated workspace.
 !
 ! PORTABILITY            FORTRAN 90
 !

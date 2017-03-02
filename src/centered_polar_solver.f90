@@ -283,7 +283,7 @@
 !                          = 11  lambda > 0  .
 !                          = 12  m <= 3
 !                          = 20 If the dynamic allocation of real and
-!                               complex work space required for solution
+!                               complex workspace required for solution
 !                               fails (for example if n, m are too large
 !                               for your computer)
 !
@@ -305,7 +305,7 @@
 !                          1970's. Released on NCAR's public software
 !                          libraries in January 1980.
 !                        * Revised in June 2004 by John Adams using
-!                          Fortran 90 dynamically allocated work space.
+!                          Fortran 90 dynamically allocated workspace.
 !
 ! ALGORITHM              The routine defines the finite difference
 !                        equations, incorporates boundary data, and

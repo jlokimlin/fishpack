@@ -57,7 +57,7 @@
 !
 program test_hwsplr
 
-    use fishpack_library
+    use fishpack
 
     ! Explicit typing only
     implicit none

@@ -381,7 +381,7 @@
 !                          = 12 if mbdcnd=0 and af(x)=cf(x)=constant
 !                               or bf(x)=0 for all x is not true.
 !                          = 20 if the dynamic allocation of real and
-!                               complex work space required for solution
+!                               complex workspace required for solution
 !                               fails(for example if n, m are too large
 !                               for your computer)
 !

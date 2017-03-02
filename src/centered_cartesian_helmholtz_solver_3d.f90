@@ -1,6 +1,4 @@
 !
-!     file hw3crt.f90
-!
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
 !     *                  copyright (c) 2005 by UCAR                   *
@@ -42,8 +40,6 @@
 ! ARGUMENTS              bdys(ldimf, n+1),    bdyf(ldimf, n+1),
 !                        bdzs(ldimf, m+1),    bdzf(ldimf, m+1),
 !                        f(ldimf, mdimf, n+1)
-!
-! LATEST REVISION        April 2016
 !
 ! PURPOSE                Solves the standard five-point finite
 !                        difference approximation to the helmholtz
@@ -359,7 +355,7 @@
 !                          = 11  mdimf < m+1
 !                          = 12  lambda > 0
 !                          = 20  If the dynamic allocation of real and
-!                                complex work space required for solution
+!                                complex workspace required for solution
 !                                fails (for example if n, m are too large
 !                                for your computer)
 !
@@ -367,25 +363,12 @@
 !                          a possibly incorrect call to hw3crt, the
 !                          user should test ierror after the call.
 !
-! SPECIAL CONDITIONS     None
-!
-! I/O                    None
-!
-! PRECISION              64-bit precision real and 32-bit precision float
-!
-! REQUIRED Files         type_FishpackWorkspace.f90,
-!                        pois3d.f90, type_PeriodicFastFourierTransform.f90, type_ComfAux.f90
-!
-! STANDARD               Fortran 2008
-!
 ! HISTORY                * Written by Roland Sweet at NCAR in the late
 !                          1970's.
 !                        * Released on ncar's public software
 !                          libraries in January 1980.
 !                        * Revised in June 2004 by John Adams using
-!                          Fortran 90 dynamically allocated work space.
-!                        * Revised in April 2016 by Jon Lo Kim Lin to
-!                          incorporate features of Fortran 2008
+!                          Fortran 90 dynamically allocated workspace.
 !
 ! ALGORITHM              This subroutine defines the finite difference
 !                        equations, incorporates boundary data, and
@@ -409,41 +392,15 @@
 !                        actually solves the finite difference
 !                        equations.
 !
-module module_hw3crt
-
-    use fishpack_precision, only: &
-        wp, & ! Working precision
-        ip ! Integer precision
-
-    use type_FishpackWorkspace, only: &
-        Fish => FishpackWorkspace
-
-    use module_pois3d, only: &
-        Pois3dAux
-
-    ! Explicit typing only
-    implicit none
-
-    ! Everything is private unless stated otherwise
-    private
-    public :: hw3crt
-
-    !---------------------------------------------------------------
-    ! Parameters confined to the module
-    !---------------------------------------------------------------
-    real(wp), parameter :: ZERO = 0.0_wp
-    real(wp), parameter :: ONE = 1.0_wp
-    real(wp), parameter :: TWO = 2.0_wp
-    !---------------------------------------------------------------
+submodule(three_dimensional_solvers) centered_cartesian_helmholtz_solver_3d
 
 contains
 
-    subroutine hw3crt(xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m, mbdcnd, &
+    module subroutine hw3crt(xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m, mbdcnd, &
         bdys, bdyf, zs, zf, n, nbdcnd, bdzs, bdzf, elmbda, ldimf, &
         mdimf, f, pertrb, ierror)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         integer(ip), intent(in)      :: l
         integer(ip), intent(in)      :: lbdcnd
         integer(ip), intent(in)      :: m
@@ -468,11 +425,9 @@ contains
         real(wp),    intent(in)      :: bdzs(:,:)
         real(wp),    intent(in)      :: bdzf(:,:)
         real(wp),    intent(inout)  :: f(:,:,:)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
-        type(Fish) :: workspace
-        !-----------------------------------------------
+        type(FishpackWorkspace) :: workspace
 
         ! Check input arguments
         call check_input_arguments(l, lbdcnd, m, mbdcnd, n, nbdcnd, &
@@ -502,9 +457,8 @@ contains
     subroutine hw3crt_lower_routine(xs, xf, l, lbdcnd, bdxs, bdxf, ys, yf, m, &
         mbdcnd, bdys, bdyf, zs, zf, n, nbdcnd, bdzs, bdzf, elmbda, &
         ldimf, mdimf, f, pertrb, ierror, w, workspace_indices)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         integer(ip), intent(in)     :: l
         integer(ip), intent(in)     :: lbdcnd
         integer(ip), intent(in)     :: m
@@ -531,9 +485,8 @@ contains
         real(wp),    intent(in)     :: bdzf(:,:)
         real(wp),    intent(inout)  :: f(:,:,:)
         real(wp),    intent(out)    :: w(:)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         integer(ip) :: mstart, mstop, mp1, mp, munk, np, np1
         integer(ip) :: nstart, nstop, nunk, lp1, lp, lstart
         integer(ip) :: lstop, j, k, lunk, iwb, iwc, iww
@@ -541,7 +494,7 @@ contains
         real(wp)    :: dy, twbydy, c2, dz, twbydz, c3, dx
         real(wp)    :: c1, twbydx, xlp, ylp, zlp, s1, s2, s
         type(Pois3dAux) :: aux
-        !-----------------------------------------------
+
 
         dy = (yf - ys)/m
         twbydy = TWO/dy
@@ -759,12 +712,10 @@ contains
             case default
                 nperod = 1
                 w(1) = ZERO
-                w(iww-1) = ZERO
+                w(iww - 1) = ZERO
         end select
 
-        !
         ! Solve system
-        !
         call aux%pois3dd(lbdcnd, lunk, c1, mbdcnd, munk, c2, nperod, nunk, w, &
             w(iwb:), w(iwc:), ldimf, mdimf, f(lstart:, mstart:, nstart:), &
             ierror, w(iww:), workspace_indices)
@@ -774,9 +725,7 @@ contains
             error stop 'fishpack library: pois3dd call failed in hw3crt_lower_routine'
         end if
 
-        !
         ! Fill in sides for periodic boundary conditions.
-        !
         if (lp == 1) then
             if (mp == 1) then
                 f(1, mp1, nstart:nstop) = f(1, 1, nstart:nstop)
@@ -808,9 +757,8 @@ contains
 
     pure subroutine check_input_arguments(l, lbdcnd, m, mbdcnd, n, nbdcnd, &
         ldimf, mdimf, xs, xf, ys, yf, zs, zf, ierror)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
         integer(ip), intent(in)      :: l
         integer(ip), intent(in)      :: lbdcnd
         integer(ip), intent(in)      :: m
@@ -826,7 +774,6 @@ contains
         real(wp),    intent(in)      :: zs
         real(wp),    intent(in)      :: zf
         integer(ip), intent(out)     :: ierror
-        !-----------------------------------------------
 
         if (xf <= xs) then
             ierror = 1
@@ -868,20 +815,17 @@ contains
     end subroutine check_input_arguments
 
     subroutine initialize_workspace(n, m, l, workspace)
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip), intent(in)  :: n, m, l
-        class(Fish), intent(out) :: workspace
-        !-----------------------------------------------
+        integer(ip),              intent(in)  :: n, m, l
+        class(FishpackWorkspace), intent(out) :: workspace
+
         ! Local variables
-        !-----------------------------------------------
         integer(ip)     :: irwk, icwk
         type(Pois3dAux) :: aux
-        !-----------------------------------------------
 
         ! Adjust workspace for hw3crt
-        irwk = 30 + l + m + 5*n + max(n, m, l) + 7*((l+1)/2 + (m+1)/2)
+        irwk = 30 + l + m + (5 * n) + max(n, m, l) + 7*((l+1)/2 + (m+1)/2)
         icwk = 0
 
         ! Allocate memory
@@ -892,16 +836,4 @@ contains
 
     end subroutine initialize_workspace
 
-end module module_hw3crt
-!
-! REVISION HISTORY
-!
-! September 1973    Version 1
-! April     1976    Version 2
-! January   1978    Version 3
-! December  1979    Version 3.1
-! February  1985    Documentation upgrade
-! November  1988    Version 3.2, FORTRAN 77 changes
-! June      2004    Version 5.0, Fortran 90 changes
-! April     2016    Fortran 2008 changes
-!
+end submodule centered_cartesian_helmholtz_solver_3d

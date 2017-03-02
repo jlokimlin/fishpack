@@ -162,7 +162,7 @@ contains
     !                          = 7  a(1) /= 0 or c(m) /= 0 and
     !                                 mperod = 1
     !                          = 20 if the dynamic allocation of real and
-    !                               complex work space required for solution
+    !                               complex workspace required for solution
     !                               fails (for example if n, m are too large
     !                               for your computer)
     !

@@ -35,7 +35,7 @@
 !
 program test_sepx4
 
-    use fishpack_library
+    use fishpack
 
     ! Explicit typing only
     implicit none
@@ -93,7 +93,7 @@ program test_sepx4
     mbdcnd = 3
     nbdcnd = 1
 
-    ! Set first dimension of usol, grhs and work space length
+    ! Set first dimension of usol, grhs and workspace length
     idmn = size(usol, dim=1)
 
     ! Obtain 2nd-order approximation
