@@ -849,7 +849,6 @@ contains
     subroutine ezfftf(n, r, azero, a, b, wsave)
 
         ! Dummy arguments
-
         integer(ip), intent(in)  :: n
         real(wp),    intent(out) :: azero
         real(wp),    intent(in)  :: r(*)
@@ -858,7 +857,6 @@ contains
         real(wp)                  :: wsave(*)
 
         ! Local variables
-
         integer(ip) :: ns2, ns2m
         real(wp)    :: cf, cfm
 

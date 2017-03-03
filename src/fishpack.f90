@@ -18,14 +18,14 @@ module fishpack
     use complex_linear_systems_solver, only: &
         cmgnbn
 
-    use type_CenteredCyclicReductionUtility, only: &
+    use centered_real_linear_systems_solver, only: &
         genbun
 
     use three_dimensional_solvers, only: &
         pois3d, & ! general_linear_systems_solver_3d
         hw3crt ! centered_cartesian_helmholtz_solver_3d
 
-    use type_StaggeredCyclicReductionUtility, only: &
+    use staggered_real_linear_systems_solver, only: &
         poistg
 
     use module_sepeli, only: &
@@ -52,26 +52,7 @@ module fishpack
         FishpackWorkspace
 
     use type_PeriodicFastFourierTransform, only: &
-        PeriodicFastFourierTransform, &
-        rffti, & ! initialize  rfftf and rfftb
-        rfftf, & ! forward transform of a real periodic sequence
-        rfftb, & ! backward transform of a real coefficient array
-        ezffti, & !initialize ezfftf and ezfftb
-        ezfftf, & ! a simplified real periodic forward transform
-        ezfftb, & ! a simplified real periodic backward transform
-        sinti, & ! initialize sint
-        sint, & ! sine transform of a real odd sequence
-        costi, & ! initialize cost
-        cost, & ! cosine transform of a real even sequence
-        sinqi, & ! initialize sinqf and sinqb
-        sinqf, & ! forward sine transform with odd wave numbers
-        sinqb, & ! unnormalized inverse of sinqf
-        cosqi, & ! initialize cosqf and cosqb
-        cosqf, & ! forward cosine transform with odd wave numbers
-        cosqb, & ! unnormalized inverse of cosqf
-        cffti, & ! initialize cfftf and cfftb
-        cfftf, & ! forward transform of a complex periodic sequence
-        cfftb ! unnormalized inverse of cfftf
+        PeriodicFastFourierTransform
 
     ! Explicit typing only
     implicit none

@@ -1,6 +1,4 @@
 !
-!     file genbun.f90
-!
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
 !     *                  copyright (c) 2005 by UCAR                   *
@@ -143,17 +141,6 @@
 !                               for your computer)
 !
 !
-! SPECIAL CONDITONS      None
-!
-! I/O                    None
-!
-! PRECISION              64-bit precision float and 32-bit precision integer
-!
-! REQUIRED FILES         type_ComfAux.f90, type_CyclicReductionUtility.f9090, type_FishpackWorkspace.f90
-!
-!
-! STANDARD               Fortran 2008
-!
 ! HISTORY                Written in 1979 by Roland Sweet of NCAR'S
 !                        scientific computing division. made available
 !                        on NCAR'S public libraries in January, 1980.
@@ -241,66 +228,31 @@ module type_CenteredCyclicReductionUtility
 
     ! Everything is private unless stated otherwise
     private
-    public :: genbun
-    public :: genbun_lower_routine
+    public :: CenteredCyclicReductionUtility
 
-    !---------------------------------------------------------------
     ! Parameters confined to the module
-    !---------------------------------------------------------------
     real(wp), parameter :: ZERO = 0.0_wp
     real(wp), parameter :: HALF = 0.5_wp
     real(wp), parameter :: ONE = 1.0_wp
     real(wp), parameter :: TWO = 2.0_wp
-    !---------------------------------------------------------------
+
+    type, public, extends(CyclicReductionUtility) :: CenteredCyclicReductionUtility
+    contains
+        ! Public type-bound procedures
+        procedure, public :: genbun_lower_routine
+        ! Private type-bound procedures
+        procedure, private :: genbun_solve_poisson_periodic
+        procedure, private :: genbun_solve_poisson_dirichlet
+        procedure, private :: genbun_solve_poisson_neumann
+    end type
 
 contains
 
+    subroutine genbun_lower_routine(self, &
+        nperod, n, mperod, m, a, b, c, idimy, y, ierror, w)
 
-    subroutine genbun(nperod, n, mperod, m, a, b, c, idimy, y, ierror)
-        !--------------------------------------------------------------
         ! Dummy arguments
-        !--------------------------------------------------------------
-        integer(ip), intent(in)    :: nperod
-        integer(ip), intent(in)    :: n
-        integer(ip), intent(in)    :: mperod
-        integer(ip), intent(in)    :: m
-        integer(ip), intent(in)    :: idimy
-        integer(ip), intent(out)   :: ierror
-        real(wp),    intent(in)    :: a(:)
-        real(wp),    intent(in)    :: b(:)
-        real(wp),    intent(in)    :: c(:)
-        real(wp),    intent(inout) :: y(idimy,n)
-        !--------------------------------------------------------------
-        ! Local variables
-        !--------------------------------------------------------------
-        type(FishpackWorkspace)  :: workspace
-        !--------------------------------------------------------------
-
-        !
-        ! Allocate memory
-        !
-        workspace = get_workspace(n, m)
-
-
-        associate( rew => workspace%real_workspace )
-            !
-            ! Solve system
-            !
-            call genbun_lower_routine(nperod, n, mperod, m, a, b, c, idimy, y, ierror, rew)
-
-        end associate
-
-        !
-        ! Release memory
-        !
-        call workspace%destroy()
-
-    end subroutine genbun
-
-    subroutine genbun_lower_routine(nperod, n, mperod, m, a, b, c, idimy, y, ierror, w)
-        !--------------------------------------------------------------
-        ! Dummy arguments
-        !--------------------------------------------------------------
+        class(CenteredCyclicReductionUtility), intent(inout) :: self
         integer(ip), intent(in)    :: nperod
         integer(ip), intent(in)    :: n
         integer(ip), intent(in)    :: mperod
@@ -312,20 +264,15 @@ contains
         real(wp),    intent(in)    :: c(m)
         real(wp),    intent(inout) :: y(idimy,n)
         real(wp),    intent(inout) :: w(:)
-        !--------------------------------------------------------------
+
         ! Local variables
-        !--------------------------------------------------------------
         integer(ip)     :: workspace_indices(12)
         integer(ip)     :: i, k, j, mp, np, irev, mh, mhm1, modd
         integer(ip)     :: nby2, mskip
-        type(CyclicReductionUtility) :: genbun_aux
         real(wp)        :: ipstor
-        !--------------------------------------------------------------
 
-        !
         ! Check input arguments
-        !
-        call check_input_arguments(nperod, n, mperod, m, idimy, ierror, a, b, c)
+        call genbun_check_input_arguments(nperod, n, mperod, m, idimy, ierror, a, b, c)
 
         ! Check error flag
         if (ierror /= 0) return
@@ -333,7 +280,7 @@ contains
         !
         ! Set up workspace for lower routine poisson solvers
         !
-        workspace_indices = get_workspace_indices(n, m)
+        workspace_indices = genbun_get_workspace_indices(n, m)
 
         associate( &
             mp1 => workspace_indices(1), &
@@ -418,16 +365,16 @@ contains
                     !
                     select case (np)
                         case (1)
-                            call solve_poisson_periodic(m, n, ba, bb, bc, &
+                            call self%genbun_solve_poisson_periodic(m, n, ba, bb, bc, &
                                 y, idimy, w, b2, b3, w1, w2, w3, d, tcos, p)
                         case (2)
-                            call solve_poisson_dirichlet(m, n, 1, ba, bb, bc, &
+                            call self%genbun_solve_poisson_dirichlet(m, n, 1, ba, bb, bc, &
                                 y, idimy, w, w1, d, tcos, p)
                         case (3)
-                            call solve_poisson_neumann(m, n, 1, 2, ba, bb, bc, &
+                            call self%genbun_solve_poisson_neumann(m, n, 1, 2, ba, bb, bc, &
                                 y, idimy, w, b2, b3, w1, w2, w3, d, tcos, p)
                         case (4)
-                            call solve_poisson_neumann(m, n, 1, 1, ba, bb, bc, &
+                            call self%genbun_solve_poisson_neumann(m, n, 1, 1, ba, bb, bc, &
                                 y, idimy, w, b2, b3, w1, w2, w3, d, tcos, p)
                     end select
                 end associate
@@ -508,7 +455,7 @@ contains
                         do j = 1, nby2
                             mskip = n + 1 - j
                             do i = 1, m
-                                call genbun_aux%swap(y(i, j), y(i, mskip))
+                                call self%swap(y(i, j), y(i, mskip))
                             end do
                         end do
 
@@ -527,7 +474,7 @@ contains
                                     tcos => w(iwtcos:), &
                                     p => w(iwp:) &
                                     )
-                                    call solve_poisson_neumann(m, n, 1, 2, ba, bb, bc, &
+                                    call self%genbun_solve_poisson_neumann(m, n, 1, 2, ba, bb, bc, &
                                         y, idimy, w, b2, b3, w1, w2, w3, d, tcos, p)
                                 end associate
 
@@ -565,10 +512,9 @@ contains
 
     end subroutine genbun_lower_routine
 
-    pure subroutine check_input_arguments(nperod, n, mperod, m, idimy, ierror, a, b, c)
-        !--------------------------------------------------------------
+    pure subroutine genbun_check_input_arguments(nperod, n, mperod, m, idimy, ierror, a, b, c)
+
         ! Dummy arguments
-        !--------------------------------------------------------------
         integer(ip), intent(in)  :: nperod
         integer(ip), intent(in)  :: n
         integer(ip), intent(in)  :: mperod
@@ -578,7 +524,6 @@ contains
         real(wp),    intent(in)  :: a(m)
         real(wp),    intent(in)  :: b(m)
         real(wp),    intent(in)  :: c(m)
-        !--------------------------------------------------------------
 
         if (3 > m) then
             ierror = 1
@@ -607,65 +552,39 @@ contains
             ierror = 0
         end if
 
-    end subroutine check_input_arguments
+    end subroutine genbun_check_input_arguments
 
-    function get_workspace(n, m) result (return_value)
-        !-----------------------------------------------
+    function genbun_get_workspace_indices(n, m) &
+        result (return_value)
+
         ! Dummy arguments
-        !-----------------------------------------------
-        integer(ip), intent(in)  :: n, m
-        type(FishpackWorkspace)               :: return_value
-        !-----------------------------------------------
-        ! Local variables
-        !-----------------------------------------------
-        integer(ip)  :: irwk, icwk
-        !-----------------------------------------------
-
-        ! Get workspace dimensions for genbun
-        call return_value%compute_genbun_workspace_lengths(n, m, irwk)
-
-        ! No need to allocate complex arrays
-        icwk = 0
-
-        ! Allocate memory
-        call return_value%create(irwk, icwk)
-
-    end function get_workspace
-
-    function get_workspace_indices(n, m) result (return_value)
-        !--------------------------------------------------------------
-        ! Dummy arguments
-        !--------------------------------------------------------------
         integer(ip), intent(in) :: n
         integer(ip), intent(in) :: m
         integer(ip)             :: return_value(12)
-        !--------------------------------------------------------------
+
         integer(ip) :: j !! Counter
-        !--------------------------------------------------------------
 
         associate( i => return_value)
-
             i(1:2) = m + 1
-
             do j = 3, 11
                 i(j) = i(j-1) + m
             end do
-
             i(12) = i(11) + 4 * n
         end associate
 
-    end function get_workspace_indices
+    end function genbun_get_workspace_indices
 
-    subroutine solve_poisson_periodic(m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
-        !
-        ! Purpose:
-        !
-        !     Solve poisson equation with periodic
-        !     boundary conditions.
-        !
-        !-----------------------------------------------
+    !
+    ! Purpose:
+    !
+    !     Solve poisson equation with periodic
+    !     boundary conditions.
+    !
+    subroutine genbun_solve_poisson_periodic(self, &
+        m, n, a, bb, c, q, idimq, b, b2, b3, w, w2, w3, d, tcos, p)
+
         ! Dummy arguments
-        !-----------------------------------------------
+        class(CenteredCyclicReductionUtility), intent(inout) :: self
         integer(ip), intent(in)    :: m
         integer(ip), intent(in)    :: n
         integer(ip), intent(in)    :: idimq
@@ -682,22 +601,19 @@ contains
         real(wp),    intent(inout) :: d(m)
         real(wp),    intent(inout) :: tcos(m)
         real(wp),    intent(inout) :: p(4*n)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         integer(ip) :: mr, nr, nrm1, j, nrmj, nrpj, i, lh
         real(wp)    :: ipstor
         real(wp)    :: s, t
-        !-----------------------------------------------
 
         mr = m
         nr = (n + 1)/2
         nrm1 = nr - 1
 
         if (2*nr == n) then
-            !
+
             ! even number of unknowns
-            !
             do j = 1, nrm1
                 nrmj = nr - j
                 nrpj = nr + j
@@ -712,11 +628,11 @@ contains
             q(:mr, nr) = TWO * q(:mr, nr)
             q(:mr, n) = TWO * q(:mr, n)
 
-            call solve_poisson_dirichlet(mr, nrm1, 1, a, bb, c, q, idimq, b, w, d, tcos, p)
+            call self%genbun_solve_poisson_dirichlet(mr, nrm1, 1, a, bb, c, q, idimq, b, w, d, tcos, p)
 
             ipstor = w(1)
 
-            call solve_poisson_neumann(mr, (nr + 1), 1, 1, a, bb, c, q(1, nr), idimq, b, b2, &
+            call self%genbun_solve_poisson_neumann(mr, (nr + 1), 1, 1, a, bb, c, q(1, nr), idimq, b, b2, &
                 b3, w, w2, w3, d, tcos, p)
 
             ipstor = max(ipstor, w(1))
@@ -756,12 +672,12 @@ contains
                 end do
             end do
 
-            call solve_poisson_dirichlet(mr, nrm1, 2, a, bb, c, q, &
+            call self%genbun_solve_poisson_dirichlet(mr, nrm1, 2, a, bb, c, q, &
                 idimq, b, w, d, tcos, p)
 
             ipstor = w(1)
 
-            call solve_poisson_neumann(mr, nr, 2, 1, a, bb, c, q(1, nr), &
+            call self%genbun_solve_poisson_neumann(mr, nr, 2, 1, a, bb, c, q(1, nr), &
                 idimq, b, b2, b3, w, w2, w3, d, tcos, p)
 
             ipstor = max(ipstor, w(1))
@@ -790,21 +706,22 @@ contains
 
         w(1) = ipstor
 
-    end subroutine solve_poisson_periodic
+    end subroutine genbun_solve_poisson_periodic
 
-    subroutine solve_poisson_dirichlet(mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
-        !
-        ! Purpose:
-        !
-        !     subroutine to solve poisson's equation for dirichlet boundary
-        !     conditions.
-        !
-        !     istag = 1 if the last diagonal block is the matrix a.
-        !     istag = 2 if the last diagonal block is the matrix a+i.
-        !
-        !--------------------------------------------------------------
+    !
+    ! Purpose:
+    !
+    !     subroutine to solve poisson's equation for dirichlet boundary
+    !     conditions.
+    !
+    !     istag = 1 if the last diagonal block is the matrix a.
+    !     istag = 2 if the last diagonal block is the matrix a+i.
+    !
+    subroutine genbun_solve_poisson_dirichlet(self, &
+        mr, nr, istag, ba, bb, bc, q, idimq, b, w, d, tcos, p)
+
         ! Dummy arguments
-        !--------------------------------------------------------------
+        class(CenteredCyclicReductionUtility), intent(inout) :: self
         integer(ip), intent(in)    :: mr
         integer(ip), intent(in)    :: nr
         integer(ip), intent(in)    :: istag
@@ -818,16 +735,13 @@ contains
         real(wp),    intent(inout) :: d(:)
         real(wp),    intent(inout) :: tcos(:)
         real(wp),    intent(inout) :: p(:)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         integer(ip)     :: m, n, jsh, ipp, ipstor, kr
         integer(ip)     :: irreg, jstsav, i, lr, nun, nodd, noddpr
         integer(ip)     :: jst, jsp, l, j, jm1, jp1, jm2, jp2, jm3, jp3
         integer(ip)     :: krpi, ideg, jdeg
         real(wp)        :: fi, t
-        type(CyclicReductionUtility) :: genbun_aux
-        !-----------------------------------------------
 
         m = mr
         n = nr
@@ -844,7 +758,7 @@ contains
                 if (n <= 1) then
                     tcos(1) = -ONE
                     b(:m) = q(:m, 1)
-                    call genbun_aux%solve_tridiag(1, 0, m, ba, bb, bc, b, tcos, d, w)
+                    call self%solve_tridiag(1, 0, m, ba, bb, bc, b, tcos, d, w)
                     q(:m, 1) = b(:m)
                     w(1) = ipstor
                     return
@@ -855,7 +769,7 @@ contains
                 if (n <= 1) then
                     tcos(1) = ZERO
                     b(:m) = q(:m, 1)
-                    call genbun_aux%solve_tridiag(1, 0, m, ba, bb, bc, b, tcos, d, w)
+                    call self%solve_tridiag(1, 0, m, ba, bb, bc, b, tcos, d, w)
                     q(:m, 1) = b(:m)
                     w(1) = ipstor
                     return
@@ -887,7 +801,7 @@ contains
                     jsp = jsp - l
             end select
 
-            call genbun_aux%generate_cosines(jst, 1, HALF, ZERO, tcos)
+            call self%generate_cosines(jst, 1, HALF, ZERO, tcos)
 
             if (l <= jsp) then
                 do j = l, jsp, l
@@ -909,7 +823,7 @@ contains
                         end do
                     end if
 
-                    call genbun_aux%solve_tridiag(jst, 0, m, ba, bb, bc, b, tcos, d, w)
+                    call self%solve_tridiag(jst, 0, m, ba, bb, bc, b, tcos, d, w)
                     q(:m, j) = q(:m, j) + b(:m)
 
                 end do
@@ -933,8 +847,8 @@ contains
 
                         select case (irreg)
                             case (2)
-                                call genbun_aux%generate_cosines(kr, jstsav, ZERO, fi, tcos)
-                                call genbun_aux%generate_cosines(lr, jstsav, ZERO, fi, tcos(kr+1:))
+                                call self%generate_cosines(kr, jstsav, ZERO, fi, tcos)
+                                call self%generate_cosines(lr, jstsav, ZERO, fi, tcos(kr+1:))
                                 ideg = kr
                                 kr = kr + jst
                             case default
@@ -964,7 +878,7 @@ contains
                             end select
                         end if
 
-                        call genbun_aux%solve_tridiag(ideg, lr, m, ba, bb, bc, b, tcos, d, w)
+                        call self%solve_tridiag(ideg, lr, m, ba, bb, bc, b, tcos, d, w)
                         q(:m, j) = q(:m, j) + b(:m)
 
                     case default
@@ -1011,7 +925,7 @@ contains
                                 end if
                         end select
 
-                        call genbun_aux%solve_tridiag(jst, 0, m, ba, bb, bc, b, tcos, d, w)
+                        call self%solve_tridiag(jst, 0, m, ba, bb, bc, b, tcos, d, w)
 
                         ipp = ipp + m
                         ipstor = max(ipstor, ipp + m)
@@ -1024,12 +938,12 @@ contains
                                 tcos(krpi) = tcos(i)
                             end do
                         else
-                            call genbun_aux%generate_cosines(lr, jstsav, ZERO, fi, tcos(jst+1:))
-                            call genbun_aux%merge_cosines(tcos, 0, jst, jst, lr, kr)
+                            call self%generate_cosines(lr, jstsav, ZERO, fi, tcos(jst+1:))
+                            call self%merge_cosines(tcos, 0, jst, jst, lr, kr)
                         end if
 
-                        call genbun_aux%generate_cosines(kr, jstsav, ZERO, fi, tcos)
-                        call genbun_aux%solve_tridiag(kr, kr, m, ba, bb, bc, b, tcos, d, w)
+                        call self%generate_cosines(kr, jstsav, ZERO, fi, tcos)
+                        call self%solve_tridiag(kr, kr, m, ba, bb, bc, b, tcos, d, w)
 
                         q(:m, j) = q(:m, jm2) + b(:m) + p(ipp+1:m+ipp)
                         lr = kr
@@ -1054,15 +968,15 @@ contains
         select case (irreg)
             case (2)
                 kr = lr + jst
-                call genbun_aux%generate_cosines(kr, jstsav, ZERO, fi, tcos)
-                call genbun_aux%generate_cosines(lr, jstsav, ZERO, fi, tcos(kr+1:))
+                call self%generate_cosines(kr, jstsav, ZERO, fi, tcos)
+                call self%generate_cosines(lr, jstsav, ZERO, fi, tcos(kr+1:))
                 ideg = kr
             case default
-                call genbun_aux%generate_cosines(jst, 1, HALF, ZERO, tcos)
+                call self%generate_cosines(jst, 1, HALF, ZERO, tcos)
                 ideg = jst
         end select
 
-        call genbun_aux%solve_tridiag(ideg, lr, m, ba, bb, bc, b, tcos, d, w)
+        call self%solve_tridiag(ideg, lr, m, ba, bb, bc, b, tcos, d, w)
         jm1 = j - jsh
         jp1 = j + jsh
 
@@ -1107,8 +1021,8 @@ contains
                                 case (2)
                                     if (j + l > n) lr = lr - jst
                                     kr = jst + lr
-                                    call genbun_aux%generate_cosines(kr, jstsav, ZERO, fi, tcos)
-                                    call genbun_aux%generate_cosines(lr, jstsav, ZERO, fi, tcos(kr+1:))
+                                    call self%generate_cosines(kr, jstsav, ZERO, fi, tcos)
+                                    call self%generate_cosines(lr, jstsav, ZERO, fi, tcos(kr+1:))
                                     ideg = kr
                                     jdeg = lr
                                     exit block_construct
@@ -1118,13 +1032,13 @@ contains
                         end if
                     end if
 
-                    call genbun_aux%generate_cosines(jst, 1, HALF, ZERO, tcos)
+                    call self%generate_cosines(jst, 1, HALF, ZERO, tcos)
                     ideg = jst
                     jdeg = 0
 
                 end block block_construct
 
-                call genbun_aux%solve_tridiag(ideg, jdeg, m, ba, bb, bc, b, tcos, d, w)
+                call self%solve_tridiag(ideg, jdeg, m, ba, bb, bc, b, tcos, d, w)
 
                 if_construct: if (jst <= 1) then
                     q(:m, j) = b(:m)
@@ -1167,25 +1081,26 @@ contains
 
         w(1) = ipstor
 
-    end subroutine solve_poisson_dirichlet
+    end subroutine genbun_solve_poisson_dirichlet
 
-    subroutine solve_poisson_neumann(m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
+    !
+    ! Purpose
+    !
+    !     To solve poisson's equation with neumann boundary
+    !     conditions.
+    !
+    !     istag = 1 if the last diagonal block is a.
+    !     istag = 2 if the last diagonal block is a-i.
+    !     mixbnd = 1 if have neumann boundary conditions at both boundaries.
+    !     mixbnd = 2 if have neumann boundary conditions at bottom and
+    !     dirichlet condition at top.  (for this case, must have istag = 1.)
+    !
+    subroutine genbun_solve_poisson_neumann(self, &
+        m, n, istag, mixbnd, a, bb, c, q, idimq, b, b2, &
         b3, w, w2, w3, d, tcos, p)
-        !
-        ! Purpose
-        !
-        !     To solve poisson's equation with neumann boundary
-        !     conditions.
-        !
-        !     istag = 1 if the last diagonal block is a.
-        !     istag = 2 if the last diagonal block is a-i.
-        !     mixbnd = 1 if have neumann boundary conditions at both boundaries.
-        !     mixbnd = 2 if have neumann boundary conditions at bottom and
-        !     dirichlet condition at top.  (for this case, must have istag = 1.)
-        !
-        !-----------------------------------------------
+
         ! Dummy arguments
-        !-----------------------------------------------
+        class(CenteredCyclicReductionUtility), intent(inout) :: self
         integer(ip), intent(in)     :: m
         integer(ip), intent(in)     :: n
         integer(ip), intent(in)     :: istag
@@ -1204,16 +1119,13 @@ contains
         real(wp),    intent(inout) :: d(m)
         real(wp),    intent(inout) :: tcos(m)
         real(wp),    intent(inout) :: p(4*n)
-        !-----------------------------------------------
+
         ! Local variables
-        !-----------------------------------------------
         integer(ip)     :: k(4)
         integer(ip)     :: mr, ipp, ipstor, i2r, jr, nr, nlast, kr
         integer(ip)     :: lr, i, nrod, jstart, jstop, i2rby2, j, jp1, jp2, jp3, jm1
         integer(ip)     :: jm2, jm3, nrodpr, ii, i1, i2, jr2, nlastp, jstep
         real(wp)        :: fistag, fnum, fden, fi, t
-        type(CyclicReductionUtility) :: genbun_aux
-        !-----------------------------------------------
 
         associate( &
             k1 => k(1), &
@@ -1283,7 +1195,7 @@ contains
         jstop = jstop - i2r
     end if
 
-    call genbun_aux%generate_cosines(i2r, 1, HALF, ZERO, tcos)
+    call self%generate_cosines(i2r, 1, HALF, ZERO, tcos)
 
     i2rby2 = i2r/2
 
@@ -1316,7 +1228,7 @@ contains
                 end do
             end if
 
-            call genbun_aux%solve_tridiag(i2r, 0, mr, a, bb, c, b, tcos, d, w)
+            call self%solve_tridiag(i2r, 0, mr, a, bb, c, b, tcos, d, w)
 
             q(:mr, j) = q(:mr, j) + b(:mr)
             !
@@ -1350,13 +1262,13 @@ contains
                 q(:mr, j) = q(:mr, j) - q(:mr, jm1) + q(:mr, jm2)
             end if
             if (lr /= 0) then
-                call genbun_aux%generate_cosines(lr, 1, HALF, fden, tcos(kr+1:))
+                call self%generate_cosines(lr, 1, HALF, fden, tcos(kr+1:))
             else
                 b(:mr) = fistag*b(:mr)
             end if
         end if
-        call genbun_aux%generate_cosines(kr, 1, HALF, fden, tcos)
-        call genbun_aux%solve_tridiag(kr, lr, mr, a, bb, c, b, tcos, d, w)
+        call self%generate_cosines(kr, 1, HALF, fden, tcos)
+        call self%solve_tridiag(kr, lr, mr, a, bb, c, b, tcos, d, w)
         q(:mr, j) = q(:mr, j) + b(:mr)
         kr = kr + i2r
     else
@@ -1364,7 +1276,7 @@ contains
         jp2 = j + i2r
         if (i2r == 1) then
             b(:mr) = q(:mr, j)
-            call genbun_aux%solve_tridiag(1, 0, mr, a, bb, c, b, tcos, d, w)
+            call self%solve_tridiag(1, 0, mr, a, bb, c, b, tcos, d, w)
             ipp = 0
             ipstor = mr
             select case (istag)
@@ -1373,7 +1285,7 @@ contains
                     b(:mr) = b(:mr) + q(:mr, n)
                     tcos(1) = ONE
                     tcos(2) = ZERO
-                    call genbun_aux%solve_tridiag(1, 1, mr, a, bb, c, b, tcos, d, w)
+                    call self%solve_tridiag(1, 1, mr, a, bb, c, b, tcos, d, w)
                     q(:mr, j) = q(:mr, jm2) + p(:mr) + b(:mr)
                     goto 150
                 case (1)
@@ -1391,15 +1303,15 @@ contains
             b(:mr) = b(:mr) + q(:mr, jp2) - q(:mr, jp1)
         end if
 
-        call genbun_aux%solve_tridiag(i2r, 0, mr, a, bb, c, b, tcos, d, w)
+        call self%solve_tridiag(i2r, 0, mr, a, bb, c, b, tcos, d, w)
         ipp = ipp + mr
         ipstor = max(ipstor, ipp + mr)
         p(ipp+1:mr+ipp) = b(:mr) + HALF*(q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
         b(:mr) = p(ipp+1:mr+ipp) + q(:mr, jp2)
 
         if (lr /= 0) then
-            call genbun_aux%generate_cosines(lr, 1, HALF, fden, tcos(i2r+1:))
-            call genbun_aux%merge_cosines(tcos, 0, i2r, i2r, lr, kr)
+            call self%generate_cosines(lr, 1, HALF, fden, tcos(i2r+1:))
+            call self%merge_cosines(tcos, 0, i2r, i2r, lr, kr)
         else
             do i = 1, i2r
                 ii = kr + i
@@ -1407,7 +1319,7 @@ contains
             end do
         end if
 
-        call genbun_aux%generate_cosines(kr, 1, HALF, fden, tcos)
+        call self%generate_cosines(kr, 1, HALF, fden, tcos)
 
         if (lr == 0) then
             select case (istag)
@@ -1420,7 +1332,7 @@ contains
 
 145 continue
 
-    call genbun_aux%solve_tridiag(kr, kr, mr, a, bb, c, b, tcos, d, w)
+    call self%solve_tridiag(kr, kr, mr, a, bb, c, b, tcos, d, w)
     goto 148
 
 146 continue
@@ -1486,7 +1398,7 @@ goto 104
         b(:mr) = q(:mr, 2)
         tcos(1) = ZERO
 
-        call genbun_aux%solve_tridiag(1, 0, mr, a, bb, c, b, tcos, d, w)
+        call self%solve_tridiag(1, 0, mr, a, bb, c, b, tcos, d, w)
 
         q(:mr, 2) = b(:mr)
         b(:mr) = 4.0_wp*b(:mr) + q(:mr, 1) + TWO*q(:mr, 3)
@@ -1495,13 +1407,13 @@ goto 104
         i1 = 2
         i2 = 0
 
-        call genbun_aux%solve_tridiag(i1, i2, mr, a, bb, c, b, tcos, d, w)
+        call self%solve_tridiag(i1, i2, mr, a, bb, c, b, tcos, d, w)
 
         q(:mr, 2) = q(:mr, 2) + b(:mr)
         b(:mr) = q(:mr, 1) + TWO*q(:mr, 2)
         tcos(1) = ZERO
 
-        call genbun_aux%solve_tridiag(1, 0, mr, a, bb, c, b, tcos, d, w)
+        call self%solve_tridiag(1, 0, mr, a, bb, c, b, tcos, d, w)
 
         q(:mr, 1) = b(:mr)
         jr = 1
@@ -1525,9 +1437,9 @@ goto 104
         - q(:mr, jm1) + q(:mr, nlast) - &
         q(:mr, jm2)
 
-    call genbun_aux%generate_cosines(jr, 1, HALF, ZERO, tcos)
+    call self%generate_cosines(jr, 1, HALF, ZERO, tcos)
 
-    call genbun_aux%solve_tridiag(jr, 0, mr, a, bb, c, b, tcos, d, w)
+    call self%solve_tridiag(jr, 0, mr, a, bb, c, b, tcos, d, w)
 
     q(:mr, j) = HALF*(q(:mr, j)-q(:mr, jm1)-q(:mr, jp1)) + b(:mr)
 
@@ -1535,18 +1447,18 @@ goto 104
 
     jr2 = 2*jr
 
-    call genbun_aux%generate_cosines(jr, 1, ZERO, ZERO, tcos)
+    call self%generate_cosines(jr, 1, ZERO, ZERO, tcos)
 
     tcos(jr+1:jr*2) = -tcos(jr:1:(-1))
 
-    call genbun_aux%solve_tridiag(jr2, 0, mr, a, bb, c, b, tcos, d, w)
+    call self%solve_tridiag(jr2, 0, mr, a, bb, c, b, tcos, d, w)
 
     q(:mr, j) = q(:mr, j) + b(:mr)
     b(:mr) = q(:mr, 1) + TWO*q(:mr, j)
 
-    call genbun_aux%generate_cosines(jr, 1, HALF, ZERO, tcos)
+    call self%generate_cosines(jr, 1, HALF, ZERO, tcos)
 
-    call genbun_aux%solve_tridiag(jr, 0, mr, a, bb, c, b, tcos, d, w)
+    call self%solve_tridiag(jr, 0, mr, a, bb, c, b, tcos, d, w)
 
     q(:mr, 1) = HALF*q(:mr, 1) - q(:mr, jm1) + b(:mr)
 
@@ -1590,43 +1502,43 @@ goto 104
     tcos(k1+1) = -2.
     k4 = k1 + 3 - istag
 
-    call genbun_aux%generate_cosines(k2 + istag - 2, 1, ZERO, fnum, tcos(k4:))
+    call self%generate_cosines(k2 + istag - 2, 1, ZERO, fnum, tcos(k4:))
 
     k4 = k1 + k2 + 1
 
-    call genbun_aux%generate_cosines(jr - 1, 1, ZERO, ONE, tcos(k4:))
-    call genbun_aux%merge_cosines(tcos, k1, k2, k1 + k2, jr - 1, 0)
+    call self%generate_cosines(jr - 1, 1, ZERO, ONE, tcos(k4:))
+    call self%merge_cosines(tcos, k1, k2, k1 + k2, jr - 1, 0)
 
     k3 = k1 + k2 + lr
 
-    call genbun_aux%generate_cosines(jr, 1, HALF, ZERO, tcos(k3+1:))
+    call self%generate_cosines(jr, 1, HALF, ZERO, tcos(k3+1:))
 
     k4 = k3 + jr + 1
 
-    call genbun_aux%generate_cosines(kr, 1, HALF, fden, tcos(k4:))
-    call genbun_aux%merge_cosines(tcos, k3, jr, k3 + jr, kr, k1)
+    call self%generate_cosines(kr, 1, HALF, fden, tcos(k4:))
+    call self%merge_cosines(tcos, k3, jr, k3 + jr, kr, k1)
 
     if (lr /= 0) then
-        call genbun_aux%generate_cosines(lr, 1, HALF, fden, tcos(k4:))
-        call genbun_aux%merge_cosines(tcos, k3, jr, k3 + jr, lr, k3 - lr)
-        call genbun_aux%generate_cosines(kr, 1, HALF, fden, tcos(k4:))
+        call self%generate_cosines(lr, 1, HALF, fden, tcos(k4:))
+        call self%merge_cosines(tcos, k3, jr, k3 + jr, lr, k3 - lr)
+        call self%generate_cosines(kr, 1, HALF, fden, tcos(k4:))
     end if
 
     k3 = kr
     k4 = kr
 
-    call genbun_aux%solve_tridiag3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
+    call self%solve_tridiag3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
 
     b(:mr) = b(:mr) + b2(:mr) + b3(:mr)
     tcos(1) = TWO
 
-    call genbun_aux%solve_tridiag(1, 0, mr, a, bb, c, b, tcos, d, w)
+    call self%solve_tridiag(1, 0, mr, a, bb, c, b, tcos, d, w)
 
     q(:mr, j) = q(:mr, j) + b(:mr)
     b(:mr) = q(:mr, 1) + TWO*q(:mr, j)
 
-    call genbun_aux%generate_cosines(jr, 1, HALF, ZERO, tcos)
-    call genbun_aux%solve_tridiag(jr, 0, mr, a, bb, c, b, tcos, d, w)
+    call self%generate_cosines(jr, 1, HALF, ZERO, tcos)
+    call self%solve_tridiag(jr, 0, mr, a, bb, c, b, tcos, d, w)
 
     if (jr == 1) then
         q(:mr, 1) = b(:mr)
@@ -1644,14 +1556,14 @@ if (n == 2) then
     b(:mr) = q(:mr, 1)
     tcos(1) = ZERO
 
-    call genbun_aux%solve_tridiag(1, 0, mr, a, bb, c, b, tcos, d, w)
+    call self%solve_tridiag(1, 0, mr, a, bb, c, b, tcos, d, w)
 
     q(:mr, 1) = b(:mr)
     b(:mr) = TWO *(q(:mr, 2)+b(:mr))*fistag
     tcos(1) = -fistag
     tcos(2) = TWO
 
-    call genbun_aux%solve_tridiag(2, 0, mr, a, bb, c, b, tcos, d, w)
+    call self%solve_tridiag(2, 0, mr, a, bb, c, b, tcos, d, w)
 
     q(:mr, 1) = q(:mr, 1) + b(:mr)
     jr = 1
@@ -1667,28 +1579,28 @@ k1 = kr + jr - 1
 tcos(k1+1) = -2.
 k4 = k1 + 3 - istag
 
-call genbun_aux%generate_cosines(kr + istag - 2, 1, ZERO, fnum, tcos(k4:))
+call self%generate_cosines(kr + istag - 2, 1, ZERO, fnum, tcos(k4:))
 
 k4 = k1 + kr + 1
 
-call genbun_aux%generate_cosines(jr - 1, 1, ZERO, ONE, tcos(k4:))
-call genbun_aux%merge_cosines(tcos, k1, kr, k1 + kr, jr - 1, 0)
-call genbun_aux%generate_cosines(kr, 1, HALF, fden, tcos(k1+1:))
+call self%generate_cosines(jr - 1, 1, ZERO, ONE, tcos(k4:))
+call self%merge_cosines(tcos, k1, kr, k1 + kr, jr - 1, 0)
+call self%generate_cosines(kr, 1, HALF, fden, tcos(k1+1:))
 
 k2 = kr
 k4 = k1 + k2 + 1
 
-call genbun_aux%generate_cosines(lr, 1, HALF, fden, tcos(k4:))
+call self%generate_cosines(lr, 1, HALF, fden, tcos(k4:))
 
 k3 = lr
 k4 = 0
 
-call genbun_aux%solve_tridiag3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
+call self%solve_tridiag3(mr, a, bb, c, k, b, b2, b3, tcos, d, w, w2, w3)
 
 b(:mr) = b(:mr) + b2(:mr)
 tcos(1) = TWO
 
-call genbun_aux%solve_tridiag(1, 0, mr, a, bb, c, b, tcos, d, w)
+call self%solve_tridiag(1, 0, mr, a, bb, c, b, tcos, d, w)
 
 q(:mr, 1) = q(:mr, 1) + b(:mr)
 goto 194
@@ -1717,14 +1629,14 @@ goto 194
             q(:mr, nlast) = q(:mr, nlast) - q(:mr, jm2)
         end if
     end if
-    call genbun_aux%generate_cosines(kr, 1, HALF, fden, tcos)
-    call genbun_aux%generate_cosines(lr, 1, HALF, fden, tcos(kr+1:))
+    call self%generate_cosines(kr, 1, HALF, fden, tcos)
+    call self%generate_cosines(lr, 1, HALF, fden, tcos(kr+1:))
 
     if (lr == 0) then
         b(:mr) = fistag*b(:mr)
     end if
 
-    call genbun_aux%solve_tridiag(kr, lr, mr, a, bb, c, b, tcos, d, w)
+    call self%solve_tridiag(kr, lr, mr, a, bb, c, b, tcos, d, w)
 
     q(:mr, nlast) = q(:mr, nlast) + b(:mr)
     nlastp = nlast
@@ -1758,7 +1670,7 @@ goto 194
     end if
 
     lr = kr - jr
-    call genbun_aux%generate_cosines(jr, 1, HALF, ZERO, tcos)
+    call self%generate_cosines(jr, 1, HALF, ZERO, tcos)
 
     do j = jstart, jstop, jstep
         jm2 = j - jr
@@ -1778,7 +1690,7 @@ goto 194
             q(:mr, j) = HALF*(q(:mr, j)-q(:mr, jm1)-q(:mr, jp1))
         end if
 
-        call genbun_aux%solve_tridiag(jr, 0, mr, a, bb, c, b, tcos, d, w)
+        call self%solve_tridiag(jr, 0, mr, a, bb, c, b, tcos, d, w)
         q(:mr, j) = q(:mr, j) + b(:mr)
     end do
 
@@ -1797,18 +1709,6 @@ goto 194
 
 end associate
 
-end subroutine solve_poisson_neumann
+end subroutine genbun_solve_poisson_neumann
 
 end module type_CenteredCyclicReductionUtility
-!
-! Revision history
-!
-! September 1973    Version 1
-! April     1976    Version 2
-! January   1978    Version 3
-! December  1979    Version 3.1
-! February  1985    Documentation upgrade
-! November  1988    Version 3.2, FORTRAN 77 changes
-! June      2004    Version 5.0, Fortran 90 changes
-! April     2016    Fortran 2008 changes
-!

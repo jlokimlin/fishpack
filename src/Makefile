@@ -136,6 +136,14 @@ staggered_spherical_solver.f90
 	$(FC) $(FFLAGS) -c staggered_spherical_solver.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
+staggered_real_linear_systems_solver.o: \
+fishpack_precision.o \
+type_FishpackWorkspace.o \
+type_StaggeredCyclicReductionUtility.o \
+staggered_real_linear_systems_solver.f90
+	$(FC) $(FFLAGS) -c staggered_real_linear_systems_solver.f90 $(LINKS) \
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+	 
 centered_helmholtz_solvers.o: \
 fishpack_precision.o \
 type_FishpackWorkspace.o \
@@ -175,6 +183,14 @@ centered_spherical_solver.f90
 	$(FC) $(FFLAGS) -c centered_spherical_solver.f90 $(LINKS) \
 	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
 
+centered_real_linear_systems_solver.o: \
+fishpack_precision.o \
+type_FishpackWorkspace.o \
+type_CenteredCyclicReductionUtility.o \
+centered_real_linear_systems_solver.f90
+	$(FC) $(FFLAGS) -c centered_real_linear_systems_solver.f90 $(LINKS) \
+	 -o $(OBJ_DIRECTORY)/$@ -J$(LIB_DIRECTORY)
+
 type_SepAux.o: \
 fishpack_precision.o \
 type_SepAux.f90
@@ -193,7 +209,7 @@ sepeli.f90
 sepx4.o: \
 fishpack_precision.o \
 type_FishpackWorkspace.o\
-type_CenteredCyclicReductionUtility.o \
+centered_real_linear_systems_solver.o \
 type_SepAux.o \
 sepx4.f90
 	$(FC) $(FFLAGS) -c sepx4.f90 $(LINKS) \
@@ -204,9 +220,9 @@ fishpack_precision.o \
 real_block_tridiagonal_linear_systems_solver.o \
 complex_block_tridiagonal_linear_systems_solver.o\
 complex_linear_systems_solver.o\
-type_CenteredCyclicReductionUtility.o\
+centered_real_linear_systems_solver.o\
 three_dimensional_solvers.o\
-type_StaggeredCyclicReductionUtility.o\
+staggered_real_linear_systems_solver.o\
 sepeli.o\
 sepx4.o\
 centered_helmholtz_solvers.o \

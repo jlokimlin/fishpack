@@ -244,7 +244,7 @@ contains
         type(CenteredCyclicReductionUtility) :: util
 
         ! Allocate memory
-        workspace = get_workspace(n, m)
+        workspace = genbun_get_workspace(n, m)
 
         ! Solve system
         associate( rew => workspace%real_workspace )
@@ -255,5 +255,26 @@ contains
         call workspace%destroy()
 
     end subroutine genbun
+
+    function genbun_get_workspace(n, m) &
+        result (return_value)
+
+        ! Dummy arguments
+        integer(ip), intent(in)  :: n, m
+        type(FishpackWorkspace)  :: return_value
+
+        ! Local variables
+        integer(ip)  :: irwk, icwk
+
+        ! Get workspace dimensions for genbun
+        call return_value%compute_genbun_workspace_lengths(n, m, irwk)
+
+        ! No need to allocate complex arrays
+        icwk = 0
+
+        ! Allocate memory
+        call return_value%create(irwk, icwk)
+
+    end function genbun_get_workspace
 
 end module centered_real_linear_systems_solver

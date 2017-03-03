@@ -1,4 +1,3 @@
-!     file type_SepAux.f90
 !
 !     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 !     *                                                               *
@@ -44,22 +43,9 @@
 !                        no usage instructions or argument descriptions
 !                        are given here.
 !
-! SPECIAL CONDITIONS     None
-!
-! I/O                    None
-!
-! PRECISION              64-bit double precision
-!
-! REQUIRED LIBRARY       None
-! FILES
-!
-! STANDARD               Fortran 2008
-!
 ! HISTORY                * Developed in the late 1970's by John C. Adams
 !                        of NCAR's scienttific computing division.
 !                        * Revised in June 2004 incorporating fortran 90
-!                        features
-!                        * Revised in April 2016 incorporating Fortran 2008
 !                        features
 !
 !
@@ -78,36 +64,28 @@ module type_SepAux
     public :: get_coefficients
 
     type, public :: SepAux
-        !---------------------------------------------------------------
         ! Type components
-        !---------------------------------------------------------------
         integer(ip), public :: kswx, kswy, k, l, mit, nit, is, ms, js, ns
         real(wp),    public :: ait, bit, cit, dit
         real(wp),    public :: dlx, dly, tdlx3, tdly3, dlx4, dly4
-        !---------------------------------------------------------------
     contains
-        !---------------------------------------------------------------
         ! Type-bound procedures
-        !---------------------------------------------------------------
         procedure, public :: seport
         procedure, public :: sepmin
         procedure, public :: septri
         procedure, public :: sepdx
         procedure, public :: sepdy
-        !---------------------------------------------------------------
     end type SepAux
 
     interface
         pure subroutine get_coefficients(x, a, b, c)
             import :: wp
-            !-----------------------------------------------
+
             ! Dummy arguments
-            !-----------------------------------------------
             real(wp), intent(in)  :: x
             real(wp), intent(out) :: a
             real(wp), intent(out) :: b
             real(wp), intent(out) :: c
-            !-----------------------------------------------
         end subroutine get_coefficients
     end interface
 
@@ -120,20 +98,20 @@ contains
         !    this subroutine orthoganalizes the array usol with respect to
         !     the constant array in a weighted least squares norm
         !
-        !--------------------------------------------------------------
+
         ! Dummy arguments
-        !--------------------------------------------------------------
+
         class(SepAux), intent(inout) :: this
         real(wp),      intent(inout) :: usol(:,:)
         real(wp),      intent(in)     :: zn(:)
         real(wp),      intent(in)     :: zm(:)
         real(wp),      intent(out)    :: pertrb
-        !--------------------------------------------------------------
+
         ! Local variables
-        !--------------------------------------------------------------
+
         integer(ip) :: istr, ifnl, jstr, jfnl, i, ii
         real(wp)    :: ute, ete
-        !--------------------------------------------------------------
+
 
         ! Associate various quantities
         associate( &
@@ -199,20 +177,20 @@ contains
         !     to be minimized with respect to the weighted
         !     least squares norm
         !
-        !--------------------------------------------------------------
+
         ! Dummy arguments
-        !--------------------------------------------------------------
+
         class(SepAux), intent(inout) :: this
         real(wp),      intent(inout) :: usol(:,:)
         real(wp),      intent(in)     :: zn(:)
         real(wp),      intent(in)     :: zm(:)
         real(wp),      intent(out)    :: pertrb
-        !--------------------------------------------------------------
+
         ! Local variables
-        !--------------------------------------------------------------
+
         integer(ip) :: istr, ifnl, jstr, jfnl, i, ii
         real(wp)    :: ute, ete
-        !-----------------------------------------------
+
 
         ! Associate various quantities
         associate( &
@@ -271,9 +249,9 @@ contains
         !     superdiagonal c , with a(1) in the (1, n) position, with
         !     c(n) in the (n, 1) position, and all other elements zero.
         !
-        !--------------------------------------------------------------
+
         ! Dummy arguments
-        !--------------------------------------------------------------
+
         class(SepAux), intent(inout) :: this
         integer(ip),   intent(in)     :: n
         real(wp),      intent(in)     :: a(n)
@@ -282,12 +260,12 @@ contains
         real(wp),      intent(inout) :: d(n)
         real(wp),      intent(inout) :: u(n)
         real(wp),      intent(inout) :: z(n)
-        !--------------------------------------------------------------
+
         ! Local variables
-        !--------------------------------------------------------------
+
         integer(ip) :: nm2, j, nm1
         real(wp)    :: bn, v, den, an
-        !--------------------------------------------------------------
+
 
         ! Associate various quantities
         associate( &
@@ -348,24 +326,21 @@ contains
 
     end subroutine septri
 
-
+    !
+    !     this program computes second order finite difference
+    !     approximations to the third and fourth x
+    !     partial derivatives of u at the (i, j) mesh point
+    !
+    !
     pure subroutine sepdx(this, u, i, j, uxxx, uxxxx)
-        !
-        !     this program computes second order finite difference
-        !     approximations to the third and fourth x
-        !     partial derivatives of u at the (i, j) mesh point
-        !
-        !
-        !--------------------------------------------------------------
+
         ! Local variables
-        !--------------------------------------------------------------
         class(SepAux), intent(inout) :: this
         integer(ip),   intent(in)     :: i
         integer(ip),   intent(in)     :: j
         real(wp),      intent(out)    :: uxxx
         real(wp),      intent(out)    :: uxxxx
         real(wp),      intent(in)     :: u(:,:)
-        !--------------------------------------------------------------
 
         ! Associate various quantities
         associate( &
@@ -471,26 +446,23 @@ contains
 
     end subroutine sepdx
 
-
+    !
+    ! Purpose:
+    !
+    !     this program computes second order finite difference
+    !     approximations to the third and fourth y
+    !     partial derivatives of u at the (i, j) mesh point
+    !
     pure subroutine sepdy(this, u, idmn, i, j, uyyy, uyyyy)
-        !
-        ! Purpose:
-        !
-        !     this program computes second order finite difference
-        !     approximations to the third and fourth y
-        !     partial derivatives of u at the (i, j) mesh point
-        !
-        !--------------------------------------------------------------
+
         ! Dummy arguments
-        !--------------------------------------------------------------
         class(SepAux), intent(inout) :: this
-        integer(ip),   intent(in)     :: idmn
-        integer(ip),   intent(in)     :: i
-        integer(ip),   intent(in)     :: j
-        real(wp),      intent(out)    :: uyyy
-        real(wp),      intent(out)    :: uyyyy
-        real(wp),      intent(in)     :: u(idmn, 6)
-        !--------------------------------------------------------------
+        integer(ip),   intent(in)    :: idmn
+        integer(ip),   intent(in)    :: i
+        integer(ip),   intent(in)    :: j
+        real(wp),      intent(out)   :: uyyy
+        real(wp),      intent(out)   :: uyyyy
+        real(wp),      intent(in)    :: u(idmn, 6)
 
         ! Associate various quantities
         associate( &
@@ -612,15 +584,3 @@ contains
     end subroutine sepdy
 
 end module type_SepAux
-!
-! REVISION HISTORY
-!
-! September 1973    Version 1
-! April     1976    Version 2
-! January   1978    Version 3
-! December  1979    Version 3.1
-! February  1985    Documentation upgrade
-! November  1988    Version 3.2, FORTRAN 77 changes
-! June      2004    Version 5.0, Fortran 90 changes
-! May       2016    Fortran 2008 changes
-!
