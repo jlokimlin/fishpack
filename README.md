@@ -17,7 +17,7 @@ A collection of Fortran programs and subroutines that solve 2nd- and 4th-order f
 
 These include Helmholtz equations in cartesian, polar, cylindrical, and spherical coordinates, as well as more general separable elliptic equations. The solvers use the cyclic reduction algorithm. When the problem is singular, a least-squares solution is computed. Singularities induced by the coordinate system are handled, including at the origin *r=0* in cylindrical coordinates, and at the poles in spherical coordinates.
 
-Test programs are provided for the 19 solvers. Each serves two purposes: as a template to guide you in writing your own codes utilizing the fishpack solvers, and as a demonstration that you can correctly produce the executables. 
+Test programs are provided for the 19 solvers in the `examples` folder. Each serves two purposes: as a template to guide you in writing your own codes utilizing the fishpack solvers, and as a demonstration that you can correctly produce the executables. 
 
 -----------------------------------------------------------------------------
 
