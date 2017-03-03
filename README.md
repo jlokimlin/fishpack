@@ -1,11 +1,11 @@
-# **modern\_fishpack - A Fortran library for solving of separable elliptic partial differential equations**
+# **fishpack - A Fortran library for solving of separable elliptic partial differential equations**
  
 A modernization of NCAR's FISHPACK90.
 
 * The original work, written in both FORTRAN 77 and Fortran 90, was heavily refactored to incorporate features of modern Fortran (2008+). 
 * The library is now fully Fortran 2008 (ISO/IEC 1539-1:2010) compliant.
 * Every common block, subroutine, and function is now encapsulated in a module. 
-* Numerous memory leaks in the derived data type fishworkspace, now refactored as FishpackWorkspace, are resolved by replacing pointers with allocatable arrays. A valgrind run confirms the fix.
+* Numerous memory leaks in the derived data type `fishworkspace`, now refactored as `FishpackWorkspace`, are resolved by replacing pointers with allocatable arrays. A valgrind run confirms the fix.
 * This project is still a work in progress and every refactored solver passes their original unit test.
 
 -----------------------------------------------------------------------------
@@ -15,7 +15,7 @@ A modernization of NCAR's FISHPACK90.
 
 A collection of Fortran programs and subroutines that solve 2nd- and 4th-order finite difference approximations to separable elliptic Partial Differential Equations (PDEs). 
 
-These include Helmholtz equations in cartesian, polar, cylindrical, and spherical coordinates, as well as more general separable elliptic equations. The solvers use the cyclic reduction algorithm. When the problem is singular, a least-squares solution is computed. Singularities induced by the coordinate system are handled, including at the origin r=0 in cylindrical coordinates, and at the poles in spherical coordinates.
+These include Helmholtz equations in cartesian, polar, cylindrical, and spherical coordinates, as well as more general separable elliptic equations. The solvers use the cyclic reduction algorithm. When the problem is singular, a least-squares solution is computed. Singularities induced by the coordinate system are handled, including at the origin *r=0* in cylindrical coordinates, and at the poles in spherical coordinates.
 
 Test programs are provided for the 19 solvers. Each serves two purposes: as a template to guide you in writing your own codes utilizing the fishpack solvers, and as a demonstration that you can correctly produce the executables. 
 
