@@ -749,14 +749,14 @@ contains
 
         ! Dummy arguments
         class(ComplexGeneralizedCyclicReductionUtility), intent(inout) :: self
-        integer(ip),      intent(out)   :: ierror
-        real(wp),         intent(in)    :: an(:)
-        real(wp),         intent(in)    :: bn(:)
-        real(wp),         intent(in)    :: cn(:)
-        real(wp), target, intent(inout) :: b(:)
-        real(wp),         intent(inout) :: ah(:)
-        real(wp),         intent(inout) :: bh(:)
-        complex(wp),      intent(inout) :: bc(:)
+        integer(ip),                  intent(out)   :: ierror
+        real(wp),                     intent(in)    :: an(:)
+        real(wp),                     intent(in)    :: bn(:)
+        real(wp),                     intent(in)    :: cn(:)
+        real(wp), target, contiguous, intent(inout) :: b(:)
+        real(wp),                     intent(inout) :: ah(:)
+        real(wp),                     intent(inout) :: bh(:)
+        complex(wp),                  intent(inout) :: bc(:)
 
         ! Local variables
         integer(ip) :: j, iif, kdo, l, ir, i2, i4
